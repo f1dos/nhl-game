@@ -181,6 +181,19 @@ async function shlPlayers() {
     entries.set(x.id, rated("SHL",x));
   }
   if(entries.size<100) {
+    try {
+      const layout=get("https://www.shl.se/api/statistics-v2/layout-info");
+      console.log("SHL layout top keys",Object.keys(layout),"is array",Array.isArray(layout));
+      console.log("SHL layout sample",JSON.stringify(layout).slice(0,850));
+      const rows=collectPeople(layout, x => /2026\/2027|2026-2027|2026\/27/.test(String(x.season?.name || x.seasonName || "")) && !!x.series);
+      console.log("SHL 2026/27 layout groups",rows.length,JSON.stringify(rows.slice(0,3)).slice(0,3600));
+      const group=rows.find(x=>String(x.series?.code).toUpperCase()==="SHL" && /regular|grundserie/i.test(String(x.gameType?.code || x.gameType?.name || ""))) || rows[0];
+      console.log("SHL chosen group",JSON.stringify(group).slice(0,3200));
+      const direct=get("https://www.shl.se/api/sports-v2/athletes/by-team-uuid/087a-087aTQv9u");
+      console.log("SHL example roster",JSON.stringify(direct).slice(0,2800));
+    } catch(e){ console.log("SHL layout/roster diagnostic error", e.message);}
+  }
+  if(entries.size<100) {
     for(const url of [
       "https://www.shl.se/game-stats/players",
       "https://www.shl.se/api/statistics-v2/layout-info",
