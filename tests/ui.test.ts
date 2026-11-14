@@ -31,13 +31,20 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   await waitFor(() => assert(screen.getByText("Начать карьеру")));
   fireEvent.click(screen.getByText("Начать карьеру"));
   assert.equal(useGame.getState().game?.user, "TOR");
-  assert(screen.getByText('Повестка менеджера'));
-  fireEvent.click(screen.getByText('Настроить тренировки'));
-  fireEvent.click(screen.getByText('Восстановление'));
-  assert.equal(useGame.getState().game!.teams.find(t=>t.id==='TOR')!.training,'recovery');
+  assert(document.querySelector(".top-club-record"));
+  assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
+  assert(screen.getByText("Повестка менеджера"));
+  fireEvent.click(screen.getByText("Настроить тренировки"));
+  fireEvent.click(screen.getByText("Восстановление"));
+  assert.equal(
+    useGame.getState().game!.teams.find((t) => t.id === "TOR")!.training,
+    "recovery",
+  );
   fireEvent.click(screen.getByText("Состав"));
   assert(screen.getByText("ОСНОВНОЙ СОСТАВ И РЕЗЕРВ"));
-  fireEvent.change(screen.getByLabelText('Player sort'),{target:{value:'rating'}});
+  fireEvent.change(screen.getByLabelText("Player sort"), {
+    target: { value: "rating" },
+  });
   const name = useGame.getState().game!.teams.find((t) => t.id === "TOR")!
     .players[0].name;
   fireEvent.change(screen.getByPlaceholderText("Найти игрока…"), {
@@ -46,8 +53,12 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(name));
   fireEvent.click(screen.getByText(name));
   assert(screen.getByRole("dialog"));
+  assert(screen.getByText("СТАТУС И КОНТРАКТ"));
+  assert(document.querySelector(".attribute-sections"));
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   fireEvent.click(screen.getByText("Тактика и звенья"));
+  assert(document.querySelector(".chemistry"));
+  assert(document.querySelector(".tactic-analysis"));
   const before = useGame.getState().game!.teams.find((t) => t.id === "TOR")!;
   const lw = before.players.find(
     (p) => p.pos === "LW" && !before.lines.flat().includes(p.id),
@@ -66,17 +77,34 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(/FINAL/));
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
-  fireEvent.click(screen.getByText('Контракты и рынок'));
-  const expiring=useGame.getState().game!.teams.find(t=>t.id==='TOR')!.players.find(p=>p.years===1)!;
-  fireEvent.change(screen.getByLabelText('Contract player'),{target:{value:expiring.id}});
-  const requestedSalary=(screen.getByLabelText('Contract salary') as HTMLInputElement).value;
-  fireEvent.change(screen.getByLabelText('Contract salary'),{target:{value:'0.1'}});
-  fireEvent.click(screen.getByText('Предложить контракт'));
-  assert(screen.getByText('Invalid contract terms'));
-  fireEvent.change(screen.getByLabelText('Contract salary'),{target:{value:requestedSalary}});
-  fireEvent.click(screen.getByText('Предложить контракт'));
-  assert(screen.getByText('Контракт подписан'));
-  assert.equal(useGame.getState().game!.teams.find(t=>t.id==='TOR')!.players.find(p=>p.id===expiring.id)!.years,2);
+  fireEvent.click(screen.getByText("Контракты и рынок"));
+  const expiring = useGame
+    .getState()
+    .game!.teams.find((t) => t.id === "TOR")!
+    .players.find((p) => p.years === 1)!;
+  fireEvent.change(screen.getByLabelText("Contract player"), {
+    target: { value: expiring.id },
+  });
+  const requestedSalary = (
+    screen.getByLabelText("Contract salary") as HTMLInputElement
+  ).value;
+  fireEvent.change(screen.getByLabelText("Contract salary"), {
+    target: { value: "0.1" },
+  });
+  fireEvent.click(screen.getByText("Предложить контракт"));
+  assert(screen.getByText("Invalid contract terms"));
+  fireEvent.change(screen.getByLabelText("Contract salary"), {
+    target: { value: requestedSalary },
+  });
+  fireEvent.click(screen.getByText("Предложить контракт"));
+  assert(screen.getByText("Контракт подписан"));
+  assert.equal(
+    useGame
+      .getState()
+      .game!.teams.find((t) => t.id === "TOR")!
+      .players.find((p) => p.id === expiring.id)!.years,
+    2,
+  );
   fireEvent.click(screen.getByText("Сохранения"));
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "en" } });
   assert(screen.getByText("Saves & settings"));

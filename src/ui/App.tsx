@@ -29,24 +29,123 @@ import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
 import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
 import MatchCenter from "./MatchCenter";
-import TradeCenter from './TradeCenter';
-import ContractCenter from './ContractCenter';
-import {ManagerWorkspace,TrainingCenter} from './ManagerWorkspace';
+import TradeCenter from "./TradeCenter";
+import ContractCenter from "./ContractCenter";
+import { ManagerWorkspace, TrainingCenter } from "./ManagerWorkspace";
+import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 const nav = [
-  ["development", "Развитие и подготовка", "Development & training", Activity],
-  ["contracts", "Контракты и рынок", "Contracts & market", Wallet],
-  ["trades", "Обмены", "Trade Center", Users],
-  ["overview", "Обзор клуба", "Club overview", LayoutDashboard],
-  ["inbox", "Входящие", "Inbox", Mail],
-  ["roster", "Состав", "Roster", Users],
-  ["tactics", "Тактика и звенья", "Tactics & lines", Workflow],
-  ["schedule", "Календарь", "Schedule", CalendarDays],
-  ["match", "Матч-центр", "Match center", Activity],
-  ["league", "Таблица лиги", "League table", Trophy],
-  ["stats", "Статистика", "Statistics", BarChart3],
-  ["finances", "Финансы", "Finances", Wallet],
-  ["history", "Карьера", "Career history", History],
-  ["settings", "Сохранения", "Save manager", Settings],
+  {
+    key: "overview",
+    ru: "Обзор клуба",
+    en: "Club overview",
+    Icon: LayoutDashboard,
+    groupRu: "РАБОЧИЙ СТОЛ",
+    groupEn: "WORKSPACE",
+  },
+  {
+    key: "inbox",
+    ru: "Входящие",
+    en: "Inbox",
+    Icon: Mail,
+    groupRu: "РАБОЧИЙ СТОЛ",
+    groupEn: "WORKSPACE",
+  },
+  {
+    key: "roster",
+    ru: "Состав",
+    en: "Roster",
+    Icon: Users,
+    groupRu: "КОМАНДА",
+    groupEn: "TEAM",
+  },
+  {
+    key: "tactics",
+    ru: "Тактика и звенья",
+    en: "Tactics & lines",
+    Icon: Workflow,
+    groupRu: "КОМАНДА",
+    groupEn: "TEAM",
+  },
+  {
+    key: "development",
+    ru: "Развитие",
+    en: "Development",
+    Icon: Activity,
+    groupRu: "КОМАНДА",
+    groupEn: "TEAM",
+  },
+  {
+    key: "contracts",
+    ru: "Контракты и рынок",
+    en: "Contracts & market",
+    Icon: Wallet,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "trades",
+    ru: "Обмены",
+    en: "Trade Center",
+    Icon: Users,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "finances",
+    ru: "Финансы",
+    en: "Finances",
+    Icon: BarChart3,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "schedule",
+    ru: "Календарь",
+    en: "Schedule",
+    Icon: CalendarDays,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "match",
+    ru: "Матч-центр",
+    en: "Match center",
+    Icon: Activity,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "league",
+    ru: "Таблица лиги",
+    en: "League table",
+    Icon: Trophy,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "stats",
+    ru: "Статистика",
+    en: "Statistics",
+    Icon: BarChart3,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "history",
+    ru: "История карьеры",
+    en: "Career history",
+    Icon: History,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "settings",
+    ru: "Сохранения",
+    en: "Save manager",
+    Icon: Settings,
+    groupRu: "СИСТЕМА",
+    groupEn: "SYSTEM",
+  },
 ] as const;
 export default function App() {
   const { game: g, edit, setGame, error, clearError } = useGame();
@@ -295,7 +394,7 @@ export default function App() {
         (t) => t.id === (fixture.home === g.user ? fixture.away : fixture.home),
       )
     : undefined;
-  const title = nav.find((n) => n[0] === page)!;
+  const title = nav.find((n) => n.key === page)!;
   const salary = team.players.reduce((n, p) => n + p.salary, 0);
   const roster = team.players.filter(
     (p) =>
@@ -404,9 +503,10 @@ export default function App() {
         );
       });
   let content: ReactNode;
-  if (page === "development") content=<TrainingCenter game={g} edit={edit}/>;
-  else if (page === "contracts") content=<ContractCenter game={g} edit={edit}/>;
-  else if (page === "trades") content=<TradeCenter game={g} edit={edit}/>;
+  if (page === "development") content = <TrainingCenter game={g} edit={edit} />;
+  else if (page === "contracts")
+    content = <ContractCenter game={g} edit={edit} />;
+  else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
   else if (page === "overview")
     content = (
       <>
@@ -439,7 +539,7 @@ export default function App() {
             </small>
           </span>
         </div>
-        <ManagerWorkspace game={g} edit={edit} go={go} onPlayer={setProfile}/>
+        <ManagerWorkspace game={g} edit={edit} go={go} onPlayer={setProfile} />
         <div className="metrics">
           <Metric
             label={tr("МЕСТО В КОНФЕРЕНЦИИ", "CONFERENCE POSITION")}
@@ -1112,27 +1212,24 @@ export default function App() {
           </div>
           <span className="status-dot" />
         </div>
-        <div className="nav-label">
-          {tr("УПРАВЛЕНИЕ КЛУБОМ", "CLUB MANAGEMENT")}
-        </div>
         <nav>
-          {nav.map(([key, r, e, Icon], i) => (
-            <div key={key}>
-              {key === 'league' && (
-                <div className="nav-label">
-                  {tr("ХОККЕЙНЫЙ МИР", "HOCKEY WORLD")}
-                </div>
-              )}
-              <button
-                className={page === key ? "active" : ""}
-                onClick={() => go(key)}
-              >
-                <Icon size={17} />
-                <span>{ru ? r : e}</span>
-                {key === "inbox" && <em>{g.news.length}</em>}
-              </button>
-            </div>
-          ))}
+          {nav.map(
+            ({ key, ru: labelRu, en: labelEn, Icon, groupRu, groupEn }, i) => (
+              <div key={key}>
+                {(i === 0 || nav[i - 1].groupRu !== groupRu) && (
+                  <div className="nav-label">{ru ? groupRu : groupEn}</div>
+                )}
+                <button
+                  className={page === key ? "active" : ""}
+                  onClick={() => go(key)}
+                >
+                  <Icon size={17} />
+                  <span>{ru ? labelRu : labelEn}</span>
+                  {key === "inbox" && <em>{g.news.length}</em>}
+                </button>
+              </div>
+            ),
+          )}
         </nav>
         <div className="sidebar-bottom">
           <div className="manager-avatar">GM</div>
@@ -1149,9 +1246,19 @@ export default function App() {
           <div className="breadcrumb">
             {team.id}
             <ChevronRight size={14} />
-            <span>{ru ? title[1] : title[2]}</span>
+            <span>{ru ? title.ru : title.en}</span>
           </div>
           <div className="top-actions">
+            <span className="top-club-record">
+              <b>
+                {team.record.w}-{team.record.l}-{team.record.otl}
+              </b>
+              <small>
+                {team.record.pts} PTS ·{" "}
+                {team.record.gf - team.record.ga >= 0 ? "+" : ""}
+                {team.record.gf - team.record.ga}
+              </small>
+            </span>
             <span className="game-date">
               <CalendarDays size={15} />
               {g.phase === "regular"
@@ -1308,6 +1415,11 @@ function TacticsView({
   onSelect: (p: Player) => void;
 }) {
   const [drag, setDrag] = useState("");
+  const assessment = tacticalAssessment(team.tactics);
+  const chemistry = (ids: string[]) =>
+    lineChemistry(
+      ids.map((id) => team.players.find((p) => p.id === id)!).filter(Boolean),
+    );
   function replace(old: string, id: string) {
     edit((g) => {
       const t = g.teams.find((t) => t.id === g.user)!;
@@ -1390,6 +1502,11 @@ function TacticsView({
                 <span className="line-index">
                   0{i + 1}
                   <small>{[30, 30, 20, 20][i]}%</small>
+                  <b
+                    className={`chemistry ${chemistry(line) >= 80 ? "elite" : chemistry(line) < 65 ? "warning" : ""}`}
+                  >
+                    {chemistry(line)}
+                  </b>
                 </span>
                 {line.map(slot)}
               </div>
@@ -1398,7 +1515,14 @@ function TacticsView({
           <Panel title={tr("ПАРЫ ЗАЩИТНИКОВ", "DEFENSIVE PAIRS")}>
             {team.defense.map((line, i) => (
               <div className="line-row defense" key={i}>
-                <span className="line-index">0{i + 1}</span>
+                <span className="line-index">
+                  0{i + 1}
+                  <b
+                    className={`chemistry ${chemistry(line) >= 80 ? "elite" : chemistry(line) < 65 ? "warning" : ""}`}
+                  >
+                    {chemistry(line)}
+                  </b>
+                </span>
                 {line.map(slot)}
               </div>
             ))}
@@ -1453,6 +1577,33 @@ function TacticsView({
                   />
                 </label>
               ))}
+              <div className="tactic-analysis">
+                {(
+                  [
+                    [tr("Владение", "Possession"), assessment.possession],
+                    [
+                      tr("Объём моментов", "Chance volume"),
+                      assessment.chanceVolume,
+                    ],
+                    [
+                      tr("Стабильность защиты", "Defensive stability"),
+                      assessment.defensiveStability,
+                    ],
+                    [
+                      tr("Риск удалений", "Penalty risk"),
+                      assessment.penaltyRisk,
+                    ],
+                  ] as [string, number][]
+                ).map(([label, value]) => (
+                  <div key={label}>
+                    <span>{label}</span>
+                    <i>
+                      <em style={{ width: `${value}%` }} />
+                    </i>
+                    <b>{value}</b>
+                  </div>
+                ))}
+              </div>
               <p className="note">
                 {tr(
                   "2-1-2 повышает контроль шайбы и риск контратак. 1-3-1 снижает качество моментов соперника. Высокая интенсивность увеличивает риск удалений.",
@@ -1490,6 +1641,62 @@ function PlayerProfile({
   tr: (a: string, b: string) => string;
   onClose: () => void;
 }) {
+  const skaterCategories: [string, string[]][] = [
+    [
+      tr("АТАКА", "OFFENSE"),
+      [
+        "shooting",
+        "accuracy",
+        "passing",
+        "puckControl",
+        "offensivePosition",
+        "offPuck",
+        "faceoffs",
+      ],
+    ],
+    [
+      tr("ЗАЩИТА", "DEFENSE"),
+      ["defensivePosition", "checking", "blocking", "firstPass", "penaltyKill"],
+    ],
+    [
+      tr("КАТАНИЕ И ФИЗИКА", "SKATING & PHYSICAL"),
+      ["speed", "acceleration", "skating", "strength", "stamina", "durability"],
+    ],
+    [
+      tr("МЕНТАЛЬНЫЕ", "MENTAL"),
+      [
+        "composure",
+        "discipline",
+        "leadership",
+        "decisions",
+        "consistency",
+        "teamwork",
+        "resilience",
+      ],
+    ],
+  ];
+  const goalieCategories: [string, string[]][] = [
+    [
+      tr("МЕНТАЛЬНЫЕ", "MENTAL"),
+      ["composure", "discipline", "decisions", "consistency", "resilience"],
+    ],
+    [
+      tr("ВРАТАРСКИЕ", "GOALTENDING"),
+      [
+        "reflexes",
+        "goaliePosition",
+        "glove",
+        "reboundControl",
+        "stickhandling",
+      ],
+    ],
+  ];
+  const visibleCategories = p.pos === "G" ? goalieCategories : skaterCategories;
+  const career =
+    p.history.reduce((n, h) => n + h.stats.g + h.stats.a, 0) +
+    p.stats.g +
+    p.stats.a;
+  const previous = p.history.at(-1)?.ovr ?? p.ovr;
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section
@@ -1506,19 +1713,36 @@ function PlayerProfile({
         >
           <X size={22} />
         </button>
-        <div className="profile-top">
-          <span className="jersey">{p.number}</span>
+        <div className="profile-hero">
+          <div className="profile-number">
+            <span>{p.number}</span>
+            <small>{p.pos}</small>
+          </div>
           <div>
             <span className="eyebrow">
               {p.pos} · {p.nation} · {p.age} {tr("ЛЕТ", "YEARS OLD")}
             </span>
             <h1>{p.name}</h1>
             <p>
-              ${p.salary.toFixed(2)}M / {tr("год", "year")} · {p.years}{" "}
-              {tr("лет контракта", "contract years")}
+              {p.archetype || tr("Универсальный игрок", "Utility player")} ·{" "}
+              {p.injury
+                ? tr(`Травма: ${p.injury} шагов`, `Injured: ${p.injury} steps`)
+                : tr("Готов к игре", "Available")}
             </p>
           </div>
-          <Rating value={p.ovr} />
+          <div className="profile-ratings">
+            <div>
+              <b>{p.ovr}</b>
+              <small>OVR</small>
+            </div>
+            <div>
+              <b>{p.potential}</b>
+              <small>POT</small>
+            </div>
+            <span className={p.ovr >= previous ? "up" : "down"}>
+              {p.ovr >= previous ? "↗" : "↘"} {Math.abs(p.ovr - previous)}
+            </span>
+          </div>
         </div>
         <div className="profile-summary">
           {[
@@ -1535,28 +1759,92 @@ function PlayerProfile({
             </div>
           ))}
         </div>
-        <div className="attribute-grid">
-          {Object.entries(p.attributes).map(([k, v]) => (
-            <div key={k}>
-              <span>{k.replace(/([A-Z])/g, " $1")}</span>
-              <i>
-                <em style={{ width: `${v}%` }} />
-              </i>
-              <b>{v}</b>
-            </div>
-          ))}
+        <div className="profile-body">
+          <div className="attribute-sections">
+            {visibleCategories.map(([title, keys]) => (
+              <section key={title}>
+                <h3>{title}</h3>
+                <div className="attribute-grid">
+                  {keys.map((k) => {
+                    const v = p.attributes[k];
+                    return (
+                      <div key={k}>
+                        <span>{k.replace(/([A-Z])/g, " $1")}</span>
+                        <i>
+                          <em
+                            className={
+                              v >= 80 ? "strong" : v < 65 ? "weak" : ""
+                            }
+                            style={{ width: `${v}%` }}
+                          />
+                        </i>
+                        <b>{v}</b>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+          <aside className="profile-facts">
+            <h3>{tr("СТАТУС И КОНТРАКТ", "STATUS & CONTRACT")}</h3>
+            <dl>
+              <div>
+                <dt>{tr("Зарплата", "Cap hit")}</dt>
+                <dd>${p.salary.toFixed(2)}M</dd>
+              </div>
+              <div>
+                <dt>{tr("Срок", "Term")}</dt>
+                <dd>
+                  {p.years} {tr("лет", "years")}
+                </dd>
+              </div>
+              <div>
+                <dt>{tr("Мораль", "Morale")}</dt>
+                <dd>{p.morale}%</dd>
+              </div>
+              <div>
+                <dt>{tr("Готовность", "Condition")}</dt>
+                <dd>{Math.round(100 - p.fatigue)}%</dd>
+              </div>
+              <div>
+                <dt>{tr("Очки за карьеру", "Career points")}</dt>
+                <dd>{career}</dd>
+              </div>
+            </dl>
+            <h3>{tr("ОЦЕНКА РОЛИ", "ROLE FIT")}</h3>
+            <p>{p.archetype || "—"}</p>
+            <progress max="100" value={p.ovr} />
+            <small>
+              {tr(
+                "Рейтинг рассчитан с весами позиции и архетипа.",
+                "Rating uses position and archetype weights.",
+              )}
+            </small>
+          </aside>
         </div>
-        <p className="note">
-          {tr("Потенциал", "Potential")}: {p.potential} ·{" "}
-          {tr("Мораль", "Morale")}: {p.morale} · {tr("Усталость", "Fatigue")}:{" "}
-          {Math.round(p.fatigue)}% ·{" "}
-          {tr("Травма, игровых дней", "Injury, game days")}: {p.injury}
-        </p>
         {p.history.length > 0 && (
           <>
             <h3>
               {tr("История регулярных сезонов", "Regular season history")}
             </h3>
+            <div className="development-chart">
+              {p.history.map((h) => (
+                <div key={h.year}>
+                  <i style={{ height: `${Math.max(8, h.ovr - 40) * 2}px` }} />
+                  <span>{h.ovr}</span>
+                  <small>{h.year}</small>
+                </div>
+              ))}
+              <div>
+                <i
+                  className="current"
+                  style={{ height: `${Math.max(8, p.ovr - 40) * 2}px` }}
+                />
+                <span>{p.ovr}</span>
+                <small>{tr("Сейчас", "Now")}</small>
+              </div>
+            </div>
             <table>
               <thead>
                 <tr>

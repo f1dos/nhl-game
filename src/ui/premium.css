@@ -1,0 +1,351 @@
+:root {
+  --panel: #141a21;
+  --panel-raised: #18212b;
+  --line: #2a3541;
+  --ice: #62bcea;
+  --positive: #6fd0a8;
+  --danger: #e48383;
+}
+.sidebar {
+  background: #0e1319;
+}
+.sidebar .brand {
+  background: #0b1015;
+  border-bottom: 1px solid #202a34;
+}
+.club-identity {
+  background: #151e27;
+  margin: 12px 12px 16px;
+  padding: 13px;
+  border: 1px solid #293746;
+}
+.nav-label {
+  margin: 18px 14px 7px;
+  color: #60758a;
+  letter-spacing: 1.5px;
+}
+.sidebar nav {
+  padding-bottom: 20px;
+}
+.sidebar nav button {
+  border-left: 2px solid transparent;
+}
+.sidebar nav button.active {
+  border-left-color: var(--ice);
+  box-shadow: none;
+  background: #173147;
+}
+.topbar {
+  background: #0f151c;
+  height: 76px;
+}
+.breadcrumb {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.top-actions {
+  height: 100%;
+}
+.top-club-record {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 1px solid #2a3541;
+  padding-left: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.top-club-record b {
+  font-size: 14px;
+}
+.top-club-record small {
+  font-size: 10px;
+  margin-top: 3px;
+}
+.content {
+  background: radial-gradient(circle at 65% -10%, #16253255, transparent 34%);
+  min-height: calc(100vh - 76px);
+}
+.chemistry {
+  display: block;
+  font:
+    700 10px Inter,
+    sans-serif;
+  color: #b5c5d6;
+  margin-top: 7px;
+}
+.chemistry:before {
+  content: "CHEM ";
+  font-size: 7px;
+  color: #66798c;
+}
+.chemistry.elite {
+  color: #71d0a9;
+}
+.chemistry.warning {
+  color: #e59b82;
+}
+.tactic-analysis {
+  border-top: 1px solid #2b3744;
+  margin-top: 22px;
+  padding-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+.tactic-analysis > div {
+  display: grid;
+  grid-template-columns: 1fr 100px 28px;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  color: #9eb0c1;
+}
+.tactic-analysis i {
+  height: 4px;
+  background: #2d3b48;
+}
+.tactic-analysis em {
+  display: block;
+  height: 100%;
+  background: #55b5df;
+}
+.tactic-analysis b {
+  text-align: right;
+  color: #dce6ef;
+}
+.profile-modal {
+  max-width: 1050px;
+  padding: 0;
+  background: #111820;
+  border-color: #3c4c5d;
+}
+.profile-hero {
+  min-height: 178px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 35px 42px;
+  background: linear-gradient(110deg, #1a2d3d, #121b24 58%, #172834);
+  border-bottom: 1px solid #354554;
+}
+.profile-hero > div:nth-child(2) {
+  flex: 1;
+}
+.profile-hero h1 {
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: 42px;
+  letter-spacing: 0.2px;
+  margin: 7px 0;
+}
+.profile-hero p {
+  color: #9cb0c2;
+  font-size: 13px;
+}
+.profile-number {
+  width: 100px;
+  height: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #d9e7ef;
+  color: #172532;
+  clip-path: polygon(18% 0, 82% 0, 100% 24%, 86% 100%, 14% 100%, 0 24%);
+}
+.profile-number span {
+  font:
+    700 53px "Barlow Condensed",
+    Impact,
+    sans-serif;
+}
+.profile-number small {
+  color: #36536a;
+  font-weight: 800;
+}
+.profile-ratings {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.profile-ratings > div {
+  width: 66px;
+  height: 66px;
+  border: 1px solid #4f6578;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.profile-ratings b {
+  font:
+    700 28px "Barlow Condensed",
+    Impact,
+    sans-serif;
+}
+.profile-ratings small {
+  font-size: 8px;
+}
+.profile-ratings > span {
+  align-self: flex-end;
+  font-size: 11px;
+}
+.profile-ratings .up {
+  color: var(--positive);
+}
+.profile-ratings .down {
+  color: var(--danger);
+}
+.profile-summary {
+  margin: 0;
+  background: #17202a;
+  border-bottom: 1px solid #2d3a47;
+}
+.profile-body {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(230px, 0.8fr);
+  gap: 0;
+}
+.attribute-sections {
+  padding: 27px 34px;
+}
+.attribute-sections section + section {
+  margin-top: 25px;
+}
+.attribute-sections h3,
+.profile-facts h3 {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: #7f94a7;
+  margin-bottom: 15px;
+}
+.attribute-sections .attribute-grid {
+  margin: 0;
+  gap: 10px 30px;
+}
+.attribute-grid em.strong {
+  background: var(--positive);
+}
+.attribute-grid em.weak {
+  background: #c87878;
+}
+.profile-facts {
+  border-left: 1px solid #2d3945;
+  background: #141c24;
+  padding: 27px 25px;
+}
+.profile-facts dl {
+  margin: 0 0 30px;
+}
+.profile-facts dl > div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #2c3742;
+  padding: 11px 0;
+}
+.profile-facts dt {
+  color: #8498aa;
+}
+.profile-facts dd {
+  margin: 0;
+  font-weight: 700;
+}
+.profile-facts progress {
+  width: 100%;
+  accent-color: var(--positive);
+  margin: 12px 0;
+}
+.profile-facts > small {
+  display: block;
+  line-height: 1.6;
+}
+.profile-modal > h3 {
+  margin: 26px 34px 8px;
+}
+.profile-modal > table {
+  margin-bottom: 30px;
+}
+.development-chart {
+  height: 145px;
+  margin: 10px 34px 24px;
+  padding: 12px 12px 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: #0f151b;
+  border: 1px solid #293642;
+}
+.development-chart > div {
+  flex: 1;
+  min-width: 26px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+.development-chart i {
+  display: block;
+  width: 14px;
+  max-height: 95px;
+  background: #537895;
+}
+.development-chart i.current {
+  background: #65c4e8;
+}
+.development-chart span {
+  font-size: 10px;
+  margin-top: 5px;
+}
+.development-chart small {
+  font-size: 8px;
+  margin-top: 3px;
+}
+@media (max-width: 900px) {
+  .top-club-record {
+    display: none;
+  }
+  .profile-body {
+    grid-template-columns: 1fr;
+  }
+  .profile-facts {
+    border-left: 0;
+    border-top: 1px solid #2d3945;
+  }
+  .profile-hero {
+    padding: 28px 22px;
+  }
+  .profile-number {
+    width: 70px;
+    height: 82px;
+  }
+  .profile-number span {
+    font-size: 38px;
+  }
+  .profile-hero h1 {
+    font-size: 31px;
+  }
+}
+@media (max-width: 650px) {
+  .profile-ratings {
+    display: none;
+  }
+  .profile-hero {
+    gap: 14px;
+  }
+  .profile-number {
+    width: 54px;
+    height: 66px;
+  }
+  .profile-number span {
+    font-size: 30px;
+  }
+  .attribute-sections {
+    padding: 20px 17px;
+  }
+  .profile-facts {
+    padding: 20px 17px;
+  }
+  .development-chart {
+    margin: 10px 17px 20px;
+  }
+}
