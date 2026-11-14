@@ -1,0 +1,42 @@
+/* Organization & international scouting — data-dense, responsive game UI. */
+.farm-below-roster { margin-top: 28px; }
+.farm-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin:0 0 14px; }
+.farm-heading h2 { color:#e9edf4; font-size:22px; letter-spacing:-.025em; margin:6px 0 5px; font-weight:650; }
+.farm-heading p { margin:0; font-size:12px; color:#8999a9; }
+.farm-finance {display:grid;gap:5px;text-align:right;min-width:180px;}
+.farm-finance span { font-size:10px;letter-spacing:.12em;color:#879bb0; }
+.farm-finance b { font-size:14px;color:#b9d8e9; }
+.scout-leagues .page-intro { margin-bottom:20px; }
+.scout-league-tabs {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px;}
+.scout-league-tabs button {background:#131e2a;border:1px solid #2a3b4c;border-radius:4px;padding:13px 12px;display:grid;text-align:left;gap:4px;color:#a0b3c7;cursor:pointer;transition:background .16s,border-color .16s;}
+.scout-league-tabs button strong {font-size:15px;letter-spacing:.04em;color:#e7edf5;}
+.scout-league-tabs button small {font-size:10px;color:#8297ad;}
+.scout-league-tabs button.active {border-color:#56a7db;background:#183349;box-shadow:inset 0 2px 0 #56a7db;}
+.scout-league-tabs button:hover {background:#1d3041;}
+.scout-league-summary {display:grid;grid-template-columns:1.2fr .7fr .7fr 1.3fr;border:1px solid #293747;background:#101c29;margin-bottom:18px;}
+.scout-league-summary > div {display:grid;gap:4px;padding:16px;border-right:1px solid #293747;min-width:0;}
+.scout-league-summary > div:last-child {border-right:0;}
+.scout-league-summary small {font-size:10px;color:#8299b0;letter-spacing:.1em;}
+.scout-league-summary b {font-size:20px;color:#f0f5f9;}
+.scout-league-summary span {font-size:11px;color:#96aaba;overflow:hidden;text-overflow:ellipsis;}
+.scout-league-filters {display:flex;flex-wrap:wrap;gap:9px;margin:0 0 14px;padding:13px 14px;border-bottom:1px solid #263545;}
+.scout-league-filters input,.scout-league-filters select {background:#121f2b;color:#d9e5f0;border:1px solid #2d4153;padding:9px 10px;border-radius:3px;font-size:12px;min-width:130px;}
+.scout-league-filters input {flex:1;min-width:190px;}
+.scout-player-link {border:0;background:none;padding:0;text-align:left;color:#e6f0f7;cursor:pointer;}
+.scout-player-link strong {display:block;font-size:12px;}
+.scout-player-link small {font-size:10px;}
+.scout-player-link:hover strong {color:#6ac1ef;}
+.scout-league-table {min-width:750px;}
+.scout-league-table td:nth-child(2) {min-width:170px;}
+.scout-profile-overlay {position:fixed;inset:0;background:#030a12c9;display:flex;align-items:center;justify-content:center;padding:24px;z-index:1200;}
+.scout-profile {position:relative;background:#121e2a;border:1px solid #3d5972;width:min(520px,100%);padding:30px;color:#d5e4ef;box-shadow:0 24px 80px #000a;}
+.scout-profile h2 {font-size:27px;margin:12px 0;color:#f5f7f9;}
+.scout-profile p {font-size:13px;line-height:1.65;color:#a4b7c8;}
+.scout-close {position:absolute;right:16px;top:12px;background:transparent;border:0;color:#b2c7d8;font-size:28px;cursor:pointer;}
+.scout-profile-ratings {display:grid;grid-template-columns:1fr 1fr;border:1px solid #324657;margin:16px 0;}
+.scout-profile-ratings > div {padding:16px;display:grid;gap:5px;border-right:1px solid #324657;}
+.scout-profile-ratings > div:last-child {border-right:0;}
+.scout-profile-ratings small {font-size:10px;color:#8ba8bc;}
+.scout-profile-ratings b {font-size:30px;color:#e8f7ff;}
+@media(max-width:800px) {.scout-league-tabs {grid-template-columns:repeat(3,minmax(0,1fr));}.scout-league-summary {grid-template-columns:repeat(2,minmax(0,1fr));}.scout-league-summary>div:nth-child(2){border-right:0;}.scout-league-summary>div:nth-child(-n+2){border-bottom:1px solid #293747;}}
+@media(max-width:510px) {.scout-league-tabs {grid-template-columns:repeat(2,minmax(0,1fr));}.farm-heading {display:block;}.farm-finance{text-align:left;margin-top:10px;}.scout-league-filters{display:grid;}.scout-league-filters input,.scout-league-filters select {width:100%;}.scout-profile{padding:20px;}}
