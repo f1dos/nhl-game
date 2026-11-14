@@ -12,6 +12,7 @@ export interface Stats {
   wins: number;
 }
 export interface Player {
+  archetype?: import('./ratings').Archetype;
   id: string;
   name: string;
   number: number;
