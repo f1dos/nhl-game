@@ -45,7 +45,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Юниоры и лиги"));
   assert(screen.getByText("Юниорские и европейские лиги"));
   assert(screen.getByRole("tab", { name: /OHL/ }));
-  assert(screen.getByText("487") || document.querySelector(".scout-league-table"));
+  assert(document.querySelector(".scout-league-table"));
   fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Настроить тренировки"));
   fireEvent.click(screen.getByText("Восстановление"));
