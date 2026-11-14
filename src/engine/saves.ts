@@ -165,6 +165,48 @@ export function validateSave(value: unknown): Game {
     )
   )
     throw Error("Неверный календарь");
+  if (
+    g.calendar &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(g.calendar.date) ||
+      !Number.isInteger(g.calendar.day) ||
+      g.calendar.day < 0)
+  )
+    throw Error("Invalid management calendar");
+  if (
+    g.franchiseStrategy !== undefined &&
+    !["win-now", "balanced", "rebuild", "youth-development"].includes(
+      g.franchiseStrategy,
+    )
+  )
+    throw Error("Invalid franchise strategy");
+  if (g.events) {
+    if (
+      !Array.isArray(g.events) ||
+      new Set(g.events.map((event) => event.id)).size !== g.events.length ||
+      g.events.some(
+        (event) =>
+          !event.id ||
+          !event.date ||
+          !["low", "normal", "high", "critical"].includes(event.priority),
+      )
+    )
+      throw Error("Invalid management events");
+  }
+  if (g.draftAssets) {
+    if (
+      !Array.isArray(g.draftAssets) ||
+      new Set(g.draftAssets.map((asset) => asset.id)).size !==
+        g.draftAssets.length ||
+      g.draftAssets.some(
+        (asset) =>
+          !ids.has(asset.originalTeam) ||
+          !ids.has(asset.currentTeam) ||
+          asset.round < 1 ||
+          asset.round > 7,
+      )
+    )
+      throw Error("Invalid draft assets");
+  }
   return g;
 }
 const open = () =>
