@@ -163,12 +163,19 @@ button svg {
   height: 83px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 22px;
+  gap: 9px;
+  padding: 0 12px;
+  min-width: 0;
+  overflow: hidden;
   font-family: "Barlow Condensed", Impact, sans-serif;
-  font-size: 25px;
+  font-size: 23px;
   font-weight: 600;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
+}
+.brand-copy {
+  min-width: 0;
+  white-space: nowrap;
+  line-height: 1;
 }
 .brand b {
   color: var(--blue);
@@ -178,18 +185,15 @@ button svg {
   font:
     8px Inter,
     sans-serif;
-  letter-spacing: 2px;
-  margin-top: 3px;
+  letter-spacing: 1.35px;
+  margin-top: 5px;
 }
-.brand-shield {
-  font-family: "Barlow Condensed", Impact, sans-serif;
-  font-size: 18px;
-  background: #dce4ed;
-  color: #141a22;
-  clip-path: polygon(0 0, 100% 0, 90% 70%, 50% 100%, 10% 70%);
-  padding: 5px 5px 12px;
-  font-style: italic;
-  letter-spacing: -0.5px;
+.brand-logo {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(72, 169, 223, 0.2));
 }
 .club-identity {
   display: flex;
@@ -1556,8 +1560,18 @@ footer .status-dot {
     width: 190px;
   }
   .brand {
-    padding: 0 15px;
-    font-size: 22px;
+    padding: 0 9px;
+    gap: 7px;
+    font-size: 21px;
+  }
+  .brand-logo {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+  }
+  .brand small {
+    font-size: 7px;
+    letter-spacing: 1px;
   }
   .app > main {
     margin-left: 190px;
@@ -1682,8 +1696,10 @@ footer .status-dot {
   .sidebar-bottom {
     display: none;
   }
-  .sidebar .brand-shield {
-    font-size: 14px;
+  .sidebar .brand-logo {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
   }
   .sidebar nav {
     padding: 0 6px;
