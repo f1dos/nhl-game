@@ -19,6 +19,32 @@ export interface Player {
   identitySource?: "nhl-api" | "generated";
   ratingRank?: number;
   ratingSource?: "nhl-stats-model" | "generated";
+  contractSource?: "puckpedia" | "generated";
+  contractExpiryYear?: number;
+  contractStatus?: "UFA" | "RFA";
+  contractRemainingValue?: number;
+  performanceForm?: number;
+  formAdjustment?: number;
+  injuryBurden?: number;
+  motivation?: number;
+  relationship?: number;
+  lastConversationRound?: number;
+  conversationHistory?: {
+    year: number;
+    round: number;
+    topic: string;
+    tone: string;
+    response: string;
+    moraleDelta: number;
+    relationshipDelta: number;
+  }[];
+  developmentLog?: {
+    year: number;
+    delta: number;
+    reason: string;
+    ovrBefore: number;
+    ovrAfter: number;
+  }[];
   id: string;
   name: string;
   number: number;
@@ -191,6 +217,8 @@ export interface Game {
     source: string;
     fetchedAt: string;
     ratingModel?: string;
+    contractSource?: string;
+    contractsFetchedAt?: string;
   };
   version: 1;
   id: string;

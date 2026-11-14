@@ -9,6 +9,7 @@ import { injuryProbability, inflictInjury } from "./injuries";
 import { RNG, clamp } from "./random";
 import type { Team, Player, Result, Event } from "./types";
 import { lineChemistry } from "./tactics";
+import { snapshotStats, updateMatchPerformance } from "./performance";
 export function simulateMatch(
   home: Team,
   away: Team,
@@ -16,6 +17,7 @@ export function simulateMatch(
   playoffs = false,
 ): Result {
   const teams = [home, away];
+  const statsBefore = snapshotStats(teams);
   for (const t of teams) {
     if (
       !t.players.some((p) => p.pos === "G" && p.injury === 0) ||
@@ -119,7 +121,8 @@ export function simulateMatch(
       p.attributes[a] *
       (1 - p.fatigue * 0.002) *
       (p.injury ? 0.8 : 1) *
-      (0.92 + p.morale * 0.001)
+      (0.92 + p.morale * 0.001) *
+      (0.97 + (p.motivation ?? 50) * 0.0006)
     );
   }
   const avg = (ps: Player[], a: string) =>
@@ -305,5 +308,6 @@ export function simulateMatch(
         );
       }),
   );
+  updateMatchPerformance(teams, statsBefore, teams[winner].id);
   return res;
 }

@@ -47,6 +47,10 @@ export function signContract(
   // Renewals take effect immediately in this foundation model.
   p.salary = Math.round(salary * 100) / 100;
   p.years = years;
+  p.contractSource = "generated";
+  p.contractExpiryYear = g.year + years;
+  p.contractStatus = p.age < 27 ? "RFA" : "UFA";
+  p.contractRemainingValue = Math.round(p.salary * years * 100) / 100;
   if (free) {
     g.freeAgents = g.freeAgents!.filter((x) => x.id !== p.id);
     t.players.push(p);
@@ -63,11 +67,17 @@ export function signContract(
 export function expireContracts(g: Game) {
   g.freeAgents ??= [];
   for (const t of g.teams) {
-    for (const p of t.players) p.years = Math.max(0, p.years - 1);
+    for (const p of t.players) {
+      p.years = Math.max(0, p.years - 1);
+      p.contractRemainingValue = Math.round(p.salary * p.years * 100) / 100;
+    }
     g.freeAgents.push(...t.players.filter((p) => p.years === 0));
     t.players = t.players.filter((p) => p.years > 0);
     t.farm ??= [];
-    for (const p of t.farm) p.years = Math.max(0, p.years - 1);
+    for (const p of t.farm) {
+      p.years = Math.max(0, p.years - 1);
+      p.contractRemainingValue = Math.round(p.salary * p.years * 100) / 100;
+    }
     g.freeAgents.push(...t.farm.filter((p) => p.years === 0));
     t.farm = t.farm.filter((p) => p.years > 0);
   }

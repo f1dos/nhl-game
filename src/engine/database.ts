@@ -18,6 +18,10 @@ import {
   NHL_TEAM_LOGOS,
   type NhlRosterIdentity,
 } from "../data/nhl-2026-27";
+import {
+  NHL_CONTRACT_META,
+  NHL_CONTRACTS_BY_NAME,
+} from "../data/nhl-contracts-2026-27";
 const clubs = [
   ["BOS", "Boston", "Bruins", "Atlantic", "#eab743"],
   ["BUF", "Buffalo", "Sabres", "Atlantic", "#3267be"],
@@ -216,7 +220,6 @@ export function newGame(user = "TOR", seed = 260027): Game {
         .filter((p) => !essential.includes(p))
         .slice(0, 24 - essential.length),
     ];
-    normalizePayroll(active, RULES.defaultSalaryCapMillions * 0.92);
     const t: Team = {
       id,
       city,
@@ -256,7 +259,7 @@ export function newGame(user = "TOR", seed = 260027): Game {
     bracket: [],
     playoffRound: 0,
     news: [
-      "Создана новая карьера. Личности и составы 2026/27 синхронизированы с NHL API; игровые рейтинги и контракты являются демонстрационными.",
+      "Создана новая карьера. Составы и рейтинги 2026/27 синхронизированы с NHL API, контракты — с публичным снимком PuckPedia.",
     ],
     history: [],
     rules: { cap: RULES.defaultSalaryCapMillions },
@@ -267,6 +270,8 @@ export function newGame(user = "TOR", seed = 260027): Game {
       source: NHL_DATA_META.source,
       fetchedAt: NHL_DATA_META.fetchedAt,
       ratingModel: NHL_DATA_META.ratingModel,
+      contractSource: NHL_CONTRACT_META.source,
+      contractsFetchedAt: NHL_CONTRACT_META.fetchedAt,
     },
   };
 }
@@ -293,7 +298,35 @@ function createOfficialPlayer(
   player.headshot = identity.headshot;
   player.identitySource = "nhl-api";
   applyPlayerRating(player);
+  applyPlayerContract(player, teamId);
   return player;
+}
+
+const contractName = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+function applyPlayerContract(player: Player, teamId: string) {
+  const contract =
+    NHL_CONTRACTS_BY_NAME[`${teamId}|${contractName(player.name)}`];
+  if (!contract) {
+    player.contractSource = "generated";
+    player.contractRemainingValue =
+      Math.round(player.salary * player.years * 100) / 100;
+    return false;
+  }
+  player.salary = contract.aav / 1_000_000;
+  player.years = contract.remainingYears;
+  player.contractRemainingValue = contract.remainingValue / 1_000_000;
+  player.contractExpiryYear = contract.expiryYear;
+  player.contractStatus = contract.expiryStatus;
+  player.contractSource = "puckpedia";
+  return true;
 }
 
 function applyPlayerRating(player: Player) {
@@ -315,17 +348,6 @@ function applyPlayerRating(player: Player) {
   player.ratingSource = "nhl-stats-model";
 }
 
-function normalizePayroll(players: Player[], target: number) {
-  const aboveMinimum = players.reduce(
-    (sum, p) => sum + Math.max(0, p.salary - 0.8),
-    0,
-  );
-  const available = Math.max(0, target - players.length * 0.8);
-  const scale = aboveMinimum > available ? available / aboveMinimum : 1;
-  for (const player of players)
-    player.salary =
-      Math.round((0.8 + Math.max(0, player.salary - 0.8) * scale) * 100) / 100;
-}
 export const teamOverall = (t: Team) =>
   t.strengthRating ??
   Math.round(t.players.reduce((n, p) => n + p.ovr, 0) / t.players.length);
@@ -420,4 +442,31 @@ export function applyOfficialRatingsSnapshot(g: Game) {
   g.news.unshift(
     `Обновлены рейтинги ${updated} игроков. McDavid — 97 OVR; Carolina — 92 OVR / #1.`,
   );
+}
+
+export function applyOfficialContractSnapshot(g: Game) {
+  if (g.year !== 2026)
+    throw Error(
+      "Contract snapshot can only be applied at the 2026/27 career start",
+    );
+  let updated = 0;
+  for (const team of g.teams)
+    for (const player of [...team.players, ...(team.farm ?? [])])
+      if (
+        player.identitySource === "nhl-api" &&
+        applyPlayerContract(player, team.id)
+      )
+        updated++;
+  g.dataSource ??= {
+    kind: "official-identities-modeled-ratings",
+    season: NHL_DATA_META.season,
+    source: NHL_DATA_META.source,
+    fetchedAt: NHL_DATA_META.fetchedAt,
+  };
+  g.dataSource.contractSource = NHL_CONTRACT_META.source;
+  g.dataSource.contractsFetchedAt = NHL_CONTRACT_META.fetchedAt;
+  g.news.unshift(
+    `Проверенные контракты PuckPedia применены: ${updated} игроков; остальные контракты помечены как игровые.`,
+  );
+  return updated;
 }

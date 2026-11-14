@@ -31,7 +31,14 @@ import {
   teamOverall,
   applyOfficialIdentitySnapshot,
   applyOfficialRatingsSnapshot,
+  applyOfficialContractSnapshot,
 } from "../engine/database";
+import {
+  playerConcerns,
+  talkToPlayer,
+  type ConversationTone,
+  type ConversationTopic,
+} from "../engine/conversations";
 import { advance, nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
@@ -383,8 +390,8 @@ export default function App() {
             </button>
             <p className="note">
               {tr(
-                "Составы и статистика: официальный NHL API, сезон 2026/27. OVR рассчитан прозрачной статистической моделью; потенциал и контракты остаются игровыми значениями.",
-                "Rosters and statistics: official NHL API, 2026/27 season. OVR uses a transparent statistics model; potential and contracts remain game values.",
+                "Составы и статистика: NHL API. Контракты: публичный снимок PuckPedia 2026/27 с явной пометкой несовпавших записей.",
+                "Rosters and statistics: NHL API. Contracts: public PuckPedia 2026/27 snapshot with unmatched records clearly marked.",
               )}
             </p>
           </aside>
@@ -1114,8 +1121,8 @@ export default function App() {
         <PageTitle
           title={tr("Финансы клуба", "Club finances")}
           sub={tr(
-            "Демонстрационные контракты · миллионы долларов США",
-            "Demonstration contracts · USD millions",
+            "Проверенные AAV и оставшиеся обязательства · миллионы долларов США",
+            "Verified AAV and remaining commitments · USD millions",
           )}
         />
         <div className="metrics">
@@ -1162,7 +1169,8 @@ export default function App() {
                 <th>POS</th>
                 <th>AAV</th>
                 <th>{tr("ЛЕТ", "YEARS")}</th>
-                <th>{tr("ОБЩАЯ СУММА", "TOTAL")}</th>
+                <th>{tr("ОСТАТОК", "REMAINING")}</th>
+                <th>{tr("ИСТЕКАЕТ", "EXPIRY")}</th>
               </tr>
             </thead>
             <tbody>
@@ -1174,7 +1182,17 @@ export default function App() {
                     <td>{p.pos}</td>
                     <td>${p.salary.toFixed(2)}M</td>
                     <td>{p.years}</td>
-                    <td>${(p.salary * p.years).toFixed(2)}M</td>
+                    <td>
+                      $
+                      {(p.contractRemainingValue ?? p.salary * p.years).toFixed(
+                        2,
+                      )}
+                      M
+                    </td>
+                    <td>
+                      {p.contractExpiryYear ?? g.year + p.years}{" "}
+                      {p.contractStatus ?? ""}
+                    </td>
                   </tr>
                 ))}
             </tbody>
@@ -1344,6 +1362,24 @@ export default function App() {
                   )}
                 </button>
               )}
+            {!g.dataSource?.contractSource && g.year === 2026 && (
+              <button
+                onClick={() => {
+                  edit(applyOfficialContractSnapshot);
+                  setNotice(
+                    tr(
+                      "Контракты PuckPedia обновлены",
+                      "PuckPedia contracts applied",
+                    ),
+                  );
+                }}
+              >
+                {tr(
+                  "Подключить проверенные контракты",
+                  "Apply verified contracts",
+                )}
+              </button>
+            )}
           </div>
           <div className="settings-actions">
             <button
@@ -1401,8 +1437,8 @@ export default function App() {
             </p>
             <p>
               {tr(
-                "Это не официальная и не лицензированная игра NHL. Личности, составы и статистика получены из публичных NHL API; эмблемы и фотографии принадлежат соответствующим правообладателям. OVR является нашей производной моделью, а не официальной оценкой NHL. Потенциал, зарплаты, контракты, правила и календарь остаются демонстрационными.",
-                "This is not an official or licensed NHL game. Identities, rosters and statistics come from public NHL APIs; logos and headshots belong to their respective rights holders. OVR is our derived model, not an official NHL rating. Potential, salaries, contracts, rules and schedule remain demonstrational.",
+                "Это не официальная и не лицензированная игра NHL. Составы и статистика получены из публичных NHL API; контракты — из публичных таблиц PuckPedia. OVR является нашей производной моделью, а динамика формы и развития — игровой симуляцией.",
+                "This is not an official or licensed NHL game. Rosters and statistics use public NHL APIs; contracts use public PuckPedia tables. OVR is our derived model, while form and development changes are game simulation.",
               )}
             </p>
           </div>
@@ -1556,9 +1592,15 @@ export default function App() {
         <PlayerProfile
           player={
             g.teams
-              .flatMap((t) => t.players)
+              .flatMap((t) => [
+                ...t.players,
+                ...(t.farm ?? []),
+                ...(t.prospects ?? []),
+              ])
               .find((p) => p.id === profile.id) || profile
           }
+          game={g}
+          edit={edit}
           tr={tr}
           onClose={() => setProfile(null)}
         />
@@ -1859,13 +1901,20 @@ function TacticsView({
 }
 function PlayerProfile({
   player: p,
+  game,
+  edit,
   tr,
   onClose,
 }: {
   player: Player;
+  game: Game;
+  edit: (fn: (g: Game) => void) => void;
   tr: (a: string, b: string) => string;
   onClose: () => void;
 }) {
+  const [topic, setTopic] = useState<ConversationTopic>("form");
+  const [tone, setTone] = useState<ConversationTone>("supportive");
+  const [reply, setReply] = useState("");
   const skaterCategories: [string, string[]][] = [
     [
       tr("АТАКА", "OFFENSE"),
@@ -2037,8 +2086,39 @@ function PlayerProfile({
                 </dd>
               </div>
               <div>
+                <dt>{tr("Остаток", "Remaining value")}</dt>
+                <dd>
+                  ${(p.contractRemainingValue ?? p.salary * p.years).toFixed(2)}
+                  M
+                </dd>
+              </div>
+              <div>
+                <dt>{tr("Истекает", "Expiry")}</dt>
+                <dd>
+                  {p.contractExpiryYear ?? game.year + p.years}{" "}
+                  {p.contractStatus ?? ""}
+                </dd>
+              </div>
+              <div>
+                <dt>{tr("Источник", "Source")}</dt>
+                <dd>
+                  {p.contractSource === "puckpedia"
+                    ? "PuckPedia"
+                    : tr("Игровой", "Game")}
+                </dd>
+              </div>
+              <div>
                 <dt>{tr("Мораль", "Morale")}</dt>
                 <dd>{p.morale}%</dd>
+              </div>
+              <div>
+                <dt>{tr("Форма", "Form")}</dt>
+                <dd>
+                  {(p.performanceForm ?? 0) >= 0 ? "+" : ""}
+                  {(p.performanceForm ?? 0).toFixed(1)} · OVR{" "}
+                  {(p.formAdjustment ?? 0) >= 0 ? "+" : ""}
+                  {p.formAdjustment ?? 0}
+                </dd>
               </div>
               <div>
                 <dt>{tr("Готовность", "Condition")}</dt>
@@ -2060,6 +2140,81 @@ function PlayerProfile({
             </small>
           </aside>
         </div>
+        <section className="conversation-panel">
+          <div>
+            <span className="eyebrow">
+              {tr("РАЗГОВОР С ИГРОКОМ", "PLAYER CONVERSATION")}
+            </span>
+            <h3>{tr("Обсудить ситуацию", "Discuss the situation")}</h3>
+            <p>
+              {tr("Темы", "Concerns")}: {playerConcerns(p).join(", ")} ·{" "}
+              {tr("отношения", "relationship")} {p.relationship ?? 50}% ·{" "}
+              {tr("мотивация", "motivation")} {p.motivation ?? 50}%
+            </p>
+          </div>
+          <div className="conversation-controls">
+            <select
+              aria-label="Conversation topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value as ConversationTopic)}
+            >
+              <option value="form">{tr("Форма", "Form")}</option>
+              <option value="role">{tr("Роль", "Role")}</option>
+              <option value="contract">{tr("Контракт", "Contract")}</option>
+              <option value="development">
+                {tr("Развитие", "Development")}
+              </option>
+            </select>
+            <select
+              aria-label="Conversation tone"
+              value={tone}
+              onChange={(e) => setTone(e.target.value as ConversationTone)}
+            >
+              <option value="supportive">
+                {tr("Поддержать", "Supportive")}
+              </option>
+              <option value="direct">{tr("Прямо", "Direct")}</option>
+              <option value="challenge">
+                {tr("Бросить вызов", "Challenge")}
+              </option>
+            </select>
+            <button
+              disabled={p.lastConversationRound === game.round}
+              onClick={() => {
+                try {
+                  let result = "";
+                  edit((g) => {
+                    result = talkToPlayer(g, p.id, topic, tone).response;
+                  });
+                  setReply(result);
+                } catch (e) {
+                  setReply((e as Error).message);
+                }
+              }}
+            >
+              {p.lastConversationRound === game.round
+                ? tr("Разговор проведён", "Talk completed")
+                : tr("Поговорить", "Talk")}
+            </button>
+          </div>
+          {(reply || p.conversationHistory?.[0]) && (
+            <blockquote>
+              {reply || p.conversationHistory?.[0]?.response}
+            </blockquote>
+          )}
+        </section>
+        {(p.developmentLog?.length ?? 0) > 0 && (
+          <section>
+            <h3>{tr("Почему изменился рейтинг", "Why the rating changed")}</h3>
+            {p.developmentLog!.slice(0, 4).map((entry) => (
+              <p key={`${entry.year}-${entry.ovrAfter}`}>
+                {entry.year}: {entry.ovrBefore} → {entry.ovrAfter} (
+                {entry.delta >= 0 ? "+" : ""}
+                {entry.delta}) · {entry.reason}
+              </p>
+            ))}
+          </section>
+        )}
         {p.history.length > 0 && (
           <>
             <h3>
