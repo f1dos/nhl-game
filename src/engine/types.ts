@@ -73,6 +73,8 @@ export interface Fixture {
   result?: Result;
 }
 export interface Event {
+  playerId?: string;
+  skaters?: string[][];
   time: number;
   type:
     | "shot"
