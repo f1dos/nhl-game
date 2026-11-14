@@ -1,8 +1,14 @@
 import { RULES } from "./rules";
-import {skaterCounts,expireMinors,releaseMinor,type MinorPenalty} from './manpower';
+import {
+  skaterCounts,
+  expireMinors,
+  releaseMinor,
+  type MinorPenalty,
+} from "./manpower";
 import { injuryProbability, inflictInjury } from "./injuries";
 import { RNG, clamp } from "./random";
 import type { Team, Player, Result, Event } from "./types";
+import { lineChemistry } from "./tactics";
 export function simulateMatch(
   home: Team,
   away: Team,
@@ -11,8 +17,10 @@ export function simulateMatch(
 ): Result {
   const teams = [home, away];
   for (const t of teams) {
-    if (!t.players.some(p=>p.pos==='G' && p.injury===0) ||
-        t.players.filter(p=>p.pos!=='G' && p.injury===0).length<5)
+    if (
+      !t.players.some((p) => p.pos === "G" && p.injury === 0) ||
+      t.players.filter((p) => p.pos !== "G" && p.injury === 0).length < 5
+    )
       throw Error(`Недостаточно здоровых игроков: ${t.id}`);
   }
   const res: Result = {
@@ -28,9 +36,9 @@ export function simulateMatch(
     duration: RULES.regulationSeconds,
     events: [],
   };
-  const penalty:MinorPenalty[][] = [[], []];
-  let currentIce:Player[][]=[[],[]];
-  let advantage=[false,false];
+  const penalty: MinorPenalty[][] = [[], []];
+  let currentIce: Player[][] = [[], []];
+  let advantage = [false, false];
   const active = teams.map((t) =>
     [...new Set([...t.lines.flat(), ...t.defense.flat(), t.goalie])]
       .map((id) => t.players.find((p) => p.id === id)!)
@@ -38,15 +46,18 @@ export function simulateMatch(
   );
   const goalies = teams.map(
     (t, i) =>
-      active[i].find((p) => p.pos === "G" && p.injury===0) ||
-      t.players.find((p) => p.pos === "G" && p.injury===0)!,
+      active[i].find((p) => p.pos === "G" && p.injury === 0) ||
+      t.players.find((p) => p.pos === "G" && p.injury === 0)!,
   );
   const appeared = new Set<string>();
-  const minutes = new Map<string,number>();
-  function participate(p: Player, dt:number) {
-    if (!appeared.has(p.id)) { appeared.add(p.id); p.stats.gp++; }
-    p.stats.toi += dt/60;
-    minutes.set(p.id,(minutes.get(p.id)||0)+dt/60);
+  const minutes = new Map<string, number>();
+  function participate(p: Player, dt: number) {
+    if (!appeared.has(p.id)) {
+      appeared.add(p.id);
+      p.stats.gp++;
+    }
+    p.stats.toi += dt / 60;
+    minutes.set(p.id, (minutes.get(p.id) || 0) + dt / 60);
   }
   const emit = (
     time: number,
@@ -61,31 +72,47 @@ export function simulateMatch(
       type,
       team: teams[side].id,
       player: p.name,
-      playerId:p.id,
-      skaters:type==='shootout'?undefined:currentIce.map(ps=>ps.map(x=>x.id)),
+      playerId: p.id,
+      skaters:
+        type === "shootout"
+          ? undefined
+          : currentIce.map((ps) => ps.map((x) => x.id)),
       text,
       x: side === 0 ? r.int(52, 90) : r.int(10, 48),
       y: r.int(18, 82),
       score: [...res.goals],
       xg,
     });
-  function onIce(i: number, time: number, count:number) {
+  function onIce(i: number, time: number, count: number) {
     const t = teams[i],
       line = Math.floor(time / 45) % 10;
     const li = [0, 1, 0, 2, 1, 3, 0, 1, 2, 3][line];
     const planned = [...t.lines[li], ...t.defense[Math.floor(time / 45) % 3]]
       .map((id) => t.players.find((p) => p.id === id)!)
       .filter(Boolean);
-    const available=(p:Player)=>p.injury===0&&!penalty[i].some(x=>x.playerId===p.id);
+    const available = (p: Player) =>
+      p.injury === 0 && !penalty[i].some((x) => x.playerId === p.id);
     const selected = planned.filter(available);
-    for (const missing of planned.filter(p=>!available(p))) {
-      const replacement = t.players.filter(p=>p.pos!=='G' && available(p) && !selected.includes(p))
-        .sort((a,b)=>Number(b.pos===missing.pos)-Number(a.pos===missing.pos) || (minutes.get(a.id)||0)-(minutes.get(b.id)||0))[0];
+    for (const missing of planned.filter((p) => !available(p))) {
+      const replacement = t.players
+        .filter((p) => p.pos !== "G" && available(p) && !selected.includes(p))
+        .sort(
+          (a, b) =>
+            Number(b.pos === missing.pos) - Number(a.pos === missing.pos) ||
+            (minutes.get(a.id) || 0) - (minutes.get(b.id) || 0),
+        )[0];
       if (replacement) selected.push(replacement);
     }
     // Keep defensemen represented in reduced-strength units.
-    const forwards=selected.filter(p=>p.pos!=='D'),defenders=selected.filter(p=>p.pos==='D');
-    return [...forwards.slice(0,count- Math.min(defenders.length,count===3?1:2)),...defenders].slice(0,count);
+    const forwards = selected.filter((p) => p.pos !== "D"),
+      defenders = selected.filter((p) => p.pos === "D");
+    return [
+      ...forwards.slice(
+        0,
+        count - Math.min(defenders.length, count === 3 ? 1 : 2),
+      ),
+      ...defenders,
+    ].slice(0, count);
   }
   function effective(p: Player, a: string) {
     return (
@@ -98,17 +125,20 @@ export function simulateMatch(
   const avg = (ps: Player[], a: string) =>
     ps.reduce((s, p) => s + effective(p, a), 0) / Math.max(1, ps.length);
   function step(time: number, dt = 20) {
-    expireMinors(penalty,time-dt);
-    const counts=skaterCounts(penalty,!playoffs&&time>RULES.regulationSeconds);
-    const ice = [onIce(0, time,counts[0]), onIce(1, time,counts[1])];
-    currentIce=ice;
-    for(let i=0;i<2;i++){
-      const next=counts[i]>counts[1-i];
-      if(next&&!advantage[i])res.ppo[i]++;
-      advantage[i]=next;
+    expireMinors(penalty, time - dt);
+    const counts = skaterCounts(
+      penalty,
+      !playoffs && time > RULES.regulationSeconds,
+    );
+    const ice = [onIce(0, time, counts[0]), onIce(1, time, counts[1])];
+    currentIce = ice;
+    for (let i = 0; i < 2; i++) {
+      const next = counts[i] > counts[1 - i];
+      if (next && !advantage[i]) res.ppo[i]++;
+      advantage[i] = next;
     }
-    ice.forEach((ps) => ps.forEach((p) => participate(p,dt)));
-    goalies.forEach((p) => participate(p,dt));
+    ice.forEach((ps) => ps.forEach((p) => participate(p, dt)));
+    goalies.forEach((p) => participate(p, dt));
     const control = teams.map(
       (t, i) =>
         avg(ice[i], "passing") +
@@ -118,7 +148,7 @@ export function simulateMatch(
           : t.tactics.forecheck === "1-3-1"
             ? -3
             : 0) +
-        (counts[i]>counts[1-i] ? 15 : 0),
+        (counts[i] > counts[1 - i] ? 15 : 0),
     );
     const side =
       r.next() < clamp(0.515 + (control[0] - control[1]) * 0.004, 0.3, 0.7)
@@ -127,10 +157,14 @@ export function simulateMatch(
     const other = 1 - side;
     const t = teams[side];
     const p = r.pick(ice[side]);
-    if (r.next() < injuryProbability(p,t.tactics.physical,minutes.get(p.id)||0)
-        && teams[side].players.filter(x=>x.pos!=='G' && x.injury===0).length>5) {
-      const type = inflictInjury(p,r);
-      emit(time,'injury',side,p,`Травма: ${type} / Injury: ${type}`);
+    if (
+      r.next() <
+        injuryProbability(p, t.tactics.physical, minutes.get(p.id) || 0) &&
+      teams[side].players.filter((x) => x.pos !== "G" && x.injury === 0)
+        .length > 5
+    ) {
+      const type = inflictInjury(p, r);
+      emit(time, "injury", side, p, `Травма: ${type} / Injury: ${type}`);
       return;
     }
     const roll = r.next();
@@ -139,7 +173,10 @@ export function simulateMatch(
         RULES.basePenaltyProbability + (t.tactics.physical - 50) * 0.00012 &&
       penalty[side].length < 2
     ) {
-      penalty[side].push({playerId:p.id,expires:time+RULES.minorPenaltySeconds});
+      penalty[side].push({
+        playerId: p.id,
+        expires: time + RULES.minorPenaltySeconds,
+      });
       p.stats.pim += 2;
       emit(time, "penalty", side, p, "2 минуты / 2 minutes");
       return;
@@ -163,10 +200,10 @@ export function simulateMatch(
         (t.tactics.pace - 50) * 0.0005
     )
       return;
-    const pp = counts[side]>counts[other];
+    const pp = counts[side] > counts[other];
     const goalie = goalies[other];
     const defense = avg(ice[other], "defensivePosition");
-    const chemistry = avg(ice[side], "teamwork");
+    const chemistry = lineChemistry(ice[side]);
     const xg = clamp(
       RULES.baseExpectedGoal +
         (effective(p, "accuracy") - 75) * 0.0016 +
@@ -200,8 +237,8 @@ export function simulateMatch(
       }
       if (pp) {
         res.pp[side]++;
-        releaseMinor(penalty,other);
-        advantage[side]=false;
+        releaseMinor(penalty, other);
+        advantage[side] = false;
       } else {
         ice[side].forEach((a) => a.stats.plus++);
         ice[other].forEach((a) => a.stats.plus--);
@@ -242,7 +279,9 @@ export function simulateMatch(
         3900,
         "shootout",
         side,
-        r.pick(teams[side].players.filter((p) => p.pos !== "G" && p.injury===0)),
+        r.pick(
+          teams[side].players.filter((p) => p.pos !== "G" && p.injury === 0),
+        ),
         "Победа по буллитам / Shootout winner",
       );
     }
@@ -250,18 +289,20 @@ export function simulateMatch(
   const winner = res.goals[0] > res.goals[1] ? 0 : 1;
   goalies[winner].stats.wins++;
   teams.forEach((t) =>
-    t.players.filter(p=>appeared.has(p.id)).forEach((p) => {
-      p.fatigue = clamp(
-        p.fatigue + 7 + (minutes.get(p.id)||0) * 0.1,
-        0,
-        100,
-      );
-      p.morale = clamp(
-        p.morale + (teams[winner].players.includes(p) ? 2 : -1),
-        20,
-        100,
-      );
-    }),
+    t.players
+      .filter((p) => appeared.has(p.id))
+      .forEach((p) => {
+        p.fatigue = clamp(
+          p.fatigue + 7 + (minutes.get(p.id) || 0) * 0.1,
+          0,
+          100,
+        );
+        p.morale = clamp(
+          p.morale + (teams[winner].players.includes(p) ? 2 : -1),
+          20,
+          100,
+        );
+      }),
   );
   return res;
 }
