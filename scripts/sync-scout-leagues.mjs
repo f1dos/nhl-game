@@ -173,12 +173,12 @@ async function shlPlayers() {
   return [...entries.values()];
 }
 const sourceFile = await readFile(target,"utf8");
-const oldSources=JSON.parse(sourceFile.match(/export const SCOUT_LEAGUE_META = (\{[^;]+\}) as const;/s)?.[1] ?? '{"sources":{}}');
-const old = {};
-for (const league of leagues) {
-  // Old snapshots are preserved on a provider outage, instead of replaced with fakes.
-  const match=sourceFile.match(new RegExp('\\b'+league+': (\\[[\\s\\S]*?\\])(?:,?\\s*(?:USHL|SHL|Liiga):|\\s*\\};)'));
-  if (match) try { old[league]=JSON.parse(match[1]); } catch {}
+// Recover previously verified generated records on a temporary upstream outage.
+let old = {};
+const generated = sourceFile.match(/SCOUT_LEAGUE_PLAYERS:[^=]+ = (\\{[\\s\\S]*\\});\\s*$/);
+if (generated) {
+  try { old = JSON.parse(generated[1]); }
+  catch { /* original hand-authored empty bootstrap file */ }
 }
 const output={};const counts={};
 for(const league of leagues){
