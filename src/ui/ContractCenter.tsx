@@ -24,7 +24,7 @@ export default function ContractCenter({
   const player = market.find((p) => p.id === selected);
   const choose = (p: Player) => {
     setSelected(p.id);
-    setSalary(askingSalary(p));
+    setSalary(askingSalary(p, game, game.user));
     setMessage("");
   };
   const roster = [...team.players, ...(team.farm ?? [])];
@@ -116,8 +116,8 @@ export default function ContractCenter({
         {player && (
           <p>
             {ru ? "Требование" : "Asking price"}: $
-            {askingSalary(player).toFixed(2)}M · {ru ? "Общая сумма" : "Total"}:
-            ${(years * salary).toFixed(2)}M
+            {askingSalary(player, game, game.user).toFixed(2)}M ·{" "}
+            {ru ? "Общая сумма" : "Total"}: ${(years * salary).toFixed(2)}M
           </p>
         )}
       </Panel>

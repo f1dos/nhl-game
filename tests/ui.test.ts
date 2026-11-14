@@ -39,6 +39,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".top-club-record"));
   assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
   assert(screen.getByText("Штаб генерального менеджера"));
+  fireEvent.click(screen.getByText("Стратегия клуба"));
+  fireEvent.click(screen.getByText("Wild Card Hunt"));
+  assert(screen.getByText("ЗАДАЧИ СОВЕТА ДИРЕКТОРОВ"));
+  fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Скаутинг и драфт"));
   assert(screen.getByText("Центр драфта и скаутинга"));
   assert(screen.getByText("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ"));
@@ -70,7 +74,12 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(/NHL MODEL/));
   assert(screen.getByText("СТАТУС И КОНТРАКТ"));
   assert(document.querySelector(".attribute-sections"));
-  fireEvent.click(screen.getByRole("button", { name: "Close" }));
+  fireEvent.click(screen.getByText("Начать личную встречу"));
+  assert(screen.getByText("Разговор с игроком"));
+  assert(screen.getByText("Как вы хотите провести разговор?"));
+  fireEvent.click(screen.getByText("Поддержать"));
+  assert(document.querySelector(".dialogue-result"));
+  fireEvent.click(screen.getByRole("button", { name: "Close conversation" }));
   fireEvent.click(screen.getByText("Тактика и звенья"));
   assert(document.querySelector(".chemistry"));
   assert(document.querySelector(".tactic-analysis"));

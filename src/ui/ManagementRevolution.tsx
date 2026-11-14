@@ -28,6 +28,7 @@ import type {
 import { readiness } from "../engine/training";
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
+import { refreshObjectives, STRATEGY_POLICIES } from "../engine/strategy";
 
 type Edit = (fn: (game: Game) => void) => void;
 
@@ -35,29 +36,34 @@ const strategyCopy: Record<
   FranchiseStrategy,
   { ru: string; en: string; ruText: string; enText: string }
 > = {
-  "win-now": {
-    ru: "Победа сейчас",
-    en: "Win Now",
-    ruText: "Результат сегодня, опыт и усиление перед плей-офф.",
-    enText: "Prioritize immediate results, experience and deadline additions.",
+  "draft-lottery": {
+    ru: "Draft Lottery Team",
+    en: "Draft Lottery Team",
+    ruText:
+      "Осознанная перестройка: высокий пик, молодёжь и финансовая гибкость.",
+    enText:
+      "A deliberate rebuild built around lottery odds, youth and cap flexibility.",
   },
-  balanced: {
-    ru: "Баланс",
-    en: "Balanced",
-    ruText: "Сохранять конкурентоспособность без потери будущих активов.",
-    enText: "Stay competitive without sacrificing the future.",
+  "wild-card-hunt": {
+    ru: "Wild Card Hunt",
+    en: "Wild Card Hunt",
+    ruText:
+      "Борьба за 7–8 место конференции без продажи главных активов будущего.",
+    enText: "Chase 7th–8th in the conference without selling the core future.",
   },
-  rebuild: {
-    ru: "Перестройка",
-    en: "Rebuild",
-    ruText: "Молодёжь, драфт-пики и расчистка долгосрочной ведомости.",
-    enText: "Youth, draft capital and long-term cap flexibility.",
+  "playoff-breakthrough": {
+    ru: "Playoff Breakthrough",
+    en: "Playoff Breakthrough",
+    ruText:
+      "Команда обязана выйти в плей-офф и впервые пройти стартовый раунд.",
+    enText: "Make the playoffs and prove the club can win its opening series.",
   },
-  "youth-development": {
-    ru: "Развитие молодёжи",
-    en: "Youth Development",
-    ruText: "Игровое время и развитие проспектов важнее быстрых побед.",
-    enText: "Prospect ice time and development outweigh short-term wins.",
+  "stanley-cup": {
+    ru: "Stanley Cup Contender",
+    en: "Stanley Cup Contender",
+    ruText: "Конкурентное окно открыто: цель сезона — Кубок Стэнли.",
+    enText:
+      "The competitive window is open: the Stanley Cup is the season goal.",
   },
 };
 
@@ -255,7 +261,9 @@ function AgendaRow({
 
 export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
   ensureManagementState(game);
+  refreshObjectives(game);
   const ru = game.language === "ru";
+  const locked = game.strategySeason === game.year;
   const assets = game.draftAssets!.filter(
     (asset) => asset.currentTeam === game.user,
   );
@@ -275,8 +283,12 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
           <h1>{ru ? "Стратегия франшизы" : "Franchise Strategy"}</h1>
           <p>
             {ru
-              ? "Выбор влияет на рекомендации, оценку активов и поведение организации."
-              : "Your choice shapes recommendations, asset values and organizational behavior."}
+              ? locked
+                ? "Курс утверждён до конца сезона. Совет директоров оценивает выполнение задач в реальном времени."
+                : "Выберите уровень амбиций один раз на сезон. После подтверждения изменить его нельзя."
+              : locked
+                ? "The direction is locked for the season. The board tracks every objective in real time."
+                : "Choose the club's ambition once per season. The decision cannot be changed afterward."}
           </p>
         </div>
       </div>
@@ -288,6 +300,7 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
             <button
               key={strategy}
               className={active ? "active" : ""}
+              disabled={locked}
               onClick={() => edit((g) => selectFranchiseStrategy(g, strategy))}
             >
               <span>{active ? <Check size={18} /> : <Target size={18} />}</span>
@@ -298,9 +311,13 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
                   ? ru
                     ? "ТЕКУЩИЙ КУРС"
                     : "CURRENT DIRECTION"
-                  : ru
-                    ? "ВЫБРАТЬ"
-                    : "SELECT"}
+                  : locked
+                    ? ru
+                      ? "ЗАКРЫТО ДО СЛЕДУЮЩЕГО СЕЗОНА"
+                      : "LOCKED UNTIL NEXT SEASON"
+                    : ru
+                      ? "ВЫБРАТЬ"
+                      : "SELECT"}
               </small>
             </button>
           );
@@ -326,17 +343,98 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
         <div>
           <small>{ru ? "ЦЕЛЬ РУКОВОДСТВА" : "BOARD OBJECTIVE"}</small>
           <strong>
-            {game.franchiseStrategy === "rebuild"
+            {game.franchiseStrategy
               ? ru
-                ? "Топ-10 пик"
-                : "Top-10 pick"
+                ? strategyCopy[game.franchiseStrategy].ru
+                : strategyCopy[game.franchiseStrategy].en
               : ru
-                ? "Плей-офф"
-                : "Playoffs"}
+                ? "Не выбрана"
+                : "Not selected"}
           </strong>
           <span>{ru ? "оценка в конце сезона" : "reviewed at season end"}</span>
         </div>
       </div>
+      {game.franchiseStrategy && (
+        <Panel title={ru ? "ПРАВИЛА ВЫБРАННОГО КУРСА" : "STRATEGY POLICY"}>
+          <div className="strategy-policy">
+            {(
+              [
+                ["ROSTER", STRATEGY_POLICIES[game.franchiseStrategy].roster],
+                [
+                  ru ? "МОЛОДЁЖЬ" : "YOUTH",
+                  STRATEGY_POLICIES[game.franchiseStrategy].youth,
+                ],
+                [
+                  ru ? "ФИНАНСЫ" : "FINANCE",
+                  STRATEGY_POLICIES[game.franchiseStrategy].finance,
+                ],
+                [
+                  ru ? "ДРАФТ-ПИКИ" : "DRAFT PICKS",
+                  STRATEGY_POLICIES[game.franchiseStrategy].picks,
+                ],
+              ] as const
+            ).map(([label, text]) => (
+              <div key={label}>
+                <small>{label}</small>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      )}
+      <Panel title={ru ? "ЗАДАЧИ СОВЕТА ДИРЕКТОРОВ" : "BOARD OBJECTIVES"}>
+        <div className="board-status">
+          <div>
+            <small>{ru ? "ДОВЕРИЕ К МЕНЕДЖЕРУ" : "MANAGER CONFIDENCE"}</small>
+            <strong>{game.managerEmployment?.confidence ?? 70}%</strong>
+          </div>
+          <div>
+            <small>{ru ? "СТАТУС" : "STATUS"}</small>
+            <strong>{game.managerEmployment?.status ?? "secure"}</strong>
+          </div>
+          <p>
+            {ru
+              ? "Провал ключевых задач резко снижает доверие. Два проваленных критических сезона или 0% доверия приводят к увольнению."
+              : "Missing key objectives sharply reduces confidence. Two failed critical seasons or 0% confidence results in dismissal."}
+          </p>
+        </div>
+        <div className="objective-list">
+          {(game.franchiseObjectives ?? []).map((objective) => (
+            <div
+              key={objective.id}
+              className={`${objective.tier} ${objective.completed ? "complete" : ""}`}
+            >
+              <span>
+                {objective.tier === "critical"
+                  ? ru
+                    ? "КЛЮЧЕВАЯ"
+                    : "CRITICAL"
+                  : objective.tier === "major"
+                    ? ru
+                      ? "ВАЖНАЯ"
+                      : "MAJOR"
+                    : ru
+                      ? "ДОПОЛНИТЕЛЬНАЯ"
+                      : "SUPPORTING"}
+              </span>
+              <div>
+                <strong>{objective.title}</strong>
+                <p>{objective.detail}</p>
+              </div>
+              <b>
+                {objective.progress} / {objective.target}
+              </b>
+            </div>
+          ))}
+          {!game.franchiseObjectives?.length && (
+            <div className="agenda-empty">
+              {ru
+                ? "Сначала выберите стратегию — совет директоров сформирует пакет задач."
+                : "Choose a strategy to receive the board objective package."}
+            </div>
+          )}
+        </div>
+      </Panel>
       <Panel title={ru ? "БУДУЩИЕ ДРАФТ-ПИКИ" : "FUTURE DRAFT PICKS"}>
         <div className="draft-assets">
           {assets.slice(0, 21).map((asset) => (

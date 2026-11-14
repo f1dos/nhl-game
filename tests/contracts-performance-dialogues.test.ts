@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
-import { talkToPlayer } from "../src/engine/conversations";
+import { conversationOptions, talkToPlayer } from "../src/engine/conversations";
 import {
   recordPlayerPerformance,
   prepareAnnualDevelopment,
@@ -63,7 +63,14 @@ test("player conversations alter morale, relationship and motivation with a cool
   const before = [p.morale, p.relationship ?? 50, p.motivation ?? 50];
   const result = talkToPlayer(g, p.id, "form", "supportive");
   assert.ok(result.response.length > 20);
+  assert.ok(result.managerLine.length > 40);
+  assert.equal(conversationOptions("contract").length, 6);
+  assert.notEqual(
+    conversationOptions("contract")[0].line,
+    conversationOptions("injury")[0].line,
+  );
   assert.notDeepEqual([p.morale, p.relationship, p.motivation], before);
   assert.equal(p.conversationHistory?.length, 1);
+  assert.equal(p.conversationHistory?.[0].managerLine, result.managerLine);
   assert.throws(() => talkToPlayer(g, p.id, "role", "direct"), /уже говорили/);
 });

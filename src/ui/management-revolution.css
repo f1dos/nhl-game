@@ -162,6 +162,99 @@
   border-color: #4aa9dd;
   background: linear-gradient(145deg, #173247, #131a22);
 }
+.strategy-grid > button:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+.strategy-grid > button.active:disabled {
+  opacity: 1;
+}
+.strategy-policy {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.strategy-policy > div {
+  padding: 18px;
+  border-right: 1px solid #29343f;
+}
+.strategy-policy > div:last-child {
+  border: 0;
+}
+.strategy-policy small {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #70b9df;
+}
+.strategy-policy p {
+  font-size: 12px;
+  color: #a9b7c4;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.board-status {
+  display: grid;
+  grid-template-columns: 180px 180px 1fr;
+  align-items: center;
+  padding: 18px;
+  border-bottom: 1px solid #29343f;
+  background: #10171e;
+}
+.board-status small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.board-status strong {
+  display: block;
+  font:
+    600 25px "Barlow Condensed",
+    sans-serif;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+.board-status p {
+  font-size: 11px;
+  color: #8e9eae;
+}
+.objective-list > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 100px;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #29343f;
+}
+.objective-list > div > span {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  color: #8fa0b0;
+}
+.objective-list > div > div strong {
+  display: block;
+}
+.objective-list > div > div p {
+  font-size: 11px;
+  color: #8999a8;
+  margin-top: 4px;
+}
+.objective-list > div > b {
+  text-align: right;
+}
+.objective-list > div.critical {
+  box-shadow: inset 3px 0 #d87362;
+}
+.objective-list > div.major {
+  box-shadow: inset 3px 0 #d4a55f;
+}
+.objective-list > div.supporting {
+  box-shadow: inset 3px 0 #5e9cc3;
+}
+.objective-list > div.complete {
+  background: rgba(69, 155, 113, 0.08);
+}
+.objective-list > div.complete > b {
+  color: #71c89d;
+}
 .strategy-grid > button > span {
   color: #75bfe8;
 }
@@ -338,6 +431,29 @@
   }
   .club-pulse {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 850px) {
+  .strategy-policy {
+    grid-template-columns: 1fr;
+  }
+  .strategy-policy > div {
+    border-right: 0;
+    border-bottom: 1px solid #29343f;
+  }
+  .board-status {
+    grid-template-columns: 1fr 1fr;
+  }
+  .board-status p {
+    grid-column: 1/-1;
+    margin-top: 14px;
+  }
+  .objective-list > div {
+    grid-template-columns: 90px 1fr;
+  }
+  .objective-list > div > b {
+    grid-column: 2;
+    text-align: left;
   }
 }
 @media (max-width: 700px) {
