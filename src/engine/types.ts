@@ -114,6 +114,9 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
+  retired?: {year:number;player:Player}[];
+  freeAgents?: Player[];
+  contractHistory?: {year:number;team:string;player:string;years:number;salary:number}[];
   transactions?: {year:number;round:number;message:string}[];
   version: 1;
   id: string;

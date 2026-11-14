@@ -60,6 +60,14 @@ export function validateSave(value: unknown): Game {
     )
       throw Error("Неверные звенья");
   }
+  for(const collection of [g.freeAgents??[],(g.retired??[]).map(x=>x.player)]){
+    if(!Array.isArray(collection))throw Error('Invalid player pool');
+    for(const p of collection){
+      if(!p||players.has(p.id)||typeof p.id!=='string'||typeof p.name!=='string'||!['LW','C','RW','D','G'].includes(p.pos)||!Number.isFinite(p.age)||!Number.isFinite(p.ovr)||!Array.isArray(p.history)||!p.stats||Object.keys(p.attributes||{}).length!==30||Object.values(p.attributes).some(v=>!Number.isFinite(v)||v<1||v>100))throw Error('Invalid or duplicate player in world');
+      players.add(p.id);
+    }
+  }
+  if ((g.freeAgents||[]).some(p=>p.years!==0))throw Error('Free agent has an active contract');
   if (
     g.schedule.some(
       (f) =>

@@ -1,5 +1,7 @@
 import { RNG, clamp } from "./random";
 import {overall} from './ratings';
+import {expireContracts} from './contracts';
+import {ageWorld} from './lifecycle';
 import { simulateMatch } from "./match";
 import {
   emptyRecord,
@@ -167,6 +169,11 @@ export function advance(g: Game) {
   }
 }
 export function nextSeason(g: Game) {
+  const draft=structuredClone(g);
+  rollover(draft);
+  Object.assign(g,draft);
+}
+function rollover(g:Game){
   if (g.phase !== "offseason") throw Error("Finish playoffs first");
   const r = new RNG(g.seed);
   g.year++;
@@ -176,29 +183,14 @@ export function nextSeason(g: Game) {
   g.playoffRound = 0;
   g.last = undefined;
   g.schedule = makeSchedule(g.teams);
+  ageWorld(g,r);
   g.teams.forEach((t) => {
     t.record = emptyRecord();
-    t.players.forEach((p) => {
-      p.age++;
-      const delta =
-        p.age < 26
-          ? Math.min(p.potential - p.ovr, r.int(0, 3))
-          : p.age > 31
-            ? -r.int(0, 2)
-            : r.int(-1, 1);
-      for (const key of Object.keys(p.attributes))
-        p.attributes[key] = clamp(p.attributes[key] + delta, 30, 99);
-      p.ovr = overall(p.pos,p.attributes,p.archetype);
-      p.years = Math.max(1, p.years - 1);
-      p.stats = emptyStats();
-      p.fatigue = 0;
-      p.injury = 0;
-      p.morale = 75;
-    });
   });
+  expireContracts(g);
   g.seed = r.seed;
   g.news.unshift(
-    `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Автопродление контрактов в базовой версии.`,
+    `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Истёкшие контракты завершены; минимальные составы укомплектованы автоматически.`,
   );
 }
 export function dateForRound(g: Game, round = g.round) {
