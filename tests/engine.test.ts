@@ -113,12 +113,14 @@ test("full regular season → 16-team playoffs → champion → next season", ()
   }
   assert.equal(g.history.length, 1);
   const age = g.teams[0].players[0].age;
+  const playerId=g.teams[0].players[0].id;
   nextSeason(g);
   assert.equal(g.year, 2027);
   assert.equal(g.phase, "regular");
   assert(g.teams.every((t) => t.record.gp === 0));
-  assert.equal(g.teams[0].players[0].age, age + 1);
-  assert.equal(g.teams[0].players[0].history.length, 1);
+  const original=[...g.teams.flatMap(t=>t.players),...(g.freeAgents||[])].find(p=>p.id===playerId)!;
+  assert.equal(original.age, age + 1);
+  assert.equal(original.history.length, 1);
   assert.equal(g.schedule.length, 1312);
   assert.equal(validateSave(JSON.parse(JSON.stringify(g))).year, 2027);
 });

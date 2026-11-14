@@ -30,7 +30,9 @@ import type { Game, Team, Player } from "../engine/types";
 import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
 import MatchCenter from "./MatchCenter";
 import TradeCenter from './TradeCenter';
+import ContractCenter from './ContractCenter';
 const nav = [
+  ["contracts", "Контракты и рынок", "Contracts & market", Wallet],
   ["trades", "Обмены", "Trade Center", Users],
   ["overview", "Обзор клуба", "Club overview", LayoutDashboard],
   ["inbox", "Входящие", "Inbox", Mail],
@@ -400,7 +402,8 @@ export default function App() {
         );
       });
   let content: ReactNode;
-  if (page === "trades") content=<TradeCenter game={g} edit={edit}/>;
+  if (page === "contracts") content=<ContractCenter game={g} edit={edit}/>;
+  else if (page === "trades") content=<TradeCenter game={g} edit={edit}/>;
   else if (page === "overview")
     content = (
       <>
@@ -903,8 +906,8 @@ export default function App() {
         </Panel>
         <p className="note">
           {tr(
-            "В первой версии контракты продлеваются автоматически. Переговоры, обмены, удержание зарплаты и полная CBA-модель пока не реализованы.",
-            "In this release contracts renew automatically. Negotiations, trades, salary retention and a full CBA model are not implemented yet.",
+            "Продлевайте соглашения и подписывайте свободных агентов в разделе «Контракты и рынок». Удержание зарплаты и полная CBA-модель пока не реализованы.",
+            "Renew deals and sign free agents in Contracts & market. Salary retention and a full CBA model are not implemented yet.",
           )}
         </p>
       </>
