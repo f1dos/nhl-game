@@ -53,6 +53,7 @@ import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
+import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
 import InjuryCenter from "./InjuryCenter";
 const nav = [
@@ -794,7 +795,8 @@ export default function App() {
           title={tr("ОСНОВНОЙ СОСТАВ NHL", "NHL FIRST TEAM")}
           extra={<span className="tag">NHL · {team.players.length}</span>}
         >
-          <PlayerTable players={roster} onSelect={setProfile} lang={g.language} />
+          <PlayerTable players={roster} onSelect={setProfile} lang={g.language}
+            onAssign={(id) => edit((world) => sendToFarm(world, id))} />
         </Panel>
         <FarmCenter game={g} edit={edit} onPlayer={setProfile} />
       </>
