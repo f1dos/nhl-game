@@ -163,14 +163,14 @@ button svg {
   height: 83px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 0 14px;
   min-width: 0;
   overflow: hidden;
   font-family: "Barlow Condensed", Impact, sans-serif;
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 600;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.35px;
 }
 .brand-copy {
   min-width: 0;
@@ -185,13 +185,13 @@ button svg {
   font:
     8px Inter,
     sans-serif;
-  letter-spacing: 1.35px;
-  margin-top: 5px;
+  letter-spacing: 1.1px;
+  margin-top: 4px;
 }
 .brand-logo {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   object-fit: contain;
   filter: drop-shadow(0 0 8px rgba(72, 169, 223, 0.2));
 }
@@ -1561,13 +1561,13 @@ footer .status-dot {
   }
   .brand {
     padding: 0 9px;
-    gap: 7px;
-    font-size: 21px;
+    gap: 6px;
+    font-size: 18px;
   }
   .brand-logo {
-    width: 48px;
-    height: 48px;
-    flex-basis: 48px;
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
   }
   .brand small {
     font-size: 7px;
@@ -1697,9 +1697,9 @@ footer .status-dot {
     display: none;
   }
   .sidebar .brand-logo {
-    width: 42px;
-    height: 42px;
-    flex-basis: 42px;
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
   }
   .sidebar nav {
     padding: 0 6px;

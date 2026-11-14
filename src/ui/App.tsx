@@ -1629,7 +1629,7 @@ function Brand() {
         alt="NHL Manager 26"
       />
       <div className="brand-copy">
-        <span>MANAGER <b>26</b></span>
+        <span>NHL MANAGER <b>26</b></span>
         <small>BUILD YOUR LEGACY</small>
       </div>
     </div>
