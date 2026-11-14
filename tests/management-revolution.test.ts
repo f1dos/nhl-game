@@ -9,6 +9,10 @@ import {
   selectFranchiseStrategy,
 } from "../src/engine/management";
 import { validateSave } from "../src/engine/saves";
+import {
+  chooseSeasonStrategy,
+  reviewSeasonStrategy,
+} from "../src/engine/strategy";
 
 test("management state creates a daily calendar, AI identities and unique draft assets", () => {
   const game = ensureManagementState(newGame("SJS", 606));
@@ -61,8 +65,8 @@ test("the living world performs persistent AI actions without duplicating player
 
 test("franchise strategy resolves the board decision and drives real recommendations", () => {
   const game = ensureManagementState(newGame("SJS", 6005));
-  selectFranchiseStrategy(game, "rebuild");
-  assert.equal(game.franchiseStrategy, "rebuild");
+  selectFranchiseStrategy(game, "draft-lottery");
+  assert.equal(game.franchiseStrategy, "draft-lottery");
   assert.equal(
     game.events?.find((event) => event.title === "Утвердите стратегию франшизы")
       ?.resolved,
@@ -70,4 +74,30 @@ test("franchise strategy resolves the board decision and drives real recommendat
   );
   const recommendations = advisorRecommendations(game);
   assert(recommendations.every((item) => item.action.length > 0));
+});
+
+test("strategy is chosen once per season, creates tiered objectives and can cost the GM their job", () => {
+  const game = ensureManagementState(newGame("SJS", 7788));
+  chooseSeasonStrategy(game, "draft-lottery");
+  assert.equal(game.strategySeason, 2026);
+  assert.equal(game.franchiseObjectives?.length, 4);
+  assert.deepEqual(
+    new Set(game.franchiseObjectives?.map((objective) => objective.tier)),
+    new Set(["critical", "major", "supporting"]),
+  );
+  assert.throws(
+    () => chooseSeasonStrategy(game, "stanley-cup"),
+    /уже утверждена/,
+  );
+  const user = game.teams.find((team) => team.id === game.user)!;
+  user.record.pts = 164;
+  user.record.w = 82;
+  user.record.gp = 82;
+  reviewSeasonStrategy(game);
+  assert.equal(game.managerEmployment?.criticalFailures, 1);
+  game.year++;
+  game.strategySeason = undefined;
+  chooseSeasonStrategy(game, "draft-lottery");
+  reviewSeasonStrategy(game);
+  assert.equal(game.managerEmployment?.status, "fired");
 });

@@ -12,6 +12,7 @@ import {
 import { simulateMatch } from "./match";
 import { resolveInternationalOffers } from "./international";
 import { refreshInternationalMarket } from "./database";
+import { reviewSeasonStrategy } from "./strategy";
 import {
   emptyRecord,
   emptyStats,
@@ -148,6 +149,7 @@ export function advance(g: Game) {
           champion: series[0].winner!,
           points: g.teams.find((t) => t.id === g.user)!.record.pts,
         });
+        reviewSeasonStrategy(g);
         g.news.unshift(
           `${series[0].winner} — обладатель Кубка Стэнли ${g.year + 1}.`,
         );
@@ -188,6 +190,8 @@ function rollover(g: Game) {
   );
   autoCompleteDraft(g);
   g.year++;
+  g.franchiseStrategy = undefined;
+  g.strategySeason = undefined;
   g.round = 0;
   g.phase = "regular";
   if (g.calendar) {

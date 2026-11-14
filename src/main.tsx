@@ -13,3 +13,4 @@ createRoot(document.getElementById("root")!).render(
   </React.StrictMode>,
 );
 import "./ui/scouting.css";
+import "./ui/conversation.css";

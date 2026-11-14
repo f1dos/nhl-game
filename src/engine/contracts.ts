@@ -1,5 +1,6 @@
 import type { Game, Player, Team, Position } from "./types";
 import { autoLines } from "./database";
+import { contractStrategyFactor } from "./strategy";
 export const CONTRACT_RULES = {
   minimumSalary: 0.8,
   maxYears: 7,
@@ -7,11 +8,15 @@ export const CONTRACT_RULES = {
 };
 export const salaryTotal = (t: Team) =>
   t.players.reduce((n, p) => n + p.salary, 0);
-export function askingSalary(p: Player) {
-  return (
+export function askingSalary(p: Player, g?: Game, teamId?: string) {
+  const base =
     Math.round(
       Math.max(0.8, 0.8 + Math.pow(Math.max(0, p.ovr - 60) / 15, 2)) * 100,
-    ) / 100
+    ) / 100;
+  const factor = g && teamId ? contractStrategyFactor(g, teamId, p.age) : 1;
+  return (
+    Math.round(Math.max(CONTRACT_RULES.minimumSalary, base * factor) * 100) /
+    100
   );
 }
 export function signContract(
@@ -42,8 +47,8 @@ export function signContract(
     throw Error("Roster is full");
   if (salaryTotal(t) - (owned?.salary || 0) + salary > g.rules.cap + 1e-8)
     throw Error("Salary cap exceeded");
-  if (salary < askingSalary(p))
-    throw Error(`Counteroffer: $${askingSalary(p).toFixed(2)}M`);
+  const ask = askingSalary(p, g, teamId);
+  if (salary < ask) throw Error(`Counteroffer: $${ask.toFixed(2)}M`);
   // Renewals take effect immediately in this foundation model.
   p.salary = Math.round(salary * 100) / 100;
   p.years = years;

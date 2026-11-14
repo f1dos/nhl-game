@@ -174,11 +174,35 @@ export function validateSave(value: unknown): Game {
     throw Error("Invalid management calendar");
   if (
     g.franchiseStrategy !== undefined &&
-    !["win-now", "balanced", "rebuild", "youth-development"].includes(
-      g.franchiseStrategy,
-    )
+    ![
+      "draft-lottery",
+      "wild-card-hunt",
+      "playoff-breakthrough",
+      "stanley-cup",
+    ].includes(g.franchiseStrategy)
   )
     throw Error("Invalid franchise strategy");
+  if (
+    g.franchiseObjectives &&
+    (!Array.isArray(g.franchiseObjectives) ||
+      g.franchiseObjectives.some(
+        (objective) =>
+          !["critical", "major", "supporting"].includes(objective.tier) ||
+          !Number.isFinite(objective.target) ||
+          !Number.isFinite(objective.progress),
+      ))
+  )
+    throw Error("Invalid franchise objectives");
+  if (
+    g.managerEmployment &&
+    (!Number.isFinite(g.managerEmployment.confidence) ||
+      g.managerEmployment.confidence < 0 ||
+      g.managerEmployment.confidence > 100 ||
+      !["secure", "under-pressure", "final-warning", "fired"].includes(
+        g.managerEmployment.status,
+      ))
+  )
+    throw Error("Invalid manager employment state");
   if (g.events) {
     if (
       !Array.isArray(g.events) ||

@@ -45,9 +45,12 @@ export interface Player {
     round: number;
     topic: string;
     tone: string;
+    managerLine?: string;
     response: string;
+    outcome?: "positive" | "neutral" | "negative";
     moraleDelta: number;
     relationshipDelta: number;
+    motivationDelta?: number;
   }[];
   developmentLog?: {
     year: number;
@@ -179,7 +182,36 @@ export interface DraftPick {
   prospectId?: string;
 }
 export type FranchiseStrategy =
-  "win-now" | "balanced" | "rebuild" | "youth-development";
+  "draft-lottery" | "wild-card-hunt" | "playoff-breakthrough" | "stanley-cup";
+export type ObjectiveTier = "critical" | "major" | "supporting";
+export type ObjectiveMetric =
+  | "conference-finish"
+  | "playoff-qualification"
+  | "playoff-round-wins"
+  | "stanley-cup"
+  | "young-nhl-players"
+  | "cap-space"
+  | "premium-draft-picks"
+  | "team-morale";
+export interface FranchiseObjective {
+  id: string;
+  season: number;
+  tier: ObjectiveTier;
+  metric: ObjectiveMetric;
+  title: string;
+  detail: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  evaluated: boolean;
+}
+export interface ManagerEmployment {
+  confidence: number;
+  status: "secure" | "under-pressure" | "final-warning" | "fired";
+  seasonsReviewed: number;
+  criticalFailures: number;
+  lastReview?: string;
+}
 export interface AiGeneralManagerProfile {
   strategy: FranchiseStrategy;
   aggression: number;
@@ -213,7 +245,8 @@ export interface ManagementEvent {
   body: string;
   teamId?: string;
   playerId?: string;
-  action?: "roster" | "injuries" | "contracts" | "trades" | "draft";
+  action?:
+    "roster" | "injuries" | "contracts" | "trades" | "draft" | "strategy";
   responseDue?: string;
   requiresResponse?: boolean;
   read: boolean;
@@ -296,6 +329,9 @@ export interface Game {
   calendar?: CalendarState;
   events?: ManagementEvent[];
   franchiseStrategy?: FranchiseStrategy;
+  strategySeason?: number;
+  franchiseObjectives?: FranchiseObjective[];
+  managerEmployment?: ManagerEmployment;
   draftAssets?: DraftAsset[];
   juniorPlayers?: Player[];
   internationalMarket?: InternationalCandidate[];

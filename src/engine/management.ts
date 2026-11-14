@@ -2,6 +2,7 @@ import { autoLines } from "./database";
 import { advance, dateForRound } from "./season";
 import { payroll, tradeValue } from "./trades";
 import { trainTeam } from "./training";
+import { chooseSeasonStrategy, defaultEmployment } from "./strategy";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -13,13 +14,6 @@ import type {
 } from "./types";
 
 const DAY = 86_400_000;
-const strategies: FranchiseStrategy[] = [
-  "win-now",
-  "balanced",
-  "rebuild",
-  "youth-development",
-];
-
 function iso(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -43,10 +37,10 @@ function initialStrategy(team: Team): FranchiseStrategy {
   const rating =
     core.reduce((sum, player) => sum + player.ovr, 0) / core.length;
   const age = core.reduce((sum, player) => sum + player.age, 0) / core.length;
-  if (rating >= 82) return "win-now";
-  if (rating < 76) return "rebuild";
-  if (age < 26) return "youth-development";
-  return "balanced";
+  if (rating >= 82) return "stanley-cup";
+  if (rating >= 79) return "playoff-breakthrough";
+  if (rating < 76) return "draft-lottery";
+  return age < 26 ? "wild-card-hunt" : "playoff-breakthrough";
 }
 
 function createProfile(team: Team): AiGeneralManagerProfile {
@@ -103,7 +97,7 @@ function seedOpeningEvents(g: Game) {
     priority: "high",
     title: "Утвердите стратегию франшизы",
     body: "Владелец ждёт выбранное направление развития клуба на сезон.",
-    action: "roster",
+    action: "strategy",
     requiresResponse: true,
     responseDue: addDays(g.calendar!.date, 7),
   });
@@ -135,6 +129,27 @@ function seedOpeningEvents(g: Game) {
     });
 }
 
+function ensureStrategyEvent(g: Game) {
+  if (
+    g.strategySeason === g.year ||
+    g.events!.some(
+      (event) =>
+        event.title === "Утвердите стратегию франшизы" && !event.resolved,
+    )
+  )
+    return;
+  pushEvent(g, {
+    date: g.calendar!.date,
+    category: "organization",
+    priority: "critical",
+    title: "Утвердите стратегию франшизы",
+    body: "До продолжения сезона совет директоров требует выбрать уровень спортивных амбиций и принять задачи.",
+    action: "strategy",
+    requiresResponse: true,
+    responseDue: addDays(g.calendar!.date, 7),
+  });
+}
+
 export function ensureManagementState(g: Game) {
   const start = `${g.year}-10-07`;
   g.calendar ??= {
@@ -144,10 +159,25 @@ export function ensureManagementState(g: Game) {
     lastProcessedDate: addDays(iso(dateForRound(g, g.round)), -1),
   };
   g.events ??= [];
-  g.franchiseStrategy ??= "balanced";
+  const legacyStrategy = g.franchiseStrategy as string | undefined;
+  if (
+    legacyStrategy &&
+    ![
+      "draft-lottery",
+      "wild-card-hunt",
+      "playoff-breakthrough",
+      "stanley-cup",
+    ].includes(legacyStrategy)
+  ) {
+    g.franchiseStrategy = undefined;
+    g.strategySeason = undefined;
+    g.franchiseObjectives = [];
+  }
+  g.managerEmployment ??= defaultEmployment();
   g.draftAssets ??= initialDraftAssets(g);
   for (const team of g.teams) team.aiProfile ??= createProfile(team);
   if (!g.events.length) seedOpeningEvents(g);
+  ensureStrategyEvent(g);
   return g;
 }
 
@@ -209,11 +239,11 @@ function adaptAiStrategies(g: Game) {
       ? team.record.pts / (team.record.gp * 2)
       : (team.strengthRating ?? 78) / 100;
     const previous = profile.strategy;
-    if (team.record.gp >= 20 && pointPct < 0.42) profile.strategy = "rebuild";
+    if (team.record.gp >= 20 && pointPct < 0.42)
+      profile.strategy = "draft-lottery";
     else if (team.record.gp >= 20 && pointPct > 0.61)
-      profile.strategy = "win-now";
-    else if (profile.youthPreference > 72)
-      profile.strategy = "youth-development";
+      profile.strategy = "stanley-cup";
+    else if (profile.youthPreference > 72) profile.strategy = "wild-card-hunt";
     else profile.strategy = initialStrategy(team);
     if (previous !== profile.strategy)
       pushEvent(g, {
@@ -287,7 +317,7 @@ function aiTradeDay(g: Game) {
   const bProfile = b.aiProfile!;
   const aTargets = [...a.players].filter((player) => player.injury <= 0);
   const pa = aTargets.sort((x, y) =>
-    aProfile.strategy === "rebuild"
+    aProfile.strategy === "draft-lottery"
       ? y.age - x.age || y.salary - x.salary
       : tradeValue(x) - tradeValue(y),
   )[0];
@@ -390,7 +420,7 @@ export function resolveEvent(g: Game, id: string) {
 
 export function selectFranchiseStrategy(g: Game, strategy: FranchiseStrategy) {
   ensureManagementState(g);
-  g.franchiseStrategy = strategy;
+  chooseSeasonStrategy(g, strategy);
   const opening = g.events!.find(
     (event) =>
       event.title === "Утвердите стратегию франшизы" && !event.resolved,
@@ -421,7 +451,7 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
   const team = g.teams.find((club) => club.id === g.user)!;
   const salary = payroll(team.players);
   const recommendations: AdvisorRecommendation[] = [];
-  if (g.franchiseStrategy === "rebuild")
+  if (g.franchiseStrategy === "draft-lottery")
     recommendations.push({
       id: "rebuild-assets",
       priority: "normal",
@@ -430,7 +460,7 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
         "Курс на перестройку повышает приоритет молодых игроков и пиков первых трёх раундов.",
       action: "strategy",
     });
-  if (g.franchiseStrategy === "win-now")
+  if (g.franchiseStrategy === "stanley-cup")
     recommendations.push({
       id: "competitive-window",
       priority: "normal",

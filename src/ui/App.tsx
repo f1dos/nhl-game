@@ -36,12 +36,7 @@ import {
   applyOfficialInjurySnapshot,
   applyMinorLeagueSnapshot,
 } from "../engine/database";
-import {
-  playerConcerns,
-  talkToPlayer,
-  type ConversationTone,
-  type ConversationTopic,
-} from "../engine/conversations";
+import { playerConcerns } from "../engine/conversations";
 import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
@@ -57,6 +52,7 @@ import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
 import InjuryCenter from "./InjuryCenter";
+import PlayerConversation from "./PlayerConversation";
 import {
   DailyCalendar,
   DailyHeadquarters,
@@ -222,6 +218,7 @@ export default function App() {
     [selected, setSelected] = useState("TOR"),
     [search, setSearch] = useState(""),
     [profile, setProfile] = useState<Player | null>(null),
+    [conversation, setConversation] = useState<Player | null>(null),
     [saved, setSaved] = useState<Game[]>([]),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
@@ -256,11 +253,41 @@ export default function App() {
     setFilter("all");
   };
   const play = () => {
+    if (g?.managerEmployment?.status === "fired") {
+      setPage("strategy");
+      setNotice(
+        tr(
+          "Совет директоров расторг контракт: эта карьера завершена",
+          "The board terminated your contract: this career is over",
+        ),
+      );
+      return;
+    }
+    if (g && g.phase === "regular" && g.strategySeason !== g.year) {
+      setPage("strategy");
+      setNotice(
+        tr(
+          "Сначала утвердите стратегию франшизы на сезон",
+          "Choose the franchise strategy for this season first",
+        ),
+      );
+      return;
+    }
     edit((game) => continueGame(game, continueMode));
     setPage("match");
   };
   async function finish() {
     if (!g) return;
+    if (g.strategySeason !== g.year) {
+      go("strategy");
+      setNotice(
+        tr(
+          "Сначала утвердите стратегию франшизы на сезон",
+          "Choose the franchise strategy for this season first",
+        ),
+      );
+      return;
+    }
     setBusy(true);
     const copy = structuredClone(g);
     try {
@@ -820,8 +847,12 @@ export default function App() {
           title={tr("ОСНОВНОЙ СОСТАВ NHL", "NHL FIRST TEAM")}
           extra={<span className="tag">NHL · {team.players.length}</span>}
         >
-          <PlayerTable players={roster} onSelect={setProfile} lang={g.language}
-            onAssign={(id) => edit((world) => sendToFarm(world, id))} />
+          <PlayerTable
+            players={roster}
+            onSelect={setProfile}
+            lang={g.language}
+            onAssign={(id) => edit((world) => sendToFarm(world, id))}
+          />
         </Panel>
         <FarmCenter game={g} edit={edit} onPlayer={setProfile} />
       </>
@@ -1447,8 +1478,8 @@ export default function App() {
           <div className="about-text">
             <p>
               {tr(
-                "v0.5-dev · ежедневный календарь, штаб менеджера, события и решения, стратегии франшиз, автономные ИИ-клубы и активы драфта.",
-                "v0.5-dev · daily calendar, manager headquarters, actionable events, franchise strategies, autonomous AI clubs and draft assets.",
+                "v0.5.1-dev · отдельные встречи с игроками, сезонная стратегия, задачи владельца, доверие и риск увольнения.",
+                "v0.5.1-dev · dedicated player meetings, seasonal strategy, board objectives, confidence and dismissal risk.",
               )}
             </p>
             <p>
@@ -1570,11 +1601,20 @@ export default function App() {
             <button
               className="primary"
               disabled={busy}
-              onClick={() =>
-                g.phase === "offseason"
-                  ? (edit(nextSeason), go("overview"))
-                  : play()
-              }
+              onClick={() => {
+                if (g.managerEmployment?.status === "fired") {
+                  go("strategy");
+                  setNotice(
+                    tr(
+                      "Вы уволены советом директоров — карьера завершена",
+                      "You were dismissed by the board — career over",
+                    ),
+                  );
+                } else if (g.phase === "offseason") {
+                  edit(nextSeason);
+                  go("overview");
+                } else play();
+              }}
             >
               {g.phase === "offseason"
                 ? tr("Новый сезон", "New season")
@@ -1599,7 +1639,7 @@ export default function App() {
                       "NHL API identities · legacy demo ratings",
                     )
                   : tr("Вымышленная база данных", "Fictional database")}{" "}
-              · v0.5-dev
+              · v0.5.1-dev
             </span>
             <span>
               SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
@@ -1644,9 +1684,28 @@ export default function App() {
               .find((p) => p.id === profile.id) || profile
           }
           game={g}
-          edit={edit}
           tr={tr}
           onClose={() => setProfile(null)}
+          onConversation={() => {
+            setConversation(profile);
+            setProfile(null);
+          }}
+        />
+      )}
+      {conversation && (
+        <PlayerConversation
+          player={
+            g.teams
+              .flatMap((team) => [
+                ...team.players,
+                ...(team.farm ?? []),
+                ...(team.prospects ?? []),
+              ])
+              .find((player) => player.id === conversation.id) ?? conversation
+          }
+          game={g}
+          edit={edit}
+          onClose={() => setConversation(null)}
         />
       )}
       {busy && (
@@ -1952,19 +2011,16 @@ function TacticsView({
 function PlayerProfile({
   player: p,
   game,
-  edit,
   tr,
   onClose,
+  onConversation,
 }: {
   player: Player;
   game: Game;
-  edit: (fn: (g: Game) => void) => void;
   tr: (a: string, b: string) => string;
   onClose: () => void;
+  onConversation: () => void;
 }) {
-  const [topic, setTopic] = useState<ConversationTopic>("form");
-  const [tone, setTone] = useState<ConversationTone>("supportive");
-  const [reply, setReply] = useState("");
   const skaterCategories: [string, string[]][] = [
     [
       tr("АТАКА", "OFFENSE"),
@@ -2223,55 +2279,14 @@ function PlayerProfile({
               {tr("мотивация", "motivation")} {p.motivation ?? 50}%
             </p>
           </div>
-          <div className="conversation-controls">
-            <select
-              aria-label="Conversation topic"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value as ConversationTopic)}
-            >
-              <option value="form">{tr("Форма", "Form")}</option>
-              <option value="role">{tr("Роль", "Role")}</option>
-              <option value="contract">{tr("Контракт", "Contract")}</option>
-              <option value="development">
-                {tr("Развитие", "Development")}
-              </option>
-            </select>
-            <select
-              aria-label="Conversation tone"
-              value={tone}
-              onChange={(e) => setTone(e.target.value as ConversationTone)}
-            >
-              <option value="supportive">
-                {tr("Поддержать", "Supportive")}
-              </option>
-              <option value="direct">{tr("Прямо", "Direct")}</option>
-              <option value="challenge">
-                {tr("Бросить вызов", "Challenge")}
-              </option>
-            </select>
-            <button
-              disabled={p.lastConversationRound === game.round}
-              onClick={() => {
-                try {
-                  let result = "";
-                  edit((g) => {
-                    result = talkToPlayer(g, p.id, topic, tone).response;
-                  });
-                  setReply(result);
-                } catch (e) {
-                  setReply((e as Error).message);
-                }
-              }}
-            >
-              {p.lastConversationRound === game.round
-                ? tr("Разговор проведён", "Talk completed")
-                : tr("Поговорить", "Talk")}
-            </button>
-          </div>
-          {(reply || p.conversationHistory?.[0]) && (
-            <blockquote>
-              {reply || p.conversationHistory?.[0]?.response}
-            </blockquote>
+          <button onClick={onConversation}>
+            {p.lastConversationRound === game.round
+              ? tr("Открыть историю разговора", "Open conversation history")
+              : tr("Начать личную встречу", "Start private meeting")}
+            <ArrowUpRight size={16} />
+          </button>
+          {p.conversationHistory?.[0] && (
+            <blockquote>{p.conversationHistory[0].response}</blockquote>
           )}
         </section>
         {(p.developmentLog?.length ?? 0) > 0 && (
