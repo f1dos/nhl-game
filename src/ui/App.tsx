@@ -1623,9 +1623,13 @@ export default function App() {
 function Brand() {
   return (
     <div className="brand">
-      <span className="brand-shield">NHL</span>
-      <div>
-        MANAGER <b>26</b>
+      <img
+        className="brand-logo"
+        src="/nhl-manager-26-logo.png"
+        alt="NHL Manager 26"
+      />
+      <div className="brand-copy">
+        <span>MANAGER <b>26</b></span>
         <small>BUILD YOUR LEGACY</small>
       </div>
     </div>
