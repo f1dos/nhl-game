@@ -61,10 +61,12 @@ export function PlayerTable({
   players,
   onSelect,
   lang,
+  onAssign,
 }: {
   players: Player[];
   onSelect: (p: Player) => void;
   lang: string;
+  onAssign?: (playerId: string) => void;
 }) {
   const ru = lang === "ru";
   const [sort, setSort] = useState("default");
@@ -136,6 +138,7 @@ export function PlayerTable({
             <th>+/−</th>
             <th>{ru ? "ГОТОВНОСТЬ" : "CONDITION"}</th>
             <th>{ru ? "ЗАРПЛАТА" : "SALARY"}</th>
+            {onAssign && <th>{ru ? "ДЕЙСТВИЕ" : "ACTION"}</th>}
           </tr>
         </thead>
         <tbody>
@@ -176,6 +179,7 @@ export function PlayerTable({
                 <small>{Math.round(100 - p.fatigue)}%</small>
               </td>
               <td>${p.salary.toFixed(2)}M</td>
+              {onAssign && <td><button className="roster-assign-button" onClick={(e) => { e.stopPropagation(); onAssign(p.id); }}>{ru ? "В AHL" : "To AHL"}</button></td>}
             </tr>
           ))}
         </tbody>
