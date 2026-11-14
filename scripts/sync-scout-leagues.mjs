@@ -151,61 +151,39 @@ async function liigaPlayers() {
   return [...entries.values()];
 }
 async function shlPlayers() {
-  const base="https://www.shl.se/api/statistics-v2/stats-info/";
-  const modules=["players_summary","players_points"];
-  let payload=null;let rows=[];
-  for (const module of modules) {
-    try {
-      payload=get(`${base}${module}?count=1200&season=2027&gameType=regular`);
-      console.log("SHL response",module,JSON.stringify(payload).slice(0,1100));
-      rows=collectPeople(payload,(x)=>Boolean(
-        (x.firstName ?? x.first_name ?? x.firstname ?? x.player?.firstName) &&
-        (x.lastName ?? x.last_name ?? x.lastname ?? x.player?.lastName) &&
-        (x.teamName ?? x.team_name ?? x.team?.name ?? x.team?.names?.long ?? x.team?.names?.full)
-      ));
-      if (rows.length>80) break;
-    } catch (e) { console.warn("SHL module",module,String(e.message)); }
+  // SHL now publishes official current-season team rosters through its
+  // sports-v2 API. The legacy stats-info modules often reply with empty 200s.
+  const layout=get("https://www.shl.se/api/statistics-v2/layout-info");
+  const groups=collectPeople(layout,x =>
+    String(x.season?.name ?? "")==="2026/2027" &&
+    x.series?.code==="SHL" &&
+    x.gameType?.code==="regular" &&
+    Array.isArray(x.teams)
+  );
+  const group=groups.find((x)=>x.teams?.length>=12);
+  if(!group) throw Error("Official 2026/27 SHL regular-season team list unavailable");
+  const players=new Map();
+  for(const team of group.teams) {
+    const name=String(team.teamNames?.long ?? team.name?.medium ?? team.teamNames?.full ?? "");
+    if(!name || !team.uuid) continue;
+    const sections=get("https://www.shl.se/api/sports-v2/athletes/by-team-uuid/"+encodeURIComponent(team.uuid));
+    for(const section of Array.isArray(sections)?sections:[]) {
+      for(const p of section.players ?? []) {
+        const fullname=String(p.fullName ?? [p.firstName,p.lastName].filter(Boolean).join(" ")).trim();
+        if(!fullname || !p.uuid) continue;
+        const x={
+          id:"shl-"+p.uuid,name:fullname,club:name,
+          pos:position(p.positionCode ?? section.positionCode),
+          number:number(p.jerseyNumber),
+          nation:String(p.nationality ?? "—"),
+          age:age(p.dateOfBirth),
+        };
+        players.set(x.id,rated("SHL",x));
+      }
+    }
   }
-  const entries=new Map();
-  for(const p of rows){
-    const name=`${p.firstName ?? p.first_name ?? p.firstname ?? p.player?.firstName} ${p.lastName ?? p.last_name ?? p.lastname ?? p.player?.lastName}`;
-    const club=p.teamName ?? p.team_name ?? p.team?.name ?? p.team?.names?.long ?? p.team?.names?.full;
-    const key=p.playerId ?? p.player_id ?? p.player?.id ?? idHash(name+"|"+club);
-    const stats=p.stats ?? p;
-    const x={id:`shl-${key}`,name,club:String(club),pos:position(p.position ?? p.positionCode ?? p.player?.position),
-      number:number(p.jersey ?? p.jerseyNumber),nation:String(p.nationality ?? p.countryCode ?? "—"),
-      age:age(p.birthDate ?? p.birthdate ?? p.player?.birthDate),
-      games:number(stats.games ?? stats.gp ?? stats.gamesPlayed),
-      goals:number(stats.goals),assists:number(stats.assists),
-    };
-    entries.set(x.id, rated("SHL",x));
-  }
-  if(entries.size<100) {
-    try {
-      const layout=get("https://www.shl.se/api/statistics-v2/layout-info");
-      console.log("SHL layout top keys",Object.keys(layout),"is array",Array.isArray(layout));
-      console.log("SHL layout sample",JSON.stringify(layout).slice(0,850));
-      const rows=collectPeople(layout, x => /2026\/2027|2026-2027|2026\/27/.test(String(x.season?.name || x.seasonName || "")) && !!x.series);
-      console.log("SHL 2026/27 layout groups",rows.length,JSON.stringify(rows.slice(0,3)).slice(0,3600));
-      const group=rows.find(x=>String(x.series?.code).toUpperCase()==="SHL" && /regular|grundserie/i.test(String(x.gameType?.code || x.gameType?.name || ""))) || rows[0];
-      console.log("SHL chosen group",JSON.stringify(group).slice(0,3200));
-      const direct=get("https://www.shl.se/api/sports-v2/athletes/by-team-uuid/087a-087aTQv9u");
-      console.log("SHL example roster",JSON.stringify(direct).slice(0,2800));
-    } catch(e){ console.log("SHL layout/roster diagnostic error", e.message);}
-  }
-  if(entries.size<100) {
-    for(const url of [
-      "https://www.shl.se/game-stats/players",
-      "https://www.shl.se/api/statistics-v2/layout-info",
-      "https://www.shl.se/api/sports-v2/teams"
-    ]) try {
-      const body=fetchText(url);
-      const index=body.search(/Viktor Lodin|Lodin|teamList|seasonName|athlete/i);
-      console.log("SHL diagnostic",url,"size",body.length,"snippet",index>=0?body.slice(Math.max(0,index-150),index+600):body.slice(0,350));
-    } catch (e) {console.log("SHL diagnostic failed",url,e.message);}
-  }
-  if(entries.size<100) throw Error("SHL source yielded only "+entries.size+" roster identities");
-  return [...entries.values()];
+  if(players.size<200) throw Error("Insufficient official SHL roster coverage: "+players.size);
+  return [...players.values()];
 }
 const sourceFile = await readFile(target,"utf8");
 // Recover previously verified generated records on a temporary upstream outage.
