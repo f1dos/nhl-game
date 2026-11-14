@@ -34,6 +34,10 @@ export function callUpFromFarm(g: Game, playerId: string) {
   const team = g.teams.find((t) => t.id === g.user)!;
   const player = team.farm?.find((p) => p.id === playerId);
   if (!player) throw Error("Player is not in organizational reserve");
+  if (player.contractType === "AHL")
+    throw Error(
+      "Игрок имеет только контракт AHL — сначала подпишите NHL/ELC соглашение",
+    );
   if (team.players.length >= 30) throw Error("Active roster is full");
   if (salaryTotal(team) + player.salary > g.rules.cap + 1e-8)
     throw Error("Call-up would exceed the salary cap");

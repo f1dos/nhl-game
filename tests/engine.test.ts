@@ -8,12 +8,16 @@ import { validateSave } from "../src/engine/saves";
 test("32 franchises, unique players, 30 valid attributes and legal lineups", () => {
   const g = newGame();
   assert.equal(g.teams.length, 32);
+  const organizationPlayers = g.teams.flatMap((t) => [
+    ...t.players,
+    ...(t.farm ?? []),
+  ]);
   assert.equal(
-    new Set(
-      g.teams.flatMap((t) =>
-        [...t.players, ...(t.farm ?? [])].map((p) => p.id),
-      ),
-    ).size,
+    new Set(organizationPlayers.map((p) => p.id)).size,
+    organizationPlayers.length,
+  );
+  assert.equal(
+    organizationPlayers.filter((p) => p.identitySource === "nhl-api").length,
     794,
   );
   for (const t of g.teams) {

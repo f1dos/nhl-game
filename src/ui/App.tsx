@@ -32,6 +32,8 @@ import {
   applyOfficialIdentitySnapshot,
   applyOfficialRatingsSnapshot,
   applyOfficialContractSnapshot,
+  applyOfficialInjurySnapshot,
+  applyMinorLeagueSnapshot,
 } from "../engine/database";
 import {
   playerConcerns,
@@ -51,6 +53,7 @@ import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
+import InjuryCenter from "./InjuryCenter";
 const nav = [
   {
     key: "overview",
@@ -97,6 +100,14 @@ const nav = [
     ru: "Фарм и резерв",
     en: "Farm & reserve",
     Icon: Building2,
+    groupRu: "КОМАНДА",
+    groupEn: "TEAM",
+  },
+  {
+    key: "injuries",
+    ru: "Лазарет",
+    en: "Injury reserve",
+    Icon: Activity,
     groupRu: "КОМАНДА",
     groupEn: "TEAM",
   },
@@ -541,6 +552,8 @@ export default function App() {
   if (page === "development") content = <TrainingCenter game={g} edit={edit} />;
   else if (page === "organization")
     content = <FarmCenter game={g} edit={edit} onPlayer={setProfile} />;
+  else if (page === "injuries")
+    content = <InjuryCenter game={g} onPlayer={setProfile} />;
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
@@ -1380,6 +1393,28 @@ export default function App() {
                 )}
               </button>
             )}
+            {!g.dataSource?.injurySource && g.year === 2026 && (
+              <button
+                onClick={() => {
+                  edit(applyOfficialInjurySnapshot);
+                  setNotice(tr("Лазарет NHL обновлён", "NHL injuries applied"));
+                }}
+              >
+                {tr("Обновить реальный лазарет", "Apply real injury list")}
+              </button>
+            )}
+            {!g.dataSource?.minorsSource && g.year === 2026 && (
+              <button
+                onClick={() => {
+                  edit(applyMinorLeagueSnapshot);
+                  setNotice(
+                    tr("Составы AHL/OHL подключены", "AHL/OHL rosters applied"),
+                  );
+                }}
+              >
+                {tr("Подключить составы AHL/OHL", "Apply AHL/OHL rosters")}
+              </button>
+            )}
           </div>
           <div className="settings-actions">
             <button
@@ -1431,8 +1466,8 @@ export default function App() {
           <div className="about-text">
             <p>
               {tr(
-                "v0.3-dev · 32 клуба, 794 записи составов NHL 2026/27, фарм и резерв, драфт, контракты, обмены, 82 матча, плей-офф и многосезонная карьера.",
-                "v0.3-dev · 32 clubs, 794 NHL 2026/27 roster identities, farm and reserve, draft, contracts, trades, 82 games, playoffs and a multi-season career.",
+                "v0.4-dev · 32 клуба NHL, 813 игроков AHL, 487 игроков OHL, реальный лазарет, международный рынок, драфт, контракты, 82 матча и многосезонная карьера.",
+                "v0.4-dev · 32 NHL clubs, 813 AHL players, 487 OHL players, verified injury reserve, international market, draft, contracts, 82 games and a multi-season career.",
               )}
             </p>
             <p>
@@ -1555,7 +1590,7 @@ export default function App() {
                       "NHL API identities · legacy demo ratings",
                     )
                   : tr("Вымышленная база данных", "Fictional database")}{" "}
-              · v0.3-dev
+              · v0.4-dev
             </span>
             <span>
               SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
@@ -1629,7 +1664,9 @@ function Brand() {
         alt="NHL Manager 26"
       />
       <div className="brand-copy">
-        <span>NHL MANAGER <b>26</b></span>
+        <span>
+          NHL MANAGER <b>26</b>
+        </span>
         <small>BUILD YOUR LEGACY</small>
       </div>
     </div>
@@ -2010,7 +2047,10 @@ function PlayerProfile({
             <p>
               {p.archetype || tr("Универсальный игрок", "Utility player")} ·{" "}
               {p.injury
-                ? tr(`Травма: ${p.injury} шагов`, `Injured: ${p.injury} steps`)
+                ? tr(
+                    `Лазарет: ${p.injuryReason ?? "травма"} · ${p.injuryReturnDate ?? `${p.injury} шагов`}`,
+                    `Injury reserve: ${p.injuryReason ?? "injury"} · ${p.injuryReturnDate ?? `${p.injury} steps`}`,
+                  )
                 : tr("Готов к игре", "Available")}
             </p>
           </div>
@@ -2128,6 +2168,18 @@ function PlayerProfile({
                 <dt>{tr("Готовность", "Condition")}</dt>
                 <dd>{Math.round(100 - p.fatigue)}%</dd>
               </div>
+              {p.injury > 0 && (
+                <>
+                  <div>
+                    <dt>{tr("Статус травмы", "Injury status")}</dt>
+                    <dd>{p.injuryStatus ?? "OUT"} · {p.injuryTimeline ?? `${p.injury} steps`}</dd>
+                  </div>
+                  <div>
+                    <dt>{tr("Ожидаемое возвращение", "Expected return")}</dt>
+                    <dd>{p.injuryReturnDate ?? tr("по игровой симуляции", "simulation estimate")}</dd>
+                  </div>
+                </>
+              )}
               <div>
                 <dt>{tr("Очки за карьеру", "Career points")}</dt>
                 <dd>{career}</dd>

@@ -83,6 +83,8 @@ export function ageWorld(g: Game, r: RNG) {
   const retiring = g.freeAgents.filter(retired);
   g.retired.push(...retiring.map((player) => ({ year: g.year, player })));
   g.freeAgents = g.freeAgents.filter((p) => !retiring.includes(p));
+  for (const player of g.juniorPlayers ?? []) player.age++;
+  g.juniorPlayers = (g.juniorPlayers ?? []).filter((p) => p.age <= 20);
   // Undrafted and overage players keep the open market supplied. Drafted players
   // now develop separately inside each club's prospect pipeline.
   const positions: Position[] = ["LW", "C", "RW", "D", "D", "G"];

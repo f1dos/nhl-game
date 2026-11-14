@@ -1,6 +1,6 @@
 {
   "name": "nhl-manager-26",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,9 @@
     "test": "tsx --test tests/*.test.ts",
     "format": "prettier --write src tests scripts",
     "sync:nhl": "node scripts/sync-nhl-data.mjs",
-    "sync:contracts": "node scripts/sync-contracts.mjs"
+    "sync:contracts": "node scripts/sync-contracts.mjs",
+    "sync:injuries": "node scripts/sync-injuries.mjs",
+    "sync:minors": "node scripts/sync-minor-leagues.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

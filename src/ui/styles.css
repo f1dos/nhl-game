@@ -2007,3 +2007,40 @@ footer .status-dot {
   color: #91e7bd;
   background: rgba(56, 180, 122, 0.14);
 }
+.international-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+.international-layout tbody tr {
+  cursor: pointer;
+}
+.international-layout tbody tr.selected {
+  background: rgba(72, 169, 223, 0.12);
+}
+.international-layout td small,
+.international-offer label {
+  display: block;
+  margin-top: 5px;
+}
+.international-offer {
+  position: sticky;
+  top: 92px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  background: #10161d;
+}
+.international-offer input[type="number"],
+.international-offer select {
+  width: 100%;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .international-layout {
+    grid-template-columns: 1fr;
+  }
+  .international-offer {
+    position: static;
+  }
+}

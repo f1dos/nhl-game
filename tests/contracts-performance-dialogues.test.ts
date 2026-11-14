@@ -12,7 +12,7 @@ const allPlayers = (g: ReturnType<typeof newGame>) =>
 
 test("verified contracts expose AAV, remaining term and remaining value", () => {
   const g = newGame("EDM", 260027);
-  const players = allPlayers(g);
+  const players = allPlayers(g).filter((p) => p.identitySource === "nhl-api");
   const mcdavid = players.find((p) => p.name === "Connor McDavid")!;
   const draisaitl = players.find((p) => p.name === "Leon Draisaitl")!;
   assert.deepEqual(

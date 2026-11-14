@@ -22,6 +22,13 @@ import {
   NHL_CONTRACT_META,
   NHL_CONTRACTS_BY_NAME,
 } from "../data/nhl-contracts-2026-27";
+import { NHL_INJURIES, NHL_INJURY_META } from "../data/nhl-injuries-2026-27";
+import {
+  AHL_ROSTERS,
+  OHL_ROSTERS,
+  MINOR_LEAGUE_META,
+  type MinorLeagueIdentity,
+} from "../data/minor-leagues-2026-27";
 const clubs = [
   ["BOS", "Boston", "Bruins", "Atlantic", "#eab743"],
   ["BUF", "Buffalo", "Sabres", "Atlantic", "#3267be"],
@@ -208,6 +215,11 @@ export function newGame(user = "TOR", seed = 260027): Game {
     const roster = identities.map((identity, j) =>
       createOfficialPlayer(r, id, identity, level, j),
     );
+    const ahlIdentities = AHL_ROSTERS.filter((p) => p.affiliate === id);
+    const knownNames = new Set(roster.map((p) => contractName(p.name)));
+    const ahl = ahlIdentities
+      .filter((p) => !knownNames.has(contractName(p.name)))
+      .map((identity, j) => createMinorPlayer(r, identity, "AHL", j));
     const ranked = [...roster].sort((a, b) => b.ovr - a.ovr);
     const essential = [
       ...ranked.filter((p) => p.pos !== "D" && p.pos !== "G").slice(0, 12),
@@ -236,7 +248,9 @@ export function newGame(user = "TOR", seed = 260027): Game {
         goalDifferential: NHL_TEAM_RATINGS[id].goalDifferential,
       },
       players: active,
-      farm: roster.filter((p) => !active.includes(p)),
+      farm: [...roster.filter((p) => !active.includes(p)), ...ahl],
+      ahlAffiliate: ahlIdentities[0]?.club,
+      ahlLogoUrl: ahlIdentities[0]?.clubLogo,
       lines: [],
       defense: [],
       goalie: "",
@@ -246,7 +260,10 @@ export function newGame(user = "TOR", seed = 260027): Game {
     autoLines(t);
     return t;
   });
-  return {
+  const juniorPlayers = OHL_ROSTERS.map((identity, i) =>
+    createMinorPlayer(r, identity, "OHL", i),
+  );
+  const game: Game = {
     version: 1,
     id: `career-${Date.now()}`,
     seed: r.seed,
@@ -259,7 +276,7 @@ export function newGame(user = "TOR", seed = 260027): Game {
     bracket: [],
     playoffRound: 0,
     news: [
-      "Создана новая карьера. Составы и рейтинги 2026/27 синхронизированы с NHL API, контракты — с публичным снимком PuckPedia.",
+      "Создана новая карьера. Составы NHL/AHL/OHL, реальные контракты и текущий лазарет 2026/27 синхронизированы с публичными источниками.",
     ],
     history: [],
     rules: { cap: RULES.defaultSalaryCapMillions },
@@ -272,8 +289,16 @@ export function newGame(user = "TOR", seed = 260027): Game {
       ratingModel: NHL_DATA_META.ratingModel,
       contractSource: NHL_CONTRACT_META.source,
       contractsFetchedAt: NHL_CONTRACT_META.fetchedAt,
+      injurySource: NHL_INJURY_META.source,
+      injuriesFetchedAt: NHL_INJURY_META.fetchedAt,
+      minorsSource: MINOR_LEAGUE_META.source,
+      minorsFetchedAt: MINOR_LEAGUE_META.fetchedAt,
     },
+    juniorPlayers,
   };
+  game.internationalMarket = createInternationalMarket(r);
+  game.internationalOffers = [];
+  return game;
 }
 
 function createOfficialPlayer(
@@ -299,7 +324,177 @@ function createOfficialPlayer(
   player.identitySource = "nhl-api";
   applyPlayerRating(player);
   applyPlayerContract(player, teamId);
+  applyPlayerInjury(player, teamId);
+  player.league = "NHL";
+  player.contractType = "NHL";
   return player;
+}
+
+function hash(value: string) {
+  let result = 2166136261;
+  for (const char of value)
+    result = Math.imul(result ^ char.charCodeAt(0), 16777619);
+  return result >>> 0;
+}
+
+function setPlayerOverall(player: Player, target: number) {
+  for (let pass = 0; pass < 6; pass++) {
+    const delta =
+      target - overall(player.pos, player.attributes, player.archetype);
+    if (!delta) break;
+    for (const key of Object.keys(player.attributes))
+      player.attributes[key] = clamp(player.attributes[key] + delta, 30, 99);
+  }
+  player.ovr = overall(player.pos, player.attributes, player.archetype);
+}
+
+function ageOn(date: string, year = 2026) {
+  const born = new Date(`${date}T12:00:00Z`);
+  return Math.max(
+    16,
+    year - born.getUTCFullYear() - (born.getUTCMonth() > 9 ? 1 : 0),
+  );
+}
+
+function createMinorPlayer(
+  r: RNG,
+  identity: MinorLeagueIdentity,
+  league: "AHL" | "OHL",
+  index: number,
+) {
+  const player = createPlayer(
+    r,
+    identity.id,
+    identity.pos,
+    league === "AHL" ? 63 : 55,
+  );
+  player.name = identity.name;
+  player.number = identity.number || (index % 90) + 1;
+  player.birthDate = identity.birthDate;
+  player.age = ageOn(identity.birthDate);
+  player.nation = identity.nation;
+  player.identitySource = "hockeytech";
+  player.leagueSource = "hockeytech";
+  player.league = league;
+  player.currentClub = identity.club;
+  player.contractType = league === "AHL" ? "AHL" : undefined;
+  const target =
+    league === "AHL"
+      ? 59 + (hash(identity.id) % 15)
+      : 48 + (hash(identity.id) % 18);
+  setPlayerOverall(player, target);
+  player.potential =
+    league === "OHL"
+      ? clamp(target + 12 + (hash(identity.name) % 18), target, 95)
+      : clamp(target + (player.age <= 22 ? 8 : 3), target, 86);
+  player.salary = league === "AHL" ? 0.15 : 0;
+  player.years = 1;
+  player.contractRemainingValue = player.salary;
+  return player;
+}
+
+function applyPlayerInjury(player: Player, teamId: string) {
+  const injury = NHL_INJURIES.find(
+    (item) =>
+      item.team === teamId &&
+      contractName(item.player) === contractName(player.name),
+  );
+  if (!injury) return false;
+  const snapshot = new Date(NHL_INJURY_META.fetchedAt);
+  const returning = new Date(`${injury.returnDate}T12:00:00Z`);
+  const days = Math.max(
+    1,
+    Math.ceil((returning.valueOf() - snapshot.valueOf()) / 86_400_000),
+  );
+  player.injury = Math.max(1, Math.ceil(days / 2));
+  player.injurySource = "puckpedia";
+  player.injuryStatus = injury.status;
+  player.injuryReason = injury.reason;
+  player.injuryTimeline = injury.timeline;
+  player.injuryReturnDate = injury.returnDate;
+  player.injuryReport = injury.report;
+  player.injuryBurden = Math.max(player.injuryBurden ?? 0, player.injury);
+  return true;
+}
+
+const internationalNames = [
+  ["SWE", "SHL", "Växjö Lakers", "Emil Sundström"],
+  ["SWE", "SHL", "Frölunda HC", "Viktor Nyberg"],
+  ["FIN", "Liiga", "Tappara", "Eetu Laaksonen"],
+  ["FIN", "Liiga", "Ilves", "Jere Mäkinen"],
+  ["CHE", "NL", "ZSC Lions", "Luca Meier"],
+  ["CHE", "NL", "SC Bern", "Noah Bühler"],
+  ["DEU", "DEL", "Eisbären Berlin", "Felix Wagner"],
+  ["DEU", "DEL", "Adler Mannheim", "Moritz Keller"],
+  ["CZE", "Czech", "HC Sparta Praha", "Jakub Dvořák"],
+  ["CZE", "Czech", "HC Kometa Brno", "Matěj Novotný"],
+  ["RUS", "KHL", "SKA Saint Petersburg", "Ivan Sokolov"],
+  ["RUS", "KHL", "Lokomotiv Yaroslavl", "Mikhail Volkov"],
+] as const;
+const internationalAlternates = [
+  "Lindberg",
+  "Korhonen",
+  "Keller",
+  "Vogel",
+  "Horák",
+  "Morozov",
+  "Bergström",
+  "Laine",
+  "Schmid",
+  "Fischer",
+  "Kovář",
+  "Petrov",
+];
+
+function createInternationalMarket(
+  r: RNG,
+  year = 2026,
+): NonNullable<Game["internationalMarket"]> {
+  return Array.from({ length: 36 }, (_, i) => {
+    const template = internationalNames[i % internationalNames.length];
+    const pos = (["LW", "C", "RW", "D", "D", "G"] as Position[])[i % 6];
+    const player = createPlayer(r, `intl-${year}-${i}`, pos, 68 + (i % 5));
+    const [firstName] = template[3].split(" ");
+    player.name =
+      i < internationalNames.length
+        ? template[3]
+        : `${firstName} ${internationalAlternates[(i + Math.floor(i / internationalNames.length)) % internationalAlternates.length]}`;
+    player.nation = template[0];
+    player.age = 18 + (hash(player.id) % 10);
+    player.league = template[1];
+    player.currentClub = template[2];
+    player.leagueSource = "generated";
+    player.contractType = "international";
+    player.salary = 0;
+    player.years = 0;
+    const status =
+      template[1] === "KHL"
+        ? "release-required"
+        : i % 7 === 0
+          ? "rights-restricted"
+          : "free";
+    return {
+      player,
+      league: template[1],
+      club: template[2],
+      contractUntil: status === "free" ? year : year + 1 + (i % 2),
+      transferStatus: status,
+      desiredSalary:
+        Math.round((0.9 + Math.max(0, player.ovr - 65) * 0.16) * 100) / 100,
+      desiredYears: 1 + (i % 3),
+      desiredRole:
+        player.ovr >= 75 ? "top-six" : player.ovr >= 70 ? "rotation" : "depth",
+      adaptationRisk: 20 + (hash(player.name) % 61),
+      agentLeverage: 30 + (hash(player.id) % 61),
+      competingOffers: hash(player.name + player.id) % 5,
+      scouted: 15,
+    };
+  });
+}
+
+export function refreshInternationalMarket(g: Game, r: RNG) {
+  g.internationalMarket = createInternationalMarket(r, g.year);
+  g.internationalOffers = [];
 }
 
 const contractName = (name: string) =>
@@ -469,4 +664,71 @@ export function applyOfficialContractSnapshot(g: Game) {
     `Проверенные контракты PuckPedia применены: ${updated} игроков; остальные контракты помечены как игровые.`,
   );
   return updated;
+}
+
+export function applyOfficialInjurySnapshot(g: Game) {
+  if (g.year !== 2026)
+    throw Error("The real-world injury snapshot is only valid for 2026/27");
+  let updated = 0;
+  for (const team of g.teams) {
+    for (const player of [...team.players, ...(team.farm ?? [])]) {
+      if (player.injurySource === "puckpedia") {
+        player.injury = 0;
+        player.injurySource = undefined;
+      }
+      if (applyPlayerInjury(player, team.id)) updated++;
+    }
+    autoLines(team);
+  }
+  g.dataSource ??= {
+    kind: "official-identities-modeled-ratings",
+    season: NHL_DATA_META.season,
+    source: NHL_DATA_META.source,
+    fetchedAt: NHL_DATA_META.fetchedAt,
+  };
+  g.dataSource.injurySource = NHL_INJURY_META.source;
+  g.dataSource.injuriesFetchedAt = NHL_INJURY_META.fetchedAt;
+  g.news.unshift(
+    `Лазарет PuckPedia обновлён: ${updated} игроков NHL с реальными ожидаемыми датами возвращения.`,
+  );
+  return updated;
+}
+
+export function applyMinorLeagueSnapshot(g: Game) {
+  if (g.year !== 2026)
+    throw Error("The AHL/OHL snapshot is only valid for 2026/27");
+  const r = new RNG(g.seed ^ 0x41_48_4c);
+  let added = 0;
+  for (const team of g.teams) {
+    team.farm ??= [];
+    const known = new Set(
+      [...team.players, ...team.farm].map((p) => contractName(p.name)),
+    );
+    const identities = AHL_ROSTERS.filter((p) => p.affiliate === team.id);
+    team.ahlAffiliate = identities[0]?.club;
+    team.ahlLogoUrl = identities[0]?.clubLogo;
+    for (const identity of identities)
+      if (!known.has(contractName(identity.name))) {
+        team.farm.push(createMinorPlayer(r, identity, "AHL", added++));
+        known.add(contractName(identity.name));
+      }
+  }
+  g.juniorPlayers = OHL_ROSTERS.map((identity, i) =>
+    createMinorPlayer(r, identity, "OHL", i),
+  );
+  g.internationalMarket ??= createInternationalMarket(r);
+  g.internationalOffers ??= [];
+  g.dataSource ??= {
+    kind: "official-identities-modeled-ratings",
+    season: NHL_DATA_META.season,
+    source: NHL_DATA_META.source,
+    fetchedAt: NHL_DATA_META.fetchedAt,
+  };
+  g.dataSource.minorsSource = MINOR_LEAGUE_META.source;
+  g.dataSource.minorsFetchedAt = MINOR_LEAGUE_META.fetchedAt;
+  g.seed = r.seed;
+  g.news.unshift(
+    `Подключены официальные составы AHL и OHL 2026/27: ${added} новых игроков фарма и ${g.juniorPlayers.length} юниоров.`,
+  );
+  return added;
 }

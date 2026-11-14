@@ -9,6 +9,14 @@ export function trainTeam(t: Team) {
     p.fatigue = Math.max(0, p.fatigue - recovery);
     const unavailable = p.injury > 0;
     p.injury = Math.max(0, p.injury - 1);
+    if (unavailable && p.injury === 0) {
+      p.injuryStatus = undefined;
+      p.injuryReason = undefined;
+      p.injuryTimeline = undefined;
+      p.injuryReturnDate = undefined;
+      p.injuryReport = undefined;
+      p.injurySource = undefined;
+    }
     if (
       unavailable ||
       t.trainingTicks % 8 !== 0 ||
