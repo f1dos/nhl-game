@@ -223,13 +223,22 @@ async function shlPlayers() {
   if(players.size<200) throw Error("Insufficient official SHL roster coverage: "+players.size);
   return [...players.values()];
 }
-const sourceFile = await readFile(target,"utf8");
-// Recover previously verified generated records on a temporary upstream outage.
+const sourceFile = await readFile(target, "utf8");
+// Preserve previous real snapshots if a provider is temporarily unavailable.
+// The generated assignment is JSON; never evaluate source code or silently
+// erase leagues on a parsing error.
 let old = {};
-const generated = sourceFile.match(/SCOUT_LEAGUE_PLAYERS:[^=]+ = (\\{[\\s\\S]*\\});\\s*$/);
-if (generated) {
-  try { old = JSON.parse(generated[1]); }
-  catch { /* original hand-authored empty bootstrap file */ }
+const marker = 'export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry[]> = ';
+const at = sourceFile.indexOf(marker);
+if (at >= 0) {
+  const serialized = sourceFile.slice(at + marker.length).trim().replace(/;\s*$/, "");
+  try {
+    old = JSON.parse(serialized);
+  } catch (error) {
+    if (!/^\{\s*WHL:\s*\[\]/.test(serialized)) {
+      throw new Error("Could not parse existing verified scouting snapshot", { cause: error });
+    }
+  }
 }
 const output={};const counts={};
 for(const league of leagues){
