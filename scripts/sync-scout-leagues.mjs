@@ -52,7 +52,13 @@ const hockey = (cfg, feed, view, params={}) => {
   return get(url.toString());
 };
 const locateArray = (obj, key) => {
-  if (Array.isArray(obj)) return obj;
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      const nested = locateArray(item, key);
+      if (nested.length) return nested;
+    }
+    return [];
+  }
   if (!obj || typeof obj !== "object") return [];
   if (Array.isArray(obj[key])) return obj[key];
   for (const value of Object.values(obj)) {
@@ -126,13 +132,13 @@ async function liigaPlayers() {
   const payload = get(url);
   console.log("Liiga response",JSON.stringify(payload).slice(0,1200));
   const rows=collectPeople(payload,(x)=>Boolean(
-    (x.playerId ?? x.player_id ?? x.fihaId) &&
+    (x.id ?? x.playerId ?? x.player_id ?? x.fihaId) &&
     ((x.firstName ?? x.first_name) && (x.lastName ?? x.last_name)) &&
     (x.teamName ?? x.team_name ?? x.team ?? x.teamShortName)
   ));
   const entries=new Map();
   for(const p of rows){
-    const id=p.playerId ?? p.player_id ?? p.fihaId;
+    const id=p.id ?? p.playerId ?? p.player_id ?? p.fihaId;
     const club=p.teamName ?? p.team_name ?? p.team?.name ?? p.team ?? p.teamShortName;
     const x={id:`liiga-${id}`,name:`${p.firstName ?? p.first_name} ${p.lastName ?? p.last_name}`,
       club:String(club),pos:position(p.role ?? p.position ?? p.roleCode),
