@@ -65,6 +65,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(name));
   fireEvent.click(screen.getByText(name));
   assert(screen.getByRole("dialog"));
+  assert(screen.getByText(/NHL MODEL/));
   assert(screen.getByText("СТАТУС И КОНТРАКТ"));
   assert(document.querySelector(".attribute-sections"));
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
@@ -90,6 +91,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(/FINAL/));
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
+  assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));
+  fireEvent.click(screen.getByText("Статистика"));
+  assert(screen.getByText("РЕЙТИНГ ИГРОКОВ · TOP 50"));
+  assert(screen.getAllByText("Connor McDavid").length > 0);
   fireEvent.click(screen.getByText("Контракты и рынок"));
   const expiring = useGame
     .getState()

@@ -164,8 +164,22 @@
 }
 .profile-ratings {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 240px;
   align-items: center;
   gap: 9px;
+}
+.profile-ratings .rating-provenance {
+  flex-basis: 100%;
+  width: auto;
+  padding: 5px 8px;
+  border: 1px solid #31537a;
+  background: #10233a;
+  color: #8bbcf5;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 .profile-ratings > div {
   width: 66px;

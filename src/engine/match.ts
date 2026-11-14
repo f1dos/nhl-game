@@ -148,6 +148,7 @@ export function simulateMatch(
           : t.tactics.forecheck === "1-3-1"
             ? -3
             : 0) +
+        ((t.strengthRating ?? 75) - 75) * 0.35 +
         (counts[i] > counts[1 - i] ? 15 : 0),
     );
     const side =

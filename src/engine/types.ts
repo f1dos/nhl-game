@@ -17,6 +17,8 @@ export interface Player {
   headshot?: string;
   birthDate?: string;
   identitySource?: "nhl-api" | "generated";
+  ratingRank?: number;
+  ratingSource?: "nhl-stats-model" | "generated";
   id: string;
   name: string;
   number: number;
@@ -61,6 +63,13 @@ export interface Team {
   prospects?: Player[];
   farm?: Player[];
   logoUrl?: string;
+  strengthRating?: number;
+  strengthRank?: number;
+  realWorldForm?: {
+    gamesPlayed: number;
+    pointPct: number;
+    goalDifferential: number;
+  };
   id: string;
   city: string;
   name: string;
@@ -174,10 +183,14 @@ export interface Game {
   draft?: DraftState;
   draftHistory?: DraftHistory[];
   dataSource?: {
-    kind: "official-identities-demo-ratings" | "fictional";
+    kind:
+      | "official-identities-modeled-ratings"
+      | "official-identities-demo-ratings"
+      | "fictional";
     season: string;
     source: string;
     fetchedAt: string;
+    ratingModel?: string;
   };
   version: 1;
   id: string;

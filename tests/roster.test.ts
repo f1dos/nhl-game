@@ -27,7 +27,15 @@ test("farm assignment and recall preserve ownership, roster legality and save in
     ...team.defense.flat(),
     team.goalie,
   ]);
-  const spare = team.players.find((player) => !onIce.has(player.id))!;
+  const unit = (player: (typeof team.players)[number]) =>
+    player.pos === "D" ? "D" : player.pos === "G" ? "G" : "F";
+  const minimum = { F: 12, D: 6, G: 2 };
+  const spare = team.players.find(
+    (player) =>
+      !onIce.has(player.id) &&
+      team.players.filter((item) => unit(item) === unit(player)).length >
+        minimum[unit(player)],
+  )!;
   const activeBefore = team.players.length;
   const farmBefore = team.farm!.length;
   sendToFarm(g, spare.id);
