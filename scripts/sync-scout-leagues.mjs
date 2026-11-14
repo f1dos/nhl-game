@@ -83,7 +83,8 @@ const rated = (league, x) => {
   const base = {WHL:54, USHL:53, SHL:71, Liiga:69}[league];
   const youth = x.age ? clamp(23-x.age,-6,7) : 0;
   const production = gp >= 3 ? clamp((goals + assists)/gp,0,2.2) : null;
-  const skill = production === null ? 0 : Math.round((production-0.35)*12);
+  const skill = production === null ? 0
+    : Math.round((production - (x.pos === "D" ? 0.22 : 0.36)) * (x.pos === "D" ? 14 : 12));
   // Provisional figures are league-relative game estimates, never official ratings.
   const ovr = clamp(Math.round(base + skill + (x.pos==="G"?-1:0) + Math.max(-2, Math.min(2,youth*.25))),45,89);
   const potential = clamp(ovr + Math.max(0,youth)*2 + (x.age && x.age <=20?5:0),ovr,96);
@@ -125,6 +126,29 @@ async function hockeyPlayers(league) {
       }
   }
   if (players.size < 75) throw Error("Insufficient real roster coverage: "+players.size);
+  // Official league production differentiates individual OVR instead of using
+  // nearly identical age-only estimates. A failed stats request never discards
+  // verified roster identities.
+  try {
+    const stats=hockey(cfg,"statviewfeed","players",{
+      season:seasonId,team:"all",position:"skaters",rookies:0,
+      statsType:"standard",rosterstatus:"undefined",
+      site_id:cfg.siteId,league_id:cfg.leagueId,lang:"en",
+      first:0,limit:1000,sort:"points",division:-1,
+    });
+    const sections=locateArray(stats,"sections");
+    let matched=0;
+    for(const section of sections)
+      for(const item of section.data ?? []) {
+        const row=item.row ?? item;
+        const player=players.get(league.toLowerCase()+"-"+row.player_id);
+        const gp=number(row.games_played ?? row.gp);
+        if(!player || !gp) continue;
+        Object.assign(player,{games:gp,goals:number(row.goals),assists:number(row.assists)});
+        matched++;
+      }
+    console.log(league,"stats matched",matched,"of",players.size);
+  } catch(error) {console.warn(league,"stats unavailable",error.message);}
   return [...players.values()].map((x)=>rated(league,x));
 }
 async function liigaPlayers() {
@@ -136,6 +160,20 @@ async function liigaPlayers() {
     ((x.firstName ?? x.first_name) && (x.lastName ?? x.last_name)) &&
     (x.teamName ?? x.team_name ?? x.team ?? x.teamShortName)
   ));
+  const statsMap=new Map();
+  try {
+    const statPayload=get("https://liiga.fi/api/v2/players/stats/summed/2027/2027/runkosarja/true?dataType=basicStats");
+    const stats=Array.isArray(statPayload)?statPayload:collectPeople(statPayload,x =>
+      (x.playerId ?? x.player_id ?? x.id) && (x.games ?? x.playedGames) !== undefined);
+    for(const p of stats) {
+      const id=p.playerId ?? p.player_id ?? p.id;
+      if(id) statsMap.set(String(id),{
+        games:number(p.games ?? p.playedGames ?? p.played_games),
+        goals:number(p.goals),assists:number(p.assists)
+      });
+    }
+    console.log("Liiga official season statistics",statsMap.size);
+  } catch(e) { console.warn("Liiga stats unavailable",e.message); }
   const entries=new Map();
   for(const p of rows){
     const id=p.id ?? p.playerId ?? p.player_id ?? p.fihaId;
@@ -145,7 +183,7 @@ async function liigaPlayers() {
       nation:String(p.nationality ?? p.nationalityCode ?? "FIN"),number:number(p.jersey ?? p.number),
       age:age(p.dateOfBirth ?? p.date_of_birth ?? p.birthDate),
     };
-    entries.set(x.id, rated("Liiga",x));
+    entries.set(x.id, rated("Liiga",{...x,...(statsMap.get(String(id)) ?? {})}));
   }
   if(entries.size<100) throw Error("Liiga source yielded only "+entries.size+" roster identities");
   return [...entries.values()];
