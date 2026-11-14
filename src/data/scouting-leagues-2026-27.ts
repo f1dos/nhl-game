@@ -2,7 +2,7 @@
 export type ScoutLeague = "OHL" | "WHL" | "USHL" | "SHL" | "Liiga";
 export interface ScoutEntry { id: string; name: string; club: string; pos: "LW"|"C"|"RW"|"D"|"G"; number: number; nation: string; age: number; ovr: number; potential: number; model: "stats" | "provisional" | "game"; games?: number; goals?: number; assists?: number; }
 export const SCOUT_LEAGUE_META = {
-  "fetchedAt": "2026-11-14T22:35:47.910Z",
+  "fetchedAt": "2026-11-14T22:36:48.268Z",
   "season": "2026/27",
   "sources": {
     "WHL": "HockeyTech — Western Hockey League",
@@ -27,9 +27,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29444",
@@ -39,9 +42,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 21,
+      "goals": 7,
+      "assists": 16,
+      "ovr": 65,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-29716",
@@ -51,9 +57,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 21,
+      "goals": 10,
+      "assists": 13,
+      "ovr": 65,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-30710",
@@ -63,9 +72,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29717",
@@ -75,9 +87,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 0,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29470",
@@ -87,9 +102,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 7,
+      "assists": 4,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29219",
@@ -99,9 +117,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 12,
+      "assists": 7,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30704",
@@ -111,9 +132,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30708",
@@ -123,9 +147,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30239",
@@ -135,9 +162,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30443",
@@ -147,9 +177,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30233",
@@ -159,9 +192,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30709",
@@ -171,9 +207,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 89,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 21,
+      "goals": 14,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30232",
@@ -183,9 +222,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30436",
@@ -195,9 +237,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 93,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29612",
@@ -207,9 +252,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29719",
@@ -219,9 +267,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
+      "games": 20,
+      "goals": 2,
+      "assists": 5,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30235",
@@ -231,9 +282,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29561",
@@ -243,9 +297,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30241",
@@ -255,9 +312,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30711",
@@ -267,9 +327,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 72,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "whl-29873",
@@ -279,9 +342,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 77,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29706",
@@ -291,9 +357,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 96,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29423",
@@ -303,9 +372,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30313",
@@ -315,9 +387,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-30181",
@@ -327,9 +402,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30765",
@@ -339,9 +417,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 17,
+      "assists": 11,
+      "ovr": 69,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-30757",
@@ -351,9 +432,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 10,
+      "assists": 10,
+      "ovr": 64,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "whl-30756",
@@ -363,9 +447,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30754",
@@ -375,9 +462,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30188",
@@ -387,9 +477,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
+      "games": 13,
+      "goals": 3,
+      "assists": 2,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30225",
@@ -399,9 +492,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29747",
@@ -423,9 +519,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30197",
@@ -435,9 +534,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30760",
@@ -447,9 +549,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 17,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-30183",
@@ -459,9 +564,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29194",
@@ -471,9 +579,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30298",
@@ -483,9 +594,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
+      "games": 20,
+      "goals": 7,
+      "assists": 1,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30178",
@@ -495,9 +609,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29768",
@@ -507,9 +624,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 10,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30568",
@@ -519,9 +639,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30753",
@@ -531,9 +654,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29485",
@@ -543,9 +669,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 12,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29748",
@@ -555,9 +684,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29537",
@@ -567,9 +699,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30179",
@@ -579,9 +714,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29602",
@@ -591,9 +729,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29550",
@@ -603,9 +744,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29441",
@@ -615,9 +759,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29707",
@@ -627,9 +774,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 10,
+      "ovr": 65,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-29708",
@@ -639,9 +789,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29436",
@@ -651,9 +804,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30200",
@@ -663,9 +819,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29392",
@@ -675,9 +834,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29394",
@@ -687,9 +849,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30716",
@@ -699,9 +864,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30717",
@@ -711,9 +879,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30718",
@@ -723,9 +894,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
+      "games": 16,
+      "goals": 3,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30719",
@@ -735,9 +909,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "whl-30720",
@@ -747,9 +924,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 10,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30744",
@@ -759,9 +939,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 41,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30722",
@@ -771,9 +954,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 77,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29720",
@@ -783,9 +969,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29710",
@@ -795,9 +984,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30203",
@@ -807,9 +999,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29395",
@@ -819,9 +1014,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30204",
@@ -831,9 +1029,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29151",
@@ -843,9 +1044,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-30724",
@@ -855,9 +1059,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30205",
@@ -867,9 +1074,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29904",
@@ -879,9 +1089,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 61,
+      "model": "stats"
     },
     {
       "id": "whl-29594",
@@ -891,9 +1104,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 80,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30059",
@@ -903,9 +1119,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30299",
@@ -915,9 +1134,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30511",
@@ -927,9 +1149,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 0,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29338",
@@ -939,9 +1164,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30559",
@@ -951,9 +1179,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
+      "games": 18,
+      "goals": 4,
+      "assists": 3,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29743",
@@ -963,9 +1194,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29086",
@@ -975,9 +1209,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 20,
+      "games": 20,
+      "goals": 7,
+      "assists": 1,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29371",
@@ -987,9 +1224,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30506",
@@ -999,9 +1239,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30626",
@@ -1011,6 +1254,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 56,
       "potential": 73,
       "model": "provisional"
@@ -1023,9 +1269,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29682",
@@ -1035,9 +1284,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29396",
@@ -1047,9 +1299,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
+      "games": 20,
+      "goals": 5,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30678",
@@ -1059,9 +1314,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
+      "games": 17,
+      "goals": 1,
+      "assists": 5,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30067",
@@ -1071,9 +1329,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29233",
@@ -1083,9 +1344,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29434",
@@ -1095,9 +1359,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30070",
@@ -1107,9 +1374,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30071",
@@ -1119,9 +1389,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
+      "games": 16,
+      "goals": 0,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30412",
@@ -1131,9 +1404,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 20,
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29404",
@@ -1143,9 +1419,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 42,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 11,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29685",
@@ -1155,9 +1434,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 17,
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30677",
@@ -1167,9 +1449,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29109",
@@ -1179,9 +1464,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30131",
@@ -1191,9 +1479,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30054",
@@ -1203,9 +1494,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30700",
@@ -1215,9 +1509,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 7,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29724",
@@ -1227,9 +1524,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 10,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30100",
@@ -1239,9 +1539,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 7,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29681",
@@ -1251,9 +1554,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 18,
+      "games": 15,
+      "goals": 3,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29722",
@@ -1263,9 +1569,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 8,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30659",
@@ -1275,9 +1584,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29171",
@@ -1287,9 +1599,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 9,
+      "assists": 4,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30424",
@@ -1299,9 +1614,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29437",
@@ -1311,9 +1629,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 5,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30658",
@@ -1323,9 +1644,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 8,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29723",
@@ -1335,9 +1659,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30056",
@@ -1347,9 +1674,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 14,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-30057",
@@ -1359,9 +1689,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 10,
+      "ovr": 65,
+      "potential": 84,
+      "model": "stats"
     },
     {
       "id": "whl-29509",
@@ -1371,9 +1704,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29170",
@@ -1383,9 +1719,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30055",
@@ -1395,9 +1734,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29752",
@@ -1407,9 +1749,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 17,
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30029",
@@ -1419,9 +1764,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 20,
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30657",
@@ -1431,9 +1779,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29759",
@@ -1443,9 +1794,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30405",
@@ -1455,9 +1809,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29410",
@@ -1467,9 +1824,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30821",
@@ -1479,9 +1839,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 11,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30023",
@@ -1491,9 +1854,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 8,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29695",
@@ -1503,9 +1869,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30660",
@@ -1515,9 +1884,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 7,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30426",
@@ -1527,9 +1899,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30662",
@@ -1539,9 +1914,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 9,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 68,
+      "potential": 87,
+      "model": "stats"
     },
     {
       "id": "whl-29440",
@@ -1551,9 +1929,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29252",
@@ -1563,9 +1944,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30444",
@@ -1575,9 +1959,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30418",
@@ -1587,6 +1974,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 3,
       "ovr": 55,
       "potential": 68,
       "model": "provisional"
@@ -1599,9 +1989,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30015",
@@ -1611,9 +2004,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29696",
@@ -1623,9 +2019,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29940",
@@ -1635,9 +2034,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30450",
@@ -1647,9 +2049,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30661",
@@ -1659,9 +2064,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29999",
@@ -1671,9 +2079,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29319",
@@ -1683,9 +2094,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29042",
@@ -1695,9 +2109,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 9,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29996",
@@ -1707,9 +2124,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29174",
@@ -1719,9 +2139,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29689",
@@ -1731,9 +2154,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 10,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "whl-30026",
@@ -1743,9 +2169,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30028",
@@ -1755,6 +2184,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
       "model": "provisional"
@@ -1767,9 +2199,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 20,
+      "games": 6,
+      "goals": 1,
+      "assists": 1,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29653",
@@ -1779,9 +2214,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
+      "games": 19,
+      "goals": 3,
+      "assists": 4,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30009",
@@ -1791,9 +2229,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29657",
@@ -1803,9 +2244,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29912",
@@ -1815,9 +2259,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29659",
@@ -1827,9 +2274,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
+      "games": 17,
+      "goals": 4,
+      "assists": 2,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29652",
@@ -1839,9 +2289,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30573",
@@ -1851,9 +2304,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 19,
+      "games": 6,
+      "goals": 1,
+      "assists": 1,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30575",
@@ -1863,9 +2319,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 11,
+      "assists": 9,
+      "ovr": 64,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-30576",
@@ -1875,9 +2334,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30577",
@@ -1887,9 +2349,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 13,
+      "assists": 13,
+      "ovr": 67,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-30578",
@@ -1899,9 +2364,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29587",
@@ -1911,9 +2379,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29231",
@@ -1923,9 +2394,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30031",
@@ -1947,9 +2421,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29212",
@@ -1959,9 +2436,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29390",
@@ -1971,9 +2451,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29658",
@@ -1983,9 +2466,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30025",
@@ -1995,9 +2481,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-30290",
@@ -2007,9 +2496,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30564",
@@ -2019,9 +2511,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29568",
@@ -2031,6 +2526,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
       "model": "provisional"
@@ -2043,9 +2541,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30289",
@@ -2055,9 +2556,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29188",
@@ -2067,9 +2571,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30288",
@@ -2079,9 +2586,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29627",
@@ -2091,9 +2601,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29383",
@@ -2103,9 +2616,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 16,
+      "ovr": 67,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-29628",
@@ -2115,9 +2631,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29340",
@@ -2127,9 +2646,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 12,
+      "assists": 7,
+      "ovr": 64,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30808",
@@ -2139,9 +2661,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30097",
@@ -2151,9 +2676,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 18,
+      "goals": 9,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29513",
@@ -2163,9 +2691,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29384",
@@ -2175,9 +2706,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 20,
+      "ovr": 70,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "whl-29636",
@@ -2187,9 +2721,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30000",
@@ -2199,9 +2736,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30292",
@@ -2223,9 +2763,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29380",
@@ -2235,9 +2778,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
+      "games": 18,
+      "goals": 1,
+      "assists": 6,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30817",
@@ -2247,9 +2793,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30617",
@@ -2259,9 +2808,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-30004",
@@ -2271,9 +2823,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 10,
+      "ovr": 64,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30809",
@@ -2283,9 +2838,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-30810",
@@ -2295,9 +2853,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30300",
@@ -2307,9 +2868,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30291",
@@ -2319,9 +2883,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29629",
@@ -2331,9 +2898,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29227",
@@ -2343,9 +2913,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30687",
@@ -2355,9 +2928,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 6,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29229",
@@ -2367,9 +2943,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30828",
@@ -2379,6 +2958,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 70,
       "model": "provisional"
@@ -2391,9 +2973,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29903",
@@ -2403,9 +2988,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30150",
@@ -2415,9 +3003,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 15,
+      "ovr": 64,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-30431",
@@ -2427,9 +3018,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29158",
@@ -2439,9 +3033,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 9,
+      "assists": 5,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29899",
@@ -2451,9 +3048,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29741",
@@ -2463,9 +3063,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 38,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 8,
+      "assists": 9,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29387",
@@ -2475,9 +3078,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 39,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30154",
@@ -2487,9 +3093,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 18,
+      "games": 20,
+      "goals": 3,
+      "assists": 4,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29090",
@@ -2499,9 +3108,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29728",
@@ -2511,9 +3123,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29737",
@@ -2523,9 +3138,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29923",
@@ -2535,9 +3153,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29226",
@@ -2547,9 +3168,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29447",
@@ -2559,9 +3183,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
+      "games": 18,
+      "goals": 1,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29531",
@@ -2571,9 +3198,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30158",
@@ -2583,9 +3213,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29198",
@@ -2595,9 +3228,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 41,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30620",
@@ -2607,9 +3243,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 11,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30623",
@@ -2619,9 +3258,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 11,
+      "assists": 12,
+      "ovr": 64,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30633",
@@ -2631,9 +3273,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 6,
+      "assists": 11,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29504",
@@ -2643,9 +3288,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30624",
@@ -2655,9 +3303,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 0,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30018",
@@ -2667,9 +3318,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 5,
+      "assists": 11,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30625",
@@ -2679,9 +3333,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
+      "games": 20,
+      "goals": 4,
+      "assists": 4,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29735",
@@ -2691,9 +3348,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
+      "games": 9,
+      "goals": 2,
+      "assists": 1,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30630",
@@ -2703,9 +3363,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30122",
@@ -2715,9 +3378,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29889",
@@ -2727,9 +3393,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30129",
@@ -2739,9 +3408,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29651",
@@ -2751,9 +3423,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 92,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-30629",
@@ -2763,9 +3438,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 94,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30619",
@@ -2775,9 +3453,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30119",
@@ -2787,9 +3468,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30120",
@@ -2799,9 +3483,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30621",
@@ -2811,9 +3498,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30089",
@@ -2823,9 +3513,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30628",
@@ -2835,9 +3528,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 53,
       "nation": "—",
       "age": 19,
+      "games": 20,
+      "goals": 1,
+      "assists": 7,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30132",
@@ -2847,9 +3543,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 81,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29452",
@@ -2859,9 +3558,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 84,
       "nation": "—",
       "age": 18,
+      "games": 18,
+      "goals": 1,
+      "assists": 6,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30125",
@@ -2871,9 +3573,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "whl-30627",
@@ -2883,9 +3588,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 39,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30271",
@@ -2895,9 +3603,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30001",
@@ -2907,9 +3618,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29526",
@@ -2919,9 +3633,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 6,
+      "assists": 11,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30284",
@@ -2931,9 +3648,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "whl-29253",
@@ -2943,9 +3663,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29714",
@@ -2955,9 +3678,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 0,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30280",
@@ -2967,9 +3693,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29028",
@@ -2979,9 +3708,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29750",
@@ -2991,9 +3723,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 19,
+      "games": 18,
+      "goals": 2,
+      "assists": 5,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29753",
@@ -3003,9 +3738,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 72,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 7,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30369",
@@ -3015,9 +3753,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 81,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30279",
@@ -3027,9 +3768,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 92,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29911",
@@ -3039,9 +3783,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 96,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29945",
@@ -3051,9 +3798,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29755",
@@ -3063,9 +3813,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30803",
@@ -3075,9 +3828,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30804",
@@ -3087,9 +3843,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30406",
@@ -3099,9 +3858,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30273",
@@ -3111,9 +3873,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29946",
@@ -3123,9 +3888,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29924",
@@ -3135,9 +3903,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 77,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29757",
@@ -3147,9 +3918,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29337",
@@ -3159,9 +3933,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29671",
@@ -3171,9 +3948,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29107",
@@ -3183,9 +3963,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 8,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30823",
@@ -3195,9 +3978,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30415",
@@ -3207,9 +3993,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29669",
@@ -3219,9 +4008,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 7,
+      "assists": 12,
+      "ovr": 64,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "whl-29245",
@@ -3231,9 +4023,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29670",
@@ -3243,9 +4038,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29421",
@@ -3255,9 +4053,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30256",
@@ -3267,9 +4068,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 10,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-30036",
@@ -3279,9 +4083,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29417",
@@ -3291,9 +4098,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29502",
@@ -3303,9 +4113,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 9,
+      "assists": 5,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30163",
@@ -3315,9 +4128,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29894",
@@ -3327,9 +4143,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30162",
@@ -3339,9 +4158,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30461",
@@ -3351,9 +4173,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29415",
@@ -3363,9 +4188,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30140",
@@ -3375,9 +4203,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29668",
@@ -3387,9 +4218,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 20,
+      "ovr": 68,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "whl-30728",
@@ -3399,9 +4233,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30250",
@@ -3411,9 +4248,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29665",
@@ -3423,9 +4263,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30095",
@@ -3435,9 +4278,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30690",
@@ -3447,9 +4293,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29477",
@@ -3459,9 +4308,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29208",
@@ -3471,9 +4323,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30701",
@@ -3483,9 +4338,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 8,
+      "assists": 1,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29951",
@@ -3495,9 +4353,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
+      "games": 14,
+      "goals": 3,
+      "assists": 2,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29046",
@@ -3507,9 +4368,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29269",
@@ -3519,9 +4383,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 10,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29573",
@@ -3531,9 +4398,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29473",
@@ -3543,9 +4413,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29660",
@@ -3555,6 +4428,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 56,
       "potential": 73,
       "model": "provisional"
@@ -3567,9 +4443,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29661",
@@ -3579,9 +4458,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 39,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30697",
@@ -3591,9 +4473,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29476",
@@ -3603,9 +4488,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29711",
@@ -3615,9 +4503,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29087",
@@ -3627,9 +4518,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29662",
@@ -3639,9 +4533,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29274",
@@ -3651,9 +4548,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29248",
@@ -3663,9 +4563,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29606",
@@ -3675,9 +4578,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-29581",
@@ -3687,9 +4593,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29217",
@@ -3699,9 +4608,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29457",
@@ -3711,9 +4623,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 17,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "whl-30260",
@@ -3723,9 +4638,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30198",
@@ -3735,9 +4653,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 17,
+      "assists": 15,
+      "ovr": 70,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "whl-30261",
@@ -3747,9 +4668,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29691",
@@ -3759,9 +4683,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30410",
@@ -3771,9 +4698,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29733",
@@ -3783,9 +4713,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29645",
@@ -3795,9 +4728,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 6,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30824",
@@ -3807,9 +4743,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 13,
+      "goals": 8,
+      "assists": 4,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29478",
@@ -3819,9 +4758,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 20,
+      "goals": 6,
+      "assists": 11,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29516",
@@ -3831,9 +4773,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 14,
+      "assists": 15,
+      "ovr": 70,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "whl-29727",
@@ -3843,9 +4788,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30833",
@@ -3855,6 +4803,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 20,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 66,
       "model": "provisional"
@@ -3867,9 +4818,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29521",
@@ -3879,9 +4833,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
+      "games": 20,
+      "goals": 3,
+      "assists": 1,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30068",
@@ -3891,9 +4848,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30428",
@@ -3903,9 +4863,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30746",
@@ -3915,9 +4878,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30269",
@@ -3927,9 +4893,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 14,
+      "ovr": 64,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29545",
@@ -3939,9 +4908,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29725",
@@ -3951,9 +4923,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29942",
@@ -3963,9 +4938,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29916",
@@ -3975,9 +4953,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29483",
@@ -3987,9 +4968,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 9,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 65,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29157",
@@ -3999,9 +4983,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30072",
@@ -4011,9 +4998,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 13,
+      "goals": 12,
+      "assists": 9,
+      "ovr": 71,
+      "potential": 90,
+      "model": "stats"
     },
     {
       "id": "whl-29096",
@@ -4023,9 +5013,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30069",
@@ -4035,9 +5028,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 12,
+      "goals": 8,
+      "assists": 11,
+      "ovr": 71,
+      "potential": 90,
+      "model": "stats"
     },
     {
       "id": "whl-29474",
@@ -4047,9 +5043,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30082",
@@ -4059,9 +5058,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 10,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29890",
@@ -4071,9 +5073,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30572",
@@ -4083,9 +5088,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29677",
@@ -4095,9 +5103,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29454",
@@ -4107,9 +5118,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30556",
@@ -4119,9 +5133,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 4,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30079",
@@ -4131,9 +5148,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 52,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29458",
@@ -4143,9 +5163,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 57,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29480",
@@ -4155,9 +5178,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29688",
@@ -4167,9 +5193,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30558",
@@ -4179,9 +5208,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29617",
@@ -4191,9 +5223,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 38,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29680",
@@ -4203,9 +5238,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 42,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29195",
@@ -4215,9 +5253,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 14,
+      "ovr": 64,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30557",
@@ -4227,9 +5268,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 55,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29525",
@@ -4239,9 +5283,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-29692",
@@ -4251,9 +5298,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30835",
@@ -4275,9 +5325,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29786",
@@ -4287,9 +5340,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 15,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-29428",
@@ -4299,9 +5355,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 7,
+      "assists": 10,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "whl-30536",
@@ -4311,9 +5370,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29647",
@@ -4323,9 +5385,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29698",
@@ -4335,9 +5400,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29105",
@@ -4347,9 +5415,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 11,
+      "assists": 14,
+      "ovr": 68,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-30083",
@@ -4359,6 +5430,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 56,
       "potential": 73,
       "model": "provisional"
@@ -4371,9 +5445,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 55,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30732",
@@ -4383,9 +5460,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 66,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29644",
@@ -4395,9 +5475,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 67,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29987",
@@ -4407,9 +5490,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 17,
+      "games": 17,
+      "goals": 4,
+      "assists": 2,
       "ovr": 56,
       "potential": 73,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29139",
@@ -4419,9 +5505,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 77,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 10,
+      "assists": 17,
+      "ovr": 70,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "whl-30488",
@@ -4431,9 +5520,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 12,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30534",
@@ -4443,9 +5535,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29161",
@@ -4455,9 +5550,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29162",
@@ -4467,9 +5565,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 15,
+      "ovr": 69,
+      "potential": 84,
+      "model": "stats"
     },
     {
       "id": "whl-29187",
@@ -4479,9 +5580,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 19,
+      "games": 17,
+      "goals": 2,
+      "assists": 4,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29563",
@@ -4491,9 +5595,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 41,
       "nation": "—",
       "age": 18,
+      "games": 13,
+      "goals": 0,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29989",
@@ -4503,9 +5610,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29464",
@@ -4515,9 +5625,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 46,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29412",
@@ -4527,9 +5640,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 56,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29108",
@@ -4539,9 +5655,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 57,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29213",
@@ -4551,9 +5670,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30489",
@@ -4563,9 +5685,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 81,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29236",
@@ -4575,9 +5700,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30460",
@@ -4587,9 +5715,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29330",
@@ -4599,9 +5730,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 8,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29619",
@@ -4611,9 +5745,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 6,
+      "assists": 8,
+      "ovr": 61,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29301",
@@ -4623,9 +5760,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29875",
@@ -4635,9 +5775,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30819",
@@ -4647,9 +5790,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29136",
@@ -4659,9 +5805,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
+      "games": 16,
+      "goals": 4,
+      "assists": 2,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29622",
@@ -4671,9 +5820,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30103",
@@ -4683,9 +5835,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 39,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30469",
@@ -4695,9 +5850,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 20,
+      "games": 18,
+      "goals": 4,
+      "assists": 3,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29554",
@@ -4707,9 +5865,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 7,
+      "assists": 12,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29373",
@@ -4719,9 +5880,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 89,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30295",
@@ -4731,9 +5895,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30470",
@@ -4743,9 +5910,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
+      "games": 16,
+      "goals": 1,
+      "assists": 3,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29690",
@@ -4755,9 +5925,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30834",
@@ -4767,6 +5940,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 70,
       "model": "provisional"
@@ -4779,9 +5955,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29656",
@@ -4791,9 +5970,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30111",
@@ -4803,6 +5985,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 56,
       "potential": 73,
       "model": "provisional"
@@ -4815,9 +6000,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 74,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29618",
@@ -4839,9 +6027,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 93,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29590",
@@ -4851,9 +6042,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30303",
@@ -4863,9 +6057,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30618",
@@ -4875,9 +6072,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29615",
@@ -4887,9 +6087,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 18,
+      "games": 14,
+      "goals": 3,
+      "assists": 2,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30242",
@@ -4899,9 +6102,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30666",
@@ -4911,9 +6117,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30244",
@@ -4923,9 +6132,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29461",
@@ -4935,9 +6147,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29613",
@@ -4947,9 +6162,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29277",
@@ -4959,9 +6177,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 11,
+      "assists": 7,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-30245",
@@ -4971,9 +6192,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29279",
@@ -4983,9 +6207,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 20,
+      "ovr": 70,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "whl-30671",
@@ -4995,9 +6222,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 86,
       "nation": "—",
       "age": 18,
+      "games": 16,
+      "goals": 2,
+      "assists": 4,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29769",
@@ -5007,9 +6237,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 12,
+      "ovr": 66,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "whl-29228",
@@ -5019,9 +6252,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "whl-29122",
@@ -5043,9 +6279,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 96,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29569",
@@ -5055,9 +6294,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
+      "games": 12,
+      "goals": 0,
+      "assists": 3,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29778",
@@ -5067,9 +6309,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29106",
@@ -5079,9 +6324,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 20,
+      "games": 16,
+      "goals": 3,
+      "assists": 0,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29339",
@@ -5091,9 +6339,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29614",
@@ -5103,9 +6354,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29089",
@@ -5115,9 +6369,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29616",
@@ -5127,9 +6384,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 47,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29465",
@@ -5139,9 +6399,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-30255",
@@ -5151,6 +6414,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 54,
       "potential": 69,
       "model": "provisional"
@@ -5163,9 +6429,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29699",
@@ -5175,9 +6444,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29551",
@@ -5187,9 +6459,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29160",
@@ -5199,9 +6474,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
+      "games": 19,
+      "goals": 2,
+      "assists": 5,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29251",
@@ -5211,9 +6489,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30172",
@@ -5235,9 +6516,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 7,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29705",
@@ -5247,9 +6531,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29399",
@@ -5259,9 +6546,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30167",
@@ -5271,9 +6561,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30646",
@@ -5283,9 +6576,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30648",
@@ -5295,9 +6591,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29703",
@@ -5307,9 +6606,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
+      "games": 3,
+      "goals": 0,
+      "assists": 1,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30160",
@@ -5319,9 +6621,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 16,
+      "games": 3,
+      "goals": 1,
+      "assists": 0,
       "ovr": 56,
       "potential": 75,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30647",
@@ -5343,9 +6648,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 18,
+      "games": 19,
+      "goals": 1,
+      "assists": 6,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29409",
@@ -5355,9 +6663,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 9,
+      "assists": 4,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30649",
@@ -5367,9 +6678,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-29237",
@@ -5379,9 +6693,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30643",
@@ -5391,6 +6708,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 70,
       "model": "provisional"
@@ -5403,9 +6723,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29530",
@@ -5415,9 +6738,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29571",
@@ -5427,9 +6753,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30644",
@@ -5439,9 +6768,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 18,
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30645",
@@ -5451,9 +6783,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 77,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-30208",
@@ -5463,9 +6798,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30427",
@@ -5475,9 +6813,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-30176",
@@ -5499,9 +6840,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29491",
@@ -5511,9 +6855,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 5,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-30503",
@@ -5523,9 +6870,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30217",
@@ -5535,9 +6885,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 9,
+      "ovr": 61,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29962",
@@ -5547,9 +6900,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29963",
@@ -5559,9 +6915,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30750",
@@ -5571,9 +6930,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 7,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29676",
@@ -5583,9 +6945,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30814",
@@ -5595,9 +6960,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 19,
+      "games": 15,
+      "goals": 3,
+      "assists": 3,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30751",
@@ -5607,9 +6975,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29397",
@@ -5619,9 +6990,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29149",
@@ -5631,9 +7005,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29675",
@@ -5643,9 +7020,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 66,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30106",
@@ -5679,9 +7059,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
+      "games": 19,
+      "goals": 2,
+      "assists": 2,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29492",
@@ -5691,9 +7074,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29672",
@@ -5703,9 +7089,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29775",
@@ -5715,9 +7104,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30254",
@@ -5727,9 +7119,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29673",
@@ -5739,9 +7134,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "whl-29955",
@@ -5751,9 +7149,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29905",
@@ -5763,9 +7164,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-29952",
@@ -5775,9 +7179,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 40,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29283",
@@ -5787,9 +7194,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
+      "games": 10,
+      "goals": 2,
+      "assists": 2,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29533",
@@ -5799,9 +7209,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30134",
@@ -5811,9 +7224,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 5,
+      "assists": 14,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-29771",
@@ -5823,9 +7239,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 19,
+      "goals": 8,
+      "assists": 13,
+      "ovr": 65,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "whl-29036",
@@ -5835,9 +7254,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 14,
+      "goals": 7,
+      "assists": 8,
+      "ovr": 64,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29370",
@@ -5847,9 +7269,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 10,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29239",
@@ -5859,9 +7284,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 8,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30136",
@@ -5871,9 +7299,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29393",
@@ -5883,9 +7314,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 19,
+      "goals": 7,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30735",
@@ -5895,9 +7329,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29463",
@@ -5907,9 +7344,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 13,
+      "assists": 13,
+      "ovr": 68,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "whl-29372",
@@ -5919,9 +7359,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 11,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30737",
@@ -5931,9 +7374,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30738",
@@ -5943,9 +7389,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 19,
+      "goals": 7,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30252",
@@ -5955,9 +7404,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29610",
@@ -5967,9 +7419,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30143",
@@ -5979,9 +7434,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
+      "games": 10,
+      "goals": 0,
+      "assists": 2,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29137",
@@ -5991,9 +7449,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 10,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29523",
@@ -6003,9 +7464,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30137",
@@ -6015,9 +7479,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "whl-30822",
@@ -6027,9 +7494,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30139",
@@ -6039,9 +7509,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "whl-29290",
@@ -6051,9 +7524,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-29296",
@@ -6063,9 +7539,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-29726",
@@ -6075,9 +7554,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 8,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29744",
@@ -6087,9 +7569,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 9,
+      "ovr": 63,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "whl-29892",
@@ -6099,9 +7584,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 15,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "whl-29505",
@@ -6111,9 +7599,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29729",
@@ -6123,9 +7614,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 12,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "whl-30538",
@@ -6135,9 +7629,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29035",
@@ -6147,9 +7644,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 8,
+      "assists": 5,
+      "ovr": 60,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29146",
@@ -6159,9 +7659,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29730",
@@ -6171,9 +7674,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 53,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 11,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-30540",
@@ -6183,9 +7689,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 73,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-29235",
@@ -6195,9 +7704,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 13,
+      "assists": 11,
+      "ovr": 70,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "whl-29145",
@@ -6207,9 +7719,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 89,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30442",
@@ -6219,9 +7734,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30221",
@@ -6231,9 +7749,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 17,
+      "ovr": 68,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "whl-30542",
@@ -6243,9 +7764,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-30541",
@@ -6255,9 +7779,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
+      "games": 9,
+      "goals": 0,
+      "assists": 2,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29871",
@@ -6267,9 +7794,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-30218",
@@ -6279,9 +7809,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30080",
@@ -6291,9 +7824,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-30246",
@@ -6303,9 +7839,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29336",
@@ -6315,9 +7854,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 74,
       "nation": "—",
       "age": 20,
+      "games": 17,
+      "goals": 0,
+      "assists": 4,
       "ovr": 55,
       "potential": 66,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-29948",
@@ -6327,9 +7869,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30543",
@@ -6339,9 +7884,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 59,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30265",
@@ -6351,9 +7899,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29943",
@@ -6363,9 +7914,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
+      "games": 17,
+      "goals": 4,
+      "assists": 2,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30551",
@@ -6375,9 +7929,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 15,
+      "games": 10,
+      "goals": 1,
+      "assists": 3,
       "ovr": 56,
       "potential": 75,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30365",
@@ -6399,9 +7956,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 16,
+      "games": 12,
+      "goals": 2,
+      "assists": 2,
       "ovr": 56,
       "potential": 75,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30227",
@@ -6411,9 +7971,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30549",
@@ -6423,9 +7986,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-29697",
@@ -6435,9 +8001,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-28990",
@@ -6447,9 +8016,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 20,
-      "ovr": 55,
-      "potential": 66,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 54,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-30319",
@@ -6459,9 +8031,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 16,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "whl-29572",
@@ -6471,9 +8046,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-29250",
@@ -6483,9 +8061,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30294",
@@ -6495,9 +8076,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "whl-29761",
@@ -6507,9 +8091,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
+      "games": 18,
+      "goals": 3,
+      "assists": 4,
       "ovr": 55,
       "potential": 70,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30282",
@@ -6519,9 +8106,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-29549",
@@ -6531,9 +8121,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "whl-30807",
@@ -6543,9 +8136,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "whl-29793",
@@ -6555,9 +8151,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "whl-29765",
@@ -6567,9 +8166,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 17,
-      "ovr": 56,
-      "potential": 73,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "whl-30228",
@@ -6579,9 +8181,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "whl-29163",
@@ -6591,9 +8196,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
+      "games": 12,
+      "goals": 2,
+      "assists": 1,
       "ovr": 55,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "whl-30304",
@@ -6603,9 +8211,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 55,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "whl-30305",
@@ -6615,9 +8226,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 55,
-      "potential": 70,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "whl-30545",
@@ -6627,9 +8241,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 15,
-      "ovr": 56,
-      "potential": 75,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "whl-30830",
@@ -6639,9 +8256,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 0,
-      "ovr": 54,
-      "potential": 54,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 51,
+      "model": "stats"
     },
     {
       "id": "whl-30836",
@@ -6663,9 +8283,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "whl-29941",
@@ -6675,9 +8298,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     }
   ],
   "USHL": [
@@ -6689,9 +8315,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 10,
+      "goals": 7,
+      "assists": 2,
+      "ovr": 61,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-11227",
@@ -6713,9 +8342,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 12,
+      "assists": 15,
+      "ovr": 69,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "ushl-11004",
@@ -6725,9 +8357,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10765",
@@ -6737,9 +8372,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 13,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11229",
@@ -6749,9 +8387,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11236",
@@ -6761,9 +8402,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
+      "games": 3,
+      "goals": 0,
+      "assists": 1,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10993",
@@ -6785,9 +8429,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 17,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-10772",
@@ -6797,9 +8444,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 9,
+      "assists": 13,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-10479",
@@ -6809,9 +8459,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 57,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10991",
@@ -6821,9 +8474,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10995",
@@ -6833,9 +8489,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11231",
@@ -6845,9 +8504,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11232",
@@ -6857,9 +8519,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11005",
@@ -6869,9 +8534,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11228",
@@ -6881,9 +8549,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11006",
@@ -6893,9 +8564,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10773",
@@ -6905,9 +8579,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-10998",
@@ -6917,9 +8594,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
+      "games": 15,
+      "goals": 0,
+      "assists": 3,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11230",
@@ -6929,9 +8609,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
+      "games": 9,
+      "goals": 1,
+      "assists": 1,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10510",
@@ -6941,9 +8624,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-10757",
@@ -6953,9 +8639,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11233",
@@ -6965,9 +8654,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 10,
+      "ovr": 62,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11003",
@@ -6977,9 +8669,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-10726",
@@ -6989,9 +8684,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-10870",
@@ -7001,9 +8699,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11146",
@@ -7013,9 +8714,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11241",
@@ -7025,9 +8729,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 16,
+      "games": 15,
+      "goals": 3,
+      "assists": 2,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10469",
@@ -7037,9 +8744,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 6,
+      "assists": 8,
+      "ovr": 64,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10831",
@@ -7049,9 +8759,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 4,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-10970",
@@ -7061,9 +8774,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
+      "games": 14,
+      "goals": 1,
+      "assists": 4,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11096",
@@ -7073,9 +8789,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
+      "games": 14,
+      "goals": 1,
+      "assists": 4,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11490",
@@ -7085,9 +8804,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11243",
@@ -7097,9 +8819,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
+      "games": 8,
+      "goals": 3,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10694",
@@ -7109,9 +8834,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 20,
+      "games": 13,
+      "goals": 0,
+      "assists": 5,
       "ovr": 54,
       "potential": 65,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10586",
@@ -7121,9 +8849,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-9996",
@@ -7133,9 +8864,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 13,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11242",
@@ -7145,9 +8879,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11244",
@@ -7157,9 +8894,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10093",
@@ -7169,9 +8909,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 9,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11245",
@@ -7181,9 +8924,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11164",
@@ -7193,9 +8939,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 16,
+      "games": 10,
+      "goals": 0,
+      "assists": 2,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10975",
@@ -7205,9 +8954,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11087",
@@ -7217,9 +8969,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11247",
@@ -7229,9 +8984,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11246",
@@ -7241,9 +8999,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11249",
@@ -7253,9 +9014,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 61,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11095",
@@ -7265,9 +9029,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-11251",
@@ -7277,9 +9044,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11252",
@@ -7289,9 +9059,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 16,
-      "ovr": 54,
-      "potential": 73,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11195",
@@ -7301,9 +9074,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10552",
@@ -7313,9 +9089,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11256",
@@ -7325,9 +9104,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11550",
@@ -7337,6 +9119,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 54,
       "potential": 69,
       "model": "provisional"
@@ -7349,9 +9134,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-11257",
@@ -7361,9 +9149,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11259",
@@ -7373,9 +9164,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11260",
@@ -7385,6 +9179,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 54,
       "potential": 69,
       "model": "provisional"
@@ -7397,9 +9194,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11262",
@@ -7409,9 +9209,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10941",
@@ -7421,9 +9224,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 17,
+      "goals": 9,
+      "assists": 13,
+      "ovr": 66,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "ushl-11142",
@@ -7433,9 +9239,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11267",
@@ -7445,9 +9254,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 39,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11269",
@@ -7457,9 +9269,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 55,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 8,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11270",
@@ -7469,9 +9284,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 58,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10931",
@@ -7481,9 +9299,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 94,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 8,
+      "assists": 11,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-10894",
@@ -7493,9 +9314,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 0,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11198",
@@ -7505,9 +9329,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 0,
       "nation": "—",
       "age": 18,
+      "games": 10,
+      "goals": 0,
+      "assists": 2,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10832",
@@ -7517,6 +9344,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 54,
       "potential": 67,
       "model": "provisional"
@@ -7529,9 +9359,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11255",
@@ -7541,9 +9374,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11258",
@@ -7553,9 +9389,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10936",
@@ -7565,9 +9404,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 61,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-10478",
@@ -7577,9 +9419,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10591",
@@ -7589,9 +9434,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11268",
@@ -7601,9 +9449,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 40,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11266",
@@ -7613,9 +9464,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11271",
@@ -7625,9 +9479,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 72,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11528",
@@ -7649,9 +9506,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 0,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10335",
@@ -7661,9 +9521,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 6,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10651",
@@ -7673,9 +9536,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10955",
@@ -7685,9 +9551,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 8,
+      "assists": 12,
+      "ovr": 70,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "ushl-11029",
@@ -7697,9 +9566,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11158",
@@ -7709,9 +9581,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10956",
@@ -7721,9 +9596,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10527",
@@ -7733,9 +9611,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 10,
+      "ovr": 62,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11285",
@@ -7745,9 +9626,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 10,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-11147",
@@ -7757,9 +9641,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10676",
@@ -7769,9 +9656,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11273",
@@ -7781,9 +9671,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 9,
+      "assists": 10,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11277",
@@ -7793,9 +9686,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 12,
+      "ovr": 61,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11486",
@@ -7805,9 +9701,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 15,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11284",
@@ -7817,9 +9716,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11278",
@@ -7829,9 +9731,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11275",
@@ -7841,9 +9746,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11287",
@@ -7853,9 +9761,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 16,
+      "games": 12,
+      "goals": 0,
+      "assists": 3,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11286",
@@ -7865,9 +9776,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10668",
@@ -7877,9 +9791,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 11,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10959",
@@ -7889,9 +9806,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 10,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11279",
@@ -7901,9 +9821,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10962",
@@ -7913,9 +9836,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10965",
@@ -7925,9 +9851,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10598",
@@ -7937,9 +9866,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11070",
@@ -7949,9 +9881,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 16,
-      "ovr": 54,
-      "potential": 73,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-10759",
@@ -7961,9 +9896,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 8,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10830",
@@ -7973,9 +9911,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 13,
+      "assists": 8,
+      "ovr": 64,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11431",
@@ -7985,9 +9926,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
+      "games": 16,
+      "goals": 2,
+      "assists": 4,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11196",
@@ -7997,9 +9941,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 10,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11291",
@@ -8009,9 +9956,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 15,
+      "assists": 5,
+      "ovr": 64,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11526",
@@ -8021,9 +9971,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11297",
@@ -8033,9 +9986,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11298",
@@ -8045,9 +10001,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11092",
@@ -8057,9 +10016,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10672",
@@ -8069,9 +10031,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11488",
@@ -8081,9 +10046,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 72,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11305",
@@ -8093,9 +10061,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 78,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10816",
@@ -8105,9 +10076,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 92,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10610",
@@ -8117,9 +10091,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 95,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 15,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-11209",
@@ -8129,9 +10106,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10605",
@@ -8141,9 +10121,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 16,
+      "ovr": 67,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "ushl-11288",
@@ -8153,9 +10136,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 18,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11527",
@@ -8165,9 +10151,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-10783",
@@ -8177,9 +10166,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11145",
@@ -8189,9 +10181,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10992",
@@ -8201,9 +10196,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11522",
@@ -8213,9 +10211,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
+      "games": 12,
+      "goals": 0,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11303",
@@ -8225,6 +10226,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 47,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
       "model": "provisional"
@@ -8237,9 +10241,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11281",
@@ -8249,9 +10256,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-10734",
@@ -8261,9 +10271,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
+      "games": 8,
+      "goals": 1,
+      "assists": 2,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10793",
@@ -8273,9 +10286,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11309",
@@ -8285,9 +10301,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11310",
@@ -8297,9 +10316,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 10,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10642",
@@ -8309,9 +10331,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11201",
@@ -8321,9 +10346,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11520",
@@ -8333,9 +10361,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11313",
@@ -8345,9 +10376,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10797",
@@ -8357,9 +10391,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 12,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 62,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10415",
@@ -8369,9 +10406,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11544",
@@ -8381,6 +10421,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 1,
       "ovr": 54,
       "potential": 69,
       "model": "provisional"
@@ -8393,9 +10436,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10526",
@@ -8405,9 +10451,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11319",
@@ -8417,9 +10466,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-10802",
@@ -8429,9 +10481,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10173",
@@ -8441,9 +10496,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 96,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11537",
@@ -8453,9 +10511,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 0,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-10685",
@@ -8465,9 +10526,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
+      "games": 14,
+      "goals": 0,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10374",
@@ -8477,6 +10541,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 20,
+      "games": 1,
+      "goals": 0,
+      "assists": 1,
       "ovr": 54,
       "potential": 65,
       "model": "provisional"
@@ -8489,9 +10556,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10691",
@@ -8501,9 +10571,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11321",
@@ -8513,9 +10586,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11322",
@@ -8525,9 +10601,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 57,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11323",
@@ -8537,9 +10616,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 16,
+      "games": 16,
+      "goals": 1,
+      "assists": 3,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10238",
@@ -8549,9 +10631,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-11315",
@@ -8573,9 +10658,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 74,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11017",
@@ -8585,6 +10673,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 0,
       "nation": "—",
       "age": 20,
+      "games": 1,
+      "goals": 0,
+      "assists": 1,
       "ovr": 54,
       "potential": 65,
       "model": "provisional"
@@ -8597,9 +10688,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
+      "games": 11,
+      "goals": 2,
+      "assists": 2,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10869",
@@ -8609,9 +10703,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11489",
@@ -8621,9 +10718,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10735",
@@ -8633,9 +10733,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-10981",
@@ -8645,9 +10748,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 11,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10764",
@@ -8657,9 +10763,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 19,
+      "games": 15,
+      "goals": 2,
+      "assists": 3,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10983",
@@ -8669,9 +10778,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11470",
@@ -8681,9 +10793,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11479",
@@ -8693,9 +10808,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-10899",
@@ -8705,9 +10823,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-10366",
@@ -8717,9 +10838,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11465",
@@ -8729,9 +10853,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 16,
+      "games": 15,
+      "goals": 0,
+      "assists": 5,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11103",
@@ -8741,9 +10868,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11462",
@@ -8753,9 +10883,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11471",
@@ -8765,9 +10898,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11339",
@@ -8777,9 +10913,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10988",
@@ -8789,9 +10928,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11475",
@@ -8801,6 +10943,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
       "model": "provisional"
@@ -8813,9 +10958,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11002",
@@ -8825,9 +10973,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10784",
@@ -8837,9 +10988,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10666",
@@ -8849,9 +11003,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11473",
@@ -8861,9 +11018,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10306",
@@ -8873,9 +11033,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 19,
+      "games": 12,
+      "goals": 1,
+      "assists": 2,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10496",
@@ -8885,9 +11048,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11476",
@@ -8897,9 +11063,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11193",
@@ -8909,9 +11078,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 6,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10559",
@@ -8921,9 +11093,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 10,
+      "goals": 2,
+      "assists": 11,
+      "ovr": 65,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-10926",
@@ -8933,9 +11108,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 7,
+      "assists": 9,
+      "ovr": 64,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-10927",
@@ -8945,9 +11123,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 20,
+      "games": 13,
+      "goals": 2,
+      "assists": 3,
       "ovr": 54,
       "potential": 65,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11191",
@@ -8957,9 +11138,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 18,
+      "games": 13,
+      "goals": 4,
+      "assists": 1,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10808",
@@ -8969,9 +11153,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 19,
+      "games": 10,
+      "goals": 2,
+      "assists": 2,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11433",
@@ -8981,9 +11168,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11450",
@@ -8993,9 +11183,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10928",
@@ -9005,9 +11198,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-9958",
@@ -9017,9 +11213,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10925",
@@ -9029,9 +11228,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11518",
@@ -9041,9 +11243,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 12,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11454",
@@ -9053,9 +11258,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 26,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10922",
@@ -9065,9 +11273,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11455",
@@ -9077,9 +11288,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10768",
@@ -9089,9 +11303,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 5,
+      "assists": 9,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11192",
@@ -9101,9 +11318,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11456",
@@ -9113,9 +11333,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10614",
@@ -9125,9 +11348,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-10218",
@@ -9137,9 +11363,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 6,
+      "assists": 9,
+      "ovr": 67,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11457",
@@ -9149,9 +11378,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10595",
@@ -9161,9 +11393,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11459",
@@ -9173,9 +11408,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-10929",
@@ -9185,9 +11423,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 1,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11148",
@@ -9197,9 +11438,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 50,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11533",
@@ -9221,9 +11465,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11013",
@@ -9233,9 +11480,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10112",
@@ -9245,9 +11495,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11167",
@@ -9257,9 +11510,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 8,
+      "ovr": 59,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11492",
@@ -9269,9 +11525,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11333",
@@ -9281,9 +11540,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 9,
+      "assists": 6,
+      "ovr": 65,
+      "potential": 84,
+      "model": "stats"
     },
     {
       "id": "ushl-10588",
@@ -9293,9 +11555,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
+      "games": 13,
+      "goals": 2,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11335",
@@ -9305,9 +11570,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11337",
@@ -9317,9 +11585,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11338",
@@ -9329,9 +11600,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 17,
+      "games": 16,
+      "goals": 3,
+      "assists": 3,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11018",
@@ -9341,9 +11615,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11031",
@@ -9353,9 +11630,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10347",
@@ -9365,9 +11645,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11341",
@@ -9377,9 +11660,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11328",
@@ -9389,9 +11675,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11329",
@@ -9401,9 +11690,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11330",
@@ -9413,9 +11705,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10372",
@@ -9425,9 +11720,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11064",
@@ -9437,9 +11735,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10383",
@@ -9449,9 +11750,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 4,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11008",
@@ -9461,9 +11765,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11334",
@@ -9473,9 +11780,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-10723",
@@ -9485,9 +11795,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 8,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11342",
@@ -9497,9 +11810,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-11021",
@@ -9509,9 +11825,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11348",
@@ -9521,9 +11840,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 16,
+      "games": 13,
+      "goals": 1,
+      "assists": 4,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11125",
@@ -9533,9 +11855,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10874",
@@ -9545,9 +11870,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 9,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-10461",
@@ -9557,9 +11885,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11343",
@@ -9569,6 +11900,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 16,
+      "games": 2,
+      "goals": 1,
+      "assists": 0,
       "ovr": 55,
       "potential": 74,
       "model": "provisional"
@@ -9581,9 +11915,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 17,
+      "games": 12,
+      "goals": 1,
+      "assists": 3,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10632",
@@ -9593,9 +11930,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 8,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10947",
@@ -9605,9 +11945,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 11,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-10878",
@@ -9617,9 +11960,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11352",
@@ -9641,9 +11987,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 19,
+      "games": 14,
+      "goals": 5,
+      "assists": 0,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11344",
@@ -9653,9 +12002,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 51,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10323",
@@ -9665,9 +12017,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 74,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-10890",
@@ -9677,9 +12032,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 10,
+      "goals": 4,
+      "assists": 9,
+      "ovr": 66,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "ushl-10699",
@@ -9689,9 +12047,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 12,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11175",
@@ -9701,9 +12062,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10689",
@@ -9713,9 +12077,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10879",
@@ -9725,9 +12092,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11345",
@@ -9737,9 +12107,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10881",
@@ -9761,9 +12134,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-10279",
@@ -9773,9 +12149,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 18,
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11009",
@@ -9797,9 +12176,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 55,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11062",
@@ -9809,9 +12191,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 20,
-      "ovr": 53,
-      "potential": 64,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 60,
+      "model": "stats"
     },
     {
       "id": "ushl-10441",
@@ -9821,9 +12206,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11530",
@@ -9869,9 +12257,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11358",
@@ -9881,9 +12272,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 4,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10649",
@@ -9893,9 +12287,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-9956",
@@ -9905,9 +12302,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 9,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10459",
@@ -9917,9 +12317,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10858",
@@ -9929,9 +12332,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 17,
+      "goals": 11,
+      "assists": 11,
+      "ovr": 66,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "ushl-10280",
@@ -9941,9 +12347,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 8,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11361",
@@ -9953,9 +12362,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10786",
@@ -9965,9 +12377,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11204",
@@ -9977,9 +12392,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
+      "games": 14,
+      "goals": 1,
+      "assists": 4,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10650",
@@ -9989,9 +12407,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11112",
@@ -10001,9 +12422,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 42,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11222",
@@ -10013,9 +12437,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11370",
@@ -10025,9 +12452,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 85,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11371",
@@ -10037,9 +12467,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-10369",
@@ -10049,9 +12482,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 19,
+      "games": 17,
+      "goals": 5,
+      "assists": 1,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10987",
@@ -10061,9 +12497,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11115",
@@ -10073,9 +12512,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10436",
@@ -10085,9 +12527,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 12,
+      "ovr": 62,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11116",
@@ -10097,9 +12542,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11094",
@@ -10109,9 +12557,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11360",
@@ -10121,9 +12572,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 10,
+      "ovr": 62,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-11362",
@@ -10133,6 +12587,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 16,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 74,
       "model": "provisional"
@@ -10145,9 +12602,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 76,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11366",
@@ -10157,9 +12617,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11022",
@@ -10169,9 +12632,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11552",
@@ -10193,9 +12659,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-10523",
@@ -10205,9 +12674,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10938",
@@ -10217,9 +12689,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 13,
+      "ovr": 62,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11480",
@@ -10241,9 +12716,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 17,
+      "ovr": 62,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-10788",
@@ -10253,9 +12731,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 10,
+      "assists": 4,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10848",
@@ -10265,9 +12746,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11379",
@@ -10277,9 +12761,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
+      "games": 16,
+      "goals": 3,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11219",
@@ -10289,9 +12776,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11381",
@@ -10301,9 +12791,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 8,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11523",
@@ -10313,9 +12806,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11385",
@@ -10325,9 +12821,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11386",
@@ -10337,9 +12836,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10367",
@@ -10349,9 +12851,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 74,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11387",
@@ -10361,9 +12866,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 18,
+      "games": 16,
+      "goals": 3,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11388",
@@ -10373,9 +12881,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 93,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11080",
@@ -10385,9 +12896,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10393",
@@ -10397,9 +12911,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10812",
@@ -10409,9 +12926,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11548",
@@ -10421,6 +12941,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 16,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 74,
       "model": "provisional"
@@ -10433,9 +12956,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11547",
@@ -10445,6 +12971,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 16,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 74,
       "model": "provisional"
@@ -10457,9 +12986,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 20,
+      "games": 16,
+      "goals": 1,
+      "assists": 3,
       "ovr": 54,
       "potential": 65,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11063",
@@ -10469,9 +13001,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11382",
@@ -10481,9 +13016,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 25,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10540",
@@ -10493,9 +13031,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 8,
+      "ovr": 61,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11384",
@@ -10505,9 +13046,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-10710",
@@ -10517,9 +13061,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11149",
@@ -10529,9 +13076,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11408",
@@ -10541,9 +13091,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
+      "games": 12,
+      "goals": 2,
+      "assists": 2,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11099",
@@ -10553,9 +13106,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11404",
@@ -10565,9 +13121,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 9,
+      "ovr": 63,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11174",
@@ -10577,9 +13136,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-10901",
@@ -10589,9 +13151,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11411",
@@ -10601,9 +13166,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 3,
+      "assists": 14,
+      "ovr": 64,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "ushl-11400",
@@ -10613,9 +13181,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11392",
@@ -10625,9 +13196,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 8,
+      "assists": 4,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11028",
@@ -10637,9 +13211,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 18,
+      "games": 15,
+      "goals": 3,
+      "assists": 2,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10316",
@@ -10649,9 +13226,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 12,
+      "ovr": 65,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-11217",
@@ -10661,9 +13241,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 18,
+      "games": 15,
+      "goals": 3,
+      "assists": 3,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11395",
@@ -10673,9 +13256,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 12,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11412",
@@ -10685,9 +13271,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 11,
+      "assists": 4,
+      "ovr": 62,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11399",
@@ -10697,9 +13286,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 8,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11170",
@@ -10709,9 +13301,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 95,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10892",
@@ -10721,9 +13316,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11390",
@@ -10733,9 +13331,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-9916",
@@ -10745,9 +13346,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 5,
       "nation": "—",
       "age": 19,
+      "games": 15,
+      "goals": 1,
+      "assists": 2,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11409",
@@ -10757,9 +13361,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11534",
@@ -10769,9 +13376,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 18,
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
       "ovr": 54,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11407",
@@ -10781,9 +13391,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 23,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10276",
@@ -10793,9 +13406,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 62,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11410",
@@ -10805,9 +13421,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11150",
@@ -10817,9 +13436,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11394",
@@ -10829,9 +13451,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 19,
-      "ovr": 53,
-      "potential": 66,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 62,
+      "model": "stats"
     },
     {
       "id": "ushl-11048",
@@ -10841,9 +13466,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11051",
@@ -10853,9 +13481,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 3,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 63,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11044",
@@ -10865,9 +13496,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-11042",
@@ -10877,9 +13511,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 4,
+      "assists": 4,
+      "ovr": 64,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "ushl-11056",
@@ -10889,9 +13526,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 6,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11448",
@@ -10901,9 +13541,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11050",
@@ -10913,9 +13556,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 68,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "ushl-11043",
@@ -10937,9 +13583,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 59,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11205",
@@ -10949,9 +13598,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11184",
@@ -10961,9 +13613,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11041",
@@ -10973,9 +13628,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 66,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "ushl-11449",
@@ -10985,9 +13643,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11495",
@@ -10997,9 +13658,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 33,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 4,
+      "assists": 0,
+      "ovr": 60,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11496",
@@ -11009,9 +13673,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 63,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "ushl-11497",
@@ -11021,9 +13688,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 60,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11498",
@@ -11033,9 +13703,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 37,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11500",
@@ -11045,9 +13718,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 41,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11501",
@@ -11057,9 +13733,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 42,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11506",
@@ -11069,9 +13748,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 46,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 4,
+      "assists": 1,
+      "ovr": 59,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-11507",
@@ -11081,9 +13763,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 47,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-11508",
@@ -11093,9 +13778,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 48,
       "nation": "—",
       "age": 16,
+      "games": 5,
+      "goals": 1,
+      "assists": 1,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11509",
@@ -11105,9 +13793,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 49,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11511",
@@ -11117,9 +13808,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 52,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 63,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "ushl-11513",
@@ -11129,9 +13823,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 54,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11515",
@@ -11141,9 +13838,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 56,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11046",
@@ -11153,9 +13853,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 2,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11052",
@@ -11165,9 +13868,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11058",
@@ -11177,9 +13883,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 6,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 58,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "ushl-10868",
@@ -11189,9 +13898,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 7,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11059",
@@ -11201,9 +13913,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 8,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 64,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "ushl-11045",
@@ -11213,9 +13928,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11040",
@@ -11225,9 +13943,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11068",
@@ -11237,9 +13958,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 56,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "ushl-11499",
@@ -11249,9 +13973,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 40,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11502",
@@ -11261,9 +13988,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 43,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 60,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "ushl-11504",
@@ -11273,9 +14003,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 15,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11505",
@@ -11285,9 +14018,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 45,
       "nation": "—",
       "age": 15,
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11510",
@@ -11297,9 +14033,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 51,
       "nation": "—",
       "age": 15,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11512",
@@ -11309,9 +14048,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 53,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11514",
@@ -11321,9 +14063,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 55,
       "nation": "—",
       "age": 16,
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
       "ovr": 55,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11516",
@@ -11333,9 +14078,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 57,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11037",
@@ -11345,9 +14093,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11057",
@@ -11357,9 +14108,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 17,
-      "ovr": 54,
-      "potential": 71,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "ushl-11493",
@@ -11369,9 +14123,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 16,
-      "ovr": 54,
-      "potential": 73,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11494",
@@ -11381,9 +14138,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 32,
       "nation": "—",
       "age": 16,
-      "ovr": 54,
-      "potential": 73,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 50,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-10385",
@@ -11393,9 +14153,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 9,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 63,
+      "model": "stats"
     },
     {
       "id": "ushl-11202",
@@ -11405,9 +14168,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 17,
+      "games": 15,
+      "goals": 1,
+      "assists": 4,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11420",
@@ -11417,9 +14183,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 13,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 9,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 55,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10957",
@@ -11429,9 +14198,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 7,
+      "assists": 5,
+      "ovr": 59,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11181",
@@ -11441,9 +14213,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 12,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 57,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-11419",
@@ -11453,9 +14228,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10551",
@@ -11465,9 +14243,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 22,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 9,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11215",
@@ -11477,9 +14258,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 24,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-11425",
@@ -11489,9 +14273,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 28,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-9929",
@@ -11501,9 +14288,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 29,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11066",
@@ -11513,9 +14303,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 38,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "ushl-10996",
@@ -11525,9 +14318,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 71,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 3,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10817",
@@ -11537,9 +14333,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 72,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 62,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "ushl-10997",
@@ -11549,9 +14348,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10417",
@@ -11561,9 +14363,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 89,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 8,
+      "assists": 12,
+      "ovr": 65,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11551",
@@ -11573,6 +14378,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 16,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 74,
       "model": "provisional"
@@ -11585,9 +14393,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 97,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11540",
@@ -11597,6 +14408,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 98,
       "nation": "—",
       "age": 0,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 53,
       "potential": 53,
       "model": "provisional"
@@ -11609,9 +14423,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 51,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10951",
@@ -11621,9 +14438,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 56,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "ushl-11203",
@@ -11645,9 +14465,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 63,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "ushl-11417",
@@ -11657,9 +14480,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 19,
+      "games": 15,
+      "goals": 0,
+      "assists": 3,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11035",
@@ -11669,9 +14495,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 55,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-11183",
@@ -11681,9 +14510,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
+      "games": 16,
+      "goals": 1,
+      "assists": 3,
       "ovr": 55,
       "potential": 72,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-11423",
@@ -11693,6 +14525,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 55,
       "potential": 72,
       "model": "provisional"
@@ -11705,9 +14540,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 19,
+      "games": 16,
+      "goals": 0,
+      "assists": 4,
       "ovr": 54,
       "potential": 67,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "ushl-10866",
@@ -11717,9 +14555,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11416",
@@ -11729,9 +14570,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 31,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11084",
@@ -11741,9 +14585,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 3,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "ushl-10311",
@@ -11753,9 +14600,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 4,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 16,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 58,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11541",
@@ -11765,9 +14615,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 10,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 3,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11100",
@@ -11777,9 +14630,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 11,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 54,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11432",
@@ -11789,9 +14645,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 12,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 55,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11434",
@@ -11801,9 +14660,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 14,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 6,
+      "assists": 9,
+      "ovr": 61,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11027",
@@ -11813,9 +14675,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 15,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11436",
@@ -11825,9 +14690,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 17,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 57,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-10604",
@@ -11837,9 +14705,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 19,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 7,
+      "assists": 3,
+      "ovr": 63,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "ushl-11437",
@@ -11849,9 +14720,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 20,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-10921",
@@ -11861,9 +14735,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 21,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 7,
+      "ovr": 60,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-10912",
@@ -11873,9 +14750,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 27,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11067",
@@ -11897,9 +14777,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 88,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 9,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10302",
@@ -11909,9 +14792,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 91,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 15,
+      "goals": 6,
+      "assists": 11,
+      "ovr": 63,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "ushl-11446",
@@ -11921,9 +14807,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 98,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 52,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-11426",
@@ -11945,6 +14834,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 16,
       "nation": "—",
       "age": 19,
+      "games": 1,
+      "goals": 0,
+      "assists": 1,
       "ovr": 54,
       "potential": 67,
       "model": "provisional"
@@ -11957,9 +14849,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 18,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 56,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "ushl-10913",
@@ -11969,9 +14864,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 34,
       "nation": "—",
       "age": 17,
-      "ovr": 55,
-      "potential": 72,
-      "model": "provisional"
+      "games": 9,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 57,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-10914",
@@ -11981,9 +14879,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 36,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 59,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "ushl-11442",
@@ -11993,9 +14894,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 41,
       "nation": "—",
       "age": 18,
-      "ovr": 54,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 53,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "ushl-10916",
@@ -12005,9 +14909,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 42,
       "nation": "—",
       "age": 19,
-      "ovr": 54,
-      "potential": 67,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 52,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "ushl-11443",
@@ -12017,9 +14924,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 44,
       "nation": "—",
       "age": 20,
-      "ovr": 54,
-      "potential": 65,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 55,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "ushl-11444",
@@ -12029,9 +14939,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 48,
       "nation": "—",
       "age": 16,
-      "ovr": 55,
-      "potential": 74,
-      "model": "provisional"
+      "games": 16,
+      "goals": 5,
+      "assists": 2,
+      "ovr": 58,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "ushl-11439",
@@ -12041,9 +14954,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 30,
       "nation": "—",
       "age": 18,
-      "ovr": 53,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "ushl-11542",
@@ -12053,6 +14969,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 35,
       "nation": "—",
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 53,
       "potential": 68,
       "model": "provisional"
@@ -12065,9 +14984,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "number": 70,
       "nation": "—",
       "age": 20,
-      "ovr": 53,
-      "potential": 64,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 49,
+      "potential": 60,
+      "model": "stats"
     }
   ],
   "SHL": [
@@ -16353,9 +19275,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 53,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-21468906",
@@ -16365,9 +19290,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-21499603",
@@ -16377,9 +19305,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 94,
       "age": 36,
+      "games": 13,
+      "goals": 2,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-21589720",
@@ -16401,9 +19332,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 33,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 6,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-21808485",
@@ -16413,9 +19347,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-21848539",
@@ -16425,9 +19362,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 8,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-21851458",
@@ -16437,9 +19377,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-21870028",
@@ -16449,9 +19392,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 64,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-21919594",
@@ -16473,6 +19419,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 30,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -16485,9 +19434,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-22051859",
@@ -16497,9 +19449,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22148966",
@@ -16509,9 +19464,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22290364",
@@ -16521,9 +19479,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-22333124",
@@ -16533,9 +19494,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22396653",
@@ -16545,9 +19509,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-22474067",
@@ -16557,9 +19524,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-22510552",
@@ -16569,9 +19539,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 41,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22549125",
@@ -16581,9 +19554,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 11,
       "age": 37,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-22558763",
@@ -16605,9 +19581,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 92,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 2,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-22709389",
@@ -16617,9 +19596,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 79,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-22768061",
@@ -16629,9 +19611,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 51,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 0,
+      "assists": 8,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-22790602",
@@ -16641,9 +19626,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 81,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 9,
+      "assists": 11,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-22800958",
@@ -16653,9 +19641,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 34,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-22805092",
@@ -16665,9 +19656,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-22870292",
@@ -16677,9 +19671,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 12,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-22891255",
@@ -16689,9 +19686,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 91,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22895620",
@@ -16701,9 +19701,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 54,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-22937737",
@@ -16713,9 +19716,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-22953708",
@@ -16725,9 +19731,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-22993098",
@@ -16749,9 +19758,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-23165391",
@@ -16761,9 +19773,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 76,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-23165838",
@@ -16773,9 +19788,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 40,
       "age": 37,
+      "games": 21,
+      "goals": 5,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-23167645",
@@ -16785,9 +19803,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 90,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-23168071",
@@ -16797,9 +19818,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 61,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-23249408",
@@ -16821,9 +19845,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 74,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-23517198",
@@ -16833,9 +19860,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 63,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-23521841",
@@ -16845,9 +19875,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 37,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-23595916",
@@ -16857,9 +19890,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 11,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-23786437",
@@ -16881,9 +19917,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 5,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-23837263",
@@ -16893,9 +19932,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 47,
       "age": 33,
+      "games": 15,
+      "goals": 2,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-23889127",
@@ -16905,9 +19947,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 31,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-23966862",
@@ -16917,9 +19962,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-24064653",
@@ -16929,9 +19977,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 17,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-24158200",
@@ -16953,9 +20004,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-24226640",
@@ -16965,9 +20019,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 41,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-24319557",
@@ -16977,9 +20034,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 47,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-24324348",
@@ -16989,9 +20049,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 17,
       "age": 37,
+      "games": 21,
+      "goals": 1,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-24338350",
@@ -17001,9 +20064,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 70,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-24390673",
@@ -17025,9 +20091,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 59,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-24466028",
@@ -17037,9 +20106,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 48,
       "age": 32,
+      "games": 20,
+      "goals": 4,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-24479743",
@@ -17049,6 +20121,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 28,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -17061,9 +20136,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 23,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-24509817",
@@ -17073,9 +20151,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 61,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-24641005",
@@ -17085,9 +20166,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 30,
+      "games": 21,
+      "goals": 3,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-24650025",
@@ -17097,9 +20181,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 31,
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-24725109",
@@ -17109,9 +20196,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 37,
+      "games": 21,
+      "goals": 1,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-24727725",
@@ -17121,9 +20211,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 47,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 11,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-24779032",
@@ -17133,9 +20226,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-24783853",
@@ -17145,9 +20241,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 40,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-24913937",
@@ -17157,9 +20256,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 65,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-24959726",
@@ -17169,9 +20271,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 38,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 6,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-24962616",
@@ -17181,9 +20286,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-25042564",
@@ -17193,9 +20301,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-25113804",
@@ -17205,9 +20316,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-25113956",
@@ -17229,9 +20343,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 93,
       "age": 37,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-25139587",
@@ -17241,6 +20358,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 30,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -17253,9 +20373,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-25461491",
@@ -17265,9 +20388,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 47,
       "age": 29,
+      "games": 8,
+      "goals": 1,
+      "assists": 2,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-25489224",
@@ -17277,9 +20403,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 28,
+      "games": 21,
+      "goals": 4,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-25506929",
@@ -17289,9 +20418,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 77,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 76,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-25541395",
@@ -17301,9 +20433,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 40,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-25556746",
@@ -17313,9 +20448,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 15,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 7,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-25567120",
@@ -17325,9 +20463,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 85,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-25655472",
@@ -17349,9 +20490,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 2,
       "age": 35,
+      "games": 20,
+      "goals": 3,
+      "assists": 2,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-25663901",
@@ -17361,9 +20505,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 83,
       "age": 33,
+      "games": 3,
+      "goals": 0,
+      "assists": 1,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-26590031",
@@ -17373,9 +20520,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-27023853",
@@ -17385,9 +20535,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 87,
       "age": 29,
+      "games": 19,
+      "goals": 3,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-27355408",
@@ -17397,9 +20550,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 11,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-27471447",
@@ -17409,9 +20565,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 20,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-27752328",
@@ -17421,9 +20580,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 13,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-27841653",
@@ -17433,9 +20595,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-27843800",
@@ -17457,9 +20622,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 9,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-27854909",
@@ -17469,9 +20637,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 92,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-27900714",
@@ -17481,9 +20652,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 52,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-28262723",
@@ -17493,9 +20667,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 11,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-28436261",
@@ -17505,9 +20682,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-28471734",
@@ -17517,9 +20697,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 3,
+      "assists": 0,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-28506900",
@@ -17529,9 +20712,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-28696276",
@@ -17541,9 +20727,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 26,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-28696292",
@@ -17553,9 +20742,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 62,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-28897266",
@@ -17565,9 +20757,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 10,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-28905831",
@@ -17577,9 +20772,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-28948856",
@@ -17589,9 +20787,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-28967947",
@@ -17601,9 +20802,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-29028513",
@@ -17613,9 +20817,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 28,
+      "games": 21,
+      "goals": 2,
+      "assists": 6,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-29658365",
@@ -17625,9 +20832,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-29658831",
@@ -17637,9 +20847,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-29670505",
@@ -17649,9 +20862,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 74,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-29695519",
@@ -17661,9 +20877,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-29780877",
@@ -17673,9 +20892,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 28,
+      "games": 21,
+      "goals": 2,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-29782985",
@@ -17685,9 +20907,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-29783858",
@@ -17697,9 +20922,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 36,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-29857823",
@@ -17721,9 +20949,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 73,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-29870486",
@@ -17733,9 +20964,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 47,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-29914070",
@@ -17745,9 +20979,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 31,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-29924154",
@@ -17781,9 +21018,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-29936715",
@@ -17793,9 +21033,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-29937251",
@@ -17805,9 +21048,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 75,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 8,
+      "assists": 1,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-29942233",
@@ -17817,9 +21063,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 93,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-29942725",
@@ -17829,9 +21078,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 50,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-29948538",
@@ -17841,9 +21093,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 91,
       "age": 26,
+      "games": 10,
+      "goals": 1,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-29948651",
@@ -17853,9 +21108,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 34,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-29969041",
@@ -17865,9 +21123,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-30010552",
@@ -17877,9 +21138,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 77,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 12,
+      "assists": 2,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-30117507",
@@ -17913,9 +21177,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 75,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-30417647",
@@ -17925,9 +21192,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 15,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-30434484",
@@ -17937,9 +21207,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 34,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-30636693",
@@ -17949,9 +21222,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 67,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 11,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-30639603",
@@ -17961,9 +21237,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 17,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-30644067",
@@ -17973,9 +21252,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-30687613",
@@ -17985,9 +21267,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 4,
+      "assists": 10,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-30707373",
@@ -17997,9 +21282,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 12,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-30712591",
@@ -18009,9 +21297,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 25,
+      "games": 21,
+      "goals": 4,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-30728763",
@@ -18021,9 +21312,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 39,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 12,
+      "assists": 8,
+      "ovr": 76,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-30730803",
@@ -18033,9 +21327,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 25,
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-30731093",
@@ -18045,9 +21342,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-30738423",
@@ -18057,9 +21357,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-30739008",
@@ -18069,9 +21372,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 83,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-30793837",
@@ -18081,9 +21387,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 91,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-30832947",
@@ -18093,9 +21402,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 9,
+      "assists": 7,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-30851669",
@@ -18105,9 +21417,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-30951530",
@@ -18117,9 +21432,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-30984675",
@@ -18129,9 +21447,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-31046431",
@@ -18141,9 +21462,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 39,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-31110600",
@@ -18153,9 +21477,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 25,
+      "games": 21,
+      "goals": 5,
+      "assists": 2,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-31209498",
@@ -18165,9 +21492,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 56,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-31267715",
@@ -18189,9 +21519,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 8,
+      "assists": 8,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-31296980",
@@ -18201,9 +21534,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 16,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 10,
+      "assists": 11,
+      "ovr": 76,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-31411901",
@@ -18213,9 +21549,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 63,
       "age": 26,
+      "games": 20,
+      "goals": 5,
+      "assists": 2,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-31508351",
@@ -18225,9 +21564,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 36,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 2,
+      "assists": 7,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-31519609",
@@ -18237,9 +21579,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 67,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-31531807",
@@ -18249,9 +21594,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 77,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-31539993",
@@ -18261,9 +21609,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-31569277",
@@ -18273,9 +21624,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-31574013",
@@ -18285,9 +21639,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 11,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 11,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-31578145",
@@ -18297,9 +21654,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 9,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-31584650",
@@ -18309,6 +21669,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 0,
       "age": 25,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -18321,9 +21684,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-31632421",
@@ -18333,9 +21699,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-31635062",
@@ -18357,9 +21726,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-31803661",
@@ -18369,9 +21741,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-31809869",
@@ -18381,9 +21756,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-31835642",
@@ -18393,9 +21771,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 7,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-31848134",
@@ -18405,9 +21786,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-31886905",
@@ -18417,9 +21801,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 86,
       "age": 23,
+      "games": 21,
+      "goals": 5,
+      "assists": 2,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-31896306",
@@ -18429,9 +21816,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 24,
+      "games": 20,
+      "goals": 4,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-31905381",
@@ -18441,9 +21831,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-31915960",
@@ -18465,9 +21858,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 20,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-32033595",
@@ -18477,9 +21873,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 26,
+      "games": 20,
+      "goals": 2,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-32167539",
@@ -18489,9 +21888,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-32194874",
@@ -18501,9 +21903,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 10,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-32219869",
@@ -18513,9 +21918,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 24,
+      "games": 20,
+      "goals": 0,
+      "assists": 5,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-32269686",
@@ -18525,9 +21933,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 33,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 12,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-32294910",
@@ -18537,9 +21948,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 10,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-32300435",
@@ -18549,9 +21963,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 77,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-32378409",
@@ -18561,9 +21978,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 15,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-32383850",
@@ -18573,6 +21993,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 25,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -18585,9 +22008,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "",
       "number": 43,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-32419009",
@@ -18597,9 +22023,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 25,
+      "games": 10,
+      "goals": 1,
+      "assists": 1,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-32470776",
@@ -18609,9 +22038,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 20,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-32509715",
@@ -18621,6 +22053,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 40,
       "age": 24,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -18633,9 +22068,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-32555154",
@@ -18645,9 +22083,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 81,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-32558931",
@@ -18657,9 +22098,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-32576829",
@@ -18669,9 +22113,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 90,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-32578063",
@@ -18681,9 +22128,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 96,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-32581335",
@@ -18705,6 +22155,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 73,
       "age": 25,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -18717,9 +22170,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 9,
       "age": 23,
+      "games": 22,
+      "goals": 1,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-32675788",
@@ -18729,9 +22185,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 13,
+      "assists": 15,
+      "ovr": 81,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "liiga-32681170",
@@ -18741,9 +22200,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 71,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-32701115",
@@ -18753,9 +22215,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 88,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 6,
+      "assists": 8,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-32713394",
@@ -18765,9 +22230,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-32766066",
@@ -18777,9 +22245,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 14,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-32814523",
@@ -18789,9 +22260,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 5,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-32845479",
@@ -18801,6 +22275,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 86,
       "age": 23,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -18813,9 +22290,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 10,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 3,
+      "assists": 4,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-32873373",
@@ -18825,9 +22305,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 16,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-32915134",
@@ -18837,9 +22320,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-32919839",
@@ -18849,9 +22335,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 11,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-32924510",
@@ -18861,9 +22350,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 80,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-32935871",
@@ -18873,9 +22365,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 62,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 16,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-33076328",
@@ -18885,9 +22380,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-33150613",
@@ -18897,9 +22395,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 24,
+      "games": 13,
+      "goals": 0,
+      "assists": 3,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-33189367",
@@ -18909,6 +22410,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 33,
       "age": 22,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -18921,9 +22425,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 11,
+      "ovr": 74,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-33254027",
@@ -18933,9 +22440,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-33296797",
@@ -18945,9 +22455,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 52,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-33296946",
@@ -18957,9 +22470,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 10,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-33373610",
@@ -18969,9 +22485,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "EST",
       "number": 88,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-33388168",
@@ -18981,9 +22500,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 86,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-33401427",
@@ -18993,9 +22515,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-33410418",
@@ -19005,9 +22530,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 92,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 5,
+      "assists": 1,
+      "ovr": 71,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-33410463",
@@ -19017,6 +22545,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 59,
       "age": 21,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19029,9 +22560,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 16,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-33424682",
@@ -19041,9 +22575,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 37,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-33433602",
@@ -19053,9 +22590,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 9,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-33447724",
@@ -19065,6 +22605,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 21,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19077,9 +22620,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 58,
       "age": 22,
+      "games": 17,
+      "goals": 2,
+      "assists": 4,
       "ovr": 69,
       "potential": 71,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-33489821",
@@ -19089,9 +22635,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-33490124",
@@ -19101,9 +22650,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 78,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 71,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-33494007",
@@ -19113,9 +22665,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-33502478",
@@ -19125,9 +22680,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-33502782",
@@ -19149,6 +22707,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 22,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -19161,9 +22722,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 53,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-33560782",
@@ -19185,9 +22749,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 68,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-33583439",
@@ -19197,6 +22764,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 51,
       "age": 21,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19209,6 +22779,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 22,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -19221,9 +22794,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-33684419",
@@ -19233,6 +22809,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 84,
       "age": 21,
+      "games": 2,
+      "goals": 0,
+      "assists": 1,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19245,9 +22824,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 26,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-33778684",
@@ -19257,6 +22839,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 22,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -19269,9 +22854,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 34,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-33848019",
@@ -19281,9 +22869,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 27,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 74,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-33863780",
@@ -19293,9 +22884,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-33866651",
@@ -19305,9 +22899,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 6,
+      "assists": 7,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-34081477",
@@ -19317,9 +22914,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 74,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-34118968",
@@ -19329,9 +22929,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 92,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-34132533",
@@ -19341,9 +22944,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 78,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-34250949",
@@ -19353,9 +22959,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "HUN",
       "number": 14,
       "age": 31,
+      "games": 18,
+      "goals": 1,
+      "assists": 5,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-34254136",
@@ -19365,9 +22974,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FRA",
       "number": 3,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-34289716",
@@ -19377,6 +22989,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 22,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -19389,9 +23004,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 13,
+      "ovr": 76,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-34334797",
@@ -19401,6 +23019,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 85,
       "age": 21,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19413,6 +23034,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 35,
       "age": 20,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -19425,9 +23049,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 62,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-34394517",
@@ -19437,9 +23064,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-34397653",
@@ -19449,9 +23079,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-34415072",
@@ -19473,9 +23106,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 80,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-34462795",
@@ -19497,9 +23133,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-34471692",
@@ -19509,9 +23148,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 94,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-34486315",
@@ -19521,9 +23163,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 26,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-34528794",
@@ -19533,9 +23178,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 37,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-34570580",
@@ -19545,9 +23193,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-34589827",
@@ -19557,9 +23208,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 33,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 75,
+      "potential": 86,
+      "model": "stats"
     },
     {
       "id": "liiga-34601572",
@@ -19569,9 +23223,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-40003574",
@@ -19581,9 +23238,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 2,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40005133",
@@ -19593,9 +23253,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 40,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-40005288",
@@ -19605,9 +23268,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40005621",
@@ -19617,9 +23283,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 2,
+      "assists": 12,
+      "ovr": 77,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40006279",
@@ -19629,9 +23298,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 70,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 8,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-40007991",
@@ -19641,9 +23313,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-40008430",
@@ -19653,9 +23328,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 69,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-40009767",
@@ -19665,9 +23343,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 55,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-40010941",
@@ -19677,9 +23358,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-40015008",
@@ -19689,9 +23373,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 24,
+      "games": 21,
+      "goals": 4,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40026552",
@@ -19701,6 +23388,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 19,
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -19713,9 +23403,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 60,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-40036062",
@@ -19725,9 +23418,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 86,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 17,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40036185",
@@ -19737,6 +23433,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -19749,9 +23448,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40036871",
@@ -19761,9 +23463,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 23,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40037465",
@@ -19773,6 +23478,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 51,
       "age": 21,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -19785,9 +23493,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 92,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40037700",
@@ -19797,6 +23508,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 19,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -19809,9 +23523,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 33,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40039427",
@@ -19821,9 +23538,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 17,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40040845",
@@ -19833,9 +23553,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 82,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 17,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 71,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40040956",
@@ -19845,9 +23568,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 20,
+      "games": 18,
+      "goals": 1,
+      "assists": 3,
       "ovr": 70,
       "potential": 81,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40046421",
@@ -19857,9 +23583,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40046437",
@@ -19869,6 +23598,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 93,
       "age": 23,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 69,
       "model": "provisional"
@@ -19881,9 +23613,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 22,
+      "games": 17,
+      "goals": 0,
+      "assists": 4,
       "ovr": 69,
       "potential": 71,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40048503",
@@ -19893,9 +23628,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 20,
+      "games": 19,
+      "goals": 0,
+      "assists": 4,
       "ovr": 70,
       "potential": 81,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40049111",
@@ -19905,9 +23643,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 72,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40049925",
@@ -19917,9 +23658,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 61,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 6,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 81,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "liiga-40050277",
@@ -19941,9 +23685,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 63,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 23,
+      "goals": 5,
+      "assists": 13,
+      "ovr": 75,
+      "potential": 88,
+      "model": "stats"
     },
     {
       "id": "liiga-40053029",
@@ -19953,9 +23700,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40054832",
@@ -19965,9 +23715,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 74,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40055581",
@@ -19977,9 +23730,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 10,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 68,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40055660",
@@ -19989,9 +23745,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 70,
       "age": 22,
+      "games": 16,
+      "goals": 2,
+      "assists": 4,
       "ovr": 69,
       "potential": 71,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40056206",
@@ -20013,9 +23772,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 16,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40063511",
@@ -20025,6 +23787,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 90,
       "age": 19,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20037,9 +23802,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40065098",
@@ -20049,9 +23817,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 13,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40067163",
@@ -20073,9 +23844,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 14,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40068762",
@@ -20085,9 +23859,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 85,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-40069442",
@@ -20097,9 +23874,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 96,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40074865",
@@ -20109,9 +23889,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40076231",
@@ -20121,9 +23904,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 41,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-40078330",
@@ -20133,6 +23919,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 0,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20145,9 +23934,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-40079819",
@@ -20157,9 +23949,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-40080180",
@@ -20169,9 +23964,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 45,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40080302",
@@ -20181,9 +23979,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 91,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 10,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-40084203",
@@ -20205,6 +24006,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 23,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20217,6 +24021,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 86,
       "age": 21,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -20229,9 +24036,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 2,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-40101227",
@@ -20241,6 +24051,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 52,
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -20253,6 +24066,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 2,
       "age": 21,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -20265,9 +24081,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-40103808",
@@ -20301,6 +24120,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 74,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20325,9 +24147,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 7,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40111796",
@@ -20337,6 +24162,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 2,
       "age": 19,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20349,9 +24177,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 21,
+      "goals": 8,
+      "assists": 2,
+      "ovr": 71,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40114901",
@@ -20361,9 +24192,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 12,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40115108",
@@ -20373,9 +24207,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 69,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-40115271",
@@ -20397,9 +24234,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 73,
+      "potential": 86,
+      "model": "stats"
     },
     {
       "id": "liiga-40117195",
@@ -20409,9 +24249,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 13,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-40118855",
@@ -20421,9 +24264,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 54,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40120401",
@@ -20433,6 +24279,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 5,
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -20445,9 +24294,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 77,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-40122756",
@@ -20457,9 +24309,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 90,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 14,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40123956",
@@ -20481,9 +24336,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 14,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 68,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40130176",
@@ -20493,6 +24351,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20505,6 +24366,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 44,
       "age": 22,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 69,
       "potential": 71,
       "model": "provisional"
@@ -20517,9 +24381,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 10,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40130882",
@@ -20541,6 +24408,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 26,
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20553,6 +24423,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 19,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20565,6 +24438,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 95,
       "age": 21,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 74,
       "model": "provisional"
@@ -20577,6 +24453,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 19,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20589,9 +24468,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 84,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40165708",
@@ -20601,9 +24483,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 93,
       "age": 17,
-      "ovr": 71,
-      "potential": 88,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 69,
+      "potential": 86,
+      "model": "stats"
     },
     {
       "id": "liiga-40167852",
@@ -20613,9 +24498,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-40172010",
@@ -20625,9 +24513,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 81,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-40174123",
@@ -20637,9 +24528,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 3,
       "age": 17,
-      "ovr": 71,
-      "potential": 88,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 68,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "liiga-40175796",
@@ -20649,6 +24543,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "",
       "number": 4,
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -20673,6 +24570,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 62,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20685,9 +24585,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 49,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 12,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-40185541",
@@ -20697,6 +24600,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 91,
       "age": 18,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -20709,9 +24615,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 6,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40188462",
@@ -20721,9 +24630,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 37,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 7,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 69,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40200601",
@@ -20733,6 +24645,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 25,
       "age": 19,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20745,6 +24660,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 62,
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 71,
       "potential": 88,
       "model": "provisional"
@@ -20757,6 +24675,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20781,9 +24702,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 34,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40211771",
@@ -20793,6 +24717,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 45,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -20817,9 +24744,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 8,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-40217713",
@@ -20829,9 +24759,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-40225344",
@@ -20841,6 +24774,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 17,
       "age": 16,
+      "games": 2,
+      "goals": 0,
+      "assists": 1,
       "ovr": 71,
       "potential": 90,
       "model": "provisional"
@@ -20853,9 +24789,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40233496",
@@ -20865,9 +24804,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 21,
+      "games": 5,
+      "goals": 0,
+      "assists": 1,
       "ovr": 70,
       "potential": 74,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40246390",
@@ -20877,6 +24819,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 18,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -20889,9 +24834,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 23,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 7,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 71,
+      "potential": 84,
+      "model": "stats"
     },
     {
       "id": "liiga-40246982",
@@ -20901,6 +24849,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 36,
       "age": 19,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20925,6 +24876,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 29,
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -20949,9 +24903,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 22,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-40277191",
@@ -20973,9 +24930,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 17,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "liiga-40286033",
@@ -20997,9 +24957,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 24,
       "age": 19,
+      "games": 21,
+      "goals": 5,
+      "assists": 3,
       "ovr": 70,
       "potential": 83,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-40311150",
@@ -21021,9 +24984,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 15,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 69,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-40317139",
@@ -21033,9 +24999,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 57,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 16,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 79,
+      "model": "stats"
     },
     {
       "id": "liiga-40318986",
@@ -21045,6 +25014,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 0,
       "age": 18,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -21057,9 +25029,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 94,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 83,
+      "model": "stats"
     },
     {
       "id": "liiga-40342814",
@@ -21069,6 +25044,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 75,
       "age": 17,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 71,
       "potential": 88,
       "model": "provisional"
@@ -21081,9 +25059,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 17,
-      "ovr": 71,
-      "potential": 88,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 68,
+      "potential": 85,
+      "model": "stats"
     },
     {
       "id": "liiga-40373820",
@@ -21093,9 +25074,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 9,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-40382596",
@@ -21117,9 +25101,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 89,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 11,
+      "ovr": 74,
+      "potential": 89,
+      "model": "stats"
     },
     {
       "id": "liiga-40391496",
@@ -21129,9 +25116,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 4,
       "age": 19,
-      "ovr": 70,
-      "potential": 83,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 69,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40394023",
@@ -21141,9 +25131,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 38,
       "age": 16,
-      "ovr": 71,
-      "potential": 90,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 86,
+      "model": "stats"
     },
     {
       "id": "liiga-40399288",
@@ -21153,6 +25146,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 21,
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 71,
       "potential": 88,
       "model": "provisional"
@@ -21177,9 +25173,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FRA",
       "number": 18,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 9,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-40432388",
@@ -21189,9 +25188,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 81,
+      "model": "stats"
     },
     {
       "id": "liiga-40432390",
@@ -21201,6 +25203,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 2,
       "age": 18,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -21225,6 +25230,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 20,
       "age": 17,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 71,
       "potential": 88,
       "model": "provisional"
@@ -21237,9 +25245,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 28,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-40462757",
@@ -21249,6 +25260,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 43,
       "age": 20,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -21261,6 +25275,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 42,
       "age": 18,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -21273,9 +25290,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 16,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60342512",
@@ -21285,9 +25305,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 4,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60342516",
@@ -21297,9 +25320,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "HUN",
       "number": 55,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-60348440",
@@ -21309,9 +25335,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 83,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60351425",
@@ -21321,9 +25350,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 62,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60351426",
@@ -21333,9 +25365,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 9,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 11,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60352766",
@@ -21345,9 +25380,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "HUN",
       "number": 11,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-60360584",
@@ -21357,9 +25395,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "UKR",
       "number": 23,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 16,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-60361530",
@@ -21369,9 +25410,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SLO",
       "number": 46,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 9,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60374697",
@@ -21381,9 +25425,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "KAZ",
       "number": 26,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 22,
+      "goals": 2,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-60455252",
@@ -21393,6 +25440,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 11,
       "age": 26,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -21405,9 +25455,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "LAT",
       "number": 27,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-60462059",
@@ -21429,9 +25482,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 18,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-60501427",
@@ -21441,9 +25497,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 44,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 11,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60526127",
@@ -21453,6 +25512,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "EST",
       "number": 34,
       "age": 20,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -21465,9 +25527,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 77,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60544384",
@@ -21477,9 +25542,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 25,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-60544745",
@@ -21489,9 +25557,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 25,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 8,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-60544772",
@@ -21501,9 +25572,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 9,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 11,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-60545332",
@@ -21513,6 +25587,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 31,
       "age": 29,
+      "games": 2,
+      "goals": 1,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -21525,9 +25602,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 98,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-60580517",
@@ -21537,9 +25617,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "LAT",
       "number": 95,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-60585467",
@@ -21549,6 +25632,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "",
       "number": 23,
       "age": 18,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -21561,9 +25647,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "LAT",
       "number": 12,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-60658794",
@@ -21573,9 +25662,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 29,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60659010",
@@ -21585,9 +25677,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "LAT",
       "number": 5,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60660278",
@@ -21597,9 +25692,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 22,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 8,
+      "assists": 10,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-60660609",
@@ -21621,9 +25719,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 15,
       "age": 20,
-      "ovr": 70,
-      "potential": 81,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 80,
+      "model": "stats"
     },
     {
       "id": "liiga-60662386",
@@ -21633,9 +25734,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "NOR",
       "number": 86,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60665758",
@@ -21645,6 +25749,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 81,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -21657,9 +25764,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 3,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60705422",
@@ -21669,9 +25779,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 70,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60716456",
@@ -21681,9 +25794,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 93,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60744044",
@@ -21693,9 +25809,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 15,
       "age": 29,
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-60744048",
@@ -21705,9 +25824,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 16,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60744050",
@@ -21717,9 +25839,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 80,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 9,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-60744055",
@@ -21729,9 +25854,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 28,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60757491",
@@ -21741,9 +25869,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 7,
       "age": 37,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-60760697",
@@ -21753,9 +25884,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 47,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60760815",
@@ -21765,6 +25899,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 38,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -21777,9 +25914,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 37,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 7,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-60760868",
@@ -21801,9 +25941,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FRA",
       "number": 87,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-60762062",
@@ -21813,9 +25956,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 55,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-60764053",
@@ -21837,9 +25983,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 56,
       "age": 23,
+      "games": 18,
+      "goals": 2,
+      "assists": 2,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-60799830",
@@ -21849,9 +25998,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 49,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 7,
+      "assists": 10,
+      "ovr": 76,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-60807848",
@@ -21861,9 +26013,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "NOR",
       "number": 4,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60809982",
@@ -21873,9 +26028,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 43,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 5,
+      "assists": 6,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-60823918",
@@ -21885,9 +26043,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 63,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60848590",
@@ -21897,9 +26058,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SVK",
       "number": 19,
       "age": 18,
-      "ovr": 70,
-      "potential": 85,
-      "model": "provisional"
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 67,
+      "potential": 82,
+      "model": "stats"
     },
     {
       "id": "liiga-60853196",
@@ -21921,9 +26085,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "NOR",
       "number": 10,
       "age": 31,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60860278",
@@ -21933,9 +26100,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 11,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-60860887",
@@ -21945,6 +26115,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 0,
       "age": 20,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 81,
       "model": "provisional"
@@ -21957,9 +26130,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 10,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 6,
+      "assists": 11,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60862726",
@@ -21981,9 +26157,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 71,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 7,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-60866738",
@@ -21993,9 +26172,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 97,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60897658",
@@ -22017,9 +26199,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 26,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 1,
+      "assists": 21,
+      "ovr": 78,
+      "potential": 78,
+      "model": "stats"
     },
     {
       "id": "liiga-60899622",
@@ -22029,9 +26214,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 72,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 8,
+      "assists": 5,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60902372",
@@ -22041,9 +26229,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 48,
       "age": 35,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 1,
+      "assists": 3,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60904682",
@@ -22053,9 +26244,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 55,
       "age": 29,
+      "games": 19,
+      "goals": 1,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-60905049",
@@ -22065,9 +26259,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 28,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60907490",
@@ -22077,9 +26274,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 40,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 6,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-60923647",
@@ -22089,9 +26289,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 5,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60943987",
@@ -22101,6 +26304,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 4,
       "age": 18,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 85,
       "model": "provisional"
@@ -22113,9 +26319,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 26,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 8,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-60952606",
@@ -22125,6 +26334,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 28,
       "age": 29,
+      "games": 0,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -22137,9 +26349,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 38,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 21,
+      "goals": 1,
+      "assists": 6,
+      "ovr": 72,
+      "potential": 76,
+      "model": "stats"
     },
     {
       "id": "liiga-60954318",
@@ -22149,9 +26364,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SLO",
       "number": 92,
       "age": 21,
-      "ovr": 70,
-      "potential": 74,
-      "model": "provisional"
+      "games": 15,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 68,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-60954325",
@@ -22161,9 +26379,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 7,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60954533",
@@ -22173,9 +26394,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 22,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60955694",
@@ -22185,6 +26409,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SUI",
       "number": 47,
       "age": 19,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -22197,9 +26424,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 14,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 9,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-60960461",
@@ -22209,9 +26439,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 16,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 9,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-60960731",
@@ -22221,9 +26454,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 16,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 6,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-60960736",
@@ -22233,9 +26469,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FRA",
       "number": 20,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 3,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60960744",
@@ -22257,9 +26496,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 8,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-60962764",
@@ -22269,9 +26511,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 23,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-60962804",
@@ -22281,9 +26526,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 7,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 5,
+      "assists": 13,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-60963285",
@@ -22293,9 +26541,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 88,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 13,
+      "goals": 4,
+      "assists": 8,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-60963326",
@@ -22305,9 +26556,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 17,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 2,
+      "assists": 1,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-60972169",
@@ -22317,9 +26571,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 92,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 13,
+      "assists": 12,
+      "ovr": 77,
+      "potential": 77,
+      "model": "stats"
     },
     {
       "id": "liiga-61009805",
@@ -22353,6 +26610,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 41,
       "age": 26,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -22365,9 +26625,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 7,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-61026835",
@@ -22377,9 +26640,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FRA",
       "number": 29,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 5,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-61029234",
@@ -22389,9 +26655,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 61,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 7,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61032982",
@@ -22401,9 +26670,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 7,
       "age": 27,
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61067270",
@@ -22413,9 +26685,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 8,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 3,
+      "assists": 9,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-61067273",
@@ -22425,9 +26700,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 77,
       "age": 28,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 10,
+      "assists": 5,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-61068162",
@@ -22437,9 +26715,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SVK",
       "number": 28,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 64,
+      "potential": 64,
+      "model": "stats"
     },
     {
       "id": "liiga-61069904",
@@ -22449,9 +26730,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 62,
       "age": 24,
+      "games": 21,
+      "goals": 3,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61072734",
@@ -22473,9 +26757,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 28,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 5,
+      "ovr": 69,
+      "potential": 69,
+      "model": "stats"
     },
     {
       "id": "liiga-61073530",
@@ -22485,9 +26772,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 96,
       "age": 30,
+      "games": 13,
+      "goals": 0,
+      "assists": 3,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61073531",
@@ -22497,9 +26787,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 91,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 8,
+      "assists": 7,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-61073532",
@@ -22509,9 +26802,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 11,
       "age": 30,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61073533",
@@ -22521,9 +26817,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 27,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 15,
+      "goals": 2,
+      "assists": 6,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61073535",
@@ -22533,9 +26832,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 92,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 9,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61073543",
@@ -22557,9 +26859,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 15,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 23,
+      "goals": 5,
+      "assists": 14,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-61073563",
@@ -22569,9 +26874,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 10,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 18,
+      "goals": 3,
+      "assists": 6,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-61073564",
@@ -22581,9 +26889,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CZE",
       "number": 11,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 16,
+      "goals": 7,
+      "assists": 4,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-61073565",
@@ -22593,9 +26904,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 2,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61073566",
@@ -22605,9 +26919,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 41,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-61073579",
@@ -22617,6 +26934,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "ITA",
       "number": 49,
       "age": 19,
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
       "ovr": 70,
       "potential": 83,
       "model": "provisional"
@@ -22641,9 +26961,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 11,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 4,
+      "assists": 2,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61073592",
@@ -22653,9 +26976,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 16,
       "age": 23,
+      "games": 22,
+      "goals": 1,
+      "assists": 4,
       "ovr": 69,
       "potential": 69,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61073594",
@@ -22665,9 +26991,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 29,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 9,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-61073595",
@@ -22677,9 +27006,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 39,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 10,
+      "goals": 2,
+      "assists": 3,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-61073597",
@@ -22689,9 +27021,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 95,
       "age": 34,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 1,
+      "assists": 12,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61073605",
@@ -22713,9 +27048,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 26,
       "age": 20,
+      "games": 20,
+      "goals": 1,
+      "assists": 3,
       "ovr": 70,
       "potential": 81,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61073932",
@@ -22725,9 +27063,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 17,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-61073933",
@@ -22737,9 +27078,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 21,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 3,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-61073936",
@@ -22749,9 +27093,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 22,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 19,
+      "goals": 3,
+      "assists": 2,
+      "ovr": 68,
+      "potential": 68,
+      "model": "stats"
     },
     {
       "id": "liiga-61073937",
@@ -22761,9 +27108,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 9,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 1,
+      "assists": 4,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61074020",
@@ -22773,9 +27123,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 47,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 8,
+      "assists": 10,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-61074186",
@@ -22785,9 +27138,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "DEN",
       "number": 32,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 0,
+      "assists": 3,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61074188",
@@ -22797,9 +27153,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 8,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 10,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-61074400",
@@ -22809,9 +27168,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "NOR",
       "number": 43,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-61074401",
@@ -22833,9 +27195,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 12,
       "age": 26,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 21,
+      "goals": 7,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61081277",
@@ -22845,9 +27210,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "AUT",
       "number": 97,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 20,
+      "goals": 7,
+      "assists": 12,
+      "ovr": 75,
+      "potential": 75,
+      "model": "stats"
     },
     {
       "id": "liiga-61081527",
@@ -22857,9 +27225,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 14,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 18,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-61081803",
@@ -22869,9 +27240,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 33,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 17,
+      "goals": 1,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61081805",
@@ -22881,9 +27255,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 28,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 19,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-61081809",
@@ -22893,9 +27270,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 21,
       "age": 32,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 15,
+      "goals": 4,
+      "assists": 7,
+      "ovr": 72,
+      "potential": 72,
+      "model": "stats"
     },
     {
       "id": "liiga-61082273",
@@ -22905,9 +27285,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 77,
       "age": 27,
+      "games": 18,
+      "goals": 2,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61082783",
@@ -22917,9 +27300,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 34,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 23,
+      "goals": 6,
+      "assists": 10,
+      "ovr": 73,
+      "potential": 73,
+      "model": "stats"
     },
     {
       "id": "liiga-61083288",
@@ -22929,9 +27315,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 90,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 6,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61083362",
@@ -22941,9 +27330,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 9,
       "age": 26,
+      "games": 20,
+      "goals": 4,
+      "assists": 4,
       "ovr": 68,
       "potential": 68,
-      "model": "provisional"
+      "model": "stats"
     },
     {
       "id": "liiga-61083365",
@@ -22953,9 +27345,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SVK",
       "number": 87,
       "age": 23,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 20,
+      "goals": 4,
+      "assists": 5,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-61084035",
@@ -22965,9 +27360,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 27,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 22,
+      "goals": 5,
+      "assists": 3,
+      "ovr": 70,
+      "potential": 70,
+      "model": "stats"
     },
     {
       "id": "liiga-61090984",
@@ -22977,9 +27375,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 15,
       "age": 25,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 22,
+      "goals": 6,
+      "assists": 5,
+      "ovr": 71,
+      "potential": 71,
+      "model": "stats"
     },
     {
       "id": "liiga-61092600",
@@ -22989,9 +27390,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 4,
       "age": 29,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 10,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 66,
+      "potential": 66,
+      "model": "stats"
     },
     {
       "id": "liiga-61115085",
@@ -23001,9 +27405,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 6,
       "age": 33,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 8,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61115105",
@@ -23025,9 +27432,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 16,
       "age": 24,
-      "ovr": 69,
-      "potential": 69,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "ovr": 65,
+      "potential": 65,
+      "model": "stats"
     },
     {
       "id": "liiga-61118188",
@@ -23037,9 +27447,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "SWE",
       "number": 21,
       "age": 36,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
+      "ovr": 67,
+      "potential": 67,
+      "model": "stats"
     },
     {
       "id": "liiga-61118817",
@@ -23049,9 +27462,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 18,
       "age": 27,
-      "ovr": 68,
-      "potential": 68,
-      "model": "provisional"
+      "games": 3,
+      "goals": 0,
+      "assists": 2,
+      "ovr": 74,
+      "potential": 74,
+      "model": "stats"
     },
     {
       "id": "liiga-61120028",
@@ -23061,6 +27477,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 23,
       "age": 29,
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -23073,6 +27492,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "CAN",
       "number": 9,
       "age": 27,
+      "games": 2,
+      "goals": 1,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -23085,6 +27507,9 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "USA",
       "number": 19,
       "age": 29,
+      "games": 2,
+      "goals": 1,
+      "assists": 0,
       "ovr": 68,
       "potential": 68,
       "model": "provisional"
@@ -23097,9 +27522,12 @@ export const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry
       "nation": "FIN",
       "number": 10,
       "age": 22,
-      "ovr": 69,
-      "potential": 71,
-      "model": "provisional"
+      "games": 11,
+      "goals": 1,
+      "assists": 0,
+      "ovr": 66,
+      "potential": 68,
+      "model": "stats"
     }
   ]
 };
