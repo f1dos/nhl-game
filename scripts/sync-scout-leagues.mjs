@@ -93,14 +93,17 @@ async function hockeyPlayers(league) {
     !/playoff|all.star|tournament|pre.season/i.test([x.name,x.label,x.title].join(" ")));
   const chosen = candidates.find((x)=>/regular|season/i.test([x.name,x.label,x.title].join(" "))) || candidates[0];
   if (!chosen) throw Error("2026/27 season not found in official HockeyTech seasons feed");
+  console.log(league, "candidate seasons",JSON.stringify(candidates.slice(0,3)).slice(0,800));
   const seasonId = chosen.id ?? chosen.season_id;
   const teams = locateArray(hockey(cfg,"statviewfeed","teamsForSeason",{season:seasonId}),"teams").filter((x)=>number(x.id)>0);
+  console.log(league, "season",seasonId,"team count", teams.length,"first",JSON.stringify(teams[0]).slice(0,500));
   if (teams.length<8) throw Error("Too few teams: "+teams.length);
   const players = new Map();
   for (const t of teams) {
     const raw = hockey(cfg,"statviewfeed","roster",{
       team_id:t.id, season_id:seasonId, league_id:cfg.leagueId, site_id:cfg.siteId, lang:"en",
     });
+    if (t === teams[0]) console.log(league,"first roster payload",JSON.stringify(raw).slice(0,1100));
     const sections = locateArray(raw,"sections");
     for (const section of sections)
       for (const item of section.data ?? []) {
@@ -121,6 +124,7 @@ async function hockeyPlayers(league) {
 async function liigaPlayers() {
   const url="https://liiga.fi/api/v2/players/info?fromSeason=2027&toSeason=2027&tournament=runkosarja";
   const payload = get(url);
+  console.log("Liiga response",JSON.stringify(payload).slice(0,1200));
   const rows=collectPeople(payload,(x)=>Boolean(
     (x.playerId ?? x.player_id ?? x.fihaId) &&
     ((x.firstName ?? x.first_name) && (x.lastName ?? x.last_name)) &&
@@ -147,6 +151,7 @@ async function shlPlayers() {
   for (const module of modules) {
     try {
       payload=get(`${base}${module}?count=1200&season=2027&gameType=regular`);
+      console.log("SHL response",module,JSON.stringify(payload).slice(0,1100));
       rows=collectPeople(payload,(x)=>Boolean(
         (x.firstName ?? x.first_name ?? x.firstname ?? x.player?.firstName) &&
         (x.lastName ?? x.last_name ?? x.lastname ?? x.player?.lastName) &&
