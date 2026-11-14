@@ -29,7 +29,9 @@ import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
 import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
 import MatchCenter from "./MatchCenter";
+import TradeCenter from './TradeCenter';
 const nav = [
+  ["trades", "Обмены", "Trade Center", Users],
   ["overview", "Обзор клуба", "Club overview", LayoutDashboard],
   ["inbox", "Входящие", "Inbox", Mail],
   ["roster", "Состав", "Roster", Users],
@@ -398,7 +400,8 @@ export default function App() {
         );
       });
   let content: ReactNode;
-  if (page === "overview")
+  if (page === "trades") content=<TradeCenter game={g} edit={edit}/>;
+  else if (page === "overview")
     content = (
       <>
         <div className="page-intro">

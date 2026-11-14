@@ -73,6 +73,8 @@ export interface Fixture {
   result?: Result;
 }
 export interface Event {
+  playerId?: string;
+  skaters?: string[][];
   time: number;
   type:
     | "shot"
@@ -112,6 +114,7 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
+  transactions?: {year:number;round:number;message:string}[];
   version: 1;
   id: string;
   seed: number;
