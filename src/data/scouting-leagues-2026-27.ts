@@ -2,7 +2,7 @@
 export type ScoutLeague = "OHL" | "WHL" | "USHL" | "SHL" | "Liiga";
 export interface ScoutEntry { id: string; name: string; club: string; pos: "LW"|"C"|"RW"|"D"|"G"; number: number; nation: string; age: number; ovr: number; potential: number; model: "stats" | "provisional" | "game"; games?: number; goals?: number; assists?: number; }
 export const SCOUT_LEAGUE_META = {
-  "fetchedAt": "2026-11-14T22:31:36.000Z",
+  "fetchedAt": "2026-11-14T22:32:52.182Z",
   "season": "2026/27",
   "sources": {
     "WHL": "HockeyTech — Western Hockey League",
