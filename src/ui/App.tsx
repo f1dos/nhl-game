@@ -54,6 +54,8 @@ import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
+import { sendToFarm } from "../engine/roster";
+import LeagueCenter from "./LeagueCenter";
 import InjuryCenter from "./InjuryCenter";
 import {
   DailyCalendar,
@@ -109,12 +111,12 @@ const nav = [
     groupEn: "TEAM",
   },
   {
-    key: "organization",
-    ru: "Фарм и резерв",
-    en: "Farm & reserve",
-    Icon: Building2,
-    groupRu: "КОМАНДА",
-    groupEn: "TEAM",
+    key: "leagues",
+    ru: "Юниоры и лиги",
+    en: "Junior & European leagues",
+    Icon: Search,
+    groupRu: "СКАУТИНГ",
+    groupEn: "SCOUTING",
   },
   {
     key: "injuries",
@@ -575,8 +577,8 @@ export default function App() {
       });
   let content: ReactNode;
   if (page === "development") content = <TrainingCenter game={g} edit={edit} />;
-  else if (page === "organization")
-    content = <FarmCenter game={g} edit={edit} onPlayer={setProfile} />;
+  else if (page === "leagues")
+    content = <LeagueCenter game={g} onPlayer={setProfile} />;
   else if (page === "injuries")
     content = <InjuryCenter game={g} onPlayer={setProfile} />;
   else if (page === "contracts")
@@ -794,7 +796,7 @@ export default function App() {
       <>
         <PageTitle
           title={tr("Состав команды", "Team roster")}
-          sub={`${team.city} ${team.name} · ${team.players.length} ${tr("игрока", "players")}`}
+          sub={`${team.city} ${team.name} · NHL ${team.players.length} + AHL ${(team.farm ?? []).length}`}
         />
         <div className="toolbar">
           <div className="tabs">
@@ -815,19 +817,13 @@ export default function App() {
           />
         </div>
         <Panel
-          title={tr("ОСНОВНОЙ СОСТАВ И РЕЗЕРВ", "FIRST TEAM & RESERVES")}
-          extra={
-            <span className="tag">
-              {tr("ВЫМЫШЛЕННАЯ БАЗА", "FICTIONAL DATABASE")}
-            </span>
-          }
+          title={tr("ОСНОВНОЙ СОСТАВ NHL", "NHL FIRST TEAM")}
+          extra={<span className="tag">NHL · {team.players.length}</span>}
         >
-          <PlayerTable
-            players={roster}
-            onSelect={setProfile}
-            lang={g.language}
-          />
+          <PlayerTable players={roster} onSelect={setProfile} lang={g.language}
+            onAssign={(id) => edit((world) => sendToFarm(world, id))} />
         </Panel>
+        <FarmCenter game={g} edit={edit} onPlayer={setProfile} />
       </>
     );
   else if (page === "tactics")
