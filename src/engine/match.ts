@@ -1,4 +1,5 @@
 import { RULES } from "./rules";
+import { injuryProbability, inflictInjury } from "./injuries";
 import { RNG, clamp } from "./random";
 import type { Team, Player, Result, Event } from "./types";
 export function simulateMatch(
@@ -8,6 +9,11 @@ export function simulateMatch(
   playoffs = false,
 ): Result {
   const teams = [home, away];
+  for (const t of teams) {
+    if (!t.players.some(p=>p.pos==='G' && p.injury===0) ||
+        t.players.filter(p=>p.pos!=='G' && p.injury===0).length<5)
+      throw Error(`Недостаточно здоровых игроков: ${t.id}`);
+  }
   const res: Result = {
     home: home.id,
     away: away.id,
@@ -29,14 +35,16 @@ export function simulateMatch(
   );
   const goalies = teams.map(
     (t, i) =>
-      active[i].find((p) => p.pos === "G") ||
-      t.players.find((p) => p.pos === "G")!,
+      active[i].find((p) => p.pos === "G" && p.injury===0) ||
+      t.players.find((p) => p.pos === "G" && p.injury===0)!,
   );
-  active.forEach((ps) =>
-    ps.forEach((p) => {
-      p.stats.gp++;
-    }),
-  );
+  const appeared = new Set<string>();
+  const minutes = new Map<string,number>();
+  function participate(p: Player, dt:number) {
+    if (!appeared.has(p.id)) { appeared.add(p.id); p.stats.gp++; }
+    p.stats.toi += dt/60;
+    minutes.set(p.id,(minutes.get(p.id)||0)+dt/60);
+  }
   const emit = (
     time: number,
     type: Event["type"],
@@ -60,9 +68,16 @@ export function simulateMatch(
     const t = teams[i],
       line = Math.floor(time / 45) % 10;
     const li = [0, 1, 0, 2, 1, 3, 0, 1, 2, 3][line];
-    return [...t.lines[li], ...t.defense[Math.floor(time / 45) % 3]]
+    const planned = [...t.lines[li], ...t.defense[Math.floor(time / 45) % 3]]
       .map((id) => t.players.find((p) => p.id === id)!)
       .filter(Boolean);
+    const selected = planned.filter(p=>p.injury===0);
+    for (const missing of planned.filter(p=>p.injury>0)) {
+      const replacement = t.players.filter(p=>p.pos!=='G' && p.injury===0 && !selected.includes(p))
+        .sort((a,b)=>Number(b.pos===missing.pos)-Number(a.pos===missing.pos) || (minutes.get(a.id)||0)-(minutes.get(b.id)||0))[0];
+      if (replacement) selected.push(replacement);
+    }
+    return selected;
   }
   function effective(p: Player, a: string) {
     return (
@@ -76,8 +91,8 @@ export function simulateMatch(
     ps.reduce((s, p) => s + effective(p, a), 0) / Math.max(1, ps.length);
   function step(time: number, dt = 20) {
     const ice = [onIce(0, time), onIce(1, time)];
-    ice.forEach((ps) => ps.forEach((p) => (p.stats.toi += dt / 60)));
-    goalies.forEach((p) => (p.stats.toi += dt / 60));
+    ice.forEach((ps) => ps.forEach((p) => participate(p,dt)));
+    goalies.forEach((p) => participate(p,dt));
     const control = teams.map(
       (t, i) =>
         avg(ice[i], "passing") +
@@ -96,6 +111,12 @@ export function simulateMatch(
     const other = 1 - side;
     const t = teams[side];
     const p = r.pick(ice[side]);
+    if (r.next() < injuryProbability(p,t.tactics.physical,minutes.get(p.id)||0)
+        && teams[side].players.filter(x=>x.pos!=='G' && x.injury===0).length>5) {
+      const type = inflictInjury(p,r);
+      emit(time,'injury',side,p,`Травма: ${type} / Injury: ${type}`);
+      return;
+    }
     const roll = r.next();
     if (
       roll <
@@ -106,11 +127,6 @@ export function simulateMatch(
       p.stats.pim += 2;
       res.ppo[other]++;
       emit(time, "penalty", side, p, "2 минуты / 2 minutes");
-      return;
-    }
-    if (roll < 0.027) {
-      p.injury = r.int(1, 4);
-      emit(time, "injury", side, p, "Повреждение / Injury");
       return;
     }
     if (roll < 0.1) {
@@ -210,17 +226,17 @@ export function simulateMatch(
         3900,
         "shootout",
         side,
-        r.pick(active[side].filter((p) => p.pos !== "G")),
+        r.pick(teams[side].players.filter((p) => p.pos !== "G" && p.injury===0)),
         "Победа по буллитам / Shootout winner",
       );
     }
   }
   const winner = res.goals[0] > res.goals[1] ? 0 : 1;
   goalies[winner].stats.wins++;
-  active.forEach((ps) =>
-    ps.forEach((p) => {
+  teams.forEach((t) =>
+    t.players.filter(p=>appeared.has(p.id)).forEach((p) => {
       p.fatigue = clamp(
-        p.fatigue + 7 + (p.stats.toi / Math.max(1, p.stats.gp)) * 0.1,
+        p.fatigue + 7 + (minutes.get(p.id)||0) * 0.1,
         0,
         100,
       );
