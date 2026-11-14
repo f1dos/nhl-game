@@ -1939,3 +1939,35 @@ footer .status-dot {
     transition: none !important;
   }
 }
+/* Contract provenance and player conversation surfaces. */
+.conversation-panel {
+  margin: 24px 0;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(22, 35, 52, 0.72);
+}
+.conversation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.conversation-panel blockquote {
+  margin: 16px 0 0;
+  padding: 14px 18px;
+  border-left: 3px solid var(--blue);
+  background: rgba(255, 255, 255, 0.04);
+}
+.source-badge {
+  display: inline-flex;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.08);
+}
+.source-badge.verified {
+  color: #91e7bd;
+  background: rgba(56, 180, 122, 0.14);
+}
