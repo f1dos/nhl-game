@@ -6,10 +6,11 @@ clubs and regenerates `src/data/nhl-2026-27.ts`. The snapshot contains 794 playe
 records fetched on 2026-11-14: names, NHL IDs, sweater numbers, positions, birth
 dates, calculated opening-day ages, countries and official headshot URLs.
 
-This is deliberately an identity layer, not an invented claim of authoritative
-ratings or financial data. Attributes, OVR, potential, salaries and contract terms
-remain deterministic fictional game values. The career state records this split in
-`dataSource`, and the UI repeats it on career creation and in Settings.
+OVR is a reproducible derived model rather than an invented claim of an official
+rating. It combines current and previous regular-season NHL statistics, separates
+forwards, defensemen and goaltenders, shrinks small samples, then maps each position
+group to a controlled 60–97 scale. Potential, salaries and contract terms remain
+game values. The career state records this split in `dataSource`.
 
 Team crests load from the official NHL asset CDN through a replaceable URL manifest.
 The Crest component falls back to the existing neutral abbreviation shield when an

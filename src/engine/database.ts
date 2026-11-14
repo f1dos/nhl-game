@@ -12,7 +12,9 @@ import {
 import { makeSchedule } from "./season";
 import {
   NHL_DATA_META,
+  NHL_PLAYER_RATINGS,
   NHL_ROSTERS,
+  NHL_TEAM_RATINGS,
   NHL_TEAM_LOGOS,
   type NhlRosterIdentity,
 } from "../data/nhl-2026-27";
@@ -223,6 +225,13 @@ export function newGame(user = "TOR", seed = 260027): Game {
       color,
       conference: i < 16 ? "East" : "West",
       logoUrl: NHL_TEAM_LOGOS[id],
+      strengthRating: NHL_TEAM_RATINGS[id].overall,
+      strengthRank: NHL_TEAM_RATINGS[id].rank,
+      realWorldForm: {
+        gamesPlayed: NHL_TEAM_RATINGS[id].gamesPlayed,
+        pointPct: NHL_TEAM_RATINGS[id].pointPct,
+        goalDifferential: NHL_TEAM_RATINGS[id].goalDifferential,
+      },
       players: active,
       farm: roster.filter((p) => !active.includes(p)),
       lines: [],
@@ -253,10 +262,11 @@ export function newGame(user = "TOR", seed = 260027): Game {
     rules: { cap: RULES.defaultSalaryCapMillions },
     language: "ru",
     dataSource: {
-      kind: "official-identities-demo-ratings",
+      kind: "official-identities-modeled-ratings",
       season: NHL_DATA_META.season,
       source: NHL_DATA_META.source,
       fetchedAt: NHL_DATA_META.fetchedAt,
+      ratingModel: NHL_DATA_META.ratingModel,
     },
   };
 }
@@ -282,7 +292,27 @@ function createOfficialPlayer(
   player.birthDate = identity.birthDate;
   player.headshot = identity.headshot;
   player.identitySource = "nhl-api";
+  applyPlayerRating(player);
   return player;
+}
+
+function applyPlayerRating(player: Player) {
+  if (!player.externalId) return;
+  const rating = NHL_PLAYER_RATINGS[player.externalId];
+  if (!rating) return;
+  for (let pass = 0; pass < 6; pass++) {
+    const current = overall(player.pos, player.attributes, player.archetype);
+    const delta = rating.ovr - current;
+    if (!delta) break;
+    for (const key of Object.keys(player.attributes))
+      player.attributes[key] = clamp(player.attributes[key] + delta, 35, 99);
+  }
+  player.ovr = overall(player.pos, player.attributes, player.archetype);
+  if (player.ovr !== rating.ovr) player.ovr = rating.ovr;
+  const youthBonus = player.age <= 21 ? (22 - player.age) * 2 : 0;
+  player.potential = clamp(rating.ovr + youthBonus, rating.ovr, 98);
+  player.ratingRank = rating.rank;
+  player.ratingSource = "nhl-stats-model";
 }
 
 function normalizePayroll(players: Player[], target: number) {
@@ -297,10 +327,11 @@ function normalizePayroll(players: Player[], target: number) {
       Math.round((0.8 + Math.max(0, player.salary - 0.8) * scale) * 100) / 100;
 }
 export const teamOverall = (t: Team) =>
+  t.strengthRating ??
   Math.round(t.players.reduce((n, p) => n + p.ovr, 0) / t.players.length);
 
 export function applyOfficialIdentitySnapshot(g: Game) {
-  if (g.dataSource?.kind === "official-identities-demo-ratings")
+  if (g.dataSource?.kind === "official-identities-modeled-ratings")
     throw Error("Official identity snapshot is already active");
   for (const team of g.teams) {
     const available = [...(NHL_ROSTERS[team.id] ?? [])];
@@ -327,16 +358,66 @@ export function applyOfficialIdentitySnapshot(g: Game) {
       player.birthDate = identity.birthDate;
       player.headshot = identity.headshot;
       player.identitySource = "nhl-api";
+      if (g.year === 2026) applyPlayerRating(player);
     }
     team.logoUrl = NHL_TEAM_LOGOS[team.id];
   }
+  if (g.year === 2026)
+    for (const team of g.teams)
+      for (const player of [...team.players, ...(team.farm ?? [])])
+        applyPlayerRating(player);
+  applyTeamRatings(g);
   g.dataSource = {
-    kind: "official-identities-demo-ratings",
+    kind: "official-identities-modeled-ratings",
     season: NHL_DATA_META.season,
     source: NHL_DATA_META.source,
     fetchedAt: NHL_DATA_META.fetchedAt,
+    ratingModel: NHL_DATA_META.ratingModel,
   };
   g.news.unshift(
-    "Карьера обновлена: личности игроков и эмблемы синхронизированы со снимком NHL API 2026/27; игровые рейтинги и контракты сохранены.",
+    "Карьера обновлена: личности, эмблемы и статистическая модель рейтингов синхронизированы со снимком NHL 2026/27; контракты и результаты сохранены.",
+  );
+}
+
+function applyTeamRatings(g: Game) {
+  for (const team of g.teams) {
+    const rating = NHL_TEAM_RATINGS[team.id];
+    if (!rating) continue;
+    team.strengthRating = rating.overall;
+    team.strengthRank = rating.rank;
+    team.realWorldForm = {
+      gamesPlayed: rating.gamesPlayed,
+      pointPct: rating.pointPct,
+      goalDifferential: rating.goalDifferential,
+    };
+  }
+}
+
+export function applyOfficialRatingsSnapshot(g: Game) {
+  if (g.year !== 2026)
+    throw Error(
+      "Ratings snapshot can only be applied to the 2026/27 career start",
+    );
+  let updated = 0;
+  for (const team of g.teams)
+    for (const player of [
+      ...team.players,
+      ...(team.farm ?? []),
+      ...(team.prospects ?? []),
+    ])
+      if (player.externalId && NHL_PLAYER_RATINGS[player.externalId]) {
+        applyPlayerRating(player);
+        updated++;
+      }
+  applyTeamRatings(g);
+  g.dataSource = {
+    kind: "official-identities-modeled-ratings",
+    season: NHL_DATA_META.season,
+    source: NHL_DATA_META.source,
+    fetchedAt: NHL_DATA_META.fetchedAt,
+    ratingModel: NHL_DATA_META.ratingModel,
+  };
+  g.news.unshift(
+    `Обновлены рейтинги ${updated} игроков. McDavid — 97 OVR; Carolina — 92 OVR / #1.`,
   );
 }

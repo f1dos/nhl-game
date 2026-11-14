@@ -180,6 +180,9 @@ export function nextSeason(g: Game) {
 function rollover(g: Game) {
   if (g.phase !== "offseason") throw Error("Finish playoffs first");
   const r = new RNG(g.seed);
+  const completedRecords = new Map(
+    g.teams.map((team) => [team.id, { ...team.record }]),
+  );
   autoCompleteDraft(g);
   g.year++;
   g.round = 0;
@@ -189,15 +192,43 @@ function rollover(g: Game) {
   g.last = undefined;
   g.schedule = makeSchedule(g.teams);
   ageWorld(g, r);
+  expireContracts(g);
+  updateCareerStrengthRatings(g, completedRecords);
   g.teams.forEach((t) => {
     t.record = emptyRecord();
   });
-  expireContracts(g);
   prepareNextDraft(g, r);
   g.seed = r.seed;
   g.news.unshift(
     `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Истёкшие контракты завершены; минимальные составы укомплектованы автоматически.`,
   );
+}
+
+function updateCareerStrengthRatings(
+  g: Game,
+  records: Map<string, ReturnType<typeof emptyRecord>>,
+) {
+  for (const team of g.teams) {
+    const record = records.get(team.id)!;
+    const core = [...team.players].sort((a, b) => b.ovr - a.ovr).slice(0, 20);
+    const rosterRating =
+      core.reduce((sum, player) => sum + player.ovr, 0) /
+      Math.max(1, core.length);
+    const performanceRating = record.gp
+      ? 70 + (record.pts / (record.gp * 2)) * 22
+      : rosterRating;
+    team.strengthRating = Math.round(
+      clamp(rosterRating * 0.72 + performanceRating * 0.28, 65, 95),
+    );
+    team.realWorldForm = undefined;
+  }
+  [...g.teams]
+    .sort(
+      (a, b) =>
+        (b.strengthRating ?? 0) - (a.strengthRating ?? 0) ||
+        a.id.localeCompare(b.id),
+    )
+    .forEach((team, index) => (team.strengthRank = index + 1));
 }
 export function dateForRound(g: Game, round = g.round) {
   const d = new Date(Date.UTC(g.year, 9, 7));

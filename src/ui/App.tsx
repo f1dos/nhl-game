@@ -30,6 +30,7 @@ import {
   autoLines,
   teamOverall,
   applyOfficialIdentitySnapshot,
+  applyOfficialRatingsSnapshot,
 } from "../engine/database";
 import { advance, nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
@@ -354,8 +355,8 @@ export default function App() {
                 <small>{tr("РЕЙТИНГ", "OVERALL")}</small>
               </div>
               <div>
-                <b>{team.players.length}</b>
-                <small>{tr("ИГРОКОВ", "PLAYERS")}</small>
+                <b>#{team.strengthRank ?? "—"}</b>
+                <small>{tr("СИЛА В ЛИГЕ", "LEAGUE STRENGTH")}</small>
               </div>
             </div>
             <label>
@@ -382,8 +383,8 @@ export default function App() {
             </button>
             <p className="note">
               {tr(
-                "Составы и данные личности: официальный NHL API, сезон 2026/27. Рейтинги, потенциал и контракты являются демонстрационными игровыми значениями.",
-                "Rosters and player identities: official NHL API, 2026/27 season. Ratings, potential and contracts are fictional game values.",
+                "Составы и статистика: официальный NHL API, сезон 2026/27. OVR рассчитан прозрачной статистической моделью; потенциал и контракты остаются игровыми значениями.",
+                "Rosters and statistics: official NHL API, 2026/27 season. OVR uses a transparent statistics model; potential and contracts remain game values.",
               )}
             </p>
           </aside>
@@ -847,6 +848,86 @@ export default function App() {
             </button>
           ))}
         </div>
+        {g.teams.some((club) => club.strengthRating) && (
+          <Panel
+            title={tr(
+              g.year === 2026
+                ? "РЕЙТИНГ СИЛЫ · NHL 2026/27"
+                : `РЕЙТИНГ СИЛЫ · ${g.year}/${String(g.year + 1).slice(2)}`,
+              g.year === 2026
+                ? "POWER RANKING · NHL 2026/27"
+                : `POWER RANKING · ${g.year}/${String(g.year + 1).slice(2)}`,
+            )}
+          >
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>{tr("КОМАНДА", "TEAM")}</th>
+                    <th>OVR</th>
+                    {g.year === 2026 && (
+                      <>
+                        <th>{tr("РЕАЛЬНЫЙ P%", "REAL PCT")}</th>
+                        <th>{tr("РАЗНИЦА", "DIFF")}</th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...g.teams]
+                    .sort(
+                      (a, b) => (a.strengthRank ?? 99) - (b.strengthRank ?? 99),
+                    )
+                    .map((club) => (
+                      <tr
+                        key={club.id}
+                        className={club.id === g.user ? "my-team" : ""}
+                      >
+                        <td className="muted">{club.strengthRank}</td>
+                        <td>
+                          <div className="team-cell">
+                            <Crest team={club} size={28} />
+                            <strong>
+                              {club.city} {club.name}
+                            </strong>
+                          </div>
+                        </td>
+                        <td>
+                          <Rating value={teamOverall(club)} />
+                        </td>
+                        {g.year === 2026 && (
+                          <>
+                            <td>
+                              {club.realWorldForm
+                                ? `${(club.realWorldForm.pointPct * 100).toFixed(1)}%`
+                                : "—"}
+                            </td>
+                            <td>
+                              {club.realWorldForm
+                                ? `${club.realWorldForm.goalDifferential >= 0 ? "+" : ""}${club.realWorldForm.goalDifferential}`
+                                : "—"}
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="note">
+              {g.year === 2026
+                ? tr(
+                    "Стартовый рейтинг основан на снимке официальной статистики NHL. Таблица карьеры ниже рассчитывается только игровым движком.",
+                    "The starting rating uses an official NHL statistics snapshot. Career standings below are generated only by the game engine.",
+                  )
+                : tr(
+                    "После первого сезона рейтинг силы динамически учитывает ядро состава и результаты предыдущего года.",
+                    "After season one, power ratings dynamically combine roster core strength and the previous year's results.",
+                  )}
+            </p>
+          </Panel>
+        )}
         <Panel title={tr("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ", "REGULAR SEASON")}>
           {teamTable(
             filter === "all"
@@ -894,6 +975,18 @@ export default function App() {
       </>
     );
   else if (page === "stats") {
+    const ratingLeaders = g.teams
+      .flatMap((club) =>
+        [...club.players, ...(club.farm ?? [])].map((player) => ({
+          player,
+          club,
+        })),
+      )
+      .sort(
+        (a, b) =>
+          b.player.ovr - a.player.ovr ||
+          (a.player.ratingRank ?? 999) - (b.player.ratingRank ?? 999),
+      );
     const players = g.teams
       .flatMap((t) => t.players)
       .filter((p) => p.pos !== "G")
@@ -915,6 +1008,54 @@ export default function App() {
                 )
           }
         />
+        <Panel
+          title={tr("РЕЙТИНГ ИГРОКОВ · TOP 50", "PLAYER RATINGS · TOP 50")}
+        >
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>{tr("ИГРОК", "PLAYER")}</th>
+                  <th>{tr("КЛУБ", "CLUB")}</th>
+                  <th>POS</th>
+                  <th>{tr("ВОЗР.", "AGE")}</th>
+                  <th>OVR</th>
+                  <th>POT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ratingLeaders.slice(0, 50).map(({ player, club }, index) => (
+                  <tr key={player.id} onClick={() => setProfile(player)}>
+                    <td className="muted">{index + 1}</td>
+                    <td>
+                      <strong>{player.name}</strong>
+                      <small>
+                        {player.ratingSource === "nhl-stats-model"
+                          ? "NHL STATS MODEL"
+                          : "GAME GENERATED"}
+                      </small>
+                    </td>
+                    <td>
+                      <div className="team-cell">
+                        <Crest team={club} size={25} />
+                        <b>{club.id}</b>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="position">{player.pos}</span>
+                    </td>
+                    <td>{player.age}</td>
+                    <td>
+                      <Rating value={player.ovr} />
+                    </td>
+                    <td>{player.potential}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
         <Panel title={tr("БОМБАРДИРЫ · TOP 50", "SCORING · TOP 50")}>
           <PlayerTable
             players={players.slice(0, 50)}
@@ -1166,7 +1307,7 @@ export default function App() {
               <option value="ru">Русский</option>
               <option value="en">English</option>
             </select>
-            {g.dataSource?.kind !== "official-identities-demo-ratings" && (
+            {(!g.dataSource || g.dataSource.kind === "fictional") && (
               <button
                 onClick={() => {
                   edit(applyOfficialIdentitySnapshot);
@@ -1184,6 +1325,25 @@ export default function App() {
                 )}
               </button>
             )}
+            {g.dataSource?.kind === "official-identities-demo-ratings" &&
+              g.year === 2026 && (
+                <button
+                  onClick={() => {
+                    edit(applyOfficialRatingsSnapshot);
+                    setNotice(
+                      tr(
+                        "Рейтинги игроков и команд обновлены",
+                        "Player and team ratings updated",
+                      ),
+                    );
+                  }}
+                >
+                  {tr(
+                    "Обновить реальные рейтинги",
+                    "Apply statistics-based ratings",
+                  )}
+                </button>
+              )}
           </div>
           <div className="settings-actions">
             <button
@@ -1241,8 +1401,8 @@ export default function App() {
             </p>
             <p>
               {tr(
-                "Это не официальная и не лицензированная игра NHL. Фактические данные личности и текущего состава получены из публичного NHL API; эмблемы и фотографии загружаются с CDN NHL и принадлежат соответствующим правообладателям. Рейтинги, потенциал, зарплаты, контракты, правила и календарь являются демонстрационной игровой моделью.",
-                "This is not an official or licensed NHL game. Player identity and current roster facts come from the public NHL API; logos and headshots load from the NHL CDN and belong to their respective rights holders. Ratings, potential, salaries, contracts, rules and schedule remain a fictional demonstration model.",
+                "Это не официальная и не лицензированная игра NHL. Личности, составы и статистика получены из публичных NHL API; эмблемы и фотографии принадлежат соответствующим правообладателям. OVR является нашей производной моделью, а не официальной оценкой NHL. Потенциал, зарплаты, контракты, правила и календарь остаются демонстрационными.",
+                "This is not an official or licensed NHL game. Identities, rosters and statistics come from public NHL APIs; logos and headshots belong to their respective rights holders. OVR is our derived model, not an official NHL rating. Potential, salaries, contracts, rules and schedule remain demonstrational.",
               )}
             </p>
           </div>
@@ -1348,12 +1508,17 @@ export default function App() {
           <footer>
             <span>
               <i className="status-dot" />{" "}
-              {g.dataSource?.kind === "official-identities-demo-ratings"
+              {g.dataSource?.kind === "official-identities-modeled-ratings"
                 ? tr(
-                    "NHL API: личности · демо-рейтинги",
-                    "NHL API identities · demo ratings",
+                    "NHL API · статистическая модель OVR",
+                    "NHL API · statistics-based OVR",
                   )
-                : tr("Вымышленная база данных", "Fictional database")}{" "}
+                : g.dataSource?.kind === "official-identities-demo-ratings"
+                  ? tr(
+                      "NHL API: личности · старые демо-рейтинги",
+                      "NHL API identities · legacy demo ratings",
+                    )
+                  : tr("Вымышленная база данных", "Fictional database")}{" "}
               · v0.3-dev
             </span>
             <span>
@@ -1808,6 +1973,12 @@ function PlayerProfile({
             <span className={p.ovr >= previous ? "up" : "down"}>
               {p.ovr >= previous ? "↗" : "↘"} {Math.abs(p.ovr - previous)}
             </span>
+            {p.ratingSource === "nhl-stats-model" && p.ratingRank && (
+              <span className="rating-provenance">
+                NHL MODEL · #{p.ratingRank}{" "}
+                {p.pos === "G" ? "G" : p.pos === "D" ? "D" : "F"}
+              </span>
+            )}
           </div>
         </div>
         <div className="profile-summary">
