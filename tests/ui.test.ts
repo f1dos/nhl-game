@@ -31,8 +31,13 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   await waitFor(() => assert(screen.getByText("Начать карьеру")));
   fireEvent.click(screen.getByText("Начать карьеру"));
   assert.equal(useGame.getState().game?.user, "TOR");
+  assert(screen.getByText('Повестка менеджера'));
+  fireEvent.click(screen.getByText('Настроить тренировки'));
+  fireEvent.click(screen.getByText('Восстановление'));
+  assert.equal(useGame.getState().game!.teams.find(t=>t.id==='TOR')!.training,'recovery');
   fireEvent.click(screen.getByText("Состав"));
   assert(screen.getByText("ОСНОВНОЙ СОСТАВ И РЕЗЕРВ"));
+  fireEvent.change(screen.getByLabelText('Player sort'),{target:{value:'rating'}});
   const name = useGame.getState().game!.teams.find((t) => t.id === "TOR")!
     .players[0].name;
   fireEvent.change(screen.getByPlaceholderText("Найти игрока…"), {

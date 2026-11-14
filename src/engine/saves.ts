@@ -27,6 +27,8 @@ export function validateSave(value: unknown): Game {
     throw Error("Неполные данные лиги");
   const players = new Set<string>();
   for (const t of g.teams) {
+    if(t.training!==undefined&&!['balanced','recovery','shooting','defense'].includes(t.training))throw Error('Invalid training plan');
+    if(t.trainingTicks!==undefined&&(!Number.isInteger(t.trainingTicks)||t.trainingTicks<0))throw Error('Invalid training progress');
     if (
       !Array.isArray(t.players) ||
       t.players.length < 20 ||

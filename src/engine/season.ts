@@ -2,6 +2,7 @@ import { RNG, clamp } from "./random";
 import {overall} from './ratings';
 import {expireContracts} from './contracts';
 import {ageWorld} from './lifecycle';
+import {trainTeam} from './training';
 import { simulateMatch } from "./match";
 import {
   emptyRecord,
@@ -84,12 +85,7 @@ export function advance(g: Game) {
   if (g.phase === "offseason") return;
   const previousResult=g.last;
   const r = new RNG(g.seed);
-  g.teams.forEach((t) =>
-    t.players.forEach((p) => {
-      p.fatigue = Math.max(0, p.fatigue - 8);
-      p.injury = Math.max(0, p.injury - 1);
-    }),
-  );
+  g.teams.forEach(trainTeam);
   const play = (home: string, away: string, po: boolean) =>
     simulateMatch(
       g.teams.find((t) => t.id === home)!,
