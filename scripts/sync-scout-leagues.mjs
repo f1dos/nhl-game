@@ -1,0 +1,200 @@
+import { readFile, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+
+const target = new URL("../src/data/scouting-leagues-2026-27.ts", import.meta.url);
+const season = "2026/27";
+const leagues = ["WHL", "USHL", "SHL", "Liiga"];
+const config = {
+  WHL: { client: "whl", key: "f1aa699db3d81487", leagueId: 7, siteId: 0 },
+  USHL: { client: "ushl", key: "e828f89b243dc43f", leagueId: 1, siteId: 0 },
+};
+const sources = {
+  WHL: "HockeyTech — Western Hockey League",
+  USHL: "HockeyTech — United States Hockey League",
+  SHL: "SHL official statistics",
+  Liiga: "Liiga official API",
+};
+const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
+const norm = (v) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+const number = (x) => Number(String(x ?? "").replace(/,/g, "")) || 0;
+const idHash = (s) => [...String(s)].reduce((a, c) => Math.imul(a ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
+const position = (v) => {
+  const p = String(v?.code ?? v?.name ?? v ?? "C").toUpperCase();
+  if (p === "G" || p === "GK" || p.includes("GOAL") || p.includes("MÅLVAKT") || p === "MV") return "G";
+  if (p === "D" || p.includes("DEF") || p === "B" || p.includes("BACK")) return "D";
+  if (p === "LW" || p.includes("LEFT_WING") || p === "VL") return "LW";
+  if (p === "RW" || p.includes("RIGHT_WING") || p === "OL") return "RW";
+  return "C";
+};
+const age = (dob) => {
+  if (!dob) return 0;
+  const d = new Date(dob);
+  if (!Number.isFinite(d.getTime())) return 0;
+  const at = new Date("2026-10-01T12:00:00Z");
+  let years = at.getUTCFullYear() - d.getUTCFullYear();
+  if (at.getUTCMonth() < d.getUTCMonth() || at.getUTCMonth() === d.getUTCMonth() && at.getUTCDate() < d.getUTCDate()) years--;
+  return clamp(years, 15, 50);
+};
+const fetchText = (url) => execFileSync("curl", [
+  "--location","--compressed","--fail","--silent","--show-error",
+  "--connect-timeout","12","--max-time","35",
+  "--user-agent","Mozilla/5.0 (compatible; NHLManager26/0.6; open roster sync)",
+  url
+], {encoding:"utf8",maxBuffer:35_000_000});
+const get = (url) => {
+  let text = fetchText(url).trim();
+  if (text.startsWith("(") && text.endsWith(")")) text = text.slice(1,-1);
+  return JSON.parse(text);
+};
+const hockey = (cfg, feed, view, params={}) => {
+  const url = new URL("https://lscluster.hockeytech.com/feed/index.php");
+  for (const [k,v] of Object.entries({feed,view,key:cfg.key,client_code:cfg.client,...params})) url.searchParams.set(k,String(v));
+  return get(url.toString());
+};
+const locateArray = (obj, key) => {
+  if (Array.isArray(obj)) return obj;
+  if (!obj || typeof obj !== "object") return [];
+  if (Array.isArray(obj[key])) return obj[key];
+  for (const value of Object.values(obj)) {
+    if (value && typeof value === "object") {
+      const result = locateArray(value,key);
+      if (result.length) return result;
+    }
+  }
+  return [];
+};
+const collectPeople = (obj, pred, result=[], depth=0) => {
+  if (!obj || typeof obj !== "object" || depth>9) return result;
+  if (Array.isArray(obj)) { for (const child of obj) collectPeople(child,pred,result,depth+1); return result; }
+  if (pred(obj)) result.push(obj);
+  else for (const child of Object.values(obj)) if (child && typeof child==="object") collectPeople(child,pred,result,depth+1);
+  return result;
+};
+const rated = (league, x) => {
+  const gp = number(x.games ?? x.gp ?? x.gamesPlayed);
+  const goals = number(x.goals ?? x.g);
+  const assists = number(x.assists ?? x.a);
+  const base = {WHL:54, USHL:53, SHL:71, Liiga:69}[league];
+  const youth = x.age ? clamp(23-x.age,-6,7) : 0;
+  const production = gp >= 3 ? clamp((goals + assists)/gp,0,2.2) : null;
+  const skill = production === null ? 0 : Math.round((production-0.35)*12);
+  // Provisional figures are league-relative game estimates, never official ratings.
+  const ovr = clamp(Math.round(base + skill + (x.pos==="G"?-1:0) + Math.max(-2, Math.min(2,youth*.25))),45,89);
+  const potential = clamp(ovr + Math.max(0,youth)*2 + (x.age && x.age <=20?5:0),ovr,96);
+  return {...x, ovr, potential,model:production!==null?"stats":"provisional",
+    ...(gp?{games:gp}:{}), ...(gp?{goals,assists}:{})};
+};
+async function hockeyPlayers(league) {
+  const cfg = config[league];
+  const seasonsPayload = hockey(cfg,"modulekit","seasons");
+  const candidates = collectPeople(seasonsPayload,(x) =>
+    (x.id!==undefined || x.season_id!==undefined) &&
+    /2026\s*[-/]\s*2027|2026\s*[-/]\s*27/i.test([x.name,x.label,x.season_name,x.title,x.display_name].join(" ")) &&
+    !/playoff|all.star|tournament|pre.season/i.test([x.name,x.label,x.title].join(" ")));
+  const chosen = candidates.find((x)=>/regular|season/i.test([x.name,x.label,x.title].join(" "))) || candidates[0];
+  if (!chosen) throw Error("2026/27 season not found in official HockeyTech seasons feed");
+  const seasonId = chosen.id ?? chosen.season_id;
+  const teams = locateArray(hockey(cfg,"statviewfeed","teamsForSeason",{season:seasonId}),"teams").filter((x)=>number(x.id)>0);
+  if (teams.length<8) throw Error("Too few teams: "+teams.length);
+  const players = new Map();
+  for (const t of teams) {
+    const raw = hockey(cfg,"statviewfeed","roster",{
+      team_id:t.id, season_id:seasonId, league_id:cfg.leagueId, site_id:cfg.siteId, lang:"en",
+    });
+    const sections = locateArray(raw,"sections");
+    for (const section of sections)
+      for (const item of section.data ?? []) {
+        const p = item.row ?? item;
+        const pid = p?.player_id;
+        const name = String(p?.name ?? "").trim();
+        if (!pid || !name) continue;
+        const x = { id:`${league.toLowerCase()}-${pid}`, name,
+          club:String(t.name ?? ""),pos:position(p.position),number:number(p.tp_jersey_number),
+          nation:String(p.nationality ?? p.nation ?? "—"),age:age(p.birthdate),
+        };
+        players.set(x.id,x);
+      }
+  }
+  if (players.size < 75) throw Error("Insufficient real roster coverage: "+players.size);
+  return [...players.values()].map((x)=>rated(league,x));
+}
+async function liigaPlayers() {
+  const url="https://liiga.fi/api/v2/players/info?fromSeason=2027&toSeason=2027&tournament=runkosarja";
+  const payload = get(url);
+  const rows=collectPeople(payload,(x)=>Boolean(
+    (x.playerId ?? x.player_id ?? x.fihaId) &&
+    ((x.firstName ?? x.first_name) && (x.lastName ?? x.last_name)) &&
+    (x.teamName ?? x.team_name ?? x.team ?? x.teamShortName)
+  ));
+  const entries=new Map();
+  for(const p of rows){
+    const id=p.playerId ?? p.player_id ?? p.fihaId;
+    const club=p.teamName ?? p.team_name ?? p.team?.name ?? p.team ?? p.teamShortName;
+    const x={id:`liiga-${id}`,name:`${p.firstName ?? p.first_name} ${p.lastName ?? p.last_name}`,
+      club:String(club),pos:position(p.role ?? p.position ?? p.roleCode),
+      nation:String(p.nationality ?? p.nationalityCode ?? "FIN"),number:number(p.jersey ?? p.number),
+      age:age(p.dateOfBirth ?? p.date_of_birth ?? p.birthDate),
+    };
+    entries.set(x.id, rated("Liiga",x));
+  }
+  if(entries.size<100) throw Error("Liiga source yielded only "+entries.size+" roster identities");
+  return [...entries.values()];
+}
+async function shlPlayers() {
+  const base="https://www.shl.se/api/statistics-v2/stats-info/";
+  const modules=["players_summary","players_points"];
+  let payload=null;let rows=[];
+  for (const module of modules) {
+    try {
+      payload=get(`${base}${module}?count=1200&season=2027&gameType=regular`);
+      rows=collectPeople(payload,(x)=>Boolean(
+        (x.firstName ?? x.first_name ?? x.firstname ?? x.player?.firstName) &&
+        (x.lastName ?? x.last_name ?? x.lastname ?? x.player?.lastName) &&
+        (x.teamName ?? x.team_name ?? x.team?.name ?? x.team?.names?.long ?? x.team?.names?.full)
+      ));
+      if (rows.length>80) break;
+    } catch (e) { console.warn("SHL module",module,String(e.message)); }
+  }
+  const entries=new Map();
+  for(const p of rows){
+    const name=`${p.firstName ?? p.first_name ?? p.firstname ?? p.player?.firstName} ${p.lastName ?? p.last_name ?? p.lastname ?? p.player?.lastName}`;
+    const club=p.teamName ?? p.team_name ?? p.team?.name ?? p.team?.names?.long ?? p.team?.names?.full;
+    const key=p.playerId ?? p.player_id ?? p.player?.id ?? idHash(name+"|"+club);
+    const stats=p.stats ?? p;
+    const x={id:`shl-${key}`,name,club:String(club),pos:position(p.position ?? p.positionCode ?? p.player?.position),
+      number:number(p.jersey ?? p.jerseyNumber),nation:String(p.nationality ?? p.countryCode ?? "—"),
+      age:age(p.birthDate ?? p.birthdate ?? p.player?.birthDate),
+      games:number(stats.games ?? stats.gp ?? stats.gamesPlayed),
+      goals:number(stats.goals),assists:number(stats.assists),
+    };
+    entries.set(x.id, rated("SHL",x));
+  }
+  if(entries.size<100) throw Error("SHL source yielded only "+entries.size+" roster identities");
+  return [...entries.values()];
+}
+const sourceFile = await readFile(target,"utf8");
+const oldSources=JSON.parse(sourceFile.match(/export const SCOUT_LEAGUE_META = (\{[^;]+\}) as const;/s)?.[1] ?? '{"sources":{}}');
+const old = {};
+for (const league of leagues) {
+  // Old snapshots are preserved on a provider outage, instead of replaced with fakes.
+  const match=sourceFile.match(new RegExp('\\b'+league+': (\\[[\\s\\S]*?\\])(?:,?\\s*(?:USHL|SHL|Liiga):|\\s*\\};)'));
+  if (match) try { old[league]=JSON.parse(match[1]); } catch {}
+}
+const output={};const counts={};
+for(const league of leagues){
+  try {
+    const players=league==="SHL"?await shlPlayers():
+      league==="Liiga"?await liigaPlayers():await hockeyPlayers(league);
+    output[league]=players;counts[league]=players.length;
+    console.log(league,players.length,"verified official identities");
+  } catch(e){
+    console.warn(league,"sync unavailable:",e.message);
+    output[league]=old[league] ?? [];
+    counts[league]=output[league].length;
+  }
+}
+if (!Object.values(counts).some((v)=>v>=50)) throw Error("No real league source could be synchronized; preserving file");
+const meta={fetchedAt:new Date().toISOString(),season,sources:Object.fromEntries(leagues.map((x)=>[x,counts[x]?sources[x]:""])),counts};
+const content=`// Generated by scripts/sync-scout-leagues.mjs. Player identities are sourced from league feeds.\nexport type ScoutLeague = "OHL" | "WHL" | "USHL" | "SHL" | "Liiga";\nexport interface ScoutEntry { id: string; name: string; club: string; pos: "LW"|"C"|"RW"|"D"|"G"; number: number; nation: string; age: number; ovr: number; potential: number; model: "stats" | "provisional" | "game"; games?: number; goals?: number; assists?: number; }\nexport const SCOUT_LEAGUE_META = ${JSON.stringify(meta,null,2)} as const;\nexport const SCOUT_LEAGUE_PLAYERS: Record<Exclude<ScoutLeague,"OHL">, ScoutEntry[]> = ${JSON.stringify(output,null,2)};\n`;
+await writeFile(target,content);
+console.log("synced scouting leagues",counts);
