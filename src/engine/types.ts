@@ -52,6 +52,8 @@ export interface RecordStats {
   form: string[];
 }
 export interface Team {
+  training?: import('./training').TrainingPlan;
+  trainingTicks?: number;
   id: string;
   city: string;
   name: string;

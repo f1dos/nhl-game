@@ -31,7 +31,9 @@ import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
 import MatchCenter from "./MatchCenter";
 import TradeCenter from './TradeCenter';
 import ContractCenter from './ContractCenter';
+import {ManagerWorkspace,TrainingCenter} from './ManagerWorkspace';
 const nav = [
+  ["development", "Развитие и подготовка", "Development & training", Activity],
   ["contracts", "Контракты и рынок", "Contracts & market", Wallet],
   ["trades", "Обмены", "Trade Center", Users],
   ["overview", "Обзор клуба", "Club overview", LayoutDashboard],
@@ -402,7 +404,8 @@ export default function App() {
         );
       });
   let content: ReactNode;
-  if (page === "contracts") content=<ContractCenter game={g} edit={edit}/>;
+  if (page === "development") content=<TrainingCenter game={g} edit={edit}/>;
+  else if (page === "contracts") content=<ContractCenter game={g} edit={edit}/>;
   else if (page === "trades") content=<TradeCenter game={g} edit={edit}/>;
   else if (page === "overview")
     content = (
@@ -436,6 +439,7 @@ export default function App() {
             </small>
           </span>
         </div>
+        <ManagerWorkspace game={g} edit={edit} go={go} onPlayer={setProfile}/>
         <div className="metrics">
           <Metric
             label={tr("МЕСТО В КОНФЕРЕНЦИИ", "CONFERENCE POSITION")}
@@ -1114,7 +1118,7 @@ export default function App() {
         <nav>
           {nav.map(([key, r, e, Icon], i) => (
             <div key={key}>
-              {i === 6 && (
+              {key === 'league' && (
                 <div className="nav-label">
                   {tr("ХОККЕЙНЫЙ МИР", "HOCKEY WORLD")}
                 </div>
