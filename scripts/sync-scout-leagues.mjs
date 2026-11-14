@@ -180,6 +180,17 @@ async function shlPlayers() {
     };
     entries.set(x.id, rated("SHL",x));
   }
+  if(entries.size<100) {
+    for(const url of [
+      "https://www.shl.se/game-stats/players",
+      "https://www.shl.se/api/statistics-v2/layout-info",
+      "https://www.shl.se/api/sports-v2/teams"
+    ]) try {
+      const body=fetchText(url);
+      const index=body.search(/Viktor Lodin|Lodin|teamList|seasonName|athlete/i);
+      console.log("SHL diagnostic",url,"size",body.length,"snippet",index>=0?body.slice(Math.max(0,index-150),index+600):body.slice(0,350));
+    } catch (e) {console.log("SHL diagnostic failed",url,e.message);}
+  }
   if(entries.size<100) throw Error("SHL source yielded only "+entries.size+" roster identities");
   return [...entries.values()];
 }
