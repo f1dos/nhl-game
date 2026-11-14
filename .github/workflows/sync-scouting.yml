@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: scouting-sync-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -17,12 +20,31 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run sync:scouting
-      - name: Commit verified league snapshot
+      - name: Commit verified league snapshot without losing concurrent changes
         run: |
-          if ! git diff --quiet -- src/data/scouting-leagues-2026-27.ts; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/data/scouting-leagues-2026-27.ts
-            git commit -m "[scouting-data] Sync real 2026-27 WHL USHL SHL Liiga players"
-            git push
+          if git diff --quiet -- src/data/scouting-leagues-2026-27.ts; then
+            echo "Scouting snapshot unchanged"
+            exit 0
           fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/scouting-leagues-2026-27.ts
+          git commit -m "[scouting-data] Sync verified 2026-27 league players"
+
+          for attempt in 1 2 3; do
+            git fetch origin "${GITHUB_REF_NAME}"
+            if ! git rebase "origin/${GITHUB_REF_NAME}"; then
+              git rebase --abort
+              echo "::error::Concurrent changes conflict with the refreshed snapshot. No remote data overwritten."
+              exit 1
+            fi
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Published updated scouting snapshot"
+              exit 0
+            fi
+            echo "Concurrent branch update; retrying the push (attempt ${attempt})"
+            sleep 2
+          done
+          echo "::error::Could not push refreshed scouting data after three safe attempts"
+          exit 1
