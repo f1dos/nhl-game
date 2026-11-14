@@ -95,6 +95,7 @@ export interface RecordStats {
   form: string[];
 }
 export interface Team {
+  aiProfile?: AiGeneralManagerProfile;
   ahlAffiliate?: string;
   ahlLogoUrl?: string;
   training?: import("./training").TrainingPlan;
@@ -177,6 +178,57 @@ export interface DraftPick {
   originalTeam: string;
   prospectId?: string;
 }
+export type FranchiseStrategy =
+  "win-now" | "balanced" | "rebuild" | "youth-development";
+export interface AiGeneralManagerProfile {
+  strategy: FranchiseStrategy;
+  aggression: number;
+  patience: number;
+  risk: number;
+  youthPreference: number;
+  analytics: number;
+  financialCaution: number;
+  futureAssetWillingness: number;
+}
+export interface CalendarState {
+  date: string;
+  seasonStart: string;
+  day: number;
+  lastProcessedDate: string;
+}
+export type ManagementEventCategory =
+  | "game"
+  | "medical"
+  | "contract"
+  | "trade"
+  | "scouting"
+  | "organization"
+  | "league";
+export interface ManagementEvent {
+  id: string;
+  date: string;
+  category: ManagementEventCategory;
+  priority: "low" | "normal" | "high" | "critical";
+  title: string;
+  body: string;
+  teamId?: string;
+  playerId?: string;
+  action?: "roster" | "injuries" | "contracts" | "trades" | "draft";
+  responseDue?: string;
+  requiresResponse?: boolean;
+  read: boolean;
+  resolved: boolean;
+}
+export interface DraftAsset {
+  id: string;
+  year: number;
+  round: number;
+  originalTeam: string;
+  currentTeam: string;
+  projectedOverall: number;
+  value: number;
+  history: { date: string; from: string; to: string }[];
+}
 export interface DraftState {
   year: number;
   status: "scouting" | "draft" | "complete";
@@ -241,6 +293,10 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
+  calendar?: CalendarState;
+  events?: ManagementEvent[];
+  franchiseStrategy?: FranchiseStrategy;
+  draftAssets?: DraftAsset[];
   juniorPlayers?: Player[];
   internationalMarket?: InternationalCandidate[];
   internationalOffers?: InternationalOffer[];

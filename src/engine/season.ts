@@ -190,10 +190,35 @@ function rollover(g: Game) {
   g.year++;
   g.round = 0;
   g.phase = "regular";
+  if (g.calendar) {
+    g.calendar.date = `${g.year}-10-07`;
+    g.calendar.seasonStart = g.calendar.date;
+    g.calendar.day = 0;
+    g.calendar.lastProcessedDate = `${g.year}-10-06`;
+  }
   g.bracket = [];
   g.playoffRound = 0;
   g.last = undefined;
   g.schedule = makeSchedule(g.teams);
+  if (g.draftAssets) {
+    const newYear = g.year + 3;
+    const known = new Set(g.draftAssets.map((asset) => asset.id));
+    for (const team of g.teams)
+      for (let round = 1; round <= 7; round++) {
+        const id = `${newYear}-${round}-${team.id}`;
+        if (!known.has(id))
+          g.draftAssets.push({
+            id,
+            year: newYear,
+            round,
+            originalTeam: team.id,
+            currentTeam: team.id,
+            projectedOverall: 16,
+            value: Math.round(100 / round),
+            history: [],
+          });
+      }
+  }
   ageWorld(g, r);
   refreshInternationalMarket(g, r);
   expireContracts(g);

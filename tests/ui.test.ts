@@ -38,7 +38,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".crest.official img"));
   assert(document.querySelector(".top-club-record"));
   assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
-  assert(screen.getByText("Повестка менеджера"));
+  assert(screen.getByText("Штаб генерального менеджера"));
   fireEvent.click(screen.getByText("Скаутинг и драфт"));
   assert(screen.getByText("Центр драфта и скаутинга"));
   assert(screen.getByText("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ"));
@@ -84,7 +84,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     useGame.getState().game!.teams.find((t) => t.id === "TOR")!.lines[0][0],
     replacement.id,
   );
-  fireEvent.click(screen.getByText("Следующий матч"));
+  fireEvent.click(screen.getByText("Продолжить"));
   assert.equal(useGame.getState().game?.round, 1);
   assert(screen.getByText("Повтор ключевых событий"));
   fireEvent.click(screen.getByText("Результат"));
@@ -124,7 +124,9 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     2,
   );
   fireEvent.click(screen.getByText("Сохранения"));
-  fireEvent.change(screen.getByRole("combobox"), { target: { value: "en" } });
+  fireEvent.change(screen.getByLabelText("Language"), {
+    target: { value: "en" },
+  });
   assert(screen.getByText("Saves & settings"));
   const g = structuredClone(useGame.getState().game!);
   await saveGame(g);

@@ -22,6 +22,7 @@ import {
   Snowflake,
   Search,
   Building2,
+  Target,
   X,
 } from "lucide-react";
 import { useGame } from "../store";
@@ -41,19 +42,31 @@ import {
   type ConversationTone,
   type ConversationTopic,
 } from "../engine/conversations";
-import { advance, nextSeason, standings, dateForRound } from "../engine/season";
+import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
 import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
 import MatchCenter from "./MatchCenter";
 import TradeCenter from "./TradeCenter";
 import ContractCenter from "./ContractCenter";
-import { ManagerWorkspace, TrainingCenter } from "./ManagerWorkspace";
+import { TrainingCenter } from "./ManagerWorkspace";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
 import InjuryCenter from "./InjuryCenter";
+import {
+  DailyCalendar,
+  DailyHeadquarters,
+  DecisionInbox,
+  StrategyCenter,
+} from "./ManagementRevolution";
+import {
+  continueGame,
+  ensureManagementState,
+  gameDate,
+  type ContinueMode,
+} from "../engine/management";
 const nav = [
   {
     key: "overview",
@@ -110,6 +123,14 @@ const nav = [
     Icon: Activity,
     groupRu: "КОМАНДА",
     groupEn: "TEAM",
+  },
+  {
+    key: "strategy",
+    ru: "Стратегия клуба",
+    en: "Franchise strategy",
+    Icon: Target,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
   },
   {
     key: "contracts",
@@ -205,7 +226,8 @@ export default function App() {
     [notice, setNotice] = useState(""),
     [filter, setFilter] = useState("all"),
     [seed, setSeed] = useState(260027),
-    [language, setLanguage] = useState<"ru" | "en">("ru");
+    [language, setLanguage] = useState<"ru" | "en">("ru"),
+    [continueMode, setContinueMode] = useState<ContinueMode>("next-game");
   const [database] = useState(() => newGame());
   const ru = (g?.language || language) === "ru";
   const tr = (a: string, b: string) => (ru ? a : b);
@@ -232,7 +254,7 @@ export default function App() {
     setFilter("all");
   };
   const play = () => {
-    edit(advance);
+    edit((game) => continueGame(game, continueMode));
     setPage("match");
   };
   async function finish() {
@@ -242,7 +264,7 @@ export default function App() {
     try {
       while (String(copy.phase) !== "offseason") {
         for (let i = 0; i < 4 && String(copy.phase) !== "offseason"; i++)
-          advance(copy);
+          continueGame(copy, "week");
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
       setGame(copy);
@@ -290,6 +312,7 @@ export default function App() {
         <div className="start-top">
           <Brand />
           <select
+            aria-label="Language"
             value={language}
             onChange={(e) => setLanguage(e.target.value as "ru" | "en")}
           >
@@ -391,6 +414,7 @@ export default function App() {
                 const career = newGame(selected, seed);
                 career.language = language;
                 ensureDraft(career);
+                ensureManagementState(career);
                 setGame(career);
                 setCreating(false);
                 go("overview");
@@ -427,6 +451,7 @@ export default function App() {
       </div>
     );
   }
+  ensureManagementState(g);
   const team = g.teams.find((t) => t.id === g.user)!;
   const sorted = standings(g.teams);
   const conference = standings(
@@ -591,7 +616,7 @@ export default function App() {
             </small>
           </span>
         </div>
-        <ManagerWorkspace game={g} edit={edit} go={go} onPlayer={setProfile} />
+        <DailyHeadquarters game={g} edit={edit} go={go} onPlayer={setProfile} />
         <div className="metrics">
           <Metric
             label={tr("МЕСТО В КОНФЕРЕНЦИИ", "CONFERENCE POSITION")}
@@ -825,24 +850,9 @@ export default function App() {
         <MatchCenter game={g} />
       </>
     );
-  else if (page === "schedule")
-    content = (
-      <>
-        <PageTitle
-          title={tr("Календарь сезона", "Season schedule")}
-          sub={tr(
-            "82 матча · 41 дома / 41 в гостях · синтетический календарь",
-            "82 games · 41 home / 41 away · synthetic schedule",
-          )}
-        />
-        <Panel
-          title={`${g.year} / ${g.year + 1}`}
-          extra={<span>{team.record.gp} / 82</span>}
-        >
-          {scheduleRows()}
-        </Panel>
-      </>
-    );
+  else if (page === "schedule") content = <DailyCalendar game={g} />;
+  else if (page === "strategy")
+    content = <StrategyCenter game={g} edit={edit} />;
   else if (page === "league")
     content = (
       <>
@@ -1220,33 +1230,7 @@ export default function App() {
       </>
     );
   else if (page === "inbox")
-    content = (
-      <>
-        <PageTitle
-          title={tr("Входящие", "Inbox")}
-          sub={tr(
-            "Результаты и события вашей карьеры",
-            "Results and events from your career",
-          )}
-        />
-        <Panel title={tr("НОВОСТИ КЛУБА", "CLUB NEWS")}>
-          {g.news.map((n, i) => (
-            <div className="news-item" key={i}>
-              <span className="news-icon">
-                {i === 0 ? <Activity size={18} /> : <Mail size={18} />}
-              </span>
-              <div>
-                <small>
-                  NHL MANAGER · {g.year}/{String(g.year + 1).slice(2)}
-                </small>
-                <p>{n}</p>
-              </div>
-              {i === 0 && <span className="tag">NEW</span>}
-            </div>
-          ))}
-        </Panel>
-      </>
-    );
+    content = <DecisionInbox game={g} edit={edit} go={go} />;
   else if (page === "history")
     content = (
       <>
@@ -1328,6 +1312,7 @@ export default function App() {
               {tr("Новая карьера", "New career")}
             </button>
             <select
+              aria-label="Language"
               value={g.language}
               onChange={(e) =>
                 edit((x) => {
@@ -1466,8 +1451,8 @@ export default function App() {
           <div className="about-text">
             <p>
               {tr(
-                "v0.4-dev · 32 клуба NHL, 813 игроков AHL, 487 игроков OHL, реальный лазарет, международный рынок, драфт, контракты, 82 матча и многосезонная карьера.",
-                "v0.4-dev · 32 NHL clubs, 813 AHL players, 487 OHL players, verified injury reserve, international market, draft, contracts, 82 games and a multi-season career.",
+                "v0.5-dev · ежедневный календарь, штаб менеджера, события и решения, стратегии франшиз, автономные ИИ-клубы и активы драфта.",
+                "v0.5-dev · daily calendar, manager headquarters, actionable events, franchise strategies, autonomous AI clubs and draft assets.",
               )}
             </p>
             <p>
@@ -1505,7 +1490,13 @@ export default function App() {
                 >
                   <Icon size={17} />
                   <span>{ru ? labelRu : labelEn}</span>
-                  {key === "inbox" && <em>{g.news.length}</em>}
+                  {key === "inbox" && (
+                    <em>
+                      {g.events?.filter(
+                        (event) => !event.read && !event.resolved,
+                      ).length ?? g.news.length}
+                    </em>
+                  )}
                 </button>
               </div>
             ),
@@ -1542,11 +1533,14 @@ export default function App() {
             <span className="game-date">
               <CalendarDays size={15} />
               {g.phase === "regular"
-                ? dateForRound(g).toLocaleDateString(ru ? "ru-RU" : "en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })
+                ? new Date(`${gameDate(g)}T00:00:00Z`).toLocaleDateString(
+                    ru ? "ru-RU" : "en-GB",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )
                 : g.phase === "playoffs"
                   ? "PLAYOFFS"
                   : tr("Межсезонье", "Offseason")}
@@ -1558,6 +1552,25 @@ export default function App() {
             >
               <Save size={18} />
             </button>
+            {g.phase !== "offseason" && (
+              <select
+                className="continue-select"
+                aria-label={tr("Режим продолжения", "Continue mode")}
+                value={continueMode}
+                onChange={(event) =>
+                  setContinueMode(event.target.value as ContinueMode)
+                }
+              >
+                <option value="day">{tr("1 день", "1 day")}</option>
+                <option value="next-game">
+                  {tr("До матча", "To next game")}
+                </option>
+                <option value="next-event">
+                  {tr("До события", "To next event")}
+                </option>
+                <option value="week">{tr("7 дней", "7 days")}</option>
+              </select>
+            )}
             <button
               className="primary"
               disabled={busy}
@@ -1569,7 +1582,7 @@ export default function App() {
             >
               {g.phase === "offseason"
                 ? tr("Новый сезон", "New season")
-                : tr("Следующий матч", "Next match")}
+                : tr("Продолжить", "Continue")}
               <ChevronRight size={18} />
             </button>
           </div>
@@ -1590,7 +1603,7 @@ export default function App() {
                       "NHL API identities · legacy demo ratings",
                     )
                   : tr("Вымышленная база данных", "Fictional database")}{" "}
-              · v0.4-dev
+              · v0.5-dev
             </span>
             <span>
               SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
@@ -2172,11 +2185,17 @@ function PlayerProfile({
                 <>
                   <div>
                     <dt>{tr("Статус травмы", "Injury status")}</dt>
-                    <dd>{p.injuryStatus ?? "OUT"} · {p.injuryTimeline ?? `${p.injury} steps`}</dd>
+                    <dd>
+                      {p.injuryStatus ?? "OUT"} ·{" "}
+                      {p.injuryTimeline ?? `${p.injury} steps`}
+                    </dd>
                   </div>
                   <div>
                     <dt>{tr("Ожидаемое возвращение", "Expected return")}</dt>
-                    <dd>{p.injuryReturnDate ?? tr("по игровой симуляции", "simulation estimate")}</dd>
+                    <dd>
+                      {p.injuryReturnDate ??
+                        tr("по игровой симуляции", "simulation estimate")}
+                    </dd>
                   </div>
                 </>
               )}

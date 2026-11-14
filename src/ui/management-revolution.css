@@ -1,0 +1,369 @@
+.headquarters .workspace-heading {
+  background: linear-gradient(110deg, #162432, #151c24 65%);
+}
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+}
+.agenda-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a3541;
+}
+.agenda-row:last-child {
+  border-bottom: 0;
+}
+.agenda-row.high,
+.agenda-row.critical {
+  background: linear-gradient(90deg, rgba(222, 133, 72, 0.08), transparent 55%);
+}
+.agenda-priority {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #213140;
+  color: #8ec9eb;
+}
+.agenda-row.high .agenda-priority,
+.agenda-row.critical .agenda-priority {
+  background: #3b2b24;
+  color: #f0a56f;
+}
+.agenda-row > div:nth-child(2) {
+  min-width: 0;
+}
+.agenda-row small {
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.agenda-row strong {
+  display: block;
+  margin: 5px 0;
+  font-size: 14px;
+}
+.agenda-row p {
+  color: #91a1b2;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.agenda-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agenda-actions small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #bc8f70;
+}
+.agenda-actions button {
+  font-size: 10px;
+  padding: 7px 9px;
+}
+.agenda-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  color: #8495a7;
+}
+.club-pulse {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid #2b3744;
+}
+.club-pulse button {
+  border: 0;
+  border-right: 1px solid #2b3744;
+  border-radius: 0;
+  background: #111820;
+  padding: 15px 18px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+.club-pulse button:last-child {
+  border-right: 0;
+}
+.club-pulse strong {
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: 22px;
+  color: #dce9f3;
+}
+.club-pulse span {
+  font-size: 10px;
+  color: #8294a5;
+  margin-top: 3px;
+}
+.advisor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+.advisor-grid > button {
+  border: 0;
+  border-right: 1px solid #27323d;
+  border-bottom: 1px solid #27323d;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 18px;
+}
+.advisor-grid > button > span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1d3140;
+  color: #78bae0;
+}
+.advisor-grid > button > span.high {
+  background: #3c2a22;
+  color: #ef9b62;
+}
+.advisor-grid > button > div {
+  flex: 1;
+}
+.advisor-grid strong {
+  display: block;
+  margin-bottom: 5px;
+}
+.advisor-grid p {
+  font-size: 11px;
+  color: #8999aa;
+  line-height: 1.45;
+}
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.strategy-grid > button {
+  position: relative;
+  min-height: 190px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  text-align: left;
+  padding: 20px;
+  background: #131a22;
+}
+.strategy-grid > button.active {
+  border-color: #4aa9dd;
+  background: linear-gradient(145deg, #173247, #131a22);
+}
+.strategy-grid > button > span {
+  color: #75bfe8;
+}
+.strategy-grid strong {
+  font-size: 17px;
+}
+.strategy-grid p {
+  font-size: 12px;
+  color: #8fa0b2;
+}
+.strategy-grid small {
+  margin-top: auto;
+  letter-spacing: 1px;
+  color: #69b5df;
+}
+.strategy-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid #29333e;
+  background: #121820;
+  margin-bottom: 20px;
+}
+.strategy-metrics > div {
+  padding: 18px;
+  border-right: 1px solid #29333e;
+}
+.strategy-metrics > div:last-child {
+  border: 0;
+}
+.strategy-metrics small,
+.strategy-metrics span {
+  display: block;
+}
+.strategy-metrics small {
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.strategy-metrics strong {
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: 28px;
+  display: block;
+  margin: 7px 0;
+}
+.strategy-metrics span {
+  font-size: 11px;
+  color: #8797a8;
+}
+.draft-assets {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 16px;
+  gap: 8px;
+}
+.draft-assets > div {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: #10161d;
+  border: 1px solid #28333e;
+}
+.draft-assets span {
+  color: #7abde4;
+  font-size: 10px;
+}
+.draft-assets strong {
+  margin: 5px 0;
+}
+.draft-assets small {
+  font-size: 9px;
+}
+.draft-assets b {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  color: #617286;
+  font-size: 10px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  border: 1px solid #29343f;
+  background: #11171e;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+.calendar-grid > div {
+  min-height: 132px;
+  padding: 12px;
+  border-right: 1px solid #29343f;
+  border-bottom: 1px solid #29343f;
+}
+.calendar-grid > div.current {
+  background: #173044;
+  box-shadow: inset 0 3px #48a9df;
+}
+.calendar-grid > div.past {
+  opacity: 0.55;
+}
+.calendar-grid header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.calendar-grid header span {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #728395;
+}
+.calendar-grid header strong {
+  font-size: 18px;
+}
+.calendar-grid p {
+  font-size: 10px;
+  line-height: 1.35;
+  padding: 6px;
+  margin-top: 5px;
+}
+.calendar-game {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #203749;
+  color: #a9d8f3;
+}
+.calendar-rest {
+  color: #6f8091;
+}
+.calendar-event {
+  background: #202a34;
+  color: #aebccc;
+}
+.calendar-event.high,
+.calendar-event.critical {
+  background: #3b2b24;
+  color: #efac7f;
+}
+.inbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.inbox-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #303946;
+  background: #11161d;
+  padding-left: 10px;
+}
+.inbox-toolbar input {
+  border: 0;
+}
+.decision-inbox .agenda-row {
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+}
+.continue-select {
+  font-size: 10px;
+  padding: 9px 7px;
+  max-width: 112px;
+}
+@media (max-width: 1100px) {
+  .strategy-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .draft-assets {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .calendar-grid {
+    grid-template-columns: repeat(7, 150px);
+  }
+  .club-pulse {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .agenda-row {
+    grid-template-columns: 32px 1fr;
+  }
+  .agenda-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .advisor-grid {
+    grid-template-columns: 1fr;
+  }
+  .strategy-grid,
+  .strategy-metrics {
+    grid-template-columns: 1fr;
+  }
+  .draft-assets {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .inbox-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .top-actions .continue-select {
+    display: none;
+  }
+}

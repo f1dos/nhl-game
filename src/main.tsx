@@ -6,6 +6,7 @@ import "./ui/workspace.css";
 import "./ui/premium.css";
 import "./ui/draft.css";
 import "./ui/organization.css";
+import "./ui/management-revolution.css";
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
