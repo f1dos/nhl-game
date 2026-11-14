@@ -42,9 +42,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Скаутинг и драфт"));
   assert(screen.getByText("Центр драфта и скаутинга"));
   assert(screen.getByText("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ"));
-  fireEvent.click(screen.getByText("Фарм и резерв"));
-  assert(screen.getByText("Система клуба"));
-  assert(document.querySelector(".organization-metrics"));
+  fireEvent.click(screen.getByText("Юниоры и лиги"));
+  assert(screen.getByText("Юниорские и европейские лиги"));
+  assert(screen.getByRole("tab", { name: /OHL/ }));
+  assert(screen.getByText("487") || document.querySelector(".scout-league-table"));
   fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Настроить тренировки"));
   fireEvent.click(screen.getByText("Восстановление"));
@@ -53,7 +54,8 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     "recovery",
   );
   fireEvent.click(screen.getByText("Состав"));
-  assert(screen.getByText("ОСНОВНОЙ СОСТАВ И РЕЗЕРВ"));
+  assert(screen.getByText("ОСНОВНОЙ СОСТАВ NHL"));
+  assert(screen.getByText("Фарм-клуб и резерв"));
   fireEvent.change(screen.getByLabelText("Player sort"), {
     target: { value: "rating" },
   });
