@@ -73,6 +73,17 @@ export function validateSave(value: unknown): Game {
         throw Error("Invalid or duplicate prospect");
       players.add(p.id);
     }
+    for (const p of t.farm ?? []) {
+      if (
+        players.has(p.id) ||
+        typeof p.id !== "string" ||
+        !["LW", "C", "RW", "D", "G"].includes(p.pos) ||
+        !p.stats ||
+        Object.keys(p.attributes || {}).length !== 30
+      )
+        throw Error("Invalid or duplicate farm player");
+      players.add(p.id);
+    }
     const onIce = [...t.lines.flat(), ...t.defense.flat(), t.goalie];
     if (
       onIce.length !== 19 ||

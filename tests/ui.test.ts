@@ -31,12 +31,20 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   await waitFor(() => assert(screen.getByText("Начать карьеру")));
   fireEvent.click(screen.getByText("Начать карьеру"));
   assert.equal(useGame.getState().game?.user, "TOR");
+  assert.equal(
+    useGame.getState().game?.teams[0].players[0].identitySource,
+    "nhl-api",
+  );
+  assert(document.querySelector(".crest.official img"));
   assert(document.querySelector(".top-club-record"));
   assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
   assert(screen.getByText("Повестка менеджера"));
   fireEvent.click(screen.getByText("Скаутинг и драфт"));
   assert(screen.getByText("Центр драфта и скаутинга"));
   assert(screen.getByText("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ"));
+  fireEvent.click(screen.getByText("Фарм и резерв"));
+  assert(screen.getByText("Система клуба"));
+  assert(document.querySelector(".organization-metrics"));
   fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Настроить тренировки"));
   fireEvent.click(screen.getByText("Восстановление"));
@@ -64,15 +72,16 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".chemistry"));
   assert(document.querySelector(".tactic-analysis"));
   const before = useGame.getState().game!.teams.find((t) => t.id === "TOR")!;
-  const lw = before.players.find(
-    (p) => p.pos === "LW" && !before.lines.flat().includes(p.id),
+  const firstForward = before.lines[0][0];
+  const replacement = before.players.find(
+    (p) => p.pos !== "D" && p.pos !== "G" && p.id !== firstForward,
   )!;
-  fireEvent.change(screen.getAllByRole("combobox", { name: "LW lineup" })[0], {
-    target: { value: lw.id },
+  fireEvent.change(screen.getAllByRole("combobox", { name: "F lineup" })[0], {
+    target: { value: replacement.id },
   });
   assert.equal(
     useGame.getState().game!.teams.find((t) => t.id === "TOR")!.lines[0][0],
-    lw.id,
+    replacement.id,
   );
   fireEvent.click(screen.getByText("Следующий матч"));
   assert.equal(useGame.getState().game?.round, 1);

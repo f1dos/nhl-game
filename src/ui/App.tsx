@@ -21,10 +21,16 @@ import {
   Activity,
   Snowflake,
   Search,
+  Building2,
   X,
 } from "lucide-react";
 import { useGame } from "../store";
-import { newGame, autoLines, teamOverall } from "../engine/database";
+import {
+  newGame,
+  autoLines,
+  teamOverall,
+  applyOfficialIdentitySnapshot,
+} from "../engine/database";
 import { advance, nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
@@ -36,6 +42,7 @@ import { ManagerWorkspace, TrainingCenter } from "./ManagerWorkspace";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
+import FarmCenter from "./FarmCenter";
 const nav = [
   {
     key: "overview",
@@ -74,6 +81,14 @@ const nav = [
     ru: "Развитие",
     en: "Development",
     Icon: Activity,
+    groupRu: "КОМАНДА",
+    groupEn: "TEAM",
+  },
+  {
+    key: "organization",
+    ru: "Фарм и резерв",
+    en: "Farm & reserve",
+    Icon: Building2,
     groupRu: "КОМАНДА",
     groupEn: "TEAM",
   },
@@ -367,8 +382,8 @@ export default function App() {
             </button>
             <p className="note">
               {tr(
-                "База v0.1: все хоккеисты, контракты и рейтинги вымышлены. Названия клубов используются для идентификации.",
-                "Database v0.1: all players, contracts and ratings are fictional. Club names are used for identification.",
+                "Составы и данные личности: официальный NHL API, сезон 2026/27. Рейтинги, потенциал и контракты являются демонстрационными игровыми значениями.",
+                "Rosters and player identities: official NHL API, 2026/27 season. Ratings, potential and contracts are fictional game values.",
               )}
             </p>
           </aside>
@@ -516,6 +531,8 @@ export default function App() {
       });
   let content: ReactNode;
   if (page === "development") content = <TrainingCenter game={g} edit={edit} />;
+  else if (page === "organization")
+    content = <FarmCenter game={g} edit={edit} onPlayer={setProfile} />;
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
@@ -1149,6 +1166,24 @@ export default function App() {
               <option value="ru">Русский</option>
               <option value="en">English</option>
             </select>
+            {g.dataSource?.kind !== "official-identities-demo-ratings" && (
+              <button
+                onClick={() => {
+                  edit(applyOfficialIdentitySnapshot);
+                  setNotice(
+                    tr(
+                      "Личности и эмблемы обновлены",
+                      "Identities and crests updated",
+                    ),
+                  );
+                }}
+              >
+                {tr(
+                  "Подключить составы NHL 2026/27",
+                  "Apply NHL 2026/27 identities",
+                )}
+              </button>
+            )}
           </div>
           <div className="settings-actions">
             <button
@@ -1200,14 +1235,14 @@ export default function App() {
           <div className="about-text">
             <p>
               {tr(
-                "v0.1 · Играбельная основа. 32 клуба, 768 вымышленных игроков, 30 характеристик, 82 игры, плей-офф и многосезонная карьера.",
-                "v0.1 · Playable foundation. 32 clubs, 768 fictional players, 30 attributes, 82 games, playoffs and multiple seasons.",
+                "v0.3-dev · 32 клуба, 794 записи составов NHL 2026/27, фарм и резерв, драфт, контракты, обмены, 82 матча, плей-офф и многосезонная карьера.",
+                "v0.3-dev · 32 clubs, 794 NHL 2026/27 roster identities, farm and reserve, draft, contracts, trades, 82 games, playoffs and a multi-season career.",
               )}
             </p>
             <p>
               {tr(
-                "Это не официальная игра NHL. Реальные составы 2026/27 не импортированы. Логотипы и фотографии NHL не используются. Правила и календарь упрощены; финансовые значения не являются проверенными данными NHL.",
-                "This is not an official NHL game. No real 2026/27 rosters are imported. No NHL logos or photos are used. Rules and schedule are simplified; finances are not verified NHL data.",
+                "Это не официальная и не лицензированная игра NHL. Фактические данные личности и текущего состава получены из публичного NHL API; эмблемы и фотографии загружаются с CDN NHL и принадлежат соответствующим правообладателям. Рейтинги, потенциал, зарплаты, контракты, правила и календарь являются демонстрационной игровой моделью.",
+                "This is not an official or licensed NHL game. Player identity and current roster facts come from the public NHL API; logos and headshots load from the NHL CDN and belong to their respective rights holders. Ratings, potential, salaries, contracts, rules and schedule remain a fictional demonstration model.",
               )}
             </p>
           </div>
@@ -1313,7 +1348,13 @@ export default function App() {
           <footer>
             <span>
               <i className="status-dot" />{" "}
-              {tr("Вымышленная база данных", "Fictional database")} · v0.1
+              {g.dataSource?.kind === "official-identities-demo-ratings"
+                ? tr(
+                    "NHL API: личности · демо-рейтинги",
+                    "NHL API identities · demo ratings",
+                  )
+                : tr("Вымышленная база данных", "Fictional database")}{" "}
+              · v0.3-dev
             </span>
             <span>
               SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
@@ -1439,7 +1480,9 @@ function TacticsView({
       const t = g.teams.find((t) => t.id === g.user)!;
       const p = t.players.find((p) => p.id === id),
         q = t.players.find((p) => p.id === old);
-      if (!p || !q || p.pos !== q.pos) return;
+      const group = (player: Player) =>
+        player.pos === "D" ? "D" : player.pos === "G" ? "G" : "F";
+      if (!p || !q || group(p) !== group(q)) return;
       t.lines = t.lines.map((l) =>
         l.map((x) => (x === old ? id : x === id ? old : x)),
       );
@@ -1451,6 +1494,7 @@ function TacticsView({
   }
   const slot = (id: string) => {
     const p = team.players.find((p) => p.id === id)!;
+    const group = p.pos === "D" ? "D" : p.pos === "G" ? "G" : "F";
     return (
       <div
         key={id}
@@ -1468,12 +1512,14 @@ function TacticsView({
           <Rating value={p.ovr} />
         </div>
         <select
-          aria-label={`${p.pos} lineup`}
+          aria-label={`${group} lineup`}
           value={p.id}
           onChange={(e) => replace(id, e.target.value)}
         >
           {team.players
-            .filter((x) => x.pos === p.pos)
+            .filter((x) =>
+              group === "F" ? x.pos !== "D" && x.pos !== "G" : x.pos === group,
+            )
             .map((x) => (
               <option key={x.id} value={x.id}>
                 {x.name}
@@ -1492,8 +1538,8 @@ function TacticsView({
       <PageTitle
         title={tr("Тактический центр", "Tactics center")}
         sub={tr(
-          "Перетаскивайте игроков одной позиции или используйте списки.",
-          "Drag players of the same position or use the selectors.",
+          "Перетаскивайте игроков одной игровой группы или используйте списки.",
+          "Drag players within the same unit group or use the selectors.",
         )}
       />
       <div className="tactics-grid">
@@ -1728,9 +1774,15 @@ function PlayerProfile({
           <X size={22} />
         </button>
         <div className="profile-hero">
-          <div className="profile-number">
-            <span>{p.number}</span>
-            <small>{p.pos}</small>
+          <div className={`profile-number ${p.headshot ? "has-photo" : ""}`}>
+            {p.headshot ? (
+              <img src={p.headshot} alt={p.name} />
+            ) : (
+              <>
+                <span>{p.number}</span>
+                <small>{p.pos}</small>
+              </>
+            )}
           </div>
           <div>
             <span className="eyebrow">

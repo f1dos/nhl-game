@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
-import {useState} from 'react';
+import { useState } from "react";
 import type { Team, Player } from "../engine/types";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  const official = Boolean(team.logoUrl && !logoFailed);
   return (
     <span
-      className="crest"
+      className={`crest ${official ? "official" : ""}`}
       style={
         {
           "--club": team.color,
@@ -13,7 +15,15 @@ export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
         } as React.CSSProperties
       }
     >
-      <span>{team.id}</span>
+      {official ? (
+        <img
+          src={team.logoUrl}
+          alt={`${team.city} ${team.name}`}
+          onError={() => setLogoFailed(true)}
+        />
+      ) : (
+        <span>{team.id}</span>
+      )}
     </span>
   );
 }
@@ -57,12 +67,60 @@ export function PlayerTable({
   lang: string;
 }) {
   const ru = lang === "ru";
-  const [sort,setSort]=useState('default');
-  const [available,setAvailable]=useState(false);
-  const ordered=players.filter(p=>!available||p.injury===0).slice().sort((a,b)=>sort==='rating'?b.ovr-a.ovr:sort==='points'?b.stats.g+b.stats.a-a.stats.g-a.stats.a:sort==='age'?a.age-b.age:sort==='salary'?b.salary-a.salary:sort==='condition'?a.fatigue-b.fatigue:0);
+  const [sort, setSort] = useState("default");
+  const [available, setAvailable] = useState(false);
+  const ordered = players
+    .filter((p) => !available || p.injury === 0)
+    .slice()
+    .sort((a, b) =>
+      sort === "rating"
+        ? b.ovr - a.ovr
+        : sort === "points"
+          ? b.stats.g + b.stats.a - a.stats.g - a.stats.a
+          : sort === "age"
+            ? a.age - b.age
+            : sort === "salary"
+              ? b.salary - a.salary
+              : sort === "condition"
+                ? a.fatigue - b.fatigue
+                : 0,
+    );
   return (
     <div className="table-scroll">
-      <div className="roster-tools"><label>{ru?'Сортировка':'Sort'} <select aria-label="Player sort" value={sort} onChange={e=>setSort(e.target.value)}>{[['default',ru?'Исходный порядок':'Default'],['rating','OVR ↓'],['points','PTS ↓'],['age',ru?'Возраст ↑':'Age ↑'],['salary','AAV ↓'],['condition',ru?'Готовность ↓':'Condition ↓']].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label><input type="checkbox" checked={available} onChange={e=>setAvailable(e.target.checked)}/>{ru?' Только здоровые':' Healthy only'}</label><span>{ordered.length} {ru?'игроков':'players'}</span></div>
+      <div className="roster-tools">
+        <label>
+          {ru ? "Сортировка" : "Sort"}{" "}
+          <select
+            aria-label="Player sort"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            {[
+              ["default", ru ? "Исходный порядок" : "Default"],
+              ["rating", "OVR ↓"],
+              ["points", "PTS ↓"],
+              ["age", ru ? "Возраст ↑" : "Age ↑"],
+              ["salary", "AAV ↓"],
+              ["condition", ru ? "Готовность ↓" : "Condition ↓"],
+            ].map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={available}
+            onChange={(e) => setAvailable(e.target.checked)}
+          />
+          {ru ? " Только здоровые" : " Healthy only"}
+        </label>
+        <span>
+          {ordered.length} {ru ? "игроков" : "players"}
+        </span>
+      </div>
       <table>
         <thead>
           <tr>
@@ -90,6 +148,9 @@ export function PlayerTable({
             >
               <td className="muted">{p.number}</td>
               <td>
+                {p.headshot && (
+                  <img className="player-mini-photo" src={p.headshot} alt="" />
+                )}
                 <strong>{p.name}</strong>
                 <small>
                   {p.nation}

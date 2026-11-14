@@ -13,6 +13,10 @@ export interface Stats {
 }
 export interface Player {
   archetype?: import("./ratings").Archetype;
+  externalId?: number;
+  headshot?: string;
+  birthDate?: string;
+  identitySource?: "nhl-api" | "generated";
   id: string;
   name: string;
   number: number;
@@ -55,6 +59,8 @@ export interface Team {
   training?: import("./training").TrainingPlan;
   trainingTicks?: number;
   prospects?: Player[];
+  farm?: Player[];
+  logoUrl?: string;
   id: string;
   city: string;
   name: string;
@@ -167,6 +173,12 @@ export interface Game {
   transactions?: { year: number; round: number; message: string }[];
   draft?: DraftState;
   draftHistory?: DraftHistory[];
+  dataSource?: {
+    kind: "official-identities-demo-ratings" | "fictional";
+    season: string;
+    source: string;
+    fetchedAt: string;
+  };
   version: 1;
   id: string;
   seed: number;

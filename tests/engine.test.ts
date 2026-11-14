@@ -9,11 +9,21 @@ test("32 franchises, unique players, 30 valid attributes and legal lineups", () 
   const g = newGame();
   assert.equal(g.teams.length, 32);
   assert.equal(
-    new Set(g.teams.flatMap((t) => t.players.map((p) => p.id))).size,
-    768,
+    new Set(
+      g.teams.flatMap((t) =>
+        [...t.players, ...(t.farm ?? [])].map((p) => p.id),
+      ),
+    ).size,
+    794,
   );
   for (const t of g.teams) {
     assert.equal(t.lines.flat().length, 12);
+    assert(
+      t.lines.flat().every((id) => {
+        const p = t.players.find((player) => player.id === id)!;
+        return p.pos !== "D" && p.pos !== "G";
+      }),
+    );
     assert.equal(t.defense.flat().length, 6);
     assert.equal(t.players.find((p) => p.id === t.goalie)?.pos, "G");
     for (const p of t.players) {
@@ -113,12 +123,15 @@ test("full regular season → 16-team playoffs → champion → next season", ()
   }
   assert.equal(g.history.length, 1);
   const age = g.teams[0].players[0].age;
-  const playerId=g.teams[0].players[0].id;
+  const playerId = g.teams[0].players[0].id;
   nextSeason(g);
   assert.equal(g.year, 2027);
   assert.equal(g.phase, "regular");
   assert(g.teams.every((t) => t.record.gp === 0));
-  const original=[...g.teams.flatMap(t=>t.players),...(g.freeAgents||[])].find(p=>p.id===playerId)!;
+  const original = [
+    ...g.teams.flatMap((t) => t.players),
+    ...(g.freeAgents || []),
+  ].find((p) => p.id === playerId)!;
   assert.equal(original.age, age + 1);
   assert.equal(original.history.length, 1);
   assert.equal(g.schedule.length, 1312);

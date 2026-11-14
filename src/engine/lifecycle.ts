@@ -29,6 +29,11 @@ export function ageWorld(g: Game, r: RNG) {
     const retiring = t.players.filter(retired);
     g.retired.push(...retiring.map((player) => ({ year: g.year, player })));
     t.players = t.players.filter((p) => !retiring.includes(p));
+    t.farm ??= [];
+    t.farm.forEach(age);
+    const farmRetiring = t.farm.filter(retired);
+    g.retired.push(...farmRetiring.map((player) => ({ year: g.year, player })));
+    t.farm = t.farm.filter((p) => !farmRetiring.includes(p));
     t.prospects ??= [];
     t.prospects.forEach(age);
     const promoted: Player[] = [];

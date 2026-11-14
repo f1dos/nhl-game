@@ -1,0 +1,116 @@
+.organization-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid #26364a;
+  background: #0d1724;
+  margin-bottom: 18px;
+}
+.organization-metrics > div {
+  display: grid;
+  gap: 4px;
+  padding: 17px 20px;
+  border-right: 1px solid #26364a;
+}
+.organization-metrics > div:last-child {
+  border: 0;
+}
+.organization-metrics small {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #70839a;
+}
+.organization-metrics b {
+  font-size: 21px;
+}
+.organization-metrics span {
+  font-size: 10px;
+  color: #8094ac;
+}
+.organization-table .identity-cell {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+.identity-cell img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  object-position: top;
+  background: #182638;
+  border-radius: 2px;
+}
+.identity-cell span {
+  display: grid;
+  gap: 3px;
+}
+.identity-cell small {
+  font-size: 9px;
+  color: #7589a0;
+  text-transform: capitalize;
+}
+.compact-empty {
+  padding: 35px !important;
+}
+.official-source {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #85a8d0;
+  font-size: 10px;
+}
+.official-source i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4bd59a;
+  box-shadow: 0 0 8px #4bd59a;
+}
+.profile-number.has-photo {
+  padding: 0;
+  overflow: hidden;
+  background: #172334;
+}
+.profile-number.has-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.crest.official {
+  clip-path: none;
+  border: 0;
+  background: transparent;
+}
+.crest.official:after {
+  display: none;
+}
+.crest.official img {
+  display: block;
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px #0008);
+}
+.player-mini-photo {
+  width: 29px;
+  height: 29px;
+  object-fit: cover;
+  object-position: top;
+  background: #172334;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@media (max-width: 900px) {
+  .organization-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .organization-metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,13 +1,14 @@
 {
   "name": "nhl-manager-26",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && node scripts/package.mjs",
     "test": "tsx --test tests/*.test.ts",
-    "format": "prettier --write src tests scripts"
+    "format": "prettier --write src tests scripts",
+    "sync:nhl": "node scripts/sync-nhl-data.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
