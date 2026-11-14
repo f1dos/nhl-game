@@ -34,6 +34,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".top-club-record"));
   assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
   assert(screen.getByText("Повестка менеджера"));
+  fireEvent.click(screen.getByText("Скаутинг и драфт"));
+  assert(screen.getByText("Центр драфта и скаутинга"));
+  assert(screen.getByText("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ"));
+  fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Настроить тренировки"));
   fireEvent.click(screen.getByText("Восстановление"));
   assert.equal(

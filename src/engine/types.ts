@@ -12,7 +12,7 @@ export interface Stats {
   wins: number;
 }
 export interface Player {
-  archetype?: import('./ratings').Archetype;
+  archetype?: import("./ratings").Archetype;
   id: string;
   name: string;
   number: number;
@@ -52,8 +52,9 @@ export interface RecordStats {
   form: string[];
 }
 export interface Team {
-  training?: import('./training').TrainingPlan;
+  training?: import("./training").TrainingPlan;
   trainingTicks?: number;
+  prospects?: Player[];
   id: string;
   city: string;
   name: string;
@@ -66,6 +67,44 @@ export interface Team {
   goalie: string;
   tactics: Tactics;
   record: RecordStats;
+}
+export type ScoutingRegion =
+  "North America" | "Nordic" | "Central Europe" | "Russia";
+export interface DraftProspect {
+  player: Player;
+  region: ScoutingRegion;
+  trueRank: number;
+  draftedBy?: string;
+  draftedOverall?: number;
+}
+export interface ScoutingReport {
+  confidence: number;
+  estimatedOvr: number;
+  estimatedPotential: number;
+  lastUpdatedRound: number;
+}
+export interface DraftPick {
+  year: number;
+  round: number;
+  overall: number;
+  team: string;
+  originalTeam: string;
+  prospectId?: string;
+}
+export interface DraftState {
+  year: number;
+  status: "scouting" | "draft" | "complete";
+  prospects: DraftProspect[];
+  reports: Record<string, ScoutingReport>;
+  picks: DraftPick[];
+  currentPick: number;
+  scoutingPoints: number;
+  assignment: ScoutingRegion;
+  shortlist: string[];
+}
+export interface DraftHistory {
+  year: number;
+  picks: (DraftPick & { player: string; pos: Position })[];
 }
 export interface Fixture {
   id: string;
@@ -116,10 +155,18 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
-  retired?: {year:number;player:Player}[];
+  retired?: { year: number; player: Player }[];
   freeAgents?: Player[];
-  contractHistory?: {year:number;team:string;player:string;years:number;salary:number}[];
-  transactions?: {year:number;round:number;message:string}[];
+  contractHistory?: {
+    year: number;
+    team: string;
+    player: string;
+    years: number;
+    salary: number;
+  }[];
+  transactions?: { year: number; round: number; message: string }[];
+  draft?: DraftState;
+  draftHistory?: DraftHistory[];
   version: 1;
   id: string;
   seed: number;

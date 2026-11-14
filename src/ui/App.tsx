@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   Activity,
   Snowflake,
+  Search,
   X,
 } from "lucide-react";
 import { useGame } from "../store";
@@ -33,6 +34,8 @@ import TradeCenter from "./TradeCenter";
 import ContractCenter from "./ContractCenter";
 import { ManagerWorkspace, TrainingCenter } from "./ManagerWorkspace";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
+import { ensureDraft } from "../engine/draft";
+import DraftCenter from "./DraftCenter";
 const nav = [
   {
     key: "overview",
@@ -87,6 +90,14 @@ const nav = [
     ru: "Обмены",
     en: "Trade Center",
     Icon: Users,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "draft",
+    ru: "Скаутинг и драфт",
+    en: "Scouting & draft",
+    Icon: Search,
     groupRu: "УПРАВЛЕНИЕ",
     groupEn: "MANAGEMENT",
   },
@@ -345,6 +356,7 @@ export default function App() {
               onClick={() => {
                 const career = newGame(selected, seed);
                 career.language = language;
+                ensureDraft(career);
                 setGame(career);
                 setCreating(false);
                 go("overview");
@@ -507,6 +519,8 @@ export default function App() {
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
+  else if (page === "draft")
+    content = <DraftCenter game={g} edit={edit} tr={tr} />;
   else if (page === "overview")
     content = (
       <>
