@@ -1,5 +1,5 @@
 import { RULES } from "./rules";
-import {archetypes,rolesFor,overall} from './ratings';
+import { archetypes, rolesFor, overall } from "./ratings";
 import { RNG, clamp } from "./random";
 import {
   emptyRecord,
@@ -10,6 +10,12 @@ import {
   type Game,
 } from "./types";
 import { makeSchedule } from "./season";
+import {
+  NHL_DATA_META,
+  NHL_ROSTERS,
+  NHL_TEAM_LOGOS,
+  type NhlRosterIdentity,
+} from "../data/nhl-2026-27";
 const clubs = [
   ["BOS", "Boston", "Bruins", "Atlantic", "#eab743"],
   ["BUF", "Buffalo", "Sabres", "Atlantic", "#3267be"],
@@ -138,9 +144,10 @@ export function createPlayer(
   const attrs = Object.fromEntries(
     attributes.map((a) => [a, clamp(base + r.int(-12, 12), 35, 98)]),
   );
-  const archetype=r.pick(rolesFor(pos));
-  for(const key of archetypes[archetype])attrs[key]=clamp(attrs[key]+8,35,98);
-  const ovr = overall(pos,attrs,archetype);
+  const archetype = r.pick(rolesFor(pos));
+  for (const key of archetypes[archetype])
+    attrs[key] = clamp(attrs[key] + 8, 35, 98);
+  const ovr = overall(pos, attrs, archetype);
   return {
     archetype,
     id,
@@ -172,11 +179,18 @@ export function autoLines(t: Team) {
       )
       .slice(0, n)
       .map((x) => x.id);
-  const lw = pick("LW", 4),
-    c = pick("C", 4),
-    rw = pick("RW", 4),
+  const forwards = t.players
+      .filter((x) => x.pos !== "D" && x.pos !== "G")
+      .sort(
+        (a, b) =>
+          (a.injury > 0 ? 1 : 0) - (b.injury > 0 ? 1 : 0) || b.ovr - a.ovr,
+      )
+      .slice(0, 12)
+      .map((x) => x.id),
     d = pick("D", 6);
-  t.lines = Array.from({ length: 4 }, (_, i) => [lw[i], c[i], rw[i]]);
+  t.lines = Array.from({ length: 4 }, (_, i) =>
+    forwards.slice(i * 3, i * 3 + 3),
+  );
   t.defense = Array.from({ length: 3 }, (_, i) => d.slice(i * 2, i * 2 + 2));
   t.goalie = pick("G", 1)[0];
 }
@@ -184,32 +198,23 @@ export function newGame(user = "TOR", seed = 260027): Game {
   const r = new RNG(seed);
   const teams: Team[] = clubs.map(([id, city, name, division, color], i) => {
     const level = r.int(69, 79);
-    const positions: Position[] = [
-      "LW",
-      "C",
-      "RW",
-      "LW",
-      "C",
-      "RW",
-      "LW",
-      "C",
-      "RW",
-      "LW",
-      "C",
-      "RW",
-      "D",
-      "D",
-      "D",
-      "D",
-      "D",
-      "D",
-      "G",
-      "G",
-      "LW",
-      "C",
-      "RW",
-      "D",
+    const identities = NHL_ROSTERS[id];
+    const roster = identities.map((identity, j) =>
+      createOfficialPlayer(r, id, identity, level, j),
+    );
+    const ranked = [...roster].sort((a, b) => b.ovr - a.ovr);
+    const essential = [
+      ...ranked.filter((p) => p.pos !== "D" && p.pos !== "G").slice(0, 12),
+      ...ranked.filter((p) => p.pos === "D").slice(0, 6),
+      ...ranked.filter((p) => p.pos === "G").slice(0, 2),
     ];
+    const active = [
+      ...essential,
+      ...ranked
+        .filter((p) => !essential.includes(p))
+        .slice(0, 24 - essential.length),
+    ];
+    normalizePayroll(active, RULES.defaultSalaryCapMillions * 0.92);
     const t: Team = {
       id,
       city,
@@ -217,7 +222,9 @@ export function newGame(user = "TOR", seed = 260027): Game {
       division,
       color,
       conference: i < 16 ? "East" : "West",
-      players: positions.map((p, j) => createPlayer(r, `${id}-${j}`, p, level)),
+      logoUrl: NHL_TEAM_LOGOS[id],
+      players: active,
+      farm: roster.filter((p) => !active.includes(p)),
       lines: [],
       defense: [],
       goalie: "",
@@ -239,11 +246,97 @@ export function newGame(user = "TOR", seed = 260027): Game {
     schedule: makeSchedule(teams),
     bracket: [],
     playoffRound: 0,
-    news: ["Создана новая карьера. База игроков вымышленная."],
+    news: [
+      "Создана новая карьера. Личности и составы 2026/27 синхронизированы с NHL API; игровые рейтинги и контракты являются демонстрационными.",
+    ],
     history: [],
     rules: { cap: RULES.defaultSalaryCapMillions },
     language: "ru",
+    dataSource: {
+      kind: "official-identities-demo-ratings",
+      season: NHL_DATA_META.season,
+      source: NHL_DATA_META.source,
+      fetchedAt: NHL_DATA_META.fetchedAt,
+    },
   };
+}
+
+function createOfficialPlayer(
+  r: RNG,
+  teamId: string,
+  identity: NhlRosterIdentity,
+  level: number,
+  index: number,
+) {
+  const player = createPlayer(
+    r,
+    `nhl-${teamId}-${identity.id}`,
+    identity.position,
+    level,
+  );
+  player.externalId = identity.id;
+  player.name = `${identity.firstName} ${identity.lastName}`;
+  player.number = identity.number || index + 1;
+  player.age = identity.age;
+  player.nation = identity.nation;
+  player.birthDate = identity.birthDate;
+  player.headshot = identity.headshot;
+  player.identitySource = "nhl-api";
+  return player;
+}
+
+function normalizePayroll(players: Player[], target: number) {
+  const aboveMinimum = players.reduce(
+    (sum, p) => sum + Math.max(0, p.salary - 0.8),
+    0,
+  );
+  const available = Math.max(0, target - players.length * 0.8);
+  const scale = aboveMinimum > available ? available / aboveMinimum : 1;
+  for (const player of players)
+    player.salary =
+      Math.round((0.8 + Math.max(0, player.salary - 0.8) * scale) * 100) / 100;
 }
 export const teamOverall = (t: Team) =>
   Math.round(t.players.reduce((n, p) => n + p.ovr, 0) / t.players.length);
+
+export function applyOfficialIdentitySnapshot(g: Game) {
+  if (g.dataSource?.kind === "official-identities-demo-ratings")
+    throw Error("Official identity snapshot is already active");
+  for (const team of g.teams) {
+    const available = [...(NHL_ROSTERS[team.id] ?? [])];
+    const targets = [...team.players, ...(team.farm ?? [])].filter(
+      (player) => !player.externalId,
+    );
+    for (const player of targets) {
+      const exact = available.findIndex(
+        (identity) => identity.position === player.pos,
+      );
+      const sameUnit = available.findIndex((identity) =>
+        player.pos === "D" || player.pos === "G"
+          ? identity.position === player.pos
+          : identity.position !== "D" && identity.position !== "G",
+      );
+      const index = exact >= 0 ? exact : sameUnit >= 0 ? sameUnit : 0;
+      const identity = available.splice(index, 1)[0];
+      if (!identity) break;
+      player.externalId = identity.id;
+      player.name = `${identity.firstName} ${identity.lastName}`;
+      player.number = identity.number || player.number;
+      player.age = identity.age + Math.max(0, g.year - 2026);
+      player.nation = identity.nation;
+      player.birthDate = identity.birthDate;
+      player.headshot = identity.headshot;
+      player.identitySource = "nhl-api";
+    }
+    team.logoUrl = NHL_TEAM_LOGOS[team.id];
+  }
+  g.dataSource = {
+    kind: "official-identities-demo-ratings",
+    season: NHL_DATA_META.season,
+    source: NHL_DATA_META.source,
+    fetchedAt: NHL_DATA_META.fetchedAt,
+  };
+  g.news.unshift(
+    "Карьера обновлена: личности игроков и эмблемы синхронизированы со снимком NHL API 2026/27; игровые рейтинги и контракты сохранены.",
+  );
+}
