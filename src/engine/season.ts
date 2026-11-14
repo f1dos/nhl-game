@@ -1,8 +1,14 @@
 import { RNG, clamp } from "./random";
-import {overall} from './ratings';
-import {expireContracts} from './contracts';
-import {ageWorld} from './lifecycle';
-import {trainTeam} from './training';
+import { overall } from "./ratings";
+import { expireContracts } from "./contracts";
+import { ageWorld } from "./lifecycle";
+import { trainTeam } from "./training";
+import {
+  autoCompleteDraft,
+  openDraft,
+  prepareNextDraft,
+  progressScouting,
+} from "./draft";
 import { simulateMatch } from "./match";
 import {
   emptyRecord,
@@ -83,7 +89,7 @@ function seedConference(teams: Team[]): Series[] {
 }
 export function advance(g: Game) {
   if (g.phase === "offseason") return;
-  const previousResult=g.last;
+  const previousResult = g.last;
   const r = new RNG(g.seed);
   g.teams.forEach(trainTeam);
   const play = (home: string, away: string, po: boolean) =>
@@ -101,6 +107,7 @@ export function advance(g: Game) {
       f.result = { ...res, events: [] };
     }
     g.round++;
+    progressScouting(g);
     if (g.round === 82) {
       g.phase = "playoffs";
       g.bracket = [
@@ -141,6 +148,7 @@ export function advance(g: Game) {
         g.news.unshift(
           `${series[0].winner} — обладатель Кубка Стэнли ${g.year + 1}.`,
         );
+        openDraft(g, r);
       } else {
         const winners = series.map((s) => s.winner!);
         g.bracket.push(
@@ -156,7 +164,7 @@ export function advance(g: Game) {
     }
   }
   g.seed = r.seed;
-  if (g.last && g.last!==previousResult) {
+  if (g.last && g.last !== previousResult) {
     const m = g.last;
     g.news.unshift(
       `${m.away} ${m.goals[1]} : ${m.goals[0]} ${m.home}${m.so ? " SO" : m.ot ? " OT" : ""}`,
@@ -165,13 +173,14 @@ export function advance(g: Game) {
   }
 }
 export function nextSeason(g: Game) {
-  const draft=structuredClone(g);
+  const draft = structuredClone(g);
   rollover(draft);
-  Object.assign(g,draft);
+  Object.assign(g, draft);
 }
-function rollover(g:Game){
+function rollover(g: Game) {
   if (g.phase !== "offseason") throw Error("Finish playoffs first");
   const r = new RNG(g.seed);
+  autoCompleteDraft(g);
   g.year++;
   g.round = 0;
   g.phase = "regular";
@@ -179,11 +188,12 @@ function rollover(g:Game){
   g.playoffRound = 0;
   g.last = undefined;
   g.schedule = makeSchedule(g.teams);
-  ageWorld(g,r);
+  ageWorld(g, r);
   g.teams.forEach((t) => {
     t.record = emptyRecord();
   });
   expireContracts(g);
+  prepareNextDraft(g, r);
   g.seed = r.seed;
   g.news.unshift(
     `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Истёкшие контракты завершены; минимальные составы укомплектованы автоматически.`,
