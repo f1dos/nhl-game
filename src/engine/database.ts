@@ -1,4 +1,5 @@
 import { RULES } from "./rules";
+import {archetypes,rolesFor,overall} from './ratings';
 import { RNG, clamp } from "./random";
 import {
   emptyRecord,
@@ -137,10 +138,11 @@ export function createPlayer(
   const attrs = Object.fromEntries(
     attributes.map((a) => [a, clamp(base + r.int(-12, 12), 35, 98)]),
   );
-  const ovr = Math.round(
-    Object.values(attrs).reduce((a, b) => a + b) / attributes.length,
-  );
+  const archetype=r.pick(rolesFor(pos));
+  for(const key of archetypes[archetype])attrs[key]=clamp(attrs[key]+8,35,98);
+  const ovr = overall(pos,attrs,archetype);
   return {
+    archetype,
     id,
     name: `${r.pick(first)} ${r.pick(last)}`,
     number: r.int(2, 98),

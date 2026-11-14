@@ -1,4 +1,5 @@
 import { RNG, clamp } from "./random";
+import {overall} from './ratings';
 import { simulateMatch } from "./match";
 import {
   emptyRecord,
@@ -79,6 +80,7 @@ function seedConference(teams: Team[]): Series[] {
 }
 export function advance(g: Game) {
   if (g.phase === "offseason") return;
+  const previousResult=g.last;
   const r = new RNG(g.seed);
   g.teams.forEach((t) =>
     t.players.forEach((p) => {
@@ -156,7 +158,7 @@ export function advance(g: Game) {
     }
   }
   g.seed = r.seed;
-  if (g.last) {
+  if (g.last && g.last!==previousResult) {
     const m = g.last;
     g.news.unshift(
       `${m.away} ${m.goals[1]} : ${m.goals[0]} ${m.home}${m.so ? " SO" : m.ot ? " OT" : ""}`,
@@ -186,9 +188,7 @@ export function nextSeason(g: Game) {
             : r.int(-1, 1);
       for (const key of Object.keys(p.attributes))
         p.attributes[key] = clamp(p.attributes[key] + delta, 30, 99);
-      p.ovr = Math.round(
-        Object.values(p.attributes).reduce((a, b) => a + b) / 30,
-      );
+      p.ovr = overall(p.pos,p.attributes,p.archetype);
       p.years = Math.max(1, p.years - 1);
       p.stats = emptyStats();
       p.fatigue = 0;
