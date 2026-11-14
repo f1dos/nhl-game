@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Game, Player } from "../engine/types";
 import { askingSalary, salaryTotal, signContract } from "../engine/contracts";
 import { Panel } from "./components";
+import InternationalMarket from "./InternationalMarket";
 
 export default function ContractCenter({
   game,
@@ -175,6 +176,7 @@ export default function ContractCenter({
           </table>
         </div>
       </Panel>
+      <InternationalMarket game={game} edit={edit} />
       <Panel title={ru ? "История контрактов" : "Contract history"}>
         {(game.contractHistory || [])
           .slice(-40)

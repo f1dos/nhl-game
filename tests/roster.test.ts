@@ -6,13 +6,22 @@ import { validateSave } from "../src/engine/saves";
 
 test("2026/27 identity dataset covers 32 clubs and 794 verified roster entries", () => {
   const g = newGame("TOR", 202627);
-  const players = g.teams.flatMap((team) => [
+  const organizationPlayers = g.teams.flatMap((team) => [
     ...team.players,
     ...(team.farm ?? []),
   ]);
+  const players = organizationPlayers.filter(
+    (player) => player.identitySource === "nhl-api",
+  );
   assert.equal(players.length, 794);
   assert.equal(new Set(players.map((player) => player.externalId)).size, 794);
   assert(players.every((player) => player.identitySource === "nhl-api"));
+  assert.equal(
+    organizationPlayers.filter(
+      (player) => player.identitySource === "hockeytech",
+    ).length,
+    809,
+  );
   assert(players.every((player) => player.name.includes(" ")));
   assert(g.teams.every((team) => team.logoUrl?.includes(team.id)));
   assert.equal(g.dataSource?.season, "2026/27");

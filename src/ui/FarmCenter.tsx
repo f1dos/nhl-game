@@ -17,6 +17,7 @@ export default function FarmCenter({
   const team = game.teams.find((t) => t.id === game.user)!;
   const farm = team.farm ?? [];
   const prospects = team.prospects ?? [];
+  const juniors = game.juniorPlayers ?? [];
   const forwards = team.players.filter(
     (p) => p.pos !== "D" && p.pos !== "G",
   ).length;
@@ -59,6 +60,11 @@ export default function FarmCenter({
           </span>
         </div>
         <div>
+          <small>OHL · JUNIOR POOL</small>
+          <b>{juniors.length}</b>
+          <span>{tr("реальные составы лиги", "official league rosters")}</span>
+        </div>
+        <div>
           <small>{tr("ЗАРПЛАТНАЯ ВЕДОМОСТЬ", "ACTIVE PAYROLL")}</small>
           <b>${salaryTotal(team).toFixed(1)}M</b>
           <span>
@@ -77,8 +83,8 @@ export default function FarmCenter({
       </Panel>
       <Panel
         title={tr(
-          "ФАРМ И ОРГАНИЗАЦИОННЫЙ РЕЗЕРВ",
-          "FARM & ORGANIZATIONAL RESERVE",
+          `AHL · ${team.ahlAffiliate ?? "ОРГАНИЗАЦИОННЫЙ РЕЗЕРВ"}`,
+          `AHL · ${team.ahlAffiliate ?? "ORGANIZATIONAL RESERVE"}`,
         )}
       >
         {farm.length ? (
@@ -100,10 +106,18 @@ export default function FarmCenter({
           </div>
         )}
       </Panel>
+      <Panel title={tr("OHL · ЮНИОРСКИЕ СОСТАВЫ", "OHL · JUNIOR ROSTERS")}>
+        <RosterRows
+          players={[...juniors]
+            .sort((a, b) => b.potential - a.potential)
+            .slice(0, 100)}
+          onPlayer={onPlayer}
+        />
+      </Panel>
       <p className="note">
         {tr(
-          "Резерв использует дополнительные записи текущего состава NHL API и пока не является подтверждённым составом конкретного клуба AHL. Правила отказов и двусторонние контракты ещё не моделируются.",
-          "The reserve uses additional entries from the current NHL API roster and is not yet a verified AHL affiliate roster. Waivers and two-way contracts are not modeled yet.",
+          "Идентичности и клубы AHL/OHL взяты из официальных HockeyTech feeds 2026/27. Игрока с контрактом только AHL нельзя вызвать без NHL/ELC соглашения. Игроки OHL показаны для скаутинга: права приобретаются через драфт, а не прямым вызовом.",
+          "AHL/OHL identities and clubs use official 2026/27 HockeyTech feeds. AHL-only players need an NHL/ELC deal before recall. OHL players are scouting targets whose rights must be acquired through the draft.",
         )}
       </p>
     </>
@@ -117,8 +131,8 @@ function RosterRows({
   onPlayer,
 }: {
   players: Player[];
-  action: string;
-  onAction: (id: string) => void;
+  action?: string;
+  onAction?: (id: string) => void;
   onPlayer: (p: Player) => void;
 }) {
   return (
@@ -164,9 +178,31 @@ function RosterRows({
                   <Rating value={player.ovr} />
                 </td>
                 <td>{player.potential}</td>
-                <td>${player.salary.toFixed(2)}M</td>
                 <td>
-                  <button onClick={() => onAction(player.id)}>{action}</button>
+                  {player.currentClub ? (
+                    <>
+                      <b>{player.currentClub}</b>
+                      <br />
+                      <small>{player.league}</small>
+                    </>
+                  ) : (
+                    `$${player.salary.toFixed(2)}M`
+                  )}
+                </td>
+                <td>
+                  {action && onAction && (
+                    <button
+                      disabled={player.contractType === "AHL"}
+                      title={
+                        player.contractType === "AHL"
+                          ? "Requires NHL contract"
+                          : ""
+                      }
+                      onClick={() => onAction(player.id)}
+                    >
+                      {player.contractType === "AHL" ? "NHL CONTRACT" : action}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

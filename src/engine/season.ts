@@ -10,6 +10,8 @@ import {
   progressScouting,
 } from "./draft";
 import { simulateMatch } from "./match";
+import { resolveInternationalOffers } from "./international";
+import { refreshInternationalMarket } from "./database";
 import {
   emptyRecord,
   emptyStats,
@@ -107,6 +109,7 @@ export function advance(g: Game) {
       f.result = { ...res, events: [] };
     }
     g.round++;
+    resolveInternationalOffers(g);
     progressScouting(g);
     if (g.round === 82) {
       g.phase = "playoffs";
@@ -192,6 +195,7 @@ function rollover(g: Game) {
   g.last = undefined;
   g.schedule = makeSchedule(g.teams);
   ageWorld(g, r);
+  refreshInternationalMarket(g, r);
   expireContracts(g);
   updateCareerStrengthRatings(g, completedRecords);
   g.teams.forEach((t) => {

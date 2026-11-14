@@ -95,6 +95,8 @@ export function validateSave(value: unknown): Game {
   for (const collection of [
     g.freeAgents ?? [],
     (g.retired ?? []).map((x) => x.player),
+    g.juniorPlayers ?? [],
+    (g.internationalMarket ?? []).map((x) => x.player),
   ]) {
     if (!Array.isArray(collection)) throw Error("Invalid player pool");
     for (const p of collection) {
@@ -119,6 +121,17 @@ export function validateSave(value: unknown): Game {
   }
   if ((g.freeAgents || []).some((p) => p.years !== 0))
     throw Error("Free agent has an active contract");
+  if (
+    (g.internationalOffers ?? []).some(
+      (offer) =>
+        !["pending", "accepted", "rejected", "countered"].includes(
+          offer.status,
+        ) ||
+        !Number.isFinite(offer.salary) ||
+        !Number.isInteger(offer.decisionRound),
+    )
+  )
+    throw Error("Invalid international offer");
   if (g.draft) {
     if (
       !["scouting", "draft", "complete"].includes(g.draft.status) ||

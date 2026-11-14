@@ -19,12 +19,16 @@ test("accepted trade transfers ownership, refreshes lines and survives save/load
   executeTrade(g, "BUF", [a.id], [b.id]);
   assert(g.teams[1].players.includes(a));
   assert(g.teams[0].players.includes(b));
+  const organizationPlayers = g.teams.flatMap((t) => [
+    ...t.players,
+    ...(t.farm || []),
+  ]);
   assert.equal(
-    new Set(
-      g.teams.flatMap((t) =>
-        [...t.players, ...(t.farm || [])].map((p) => p.id),
-      ),
-    ).size,
+    new Set(organizationPlayers.map((p) => p.id)).size,
+    organizationPlayers.length,
+  );
+  assert.equal(
+    organizationPlayers.filter((p) => p.identitySource === "nhl-api").length,
     794,
   );
   assert.equal(

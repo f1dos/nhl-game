@@ -12,11 +12,22 @@ export interface Stats {
   wins: number;
 }
 export interface Player {
+  league?:
+    "NHL" | "AHL" | "OHL" | "SHL" | "Liiga" | "NL" | "DEL" | "KHL" | "Czech";
+  currentClub?: string;
+  leagueSource?: "hockeytech" | "generated";
+  contractType?: "NHL" | "AHL" | "ELC" | "international";
+  injurySource?: "puckpedia" | "simulation";
+  injuryStatus?: string;
+  injuryReason?: string;
+  injuryTimeline?: string;
+  injuryReturnDate?: string;
+  injuryReport?: string;
   archetype?: import("./ratings").Archetype;
   externalId?: number;
   headshot?: string;
   birthDate?: string;
-  identitySource?: "nhl-api" | "generated";
+  identitySource?: "nhl-api" | "hockeytech" | "generated";
   ratingRank?: number;
   ratingSource?: "nhl-stats-model" | "generated";
   contractSource?: "puckpedia" | "generated";
@@ -84,6 +95,8 @@ export interface RecordStats {
   form: string[];
 }
 export interface Team {
+  ahlAffiliate?: string;
+  ahlLogoUrl?: string;
   training?: import("./training").TrainingPlan;
   trainingTicks?: number;
   prospects?: Player[];
@@ -108,6 +121,38 @@ export interface Team {
   goalie: string;
   tactics: Tactics;
   record: RecordStats;
+}
+export type InternationalRole = "depth" | "rotation" | "top-six";
+export interface InternationalCandidate {
+  player: Player;
+  league: "SHL" | "Liiga" | "NL" | "DEL" | "KHL" | "Czech";
+  club: string;
+  contractUntil: number;
+  transferStatus: "free" | "release-required" | "rights-restricted";
+  desiredSalary: number;
+  desiredYears: number;
+  desiredRole: InternationalRole;
+  adaptationRisk: number;
+  agentLeverage: number;
+  competingOffers: number;
+  scouted: number;
+  contactedBy?: string;
+}
+export interface InternationalOffer {
+  id: string;
+  playerId: string;
+  team: string;
+  salary: number;
+  years: number;
+  signingBonus: number;
+  role: InternationalRole;
+  developmentPlan: boolean;
+  transferFee: number;
+  submittedRound: number;
+  decisionRound: number;
+  status: "pending" | "accepted" | "rejected" | "countered";
+  score: number;
+  message: string;
 }
 export type ScoutingRegion =
   "North America" | "Nordic" | "Central Europe" | "Russia";
@@ -196,6 +241,9 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
+  juniorPlayers?: Player[];
+  internationalMarket?: InternationalCandidate[];
+  internationalOffers?: InternationalOffer[];
   retired?: { year: number; player: Player }[];
   freeAgents?: Player[];
   contractHistory?: {
@@ -219,6 +267,10 @@ export interface Game {
     ratingModel?: string;
     contractSource?: string;
     contractsFetchedAt?: string;
+    injurySource?: string;
+    injuriesFetchedAt?: string;
+    minorsSource?: string;
+    minorsFetchedAt?: string;
   };
   version: 1;
   id: string;
