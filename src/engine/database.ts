@@ -176,7 +176,7 @@ export function createPlayer(
       Math.round((0.8 + Math.pow(Math.max(0, ovr - 58) / 13, 2)) * 100) / 100,
     years: r.int(1, 5),
     fatigue: 0,
-    morale: 75,
+    morale: 50,
     injury: 0,
     stats: emptyStats(),
     history: [],
@@ -385,7 +385,7 @@ function createMinorPlayer(
   setPlayerOverall(player, target);
   player.potential =
     league === "OHL"
-      ? clamp(target + 12 + (hash(identity.name) % 18), target, 95)
+      ? clamp(target + 14 + (hash(identity.name) % 18), target + 10, 95)
       : clamp(target + (player.age <= 22 ? 8 : 3), target, 86);
   player.salary = league === "AHL" ? 0.15 : 0;
   player.years = 1;

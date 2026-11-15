@@ -1,5 +1,6 @@
 import { clamp } from "./random";
 import type { Game, Player } from "./types";
+import { syncMoraleBonus } from "./franchiseWorld";
 
 export type ConversationTopic =
   | "role"
@@ -275,6 +276,7 @@ export function talkToPlayer(
     0,
     100,
   );
+  syncMoraleBonus(player);
   player.lastConversationRound = game.round;
   (player.conversationHistory ??= []).unshift({
     year: game.year,

@@ -29,6 +29,7 @@ import { readiness } from "../engine/training";
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
 import { refreshObjectives, STRATEGY_POLICIES } from "../engine/strategy";
+import { likelyStrategy } from "../engine/franchiseWorld";
 
 type Edit = (fn: (game: Game) => void) => void;
 
@@ -263,11 +264,19 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
   ensureManagementState(game);
   refreshObjectives(game);
   const ru = game.language === "ru";
+  const [pendingStrategy, setPendingStrategy] =
+    useState<FranchiseStrategy | null>(null);
   const locked = game.strategySeason === game.year;
   const assets = game.draftAssets!.filter(
     (asset) => asset.currentTeam === game.user,
   );
   const team = game.teams.find((club) => club.id === game.user)!;
+  const recommended = likelyStrategy(team);
+  const fans = game.fans?.[game.user];
+  const rivalries = (game.rivalries ?? []).filter((rivalry) =>
+    [rivalry.teamA, rivalry.teamB].includes(game.user),
+  );
+  const needs = game.teamNeeds?.[game.user] ?? [];
   const young = [
     ...team.players,
     ...(team.farm ?? []),
@@ -299,9 +308,9 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
           return (
             <button
               key={strategy}
-              className={active ? "active" : ""}
+              className={`${active ? "active" : ""} ${recommended === strategy ? "recommended" : ""}`}
               disabled={locked}
-              onClick={() => edit((g) => selectFranchiseStrategy(g, strategy))}
+              onClick={() => setPendingStrategy(strategy)}
             >
               <span>{active ? <Check size={18} /> : <Target size={18} />}</span>
               <strong>{ru ? copy.ru : copy.en}</strong>
@@ -319,10 +328,74 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
                       ? "ВЫБРАТЬ"
                       : "SELECT"}
               </small>
+              {recommended === strategy && !active && (
+                <em>
+                  {ru ? "РЕКОМЕНДАЦИЯ РУКОВОДСТВА" : "BOARD RECOMMENDATION"}
+                </em>
+              )}
             </button>
           );
         })}
       </div>
+      {pendingStrategy && !locked && (
+        <div
+          className="strategy-confirm-backdrop"
+          onClick={() => setPendingStrategy(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="eyebrow">
+              {ru ? "РЕШЕНИЕ НА ВЕСЬ СЕЗОН" : "SEASON-LONG DECISION"}
+            </span>
+            <h2>
+              {ru
+                ? strategyCopy[pendingStrategy].ru
+                : strategyCopy[pendingStrategy].en}
+            </h2>
+            <p>
+              {ru
+                ? strategyCopy[pendingStrategy].ruText
+                : strategyCopy[pendingStrategy].enText}
+            </p>
+            <div className="confirm-policy">
+              <p>
+                <b>{ru ? "Состав:" : "Roster:"}</b>{" "}
+                {STRATEGY_POLICIES[pendingStrategy].roster}
+              </p>
+              <p>
+                <b>{ru ? "Финансы:" : "Finance:"}</b>{" "}
+                {STRATEGY_POLICIES[pendingStrategy].finance}
+              </p>
+              <p>
+                <b>{ru ? "Пики:" : "Picks:"}</b>{" "}
+                {STRATEGY_POLICIES[pendingStrategy].picks}
+              </p>
+            </div>
+            <strong>
+              {ru
+                ? "После подтверждения изменить стратегию до следующего сезона нельзя."
+                : "Once confirmed, the strategy cannot be changed until next season."}
+            </strong>
+            <div>
+              <button onClick={() => setPendingStrategy(null)}>
+                {ru ? "Вернуться и сравнить" : "Back and compare"}
+              </button>
+              <button
+                className="primary"
+                onClick={() => {
+                  edit((g) => selectFranchiseStrategy(g, pendingStrategy));
+                  setPendingStrategy(null);
+                }}
+              >
+                {ru ? "Утвердить стратегию" : "Confirm strategy"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       <div className="strategy-metrics">
         <div>
           <small>{ru ? "ДРАФТ-АКТИВЫ" : "DRAFT ASSETS"}</small>
@@ -382,6 +455,60 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
           </div>
         </Panel>
       )}
+      <Panel
+        title={
+          ru
+            ? "ФАНАТЫ, ДЕРБИ И ПОТРЕБНОСТИ КЛУБА"
+            : "FANS, RIVALRIES & CLUB NEEDS"
+        }
+      >
+        <div className="franchise-world-grid">
+          <div>
+            <small>{ru ? "ФАНАТСКАЯ БАЗА" : "FAN BASE"}</small>
+            <strong>{fans?.supporters.toLocaleString() ?? "—"}</strong>
+            <p>
+              {ru ? "Счастье" : "Happiness"} {fans?.happiness ?? 50}% ·{" "}
+              {ru ? "вовлечённость" : "engagement"} {fans?.engagement ?? 50}%
+            </p>
+            <progress max="100" value={fans?.happiness ?? 50} />
+            <span>{fans?.lastChange}</span>
+          </div>
+          <div>
+            <small>{ru ? "ГОРЯЧИЕ ПРОТИВОСТОЯНИЯ" : "HOT RIVALRIES"}</small>
+            {rivalries.map((rivalry) => (
+              <p key={rivalry.id}>
+                <b>{rivalry.label}</b>
+                <br />
+                {ru ? "Накал" : "Heat"} {rivalry.heat} ·{" "}
+                {rivalry.seasonWins[game.user] ?? 0} W
+              </p>
+            ))}
+            {!rivalries.length && (
+              <p>
+                {ru
+                  ? "Принципиальное дерби формируется результатами."
+                  : "A rivalry will emerge through results."}
+              </p>
+            )}
+          </div>
+          <div>
+            <small>
+              {ru ? "ПОЗИЦИИ ДЛЯ УСИЛЕНИЯ" : "POSITIONS TO IMPROVE"}
+            </small>
+            {needs.map((need) => (
+              <p key={need.position}>
+                <b>
+                  {need.position} · {need.priority}
+                </b>
+                <br />
+                {need.reason}
+                <br />
+                {ru ? "Бюджет" : "Budget"}: ${need.budget}M
+              </p>
+            ))}
+          </div>
+        </div>
+      </Panel>
       <Panel title={ru ? "ЗАДАЧИ СОВЕТА ДИРЕКТОРОВ" : "BOARD OBJECTIVES"}>
         <div className="board-status">
           <div>
@@ -568,6 +695,8 @@ export function DecisionInbox({
       game.events!.filter(
         (event) =>
           (filter === "all" ||
+            (filter === "important" &&
+              ["high", "critical"].includes(event.priority)) ||
             (filter === "open" && !event.resolved) ||
             event.category === filter) &&
           `${event.title} ${event.body}`
@@ -593,23 +722,29 @@ export function DecisionInbox({
       </div>
       <div className="inbox-toolbar">
         <div className="tabs">
-          {["all", "open", "trade", "contract", "medical"].map((item) => (
-            <button
-              key={item}
-              className={filter === item ? "active" : ""}
-              onClick={() => setFilter(item)}
-            >
-              {item === "all"
-                ? ru
-                  ? "Все"
-                  : "All"
-                : item === "open"
+          {["all", "important", "open", "trade", "contract", "medical"].map(
+            (item) => (
+              <button
+                key={item}
+                className={filter === item ? "active" : ""}
+                onClick={() => setFilter(item)}
+              >
+                {item === "all"
                   ? ru
-                    ? "Требуют решения"
-                    : "Needs action"
-                  : categoryNames[item]?.[ru ? 0 : 1]}
-            </button>
-          ))}
+                    ? "Все"
+                    : "All"
+                  : item === "important"
+                    ? ru
+                      ? "Только важные"
+                      : "Important only"
+                    : item === "open"
+                      ? ru
+                        ? "Требуют решения"
+                        : "Needs action"
+                      : categoryNames[item]?.[ru ? 0 : 1]}
+              </button>
+            ),
+          )}
         </div>
         <label>
           <Search size={15} />

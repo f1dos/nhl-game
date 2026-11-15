@@ -266,6 +266,10 @@ export function objectiveProgress(g: Game, metric: ObjectiveMetric) {
     return (g.draftAssets ?? []).filter(
       (asset) => asset.currentTeam === g.user && asset.round <= 3,
     ).length;
+  if (metric === "rivalry-wins")
+    return (g.rivalries ?? [])
+      .filter((rivalry) => [rivalry.teamA, rivalry.teamB].includes(g.user))
+      .reduce((sum, rivalry) => sum + (rivalry.seasonWins[g.user] ?? 0), 0);
   return (
     team.players.reduce((sum, player) => sum + player.morale, 0) /
     Math.max(1, team.players.length)

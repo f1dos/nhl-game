@@ -231,6 +231,49 @@ export function validateSave(value: unknown): Game {
     )
       throw Error("Invalid draft assets");
   }
+  if (
+    g.fans &&
+    Object.values(g.fans).some(
+      (fans) =>
+        !Number.isFinite(fans.supporters) ||
+        fans.supporters < 0 ||
+        !Number.isFinite(fans.happiness) ||
+        fans.happiness < 0 ||
+        fans.happiness > 100 ||
+        !Number.isFinite(fans.engagement) ||
+        fans.engagement < 0 ||
+        fans.engagement > 100,
+    )
+  )
+    throw Error("Invalid fan state");
+  if (
+    g.rivalries &&
+    (!Array.isArray(g.rivalries) ||
+      g.rivalries.some(
+        (rivalry) =>
+          !ids.has(rivalry.teamA) ||
+          !ids.has(rivalry.teamB) ||
+          rivalry.teamA === rivalry.teamB ||
+          rivalry.heat < 0 ||
+          rivalry.heat > 100,
+      ))
+  )
+    throw Error("Invalid rivalry state");
+  if (
+    g.teamNeeds &&
+    Object.entries(g.teamNeeds).some(
+      ([team, needs]) =>
+        !ids.has(team) ||
+        !Array.isArray(needs) ||
+        needs.some(
+          (need) =>
+            !["LW", "C", "RW", "D", "G"].includes(need.position) ||
+            !["critical", "high", "medium"].includes(need.priority) ||
+            !Number.isFinite(need.budget),
+        ),
+    )
+  )
+    throw Error("Invalid team needs");
   return g;
 }
 const open = () =>

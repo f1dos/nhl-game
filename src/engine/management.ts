@@ -3,6 +3,11 @@ import { advance, dateForRound } from "./season";
 import { payroll, tradeValue } from "./trades";
 import { trainTeam } from "./training";
 import { chooseSeasonStrategy, defaultEmployment } from "./strategy";
+import {
+  addRivalryObjective,
+  applyWeeklyMood,
+  ensureFranchiseWorld,
+} from "./franchiseWorld";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -174,6 +179,7 @@ export function ensureManagementState(g: Game) {
     g.franchiseObjectives = [];
   }
   g.managerEmployment ??= defaultEmployment();
+  ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
   for (const team of g.teams) team.aiProfile ??= createProfile(team);
   if (!g.events.length) seedOpeningEvents(g);
@@ -369,6 +375,7 @@ function processCurrentDay(g: Game) {
     for (const team of g.teams) trainTeam(team);
   }
   adaptAiStrategies(g);
+  if (g.calendar!.day % 7 === 0) applyWeeklyMood(g);
   aiContractDay(g);
   aiTradeDay(g);
   g.calendar!.lastProcessedDate = date;
@@ -421,6 +428,7 @@ export function resolveEvent(g: Game, id: string) {
 export function selectFranchiseStrategy(g: Game, strategy: FranchiseStrategy) {
   ensureManagementState(g);
   chooseSeasonStrategy(g, strategy);
+  addRivalryObjective(g);
   const opening = g.events!.find(
     (event) =>
       event.title === "Утвердите стратегию франшизы" && !event.resolved,
