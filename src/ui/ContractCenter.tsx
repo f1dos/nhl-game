@@ -33,7 +33,7 @@ export default function ContractCenter({
   const choose = (p: Player) => {
     setSelected(p.id);
     setSalary(askingSalary(p, game, game.user));
-    setYears(desiredFreeAgentYears(p));
+    setYears(team.players.some(member => member.id === p.id) ? 2 : desiredFreeAgentYears(p));
     setRole(desiredFreeAgentRole(p));
     setMessage("");
   };
