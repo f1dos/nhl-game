@@ -38,7 +38,7 @@ const age = (dob) => {
 const fetchText = (url) => execFileSync("curl", [
   "--location","--compressed","--fail","--silent","--show-error",
   "--connect-timeout","12","--max-time","35",
-  "--user-agent","Mozilla/5.0 (compatible; NHLManager26/0.6; open roster sync)",
+  "--user-agent","Mozilla/5.0 (compatible; NHLManager27/0.6; open roster sync)",
   url
 ], {encoding:"utf8",maxBuffer:35_000_000});
 const get = (url) => {
