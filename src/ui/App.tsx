@@ -271,7 +271,7 @@ export default function App() {
       .then((xs) => {
         setSaved(xs);
         const last = xs.find(
-          (x) => x.id === localStorage.getItem("nhlm26-last"),
+          (x) => x.id === (localStorage.getItem("nhlm27-last") ?? localStorage.getItem("nhlm26-last")),
         );
         if (last) setGame(validateSave(last));
       })
@@ -382,7 +382,7 @@ export default function App() {
     return (
       <div className="loading">
         <Snowflake size={40} />
-        <h2>NHL MANAGER 26</h2>
+        <h2>NHL MANAGER 27</h2>
       </div>
     );
   if (!g || creating) {
@@ -1539,14 +1539,14 @@ export default function App() {
             <div className="settings-actions">
               <a
                 className="button"
-                href="/downloads/NHL-Manager-26.html"
+                href="/downloads/NHL-Manager-27.html"
                 download
               >
-                NHL-Manager-26.html
+                NHL-Manager-27.html
               </a>
               <a
                 className="button"
-                href="/downloads/nhl-manager-26-source.zip"
+                href="/downloads/nhl-manager-27-source.zip"
                 download
               >
                 {tr("Исходники + тесты ZIP", "Source + tests ZIP")}
@@ -1877,14 +1877,12 @@ export default function App() {
 function Brand() {
   return (
     <div className="brand">
-      <img
-        className="brand-logo"
-        src="/nhl-manager-26-logo.png"
-        alt="NHL Manager 26"
-      />
+      <span className="brand-logo brand-logo-mark" aria-label="Hockey mark" role="img">
+        <Snowflake size={26} strokeWidth={2.4} />
+      </span>
       <div className="brand-copy">
         <span>
-          NHL MANAGER <b>26</b>
+          NHL MANAGER <b>27</b>
         </span>
         <small>BUILD YOUR LEGACY</small>
       </div>

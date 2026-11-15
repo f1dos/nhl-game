@@ -383,14 +383,33 @@ export function validateSave(value: unknown): Game {
     throw Error("Invalid team needs");
   return g;
 }
-const open = () =>
+// NHL Manager 27 uses a new database name, but legacy 26 careers are
+// migrated non-destructively on first load. Never overwrite a newer save
+// with an older copy if the previous database still exists.
+const open = (name = "nhlm27") =>
   new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open("nhlm26", 1);
+    const req = indexedDB.open(name, 1);
     req.onupgradeneeded = () =>
       req.result.createObjectStore("careers", { keyPath: "id" });
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+
+async function readGames(name: string): Promise<Game[]> {
+  const db = await open(name);
+  return new Promise((resolve, reject) => {
+    const req = db.transaction("careers").objectStore("careers").getAll();
+    req.onsuccess = () => {
+      db.close();
+      resolve(req.result as Game[]);
+    };
+    req.onerror = () => {
+      db.close();
+      reject(req.error);
+    };
+  });
+}
+
 async function writeGame(g: Game) {
   const db = await open();
   await new Promise<void>((resolve, reject) => {
@@ -400,18 +419,31 @@ async function writeGame(g: Game) {
     tx.onerror = () => reject(tx.error);
   });
   db.close();
-  localStorage.setItem("nhlm26-last", g.id);
+  localStorage.setItem("nhlm27-last", g.id);
 }
+
 export async function listGames(): Promise<Game[]> {
+  const current = await readGames("nhlm27");
+  // On first startup after the rebrand, copy only career IDs that do not
+  // already exist in the 27 database. Retain the old DB as a backup.
+  const legacy = await readGames("nhlm26").catch(() => [] as Game[]);
+  const present = new Set(current.map((game) => game.id));
+  const missing = legacy.filter((game) => !present.has(game.id));
+  if (!missing.length) return current;
+
   const db = await open();
-  return new Promise((resolve, reject) => {
-    const req = db.transaction("careers").objectStore("careers").getAll();
-    req.onsuccess = () => {
-      db.close();
-      resolve(req.result);
-    };
-    req.onerror = () => reject(req.error);
-  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("careers", "readwrite");
+      const store = tx.objectStore("careers");
+      missing.forEach((game) => store.add(game));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } finally {
+    db.close();
+  }
+  return [...current, ...missing];
 }
 export function exportGame(g: Game) {
   const blob = new Blob([JSON.stringify(g)], { type: "application/json" });
