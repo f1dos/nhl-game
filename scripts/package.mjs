@@ -21,7 +21,7 @@ html = html.replace(
     fs.readFileSync(path.join(dist, src.replace(/^\//, "")), "utf8") +
     "</style>",
 );
-fs.writeFileSync(path.join(dist, "downloads", "NHL-Manager-26.html"), html);
+fs.writeFileSync(path.join(dist, "downloads", "NHL-Manager-27.html"), html);
 const files = {};
 function collect(dir) {
   for (const entry of fs.readdirSync(path.join(root, dir), {
@@ -30,7 +30,7 @@ function collect(dir) {
     const rel = path.posix.join(dir, entry.name);
     if (entry.isDirectory()) collect(rel);
     else
-      files["nhl-manager-26/" + rel] = new Uint8Array(
+      files["nhl-manager-27/" + rel] = new Uint8Array(
         fs.readFileSync(path.join(root, rel)),
       );
   }
@@ -44,11 +44,11 @@ for (const file of [
   "index.html",
   ".gitignore",
 ])
-  files["nhl-manager-26/" + file] = new Uint8Array(
+  files["nhl-manager-27/" + file] = new Uint8Array(
     fs.readFileSync(path.join(root, file)),
   );
 fs.writeFileSync(
-  path.join(dist, "downloads", "nhl-manager-26-source.zip"),
+  path.join(dist, "downloads", "nhl-manager-27-source.zip"),
   zipSync(files, { level: 6 }),
 );
 fs.copyFileSync(
