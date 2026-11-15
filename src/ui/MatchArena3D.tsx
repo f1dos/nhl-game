@@ -122,11 +122,12 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
         model.traverse(object => {
           if (!(object instanceof THREE.Mesh)) return;
           const materials = Array.isArray(object.material) ? object.material : [object.material];
-          object.material = materials.map(source => {
+          const tinted = materials.map(source => {
             const material = source.clone();
             if (material instanceof THREE.MeshStandardMaterial && material.name.startsWith("Jersey")) material.color.set(side ? "#e8edf3" : home.color);
             return material;
           });
+          object.material = Array.isArray(object.material) ? tinted : tinted[0];
           // Demonstration identities must not masquerade as career player names.
           if (["NORTH","SKATER","KEEPER","27","31"].includes(object.name)) object.visible = false;
           object.frustumCulled = false;
