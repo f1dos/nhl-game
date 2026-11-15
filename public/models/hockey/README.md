@@ -9,8 +9,13 @@ match renderer. They establish reproducible mesh, equipment, skeleton and animat
 export. Each equipment component currently uses rigid bone weights. The skating
 study tests two leg channels; it is not a finished hockey animation.
 
-Outstanding: anatomical refinement, joint deformation and blended weights, visor,
-jersey name/number textures, goalie mask/catcher/blocker, hand IK, skating contact,
+Second iteration adds curved visor, chin straps, helmet vents, boot laces,
+segmented gloves, uniform trim, demonstration lettering, goalie cage/catcher/blocker
+and sewn pad panels. Front three-quarter review renders are included. Lettering
+is currently geometry with placeholder identities, not career player textures.
+
+Outstanding: anatomical refinement, joint deformation and blended weights,
+career jersey name/number textures, hand IK, skating contact,
 full animation library, LOD, compression, in-app demonstration and visual review.
 No performance target or Football Manager quality parity has been verified.
 
