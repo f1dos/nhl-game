@@ -168,7 +168,7 @@ export function processFreeAgentOffers(g: Game): FreeAgentOffer[] {
         continue;
       } catch { /* Agent keeps negotiating if rival offer is no longer legal */ }
     }
-    if (score>=90 && offer.salary>=needed*.96 && roleGap<=0) {
+    if (score>=90 && offer.salary>=Math.max(ask, needed*.96) && roleGap<=0) {
       try {
         signContract(g,team.id,p.id,offer.years,offer.salary);
         autoLines(team);
