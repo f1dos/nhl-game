@@ -72,6 +72,7 @@ export interface Player {
   years: number;
   fatigue: number;
   morale: number;
+  moraleOvrBonus?: number;
   injury: number;
   stats: Stats;
   history: { year: number; ovr: number; stats: Stats }[];
@@ -192,7 +193,8 @@ export type ObjectiveMetric =
   | "young-nhl-players"
   | "cap-space"
   | "premium-draft-picks"
-  | "team-morale";
+  | "team-morale"
+  | "rivalry-wins";
 export interface FranchiseObjective {
   id: string;
   season: number;
@@ -211,6 +213,29 @@ export interface ManagerEmployment {
   seasonsReviewed: number;
   criticalFailures: number;
   lastReview?: string;
+}
+export interface FanState {
+  supporters: number;
+  engagement: number;
+  happiness: number;
+  attendance: number;
+  revenueMultiplier: number;
+  lastChange: string;
+}
+export interface RivalryState {
+  id: string;
+  teamA: string;
+  teamB: string;
+  label: string;
+  heat: number;
+  seasonWins: Record<string, number>;
+  seasonLosses: Record<string, number>;
+}
+export interface TeamNeed {
+  position: Position;
+  priority: "critical" | "high" | "medium";
+  reason: string;
+  budget: number;
 }
 export interface AiGeneralManagerProfile {
   strategy: FranchiseStrategy;
@@ -332,6 +357,9 @@ export interface Game {
   strategySeason?: number;
   franchiseObjectives?: FranchiseObjective[];
   managerEmployment?: ManagerEmployment;
+  fans?: Record<string, FanState>;
+  rivalries?: RivalryState[];
+  teamNeeds?: Record<string, TeamNeed[]>;
   draftAssets?: DraftAsset[];
   juniorPlayers?: Player[];
   internationalMarket?: InternationalCandidate[];

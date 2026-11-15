@@ -1,5 +1,10 @@
 import type { Game, Player, Team } from "./types";
 import { autoLines } from "./database";
+import { rivalryBetween } from "./franchiseWorld";
+export interface TradeAssets {
+  givePicks?: string[];
+  takePicks?: string[];
+}
 export const payroll = (players: Player[]) =>
   players.reduce((s, p) => s + p.salary, 0);
 export function tradeValue(p: Player) {
@@ -26,18 +31,38 @@ export function evaluateTrade(
   other: string,
   give: string[],
   take: string[],
+  assets: TradeAssets = {},
 ) {
   const a = g.teams.find((t) => t.id === g.user)!,
     b = g.teams.find((t) => t.id === other);
-  const reject = (reason: string) => ({ accepted: false, reason, ratio: 0 });
+  const reject = (reason: string) => ({
+    accepted: false,
+    reason,
+    ratio: 0,
+    threshold: 1.08,
+    rivalry: undefined as string | undefined,
+  });
   if (!b || a === b)
     return reject("Выберите другой клуб / Select another club");
   if (
-    !give.length ||
-    !take.length ||
+    (!give.length && !assets.givePicks?.length) ||
+    (!take.length && !assets.takePicks?.length) ||
     new Set([...give, ...take]).size !== give.length + take.length
   )
     return reject("Некорректные активы / Invalid assets");
+  const givePicks =
+    g.draftAssets?.filter((pick) => assets.givePicks?.includes(pick.id)) ?? [];
+  const takePicks =
+    g.draftAssets?.filter((pick) => assets.takePicks?.includes(pick.id)) ?? [];
+  if (
+    givePicks.length !== (assets.givePicks?.length ?? 0) ||
+    takePicks.length !== (assets.takePicks?.length ?? 0) ||
+    givePicks.some((pick) => pick.currentTeam !== g.user) ||
+    takePicks.some((pick) => pick.currentTeam !== other)
+  )
+    return reject(
+      "Права на драфт-пик изменились / Draft-pick ownership changed",
+    );
   if (
     give.some((id) => !a.players.some((p) => p.id === id)) ||
     take.some((id) => !b.players.some((p) => p.id === id))
@@ -60,14 +85,24 @@ export function evaluateTrade(
         tradeValue(p) * (t.record.pts > t.record.gp && p.ovr >= 80 ? 1.15 : 1),
       0,
     );
-  const ratio = value(outgoing, b) / value(incoming, b);
+  const outgoingValue =
+    value(outgoing, b) + givePicks.reduce((sum, pick) => sum + pick.value, 0);
+  const incomingValue =
+    value(incoming, b) + takePicks.reduce((sum, pick) => sum + pick.value, 0);
+  const ratio = outgoingValue / Math.max(1, incomingValue);
+  const rivalry = rivalryBetween(g, g.user, other);
+  const threshold = 1.08 + (rivalry?.heat ?? 0) / 500;
   return {
-    accepted: ratio >= 1.08,
+    accepted: ratio >= threshold,
     reason:
-      ratio >= 1.08
+      ratio >= threshold
         ? "Клуб согласен / Club accepts"
-        : "Клуб требует больше ценности / Club wants more value",
+        : rivalry
+          ? `Из-за принципиального соперничества ${rivalry.label} клуб требует серьёзную переплату / Rival club demands a premium`
+          : "Клуб требует больше ценности / Club wants more value",
     ratio,
+    threshold,
+    rivalry: rivalry?.label,
   };
 }
 export function executeTrade(
@@ -75,8 +110,9 @@ export function executeTrade(
   other: string,
   give: string[],
   take: string[],
+  assets: TradeAssets = {},
 ) {
-  const evaluation = evaluateTrade(g, other, give, take);
+  const evaluation = evaluateTrade(g, other, give, take, assets);
   if (!evaluation.accepted) throw Error(evaluation.reason);
   const a = g.teams.find((t) => t.id === g.user)!,
     b = g.teams.find((t) => t.id === other)!;
@@ -84,9 +120,22 @@ export function executeTrade(
     incoming = b.players.filter((p) => take.includes(p.id));
   a.players = [...a.players.filter((p) => !give.includes(p.id)), ...incoming];
   b.players = [...b.players.filter((p) => !take.includes(p.id)), ...outgoing];
+  const givePicks =
+    g.draftAssets?.filter((pick) => assets.givePicks?.includes(pick.id)) ?? [];
+  const takePicks =
+    g.draftAssets?.filter((pick) => assets.takePicks?.includes(pick.id)) ?? [];
+  givePicks.forEach((pick) => (pick.currentTeam = other));
+  takePicks.forEach((pick) => (pick.currentTeam = g.user));
   autoLines(a);
   autoLines(b);
-  const message = `${a.id} → ${b.id}: ${outgoing.map((p) => p.name).join(", ")}; ${b.id} → ${a.id}: ${incoming.map((p) => p.name).join(", ")}`;
+  const describe = (players: Player[], picks: typeof givePicks) =>
+    [
+      ...players.map((player) => player.name),
+      ...picks.map(
+        (pick) => `${pick.year} R${pick.round} (${pick.originalTeam})`,
+      ),
+    ].join(", ");
+  const message = `${a.id} → ${b.id}: ${describe(outgoing, givePicks)}; ${b.id} → ${a.id}: ${describe(incoming, takePicks)}`;
   (g.transactions ??= []).push({ year: g.year, round: g.round, message });
   g.news.unshift(message);
 }

@@ -41,6 +41,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText("Штаб генерального менеджера"));
   fireEvent.click(screen.getByText("Стратегия клуба"));
   fireEvent.click(screen.getByText("Wild Card Hunt"));
+  assert(screen.getByRole("dialog"));
+  assert.equal(useGame.getState().game?.franchiseStrategy, undefined);
+  fireEvent.click(screen.getByText("Утвердить стратегию"));
+  assert.equal(useGame.getState().game?.franchiseStrategy, "wild-card-hunt");
   assert(screen.getByText("ЗАДАЧИ СОВЕТА ДИРЕКТОРОВ"));
   fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Скаутинг и драфт"));

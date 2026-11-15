@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { Team, Player } from "../engine/types";
+import { effectiveOverall } from "../engine/franchiseWorld";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -165,7 +166,7 @@ export function PlayerTable({
               </td>
               <td>{p.age}</td>
               <td>
-                <Rating value={p.ovr} />
+                <Rating value={effectiveOverall(p)} />
               </td>
               <td>{p.stats.gp}</td>
               <td>{p.stats.g}</td>
@@ -179,7 +180,19 @@ export function PlayerTable({
                 <small>{Math.round(100 - p.fatigue)}%</small>
               </td>
               <td>${p.salary.toFixed(2)}M</td>
-              {onAssign && <td><button className="roster-assign-button" onClick={(e) => { e.stopPropagation(); onAssign(p.id); }}>{ru ? "В AHL" : "To AHL"}</button></td>}
+              {onAssign && (
+                <td>
+                  <button
+                    className="roster-assign-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAssign(p.id);
+                    }}
+                  >
+                    {ru ? "В AHL" : "To AHL"}
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

@@ -169,6 +169,59 @@
 .strategy-grid > button.active:disabled {
   opacity: 1;
 }
+.strategy-grid > button.recommended {
+  border-color: #6ca879;
+  box-shadow: inset 0 -2px #6ca879;
+}
+.strategy-grid > button em {
+  font-size: 8px;
+  font-style: normal;
+  color: #8bd19c;
+  letter-spacing: 0.7px;
+}
+.strategy-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 8, 12, 0.82);
+  padding: 20px;
+}
+.strategy-confirm-backdrop > section {
+  width: min(620px, 100%);
+  padding: 28px;
+  background: #141c24;
+  border: 1px solid #3d5669;
+  box-shadow: 0 25px 80px #000;
+}
+.strategy-confirm-backdrop h2 {
+  margin: 9px 0;
+}
+.strategy-confirm-backdrop > section > p {
+  color: #9dadbc;
+}
+.confirm-policy {
+  margin: 20px 0;
+  padding: 15px;
+  background: #0f161d;
+  border: 1px solid #293743;
+}
+.confirm-policy p {
+  font-size: 12px;
+  margin: 6px 0;
+}
+.strategy-confirm-backdrop > section > strong {
+  display: block;
+  color: #dfa77b;
+  font-size: 12px;
+}
+.strategy-confirm-backdrop > section > div:last-child {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
 .strategy-policy {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -419,6 +472,45 @@
   padding: 9px 7px;
   max-width: 112px;
 }
+.franchise-world-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.franchise-world-grid > div {
+  min-height: 170px;
+  padding: 20px;
+  border-right: 1px solid #29343f;
+}
+.franchise-world-grid > div:last-child {
+  border-right: 0;
+}
+.franchise-world-grid small {
+  display: block;
+  color: #79bce3;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  margin-bottom: 10px;
+}
+.franchise-world-grid strong {
+  display: block;
+  font-size: 22px;
+  margin-bottom: 9px;
+}
+.franchise-world-grid p,
+.franchise-world-grid span {
+  color: #9eacba;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.franchise-world-grid p b {
+  color: #e4ebf1;
+}
+.franchise-world-grid progress {
+  width: 100%;
+  height: 5px;
+  accent-color: #48a9df;
+  margin: 8px 0;
+}
 @media (max-width: 1100px) {
   .strategy-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -431,6 +523,9 @@
   }
   .club-pulse {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .franchise-world-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 @media (max-width: 850px) {
@@ -481,5 +576,12 @@
   }
   .top-actions .continue-select {
     display: none;
+  }
+  .franchise-world-grid {
+    grid-template-columns: 1fr;
+  }
+  .franchise-world-grid > div {
+    border-right: 0;
+    border-bottom: 1px solid #29343f;
   }
 }

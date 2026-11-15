@@ -54,6 +54,10 @@ import LeagueCenter from "./LeagueCenter";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
 import {
+  effectiveOverall,
+  ensureFranchiseWorld,
+} from "../engine/franchiseWorld";
+import {
   DailyCalendar,
   DailyHeadquarters,
   DecisionInbox,
@@ -481,6 +485,7 @@ export default function App() {
     );
   }
   ensureManagementState(g);
+  ensureFranchiseWorld(g);
   const team = g.teams.find((t) => t.id === g.user)!;
   const sorted = standings(g.teams);
   const conference = standings(
@@ -1825,7 +1830,7 @@ function TacticsView({
           <button className="text-button" onClick={() => onSelect(p)}>
             #{p.number}
           </button>
-          <Rating value={p.ovr} />
+          <Rating value={effectiveOverall(p)} />
         </div>
         <select
           aria-label={`${group} lineup`}
@@ -2121,7 +2126,7 @@ function PlayerProfile({
           </div>
           <div className="profile-ratings">
             <div>
-              <b>{p.ovr}</b>
+              <b>{effectiveOverall(p)}</b>
               <small>OVR</small>
             </div>
             <div>

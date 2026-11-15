@@ -13,6 +13,7 @@ import { simulateMatch } from "./match";
 import { resolveInternationalOffers } from "./international";
 import { refreshInternationalMarket } from "./database";
 import { reviewSeasonStrategy } from "./strategy";
+import { applyWorldMatchReaction } from "./franchiseWorld";
 import {
   emptyRecord,
   emptyStats,
@@ -74,6 +75,7 @@ function recordResult(g: Game, res: Result) {
     s.pko += res.ppo[1 - i];
     s.form = [...s.form, won ? "W" : res.ot ? "OT" : "L"].slice(-5);
   });
+  applyWorldMatchReaction(g, res);
 }
 function seedConference(teams: Team[]): Series[] {
   const divisions = [...new Set(teams.map((t) => t.division))];
