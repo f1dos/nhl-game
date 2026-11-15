@@ -171,7 +171,7 @@ export function processFreeAgentOffers(g: Game): FreeAgentOffer[] {
     if (score>=90 && offer.salary>=Math.max(ask, needed*.96) && roleGap<=0) {
       try {
         signContract(g,team.id,p.id,offer.years,offer.salary);
-        autoLines(team);
+        // Preserve custom lines; the manager assigns newly signed players manually.
         offer.status="accepted";offer.agentResponse="accepted";done.push(offer);continue;
       } catch {
         offer.status="rejected";offer.agentResponse="cap";done.push(offer);continue;
