@@ -3,6 +3,7 @@ import { advance, dateForRound } from "./season";
 import { simulateMatch } from "./match";
 import { RNG } from "./random";
 import { payroll, tradeValue } from "./trades";
+import { processFreeAgentOffers } from "./freeAgency";
 import { trainTeam } from "./training";
 import { chooseSeasonStrategy, defaultEmployment } from "./strategy";
 import {
@@ -417,6 +418,27 @@ function processCurrentDay(g: Game) {
     });
   } else if (g.phase === "regular" && !preseason) {
     for (const team of g.teams) trainTeam(team);
+  }
+  for (const offer of processFreeAgentOffers(g)) {
+    const player = g.teams.flatMap(t => t.players).find(p => p.id === offer.playerId)
+      ?? g.freeAgents?.find(p => p.id === offer.playerId);
+    pushEvent(g, {
+      date,
+      category: "contract",
+      priority: offer.status === "countered" || offer.status === "signed-elsewhere" ? "high" : "normal",
+      title: `Free agency: ${player?.name ?? offer.playerId} — ${offer.status}`,
+      body: offer.status === "countered"
+        ? `Agent requests ${offer.counterSalary?.toFixed(2)}M AAV and a ${offer.counterRole} role. Counteroffer valid for seven days.`
+        : offer.status === "accepted"
+          ? "Your proposed contract has been accepted and registered."
+          : offer.status === "signed-elsewhere"
+            ? `The player signed with ${offer.competingTeamId ?? "another team"}.`
+            : "The agent declined the proposal. Review the contract negotiations.",
+      action: "contracts",
+      playerId: offer.playerId,
+      requiresResponse: offer.status === "countered",
+      responseDue: offer.status === "countered" ? addDays(date, 7) : undefined,
+    });
   }
   adaptAiStrategies(g);
   if (g.calendar!.day % 7 === 0) applyWeeklyMood(g);

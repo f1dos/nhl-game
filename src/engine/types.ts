@@ -368,6 +368,7 @@ export interface Series {
   games: Result[];
 }
 export interface Game {
+  freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
   preseasonFixtures?: PreseasonFixture[];
   pressHistory?: PressAppearance[];
