@@ -1603,6 +1603,11 @@ export default function App() {
                 <option value="week">{tr("7 дней", "7 days")}</option>
               </select>
             )}
+            {g.phase === "offseason" && (g.freeAgentOffers ?? []).some((offer) => offer.status === "pending") && (
+              <button className="text-button" onClick={() => edit((world) => advanceDay(world))}>
+                {tr("Следующий день", "Next day")} <ChevronRight size={14} />
+              </button>
+            )}
             <button
               className="primary"
               disabled={busy}
