@@ -1,0 +1,45 @@
+export const englishMatch: Record<string,string> = {
+  "ГОЛ":"GOAL", "Гол в пустые ворота":"Empty-net goal", "2 минуты за нарушение":"Two-minute minor penalty", "Победа по буллитам":"Shootout win",
+  "ТРЕНЕРСКАЯ ДОСКА":"COACHING BOARD", "Сочетания на льду":"On-ice units", "Формат игры":"Game situation", "Равные составы · 5 на 5":"Even strength · 5 on 5",
+  "Нападение":"Forwards", "Защита":"Defense", "Схема спецбригады":"Special-team formation", "Выберите игрока":"Select a player", "Готовность":"Condition",
+  "Выберите позицию на льду":"Select an on-ice position", "Замена игрока":"Replace player",
+  "Нажмите на фамилию, затем выберите хоккеиста. Занятые игроки меняются местами.":"Click a name, then select a player. Players already assigned will swap positions.",
+  "Зонт":"Umbrella", "Перегруз фланга":"Overload", "Трафик перед воротами":"Net-front traffic", "Ромб":"Diamond", "Квадрат":"Box", "Клин":"Wedge", "Треугольник":"Triangle", "Агрессивное давление":"Aggressive pressure", "Контроль шайбы":"Puck possession", "Удержание преимущества":"Protect the lead",
+  "Частота бросков":"Shot frequency", "Силовая игра":"Physical play", "Ширина атаки":"Attacking width", "Передачи и риск":"Passing risk", "Длина смены":"Shift length", "сек":"sec",
+  "Быстрый переход в атаку повышает нагрузку на игроков.":"Fast transitions increase player workload.",
+  "Больше завершений; меньше времени на подготовку момента.":"More shots; less time spent creating a chance.",
+  "Агрессивный отбор повышает риск удаления.":"Aggressive checking increases penalty risk.",
+  "Широкие позиции открывают фланги, но удлиняют передачи.":"Wide positioning opens the wings but requires longer passes.",
+  "Больше передач ускоряет розыгрыш, но оставляет шайбу свободной чаще.":"More passing moves the play faster but leaves the puck loose more often.",
+  "Короткие смены чаще вводят свежие сочетания.":"Short shifts bring fresh units onto the ice more often.",
+  "План команды, сочетания и специальные ситуации на одной доске.":"Team plans, line combinations and special situations on one board.",
+  "ФОРЧЕК":"FORECHECK", "Разделы тактического центра":"Tactical center sections", "Командный план":"Team plan", "Командные инструкции":"Team instructions",
+  "Изменения используются при следующем расчёте; в live-матче — по ходу игры и при сменах.":"Changes apply to the next simulation step, during live play and at line changes.",
+  "Сбалансированный прессинг":"Balanced pressure", "Давление двумя форвардами":"Two-forward pressure", "Контроль средней зоны":"Neutral-zone control",
+  "Поддержка за шайбой и умеренное давление.":"Support behind the puck with moderate pressure.",
+  "Ближе к сопернику, больше пространства за первой линией.":"Closer marking leaves more space behind the first line.",
+  "Компактная структура, более осторожный выход в атаку.":"Compact structure with more cautious transitions.",
+  "МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ":"LIVE MATCH",
+  "Матч и тактика":"Match and tactics", "Пауза":"Pause", "ПАУЗА":"PAUSED",
+  "Продолжить":"Resume", "Следующий период":"Next period", "Скорость матча":"Match speed",
+  "Завершить и перейти к прессе":"Finish and go to press conference",
+  "Загрузка арены…":"Loading arena…", "Загрузка моделей…":"Loading player models…",
+  "Не удалось загрузить модели. Обновите страницу для повторной загрузки.":"Player models could not be loaded. Refresh the page to retry.",
+  "Броски":"Shots", "ПЕРЕРЫВ — измените план перед следующим периодом":"INTERMISSION — adjust your plan for the next period",
+  "События матча":"Match events", "Тренерский пульт":"Coaching controls", "Форчек":"Forecheck",
+  "Звенья и план применяются со следующей смены.":"Lineup and tactical changes apply from the next shift.",
+  "Темп":"Tempo", "Жёсткость":"Physicality", "Вернуть вратаря":"Return goalie", "Снять вратаря":"Pull goalie",
+  "Камера":"Camera", "Тактическая":"Tactical", "За шайбой":"Follow puck",
+  "Трёхмерная хоккейная площадка":"3D hockey rink",
+  "3D недоступен: включите аппаратное ускорение или выберите режим 2D.":"3D unavailable: enable hardware acceleration or select 2D mode.",
+  "Вбрасывание":"Faceoff", "Бросок — сейв":"Shot — saved", "Бросок — мимо":"Shot — wide",
+  "Отбор шайбы":"Takeaway", "Перехват":"Interception", "Передача":"Pass", "Гол":"Goal",
+  "Силовой приём":"Hit", "Блокированный бросок":"Blocked shot", "Удаление":"Penalty",
+  "Вратарь":"Goalie", "Звено":"Line", "Пара":"Pair", "Большинство":"Power play", "Меньшинство":"Penalty kill",
+};
+
+export function englishDynamic(value: string): string {
+  if (englishMatch[value]) return englishMatch[value];
+  return value.replace(/ПЕРИОД (\d+)/g, 'PERIOD $1')
+    .replace(/^Звено (\d+)/, 'Line $1').replace(/^Пара (\d+)/, 'Pair $1');
+}

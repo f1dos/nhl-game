@@ -1,5 +1,6 @@
 import type { Locale } from "./locales";
 import { buildCoreCatalog } from "./coreCatalog";
+import { englishMatch, englishDynamic } from "./englishMatch";
 
 type Catalog = Record<string, string>;
 
@@ -8,6 +9,7 @@ let catalog: Catalog = {};
 let observer: MutationObserver | undefined;
 let generation = 0;
 const originalText = new WeakMap<Text, string>();
+const renderedText = new WeakMap<Text, string>();
 const originalAttributes = new WeakMap<Element, Map<string, string>>();
 const translatedAttributes = ["placeholder", "title", "aria-label"] as const;
 const machineCache = new Map<string, string>();
@@ -31,7 +33,7 @@ const normalize = (value: string) => value.replace(/\s+/g, " ").trim();
 function translated(value: string) {
   const key = normalize(value);
   if (!key) return value;
-  const next = catalog[key] ?? machineCache.get(`${locale}:${key}`);
+  const next = catalog[key] ?? (locale === "en" ? englishDynamic(key) : machineCache.get(`${locale}:${key}`));
   if (!next || next === key) return value;
   const leading = value.match(/^\s*/)?.[0] ?? "";
   const trailing = value.match(/\s*$/)?.[0] ?? "";
@@ -104,11 +106,12 @@ function queueMachineTranslation(value: string) {
 function translateTextNode(node: Text) {
   const parent = node.parentElement;
   if (!parent || parent.closest("[data-no-translate]")) return;
-  if (!originalText.has(node)) originalText.set(node, node.data);
+  if (!originalText.has(node) || node.data !== renderedText.get(node)) originalText.set(node, node.data);
   const source = originalText.get(node)!;
   queueMachineTranslation(source);
   const next = locale === "ru" ? source : translated(source);
   if (node.data !== next) node.data = next;
+  renderedText.set(node, next);
 }
 
 function translateElement(element: Element) {
@@ -146,7 +149,7 @@ function translateTree(root: Node) {
 }
 
 async function loadCatalog(next: Locale) {
-  return next === "ru" ? {} : buildCoreCatalog(next);
+  return next === "ru" ? {} : { ...buildCoreCatalog(next), ...(next === "en" ? englishMatch : {}) };
 }
 
 export async function setDocumentLocale(next: Locale) {
@@ -166,12 +169,14 @@ export function installDomLocalization() {
     observer?.disconnect();
     for (const mutation of mutations) {
       mutation.addedNodes.forEach(translateTree);
+      if (mutation.type === "characterData") translateTextNode(mutation.target as Text);
       if (mutation.type === "attributes")
         translateElement(mutation.target as Element);
     }
     observer?.observe(document.body, {
       subtree: true,
       childList: true,
+      characterData: true,
       attributes: true,
       attributeFilter: [...translatedAttributes],
     });
@@ -179,6 +184,7 @@ export function installDomLocalization() {
   observer.observe(document.body, {
     subtree: true,
     childList: true,
+    characterData: true,
     attributes: true,
     attributeFilter: [...translatedAttributes],
   });
