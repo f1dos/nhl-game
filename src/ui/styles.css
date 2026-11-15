@@ -197,6 +197,15 @@ button svg {
   object-fit: contain;
   filter: drop-shadow(0 0 8px rgba(72, 169, 223, 0.2));
 }
+.brand-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(72, 169, 223, 0.45);
+  border-radius: 8px;
+  background: linear-gradient(150deg, #122839, #0d1722);
+  color: #6bc6ef;
+}
 .club-identity {
   display: flex;
   gap: 10px;
