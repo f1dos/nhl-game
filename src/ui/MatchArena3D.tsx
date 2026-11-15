@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { clone } from "three/addons/utils/SkeletonUtils.js";
 import type { Event, Team } from "../engine/types";
 import type { SpatialFrame } from "../engine/spatialMatch";
 
@@ -14,6 +16,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
   const mode = useRef(cameraMode);
   mode.current = cameraMode;
   const [unavailable, setUnavailable] = useState(false);
+  const [assetStatus, setAssetStatus] = useState("Загрузка моделей…");
   useEffect(() => {
     const container = host.current;
     if (!container) return;
@@ -23,6 +26,10 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
+    let disposed = false;
+    setAssetStatus("Загрузка моделей…");
+    const mixers: { mixer: THREE.AnimationMixer; group: THREE.Group; last: THREE.Vector3; goalie: boolean }[] = [];
+    const assetRoots: THREE.Object3D[] = [];
     const labels = Array.from({length: 3}, () => {
       const label = document.createElement("div");
       Object.assign(label.style, {position:"absolute", padding:"5px 9px", borderRadius:"5px", background:"#101d2eee", color:"white", fontSize:"12px", fontWeight:"600", pointerEvents:"none", whiteSpace:"nowrap", transform:"translate(-50%, -100%)", border:"1px solid #7296ad"});
@@ -94,20 +101,43 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     [home, away].forEach((team, side) => {
       for (let slot = 0; slot < 7; slot++) {
         const group = new THREE.Group();
-        const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.55, 4, 8), new THREE.MeshStandardMaterial({ color: side ? "#f0f4f8" : team.color }));
-        body.position.y = 0.95; group.add(body);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 8), new THREE.MeshStandardMaterial({ color: team.color }));
-        head.position.y = 1.6; group.add(head);
-        for (const x of [-0.17, 0.17]) {
-          const leg = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.55, 0.25), new THREE.MeshStandardMaterial({ color: "#172232" }));
-          leg.position.set(x, 0.3, 0); group.add(leg);
-        }
-        const stick = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.08, 1.5), new THREE.MeshStandardMaterial({ color: "#262626" }));
-        stick.position.set(0.4, 0.14, -0.55); group.add(stick);
         group.position.set((side ? 1 : -1) * (slot === 6 ? 25 : 8), 0, (slot % 3 - 1) * 5);
         scene.add(group); actors.push({ group, side, slot });
       }
     });
+    const loader = new GLTFLoader();
+    Promise.all(["skater", "goalie"].map(name => loader.loadAsync(`/models/hockey/${name}-study.glb`))).then(assets => {
+      const release = (root: THREE.Object3D) => root.traverse(object => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          (Array.isArray(object.material) ? object.material : [object.material]).forEach(m => m.dispose());
+        }
+      });
+      if (disposed) { assets.forEach(asset => release(asset.scene)); return; }
+      assets.forEach(asset => assetRoots.push(asset.scene));
+      actors.forEach(({group, side, slot}) => {
+        const asset = assets[slot === 6 ? 1 : 0];
+        const model = clone(asset.scene);
+        // Blender forward is -Y, exported glTF forward is +Z.
+        model.traverse(object => {
+          if (!(object instanceof THREE.Mesh)) return;
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          object.material = materials.map(source => {
+            const material = source.clone();
+            if (material instanceof THREE.MeshStandardMaterial && material.name.startsWith("Jersey")) material.color.set(side ? "#e8edf3" : home.color);
+            return material;
+          });
+          // Demonstration identities must not masquerade as career player names.
+          if (["NORTH","SKATER","KEEPER","27","31"].includes(object.name)) object.visible = false;
+          object.frustumCulled = false;
+        });
+        group.add(model);
+        const mixer = new THREE.AnimationMixer(model);
+        if (slot !== 6 && asset.animations[0]) mixer.clipAction(asset.animations[0]).play();
+        mixers.push({mixer,group,last:group.position.clone(),goalie:slot===6});
+      });
+      setAssetStatus("");
+    }).catch(() => { if (!disposed) setAssetStatus("Не удалось загрузить модели. Обновите страницу для повторной загрузки."); });
     const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.12, 12), new THREE.MeshStandardMaterial({ color: "#111111" }));
     puck.position.y = 0.1; scene.add(puck);
     const resize = () => {
@@ -154,10 +184,18 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
         const p=[home,away][body.side].players.find(p=>p.id===body.id);
         label.textContent=`${index===0?"● ":"G · "}${p?.name??""}`;label.style.borderColor=index===0?"#f1c958":"#7296ad";
       });
+      mixers.forEach(actor => {
+        const speed = actor.group.position.distanceTo(actor.last) / Math.max(dt, .001);
+        actor.last.copy(actor.group.position);
+        if (data.running && actor.group.visible && !actor.goalie && speed > .1) actor.mixer.update(dt * Math.min(2, speed / 3));
+      });
       renderer.render(scene, camera); frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 38, 45); frame = requestAnimationFrame(animate);
     return () => {
+      disposed = true;
+      mixers.forEach(({mixer}) => { mixer.stopAllAction(); mixer.uncacheRoot(mixer.getRoot()); });
+      assetRoots.forEach(root => root.traverse(object => { if (object instanceof THREE.Mesh) (Array.isArray(object.material) ? object.material : [object.material]).forEach(m => m.dispose()); }));
       cancelAnimationFrame(frame); observer.disconnect();
       scene.traverse(object => { if (object instanceof THREE.Mesh) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       labels.forEach(label=>label.remove());renderer.dispose(); renderer.domElement.remove();
@@ -172,6 +210,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     </div>
     <div ref={host} style={{ position:"relative", overflow:"hidden", height: "clamp(320px, 45vw, 580px)", width: "100%" }} role="img" aria-label="Трёхмерная хоккейная площадка">
       {unavailable && <p>3D недоступен: включите аппаратное ускорение или выберите режим 2D.</p>}
+      {assetStatus && !unavailable && <p style={{position:"absolute",top:12,left:12,background:"#101b2b",padding:12}} role="status">{assetStatus}</p>}
     </div>
   </div>;
 }
