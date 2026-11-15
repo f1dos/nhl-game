@@ -13,6 +13,7 @@ export interface SkaterBody {
   goalie: boolean;
 }
 export interface SpatialFrame {
+  carrierId?: string;
   bodies: SkaterBody[];
   puck: { x: number; y: number; z: number };
 }
@@ -37,6 +38,7 @@ export class SpatialMatch {
   };
   private penalties: { id: string; side: number; until: number }[] = [];
   private decision = 0;
+  private nextShot = [0, 0];
   private shift = -1;
   private appeared = new Set<string>();
   private touches: string[] = [];
@@ -272,11 +274,11 @@ export class SpatialMatch {
           this.player(f.shooter).stats.sog++;
           if (goalie) this.player(goalie.id).stats.sa++;
           const quality = clamp(
-            0.07 +
-              (this.player(f.shooter).attributes.accuracy - 70) * 0.002 +
+            0.08 +
+              (this.player(f.shooter).attributes.accuracy - 70) * 0.001 +
               (goalie
-                ? Math.abs(goalie.z - puck.z) * 0.12 +
-                  (75 - this.player(goalie.id).attributes.reflexes) * 0.002
+                ? Math.abs(goalie.z - puck.z) * 0.025 +
+                  (75 - this.player(goalie.id).attributes.reflexes) * 0.001
                 : 0.9),
             0.02,
             0.99,
@@ -389,7 +391,8 @@ export class SpatialMatch {
             : style === "possession"
               ? -0.12
               : 0);
-        const shot = distance < 20 && this.rng.next() < shooting;
+        const shot = distance < 20 && this.time >= this.nextShot[owner.side] && this.rng.next() < shooting * 0.45;
+        if (shot) this.nextShot[owner.side] = this.time + 30 + this.rng.next() * 35;
         const mates = this.frame.bodies.filter(
           (b) => b.side === owner.side && !b.goalie && b.id !== owner.id,
         );
@@ -413,6 +416,7 @@ export class SpatialMatch {
         }
       }
     }
+    this.frame.carrierId = this.owner || undefined;
     if (this.time === 1200 || this.time === 2400) {
       this.intermission = true;
       this.faceoff();

@@ -23,6 +23,11 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
+    const labels = Array.from({length: 3}, () => {
+      const label = document.createElement("div");
+      Object.assign(label.style, {position:"absolute", padding:"5px 9px", borderRadius:"5px", background:"#101d2eee", color:"white", fontSize:"12px", fontWeight:"600", pointerEvents:"none", whiteSpace:"nowrap", transform:"translate(-50%, -100%)", border:"1px solid #7296ad"});
+      container.appendChild(label); return label;
+    });
     scene.background = new THREE.Color("#101b2b");
     scene.add(new THREE.HemisphereLight(0xd9f4ff, 0x263449, 3));
     const light = new THREE.DirectionalLight(0xffffff, 3);
@@ -36,9 +41,42 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     for (const z of [-13.2, 13.2]) {
       box(0, 0.6, z, 61, 1.2, 0.35, "#fafafa");
       box(0, 0.1, z - Math.sign(z) * 0.2, 61, 0.2, 0.1, "#eab83b");
-      if (z < 0) box(0, 2.5, z - 5, 65, 4, 5, "#273b52");
     }
     for (const x of [-30.5, 30.5]) box(x, 0.6, 0, 0.35, 1.2, 26, "#fafafa");
+    // Tiered arena bowl. Near-side seating is lower to preserve sight lines.
+    const crowd = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.22,.45,2,5), new THREE.MeshStandardMaterial({roughness:1}), 1800);
+    const dummy = new THREE.Object3D(); let crowdIndex = 0;
+    for(let row=0;row<9;row++) {
+      for(const side of [-1,1]) {
+        const z=side*(18+row*1.1), y=side<0?row*.65:row*.25-1;
+        box(0,y,z,74,.45,1.1,row%2?"#263b50":"#304a60");
+        for(let seat=0;seat<70;seat++) {
+          if(seat%14===0)continue;
+          dummy.position.set(-35+seat,y+.6,z);dummy.updateMatrix();crowd.setMatrixAt(crowdIndex,dummy.matrix);
+          crowd.setColorAt(crowdIndex++,new THREE.Color(seat%5===0?home.color:seat%3===0?"#cbd8e2":"#455f7c"));
+        }
+      }
+      for(const side of [-1,1]) {
+        box(side*(34+row*1.1),row*.6,0,1.1,.45,34,"#263b50");
+        for(let seat=0;seat<30;seat++) {
+          dummy.position.set(side*(34+row*1.1),row*.6+.6,-15+seat);dummy.updateMatrix();crowd.setMatrixAt(crowdIndex,dummy.matrix);
+          crowd.setColorAt(crowdIndex++,new THREE.Color(seat%3?"#688097":home.color));
+        }
+      }
+    }
+    crowd.count=crowdIndex;scene.add(crowd);
+    const reserves: {mesh:THREE.Mesh;id:string}[]=[];
+    [home,away].forEach((team,side)=>{
+      const center=side?9:-9;
+      box(center,.45,-15,14,.4,2,"#354e63");
+      box(center,1.1,-16,14,1.2,.15,"#668295");
+      const roster=team.players.filter(p=>!p.injury);
+      roster.forEach((p,index)=>{
+        const reserve=new THREE.Mesh(new THREE.CapsuleGeometry(.26,.55,3,6),new THREE.MeshStandardMaterial({color:side?"#eeeeee":team.color}));
+        reserve.position.set(center-6+(index%12)*1.05,1,-14.4-Math.floor(index/12)*.8);scene.add(reserve);reserves.push({mesh:reserve,id:p.id});
+      });
+      for(let i=0;i<3;i++) {const staff=new THREE.Mesh(new THREE.CapsuleGeometry(.3,.95,3,6),new THREE.MeshStandardMaterial({color:"#152333"}));staff.position.set(center-3+i*3,1.3,-16.5);scene.add(staff);}
+    });
     for (const [x, color] of [[0, "#d03c4a"], [-9, "#307fb8"], [9, "#307fb8"], [-26, "#d03c4a"], [26, "#d03c4a"]] as const)
       box(x, 0.02, 0, 0.18, 0.03, 26, color);
     const circle = (x: number, z: number, radius: number, color: string) => {
@@ -105,13 +143,24 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
       }
       const desired = mode.current === "overhead" ? new THREE.Vector3(0, 65, 0.1) : mode.current === "follow" ? new THREE.Vector3(puck.position.x * 0.45, 26, 31) : new THREE.Vector3(0, 45, 38);
       camera.position.lerp(desired, 0.08); camera.lookAt(mode.current === "follow" ? puck.position.x * 0.35 : 0, 0, 0);
+      const bodies=data.spatial?.bodies??[];
+      reserves.forEach(r=>{r.mesh.visible=!bodies.some(b=>b.id===r.id);});
+      const labelled=[bodies.find(b=>b.id===data.spatial?.carrierId),...bodies.filter(b=>b.goalie)];
+      labels.forEach((label,index)=>{
+        const body=labelled[index];if(!body){label.style.display="none";return;}
+        const point=new THREE.Vector3(body.x,2.5,body.z).project(camera);
+        label.style.display=point.z>1?"none":"block";
+        label.style.left=`${(point.x*.5+.5)*container.clientWidth}px`;label.style.top=`${(-point.y*.5+.5)*container.clientHeight}px`;
+        const p=[home,away][body.side].players.find(p=>p.id===body.id);
+        label.textContent=`${index===0?"● ":"G · "}${p?.name??""}`;label.style.borderColor=index===0?"#f1c958":"#7296ad";
+      });
       renderer.render(scene, camera); frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 38, 45); frame = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frame); observer.disconnect();
       scene.traverse(object => { if (object instanceof THREE.Mesh) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
-      renderer.dispose(); renderer.domElement.remove();
+      labels.forEach(label=>label.remove());renderer.dispose(); renderer.domElement.remove();
     };
   }, [home.id, away.id]);
   return <div>
@@ -121,7 +170,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
       </select></label>
       <span style={{ marginLeft: "auto", color: "#8aa7bd" }}>3D · {home.id} / {away.id}</span>
     </div>
-    <div ref={host} style={{ height: "clamp(320px, 45vw, 580px)", width: "100%" }} role="img" aria-label="Трёхмерная хоккейная площадка">
+    <div ref={host} style={{ position:"relative", overflow:"hidden", height: "clamp(320px, 45vw, 580px)", width: "100%" }} role="img" aria-label="Трёхмерная хоккейная площадка">
       {unavailable && <p>3D недоступен: включите аппаратное ускорение или выберите режим 2D.</p>}
     </div>
   </div>;

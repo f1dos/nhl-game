@@ -28,7 +28,7 @@ const answers: {
     line: "Мы понимаем сильные стороны соперника и готовы придерживаться нашего плана.",
     fan: 1,
     board: 1,
-    morale: 0,
+    morale: -1,
   },
   {
     tone: "ambitious",

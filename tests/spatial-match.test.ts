@@ -3,6 +3,20 @@ import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
 import { SpatialMatch } from "../src/engine/spatialMatch";
 
+test("spatial scoring stays in hockey-scale ranges across thirty seeded games", () => {
+  const g=newGame();let goals=0,shots=0;
+  for(let seed=0;seed<30;seed++) {
+    const m=new SpatialMatch(g.teams[seed%32],g.teams[(seed+1)%32],seed);
+    while(!m.done){m.resume();m.step();}
+    const total=m.result.goals.reduce((a,b)=>a+b,0);
+    assert(total<20,`runaway score in seed ${seed}: ${total}`);
+    goals+=total;shots+=m.result.shots.reduce((a,b)=>a+b,0);
+  }
+  assert(goals/30>=3&&goals/30<=9,`goals/game ${goals/30}`);
+  assert(shots/30>=35&&shots/30<=85,`shots/game ${shots/30}`);
+  console.log("SPATIAL BALANCE",{games:30,goals:goals/30,shots:shots/30});
+});
+
 test("loose puck is recovered instead of players parking outside pickup radius", () => {
   const g = newGame();
   const m = new SpatialMatch(g.teams[0], g.teams[1], 5);
