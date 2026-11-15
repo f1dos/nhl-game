@@ -142,8 +142,8 @@ export function validateSave(value: unknown): Game {
           !Number.isInteger(o.years) || o.years < 1 || o.years > 7 ||
           !Number.isFinite(o.salary) || o.salary < 0 || o.salary > g.rules.cap * .2 ||
           !Number.isInteger(o.attempts) || o.attempts < 1 || o.attempts > 3 ||
-          !/^\\d{4}-\\d{2}-\\d{2}$/.test(o.submittedDate) ||
-          !/^\\d{4}-\\d{2}-\\d{2}$/.test(o.decisionDate) ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(o.submittedDate) ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(o.decisionDate) ||
           (o.counterSalary !== undefined && !Number.isFinite(o.counterSalary)) ||
           (o.competingTeamId !== undefined && !ids.has(o.competingTeamId))
         )) throw Error("Invalid free-agent negotiation history");
