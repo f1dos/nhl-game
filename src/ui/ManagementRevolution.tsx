@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  Activity,
   ArrowUpRight,
   CalendarDays,
   Check,
@@ -475,14 +476,26 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
           </div>
           <div>
             <small>{ru ? "ГОРЯЧИЕ ПРОТИВОСТОЯНИЯ" : "HOT RIVALRIES"}</small>
-            {rivalries.map((rivalry) => (
-              <p key={rivalry.id}>
-                <b>{rivalry.label}</b>
-                <br />
-                {ru ? "Накал" : "Heat"} {rivalry.heat} ·{" "}
-                {rivalry.seasonWins[game.user] ?? 0} W
-              </p>
-            ))}
+            {rivalries.map((rivalry) => {
+              const opponentId =
+                rivalry.teamA === game.user ? rivalry.teamB : rivalry.teamA;
+              const opponent = game.teams.find(
+                (club) => club.id === opponentId,
+              );
+              return (
+                <p key={rivalry.id}>
+                  <b>
+                    {opponent
+                      ? `${opponent.city} ${opponent.name}`
+                      : opponentId}
+                  </b>
+                  <br />
+                  {rivalry.label} · {ru ? "накал" : "heat"} {rivalry.heat}
+                  <br />
+                  {rivalry.seasonWins[game.user] ?? 0} W
+                </p>
+              );
+            })}
             {!rivalries.length && (
               <p>
                 {ru
@@ -589,8 +602,26 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
 export function DailyCalendar({ game }: { game: Game }) {
   ensureManagementState(game);
   const ru = game.language === "ru";
-  const start = addDays(game.calendar!.date, -3);
-  const days = Array.from({ length: 21 }, (_, index) => addDays(start, index));
+  const current = new Date(`${game.calendar!.date}T00:00:00Z`);
+  const monthStart = new Date(
+    Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), 1),
+  );
+  const gridStart = addDays(
+    monthStart.toISOString().slice(0, 10),
+    -((monthStart.getUTCDay() + 6) % 7),
+  );
+  const days = Array.from({ length: 42 }, (_, index) =>
+    addDays(gridStart, index),
+  );
+  const currentMonth = game.calendar!.date.slice(0, 7);
+  const stage =
+    game.calendar!.date < game.calendar!.seasonStart
+      ? ru
+        ? "ПРЕДСЕЗОННЫЙ ЛАГЕРЬ"
+        : "PRESEASON CAMP"
+      : ru
+        ? "РЕГУЛЯРНЫЙ СЕЗОН"
+        : "REGULAR SEASON";
   return (
     <>
       <div className="page-intro">
@@ -598,11 +629,11 @@ export function DailyCalendar({ game }: { game: Game }) {
           <span className="eyebrow">
             {ru ? "ЕДИНЫЙ ИСТОЧНИК ИГРОВОГО ВРЕМЕНИ" : "THE WORLD CLOCK"}
           </span>
-          <h1>{ru ? "Календарь клуба" : "Club Calendar"}</h1>
+          <h1>{ru ? "Календарь менеджера" : "Manager Calendar"}</h1>
           <p>
             {ru
-              ? "Матчи, тренировки, дедлайны, переговоры и решения — по дням."
-              : "Games, training, deadlines, negotiations and decisions — day by day."}
+              ? "Каждый день сезона: сборы, пресса, переговоры, дедлайны, тренировки и матчи."
+              : "Every day of the season: camp, press, negotiations, deadlines, training and games."}
           </p>
         </div>
         <span className="season-tag">
@@ -610,7 +641,7 @@ export function DailyCalendar({ game }: { game: Game }) {
             ru ? "ru-RU" : "en-GB",
             { day: "numeric", month: "long" },
           )}
-          <small>{ru ? "ТЕКУЩАЯ ДАТА" : "CURRENT DATE"}</small>
+          <small>{stage}</small>
         </span>
       </div>
       <div className="calendar-grid">
@@ -627,13 +658,14 @@ export function DailyCalendar({ game }: { game: Game }) {
                     [item.home, item.away].includes(game.user),
                 );
           const events = game.events!.filter((event) => event.date === date);
-          const current = date === game.calendar!.date;
+          const preseason = game.preseasonFixtures?.find(
+            (item) => item.date === date,
+          );
+          const isCurrent = date === game.calendar!.date;
           return (
             <div
               key={date}
-              className={
-                current ? "current" : date < game.calendar!.date ? "past" : ""
-              }
+              className={`${isCurrent ? "current" : date < game.calendar!.date ? "past" : ""} ${date.startsWith(currentMonth) ? "" : "outside"}`}
             >
               <header>
                 <span>
@@ -644,6 +676,15 @@ export function DailyCalendar({ game }: { game: Game }) {
                 </span>
                 <strong>{date.slice(8)}</strong>
               </header>
+              {preseason && (
+                <p className="calendar-game preseason">
+                  <Activity size={13} /> PRE ·{" "}
+                  {preseason.home === game.user ? "vs" : "@"}{" "}
+                  {preseason.home === game.user
+                    ? preseason.away
+                    : preseason.home}
+                </p>
+              )}
               {fixture && (
                 <p className="calendar-game">
                   <CalendarDays size={13} />{" "}
@@ -651,9 +692,15 @@ export function DailyCalendar({ game }: { game: Game }) {
                   {fixture.home === game.user ? fixture.away : fixture.home}
                 </p>
               )}
-              {!fixture && !events.length && (
+              {!fixture && !preseason && !events.length && (
                 <p className="calendar-rest">
-                  {ru ? "Тренировка / отдых" : "Training / rest"}
+                  {date < game.calendar!.seasonStart
+                    ? ru
+                      ? "Сборы / тренировка"
+                      : "Camp / training"
+                    : ru
+                      ? "Тренировка / восстановление"
+                      : "Training / recovery"}
                 </p>
               )}
               {events.slice(0, 2).map((event) => (
@@ -670,8 +717,8 @@ export function DailyCalendar({ game }: { game: Game }) {
       </div>
       <p className="note">
         {ru
-          ? "Календарь матчей остаётся конфигурируемой симуляцией 82 игр; он не обозначается как официальный календарь NHL."
-          : "The 82-game match calendar remains a configurable simulation and is not presented as the official NHL schedule."}
+          ? "Кнопка «Продолжить» по умолчанию двигает время на один день и останавливается на важных решениях. Предсезонные результаты не влияют на таблицу."
+          : "Continue advances one day by default and stops for important decisions. Preseason results do not affect the standings."}
       </p>
     </>
   );

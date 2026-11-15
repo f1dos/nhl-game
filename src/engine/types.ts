@@ -250,8 +250,25 @@ export interface AiGeneralManagerProfile {
 export interface CalendarState {
   date: string;
   seasonStart: string;
+  preseasonStart?: string;
   day: number;
   lastProcessedDate: string;
+}
+export interface PreseasonFixture {
+  id: string;
+  date: string;
+  home: string;
+  away: string;
+  result?: Result;
+}
+export interface PressAppearance {
+  date: string;
+  type: "pre-match" | "post-match";
+  tone: "protective" | "balanced" | "ambitious";
+  headline: string;
+  fanDelta: number;
+  boardDelta: number;
+  moraleDelta: number;
 }
 export type ManagementEventCategory =
   | "game"
@@ -353,6 +370,8 @@ export interface Series {
 export interface Game {
   freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
+  preseasonFixtures?: PreseasonFixture[];
+  pressHistory?: PressAppearance[];
   events?: ManagementEvent[];
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;

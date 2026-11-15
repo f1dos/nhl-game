@@ -197,11 +197,13 @@ function rollover(g: Game) {
   g.round = 0;
   g.phase = "regular";
   if (g.calendar) {
-    g.calendar.date = `${g.year}-10-07`;
-    g.calendar.seasonStart = g.calendar.date;
+    g.calendar.date = `${g.year}-09-15`;
+    g.calendar.preseasonStart = g.calendar.date;
+    g.calendar.seasonStart = `${g.year}-10-07`;
     g.calendar.day = 0;
-    g.calendar.lastProcessedDate = `${g.year}-10-06`;
+    g.calendar.lastProcessedDate = `${g.year}-09-14`;
   }
+  g.preseasonFixtures = undefined;
   g.bracket = [];
   g.playoffRound = 0;
   g.last = undefined;

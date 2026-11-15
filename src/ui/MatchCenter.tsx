@@ -1,90 +1,157 @@
 import { useEffect, useState } from "react";
-import type { Game } from "../engine/types";
+import { Pause, Play, Shield, SlidersHorizontal, Users } from "lucide-react";
+import type { Game, Player } from "../engine/types";
 import { Crest, Panel, Rink } from "./components";
-export default function MatchCenter({ game }: { game: Game }) {
-  const r = game.last;
-  const [cursor, setCursor] = useState(0),
-    [playing, setPlaying] = useState(false),
-    [speed, setSpeed] = useState(5);
+
+type Edit = (fn: (game: Game) => void) => void;
+
+export default function MatchCenter({
+  game,
+  edit,
+}: {
+  game: Game;
+  edit: Edit;
+}) {
+  const result = game.last;
+  const [cursor, setCursor] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [control, setControl] = useState<"lines" | "tactics">("lines");
   useEffect(() => {
     setCursor(0);
-    setPlaying(false);
-  }, [r]);
+    setRunning(false);
+  }, [result]);
   useEffect(() => {
-    if (!playing || !r) return;
-    const t = setInterval(
+    if (!running || !result) return;
+    const timer = setInterval(
       () =>
-        setCursor((n) => {
-          if (n >= r.events.length) {
-            setPlaying(false);
-            return n;
+        setCursor((current) => {
+          if (current >= result.events.length) {
+            setRunning(false);
+            return current;
           }
-          return n + 1;
+          const previousPeriod = Math.floor(
+            (result.events[current - 1]?.time ?? 0) / 1200,
+          );
+          const nextPeriod = Math.floor(
+            (result.events[current]?.time ?? 0) / 1200,
+          );
+          if (current > 0 && nextPeriod > previousPeriod) {
+            setRunning(false);
+            return current;
+          }
+          return current + 1;
         }),
-      1200 / speed,
+      900 / speed,
     );
-    return () => clearInterval(t);
-  }, [playing, speed, r]);
+    return () => clearInterval(timer);
+  }, [running, speed, result]);
   const ru = game.language === "ru";
-  if (!r)
+  if (!result)
     return (
       <Panel title={ru ? "Матч-центр" : "Match center"}>
         <div className="empty">
           {ru
-            ? "Сыграйте первый матч кнопкой «Следующий матч»."
-            : "Play your first game with Next match."}
+            ? "Следующий матч ещё не начался."
+            : "The next game has not started."}
         </div>
       </Panel>
     );
-  const home = game.teams.find((t) => t.id === r.home)!,
-    away = game.teams.find((t) => t.id === r.away)!;
-  const event = r.events[cursor - 1];
-  const score = cursor === r.events.length ? r.goals : event?.score || [0, 0];
-  const time = event?.time || 0;
+  const home = game.teams.find((team) => team.id === result.home)!;
+  const away = game.teams.find((team) => team.id === result.away)!;
+  const managed = game.teams.find((team) => team.id === game.user)!;
+  const event = result.events[Math.max(0, cursor - 1)];
+  const complete = cursor >= result.events.length;
+  const score = complete ? result.goals : (event?.score ?? [0, 0]);
+  const elapsed = complete ? result.duration : (event?.time ?? 0);
+  const period = Math.min(4, Math.floor(elapsed / 1200) + 1);
+  const clock = complete
+    ? "00:00"
+    : `${String(19 - Math.floor((elapsed % 1200) / 60)).padStart(2, "0")}:${String(59 - (elapsed % 60)).padStart(2, "0")}`;
+  const visibleEvents = result.events
+    .slice(0, cursor)
+    .filter((item) => item.type !== "shot")
+    .reverse();
+  const activeIds = new Set<string>(
+    event?.skaters?.[result.home === game.user ? 0 : 1] ?? [],
+  );
+  const updateLine = (
+    group: "lines" | "defense",
+    row: number,
+    slot: number,
+    playerId: string,
+  ) =>
+    edit((current) => {
+      const team = current.teams.find((club) => club.id === current.user)!;
+      team[group][row][slot] = playerId;
+    });
+  const selector = (
+    value: string,
+    candidates: Player[],
+    onChange: (id: string) => void,
+    key?: string,
+  ) => (
+    <select
+      key={key}
+      value={value}
+      onChange={(change) => onChange(change.target.value)}
+    >
+      {candidates
+        .filter((player) => player.injury === 0)
+        .map((player) => (
+          <option key={player.id} value={player.id}>
+            {player.name} · {player.pos} · {player.ovr}
+          </option>
+        ))}
+    </select>
+  );
   return (
-    <>
-      <div className="scoreboard">
+    <div className="live-match-center">
+      <section className="live-scoreboard">
         <div>
-          <Crest team={away} size={72} />
-          <h2>
-            {away.city}
-            <small>{away.name}</small>
-          </h2>
-        </div>
-        <div className="score">
-          <small>
-            {cursor === r.events.length
-              ? "FINAL"
-              : time > 3600
-                ? "OVERTIME"
-                : `PERIOD ${Math.min(3, Math.floor(time / 1200) + 1)}`}{" "}
-            · {String(Math.floor(time / 60)).padStart(2, "0")}:
-            {String(time % 60).padStart(2, "0")}
-          </small>
-          <b>
-            {score[1]} <em>:</em> {score[0]}
-          </b>
+          <Crest team={away} size={60} />
           <span>
-            {ru ? "ГОСТИ" : "AWAY"} <i>•</i> {ru ? "ДОМА" : "HOME"}
+            <b>{away.city}</b>
+            <small>{away.name}</small>
           </span>
         </div>
         <div>
-          <h2>
-            {home.city}
-            <small>{home.name}</small>
-          </h2>
-          <Crest team={home} size={72} />
+          <small>{complete ? "FINAL" : `PERIOD ${period} · ${clock}`}</small>
+          <strong>
+            {score[1]} <i>:</i> {score[0]}
+          </strong>
+          <em className={running ? "live" : "paused"}>
+            {complete ? "ЗАВЕРШЁН" : running ? "LIVE" : "ПАУЗА"}
+          </em>
         </div>
-      </div>
-      <div className="match-grid">
-        <Panel
-          title={ru ? "Повтор ключевых событий" : "Key event replay"}
-          extra={<span className="tag">2D MATCH VIEW</span>}
-        >
+        <div>
+          <span>
+            <b>{home.city}</b>
+            <small>{home.name}</small>
+          </span>
+          <Crest team={home} size={60} />
+        </div>
+      </section>
+      <div className="live-match-layout">
+        <section className="live-ice-panel">
+          <header>
+            <b>МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ</b>
+            <div>
+              <button onClick={() => setRunning(!running)} disabled={complete}>
+                {running ? <Pause size={15} /> : <Play size={15} />}{" "}
+                {running ? "Пауза" : cursor ? "Продолжить" : "Начать матч"}
+              </button>
+              <select
+                value={speed}
+                onChange={(change) => setSpeed(+change.target.value)}
+              >
+                <option value={1}>×1</option>
+                <option value={2}>×2</option>
+                <option value={4}>×4</option>
+              </select>
+            </div>
+          </header>
           <Rink>
-            <span className="ice-word">
-              NHL MANAGER <b>26</b>
-            </span>
             {event && (
               <>
                 <span
@@ -105,110 +172,150 @@ export default function MatchCenter({ game }: { game: Game }) {
               </>
             )}
           </Rink>
-          <div className="replay-controls">
-            <button onClick={() => setPlaying(!playing)}>
-              {playing ? "Ⅱ" : "▶"} {ru ? "Повтор" : "Replay"}
-            </button>
-            <select
-              aria-label="Replay speed"
-              value={speed}
-              onChange={(e) => setSpeed(+e.target.value)}
-            >
-              {[1, 2, 5, 10].map((s) => (
-                <option key={s} value={s}>
-                  ×{s}
-                </option>
+          <div className="live-shift">
+            <span>НА ЛЬДУ</span>
+            {managed.players
+              .filter((player) => activeIds.has(player.id))
+              .map((player) => (
+                <b key={player.id}>{player.name}</b>
               ))}
-            </select>
-            <input
-              aria-label="Match timeline"
-              type="range"
-              min="0"
-              max={r.events.length}
-              value={cursor}
-              onChange={(e) => {
-                setPlaying(false);
-                setCursor(+e.target.value);
-              }}
-            />
-            <button
-              onClick={() => {
-                setCursor(r.events.length);
-                setPlaying(false);
-              }}
+          </div>
+        </section>
+        <section className="live-feed">
+          <header>
+            <b>СОБЫТИЯ</b>
+            <span>{visibleEvents.length}</span>
+          </header>
+          {visibleEvents.map((item, index) => (
+            <div
+              key={`${item.time}-${index}`}
+              className={item.type === "goal" ? "goal-event" : ""}
             >
-              {ru ? "Результат" : "Result"}
-            </button>
-          </div>
-          <p className="note">
-            {ru
-              ? "Визуализация рассчитанных событий, не физическая симуляция. Тактика применяется к следующему матчу."
-              : "Visualization of simulated events, not a physics simulation. Tactics apply to the next match."}
-          </p>
-        </Panel>
-        <Panel title={ru ? "События матча" : "Match events"}>
-          <div className="event-feed">
-            {r.events
-              .slice(0, cursor)
-              .filter((e) => e.type !== "shot")
-              .reverse()
-              .map((e, i) => (
-                <div key={i} className={e.type === "goal" ? "goal-event" : ""}>
-                  <time>{Math.floor(e.time / 60)}′</time>
-                  <span>
-                    <strong>{e.player}</strong>
-                    <small>
-                      {e.team} · {e.text.split(" / ")[ru ? 0 : 1] || e.text}
-                    </small>
-                  </span>
-                  <b>
-                    {e.type === "goal"
-                      ? "GOAL"
-                      : e.type === "penalty"
-                        ? "2′"
-                        : ""}
-                  </b>
-                </div>
-              ))}
-            {!cursor && (
-              <p className="empty">
-                {ru ? "Нажмите ▶ для просмотра" : "Press ▶ to watch"}
-              </p>
-            )}
-          </div>
-        </Panel>
-      </div>
-      <Panel title={ru ? "Итоговая статистика" : "Final statistics"}>
-        <div className="match-stats">
-          {[
-            ["SOG", r.shots],
-            ["xG", r.xg.map((x) => x.toFixed(2))],
-            ["PP", r.pp.map((x, i) => `${x}/${r.ppo[i]}`)],
-            [
-              "SV%",
-              r.shots
-                .map((n, i) =>
-                  n
-                    ? (
-                        (1 -
-                          (r.goals[i] -
-                            (r.so && r.goals[i] > r.goals[1 - i] ? 1 : 0)) /
-                            n) *
-                        100
-                      ).toFixed(1)
-                    : "—",
-                )
-                .reverse(),
-            ],
-          ].map(([label, v]) => (
-            <div key={label as string}>
-              <b>{(v as (number | string)[])[1]}</b>
-              <span>{label}</span>
-              <b>{(v as (number | string)[])[0]}</b>
+              <time>{Math.floor(item.time / 60)}′</time>
+              <span>
+                <b>{item.player}</b>
+                <small>{item.text.split(" / ")[0]}</small>
+              </span>
+              <em>
+                {item.type === "goal"
+                  ? "ГОЛ"
+                  : item.type === "penalty"
+                    ? "2′"
+                    : ""}
+              </em>
             </div>
           ))}
-        </div>
-      </Panel>
-    </>
+          {!visibleEvents.length && (
+            <p>Матч начнётся после команды главного тренера.</p>
+          )}
+        </section>
+        <aside className="live-bench">
+          <nav>
+            <button
+              className={control === "lines" ? "active" : ""}
+              onClick={() => setControl("lines")}
+            >
+              <Users size={15} /> Звенья
+            </button>
+            <button
+              className={control === "tactics" ? "active" : ""}
+              onClick={() => setControl("tactics")}
+            >
+              <SlidersHorizontal size={15} /> Тактика
+            </button>
+          </nav>
+          {control === "lines" ? (
+            <div className="live-line-editor">
+              <small>ИЗМЕНЕНИЯ ПРИМЕНЯЮТСЯ СО СЛЕДУЮЩЕЙ СМЕНЫ</small>
+              {managed.lines.map((line, row) => (
+                <section key={row}>
+                  <b>Звено {row + 1}</b>
+                  {line.map((id, slot) =>
+                    selector(
+                      id,
+                      managed.players.filter(
+                        (player) => !["D", "G"].includes(player.pos),
+                      ),
+                      (next) => updateLine("lines", row, slot, next),
+                      `f-${row}-${slot}`,
+                    ),
+                  )}
+                </section>
+              ))}
+              {managed.defense.map((pair, row) => (
+                <section key={`d-${row}`}>
+                  <b>Пара D{row + 1}</b>
+                  {pair.map((id, slot) =>
+                    selector(
+                      id,
+                      managed.players.filter((player) => player.pos === "D"),
+                      (next) => updateLine("defense", row, slot, next),
+                      `d-${row}-${slot}`,
+                    ),
+                  )}
+                </section>
+              ))}
+              <section>
+                <b>Вратарь</b>
+                {selector(
+                  managed.goalie,
+                  managed.players.filter((player) => player.pos === "G"),
+                  (next) =>
+                    edit((current) => {
+                      current.teams.find(
+                        (club) => club.id === current.user,
+                      )!.goalie = next;
+                    }),
+                )}
+              </section>
+            </div>
+          ) : (
+            <div className="live-tactics">
+              <label>
+                Форчек
+                <select
+                  value={managed.tactics.forecheck}
+                  onChange={(change) =>
+                    edit((current) => {
+                      current.teams.find(
+                        (club) => club.id === current.user,
+                      )!.tactics.forecheck = change.target
+                        .value as typeof managed.tactics.forecheck;
+                    })
+                  }
+                >
+                  <option>1-2-2</option>
+                  <option>2-1-2</option>
+                  <option>1-3-1</option>
+                </select>
+              </label>
+              {(["pace", "physical", "shooting"] as const).map((key) => (
+                <label key={key}>
+                  {key}
+                  <input
+                    type="range"
+                    min="20"
+                    max="90"
+                    value={managed.tactics[key]}
+                    onChange={(change) =>
+                      edit((current) => {
+                        current.teams.find(
+                          (club) => club.id === current.user,
+                        )!.tactics[key] = +change.target.value;
+                      })
+                    }
+                  />
+                  <b>{managed.tactics[key]}</b>
+                </label>
+              ))}
+              <p>
+                <Shield size={15} /> Поставьте матч на паузу и скорректируйте
+                план. Новое сочетание выходит на следующую смену.
+              </p>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
   );
 }

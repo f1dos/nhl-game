@@ -14,5 +14,6 @@ createRoot(document.getElementById("root")!).render(
 );
 import "./ui/scouting.css";
 import "./ui/conversation.css";
-
+import "./ui/trade-desk.css";
+import "./ui/manager-control.css";
 import "./ui/free-agency.css";
