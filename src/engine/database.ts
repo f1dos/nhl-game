@@ -10,6 +10,7 @@ import {
   type Game,
 } from "./types";
 import { makeSchedule } from "./season";
+import { ensureSpecialTeams } from "./tactics";
 import {
   NHL_DATA_META,
   NHL_PLAYER_RATINGS,
@@ -206,6 +207,32 @@ export function autoLines(t: Team) {
   );
   t.defense = Array.from({ length: 3 }, (_, i) => d.slice(i * 2, i * 2 + 2));
   t.goalie = pick("G", 1)[0];
+  t.specialTeams = undefined;
+  ensureSpecialTeams(t);
+}
+
+function calibrateRosterHierarchy(players: Player[]) {
+  const goalies = players.filter((player) => player.pos === "G");
+  if (goalies.length < 2) return;
+  const starter = [...goalies].sort((a, b) => {
+    const aGames = a.externalId
+      ? (NHL_PLAYER_RATINGS[a.externalId]?.gp ?? 0)
+      : 0;
+    const bGames = b.externalId
+      ? (NHL_PLAYER_RATINGS[b.externalId]?.gp ?? 0)
+      : 0;
+    return bGames - aGames || b.salary - a.salary || b.ovr - a.ovr;
+  })[0];
+  const starterGames = starter.externalId
+    ? (NHL_PLAYER_RATINGS[starter.externalId]?.gp ?? 0)
+    : 0;
+  if (starterGames < 20) return;
+  for (const goalie of goalies) {
+    if (goalie === starter || !goalie.externalId) continue;
+    const games = NHL_PLAYER_RATINGS[goalie.externalId]?.gp ?? 0;
+    if (games < 10 && goalie.ovr > starter.ovr - 4)
+      setPlayerOverall(goalie, starter.ovr - 4);
+  }
 }
 export function newGame(user = "TOR", seed = 260027): Game {
   const r = new RNG(seed);
@@ -215,6 +242,7 @@ export function newGame(user = "TOR", seed = 260027): Game {
     const roster = identities.map((identity, j) =>
       createOfficialPlayer(r, id, identity, level, j),
     );
+    calibrateRosterHierarchy(roster);
     const ahlIdentities = AHL_ROSTERS.filter((p) => p.affiliate === id);
     const knownNames = new Set(roster.map((p) => contractName(p.name)));
     const ahl = ahlIdentities
@@ -528,17 +556,26 @@ function applyPlayerRating(player: Player) {
   if (!player.externalId) return;
   const rating = NHL_PLAYER_RATINGS[player.externalId];
   if (!rating) return;
+  const samplePenalty =
+    rating.gp < 8
+      ? rating.group === "goalie"
+        ? 4
+        : 3
+      : rating.gp < 16
+        ? 2
+        : 0;
+  const target = clamp(rating.ovr - samplePenalty, 55, 99);
   for (let pass = 0; pass < 6; pass++) {
     const current = overall(player.pos, player.attributes, player.archetype);
-    const delta = rating.ovr - current;
+    const delta = target - current;
     if (!delta) break;
     for (const key of Object.keys(player.attributes))
       player.attributes[key] = clamp(player.attributes[key] + delta, 35, 99);
   }
   player.ovr = overall(player.pos, player.attributes, player.archetype);
-  if (player.ovr !== rating.ovr) player.ovr = rating.ovr;
+  if (player.ovr !== target) player.ovr = target;
   const youthBonus = player.age <= 21 ? (22 - player.age) * 2 : 0;
-  player.potential = clamp(rating.ovr + youthBonus, rating.ovr, 98);
+  player.potential = clamp(target + youthBonus, target, 98);
   player.ratingRank = rating.rank;
   player.ratingSource = "nhl-stats-model";
 }

@@ -4,7 +4,8 @@ import { simulateMatch } from "./match";
 import { RNG } from "./random";
 import { payroll, tradeValue } from "./trades";
 import { processFreeAgentOffers } from "./freeAgency";
-import { trainTeam } from "./training";
+import { ensureTrainingSchedule, trainTeam } from "./training";
+import { ensureSpecialTeams } from "./tactics";
 import { chooseSeasonStrategy, defaultEmployment } from "./strategy";
 import {
   addRivalryObjective,
@@ -205,7 +206,11 @@ export function ensureManagementState(g: Game) {
   g.managerEmployment ??= defaultEmployment();
   ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
-  for (const team of g.teams) team.aiProfile ??= createProfile(team);
+  for (const team of g.teams) {
+    team.aiProfile ??= createProfile(team);
+    ensureSpecialTeams(team);
+    ensureTrainingSchedule(team);
+  }
   if (!g.events.length) seedOpeningEvents(g);
   ensureStrategyEvent(g);
   return g;
@@ -420,20 +425,25 @@ function processCurrentDay(g: Game) {
     for (const team of g.teams) trainTeam(team);
   }
   for (const offer of processFreeAgentOffers(g)) {
-    const player = g.teams.flatMap(t => t.players).find(p => p.id === offer.playerId)
-      ?? g.freeAgents?.find(p => p.id === offer.playerId);
+    const player =
+      g.teams.flatMap((t) => t.players).find((p) => p.id === offer.playerId) ??
+      g.freeAgents?.find((p) => p.id === offer.playerId);
     pushEvent(g, {
       date,
       category: "contract",
-      priority: offer.status === "countered" || offer.status === "signed-elsewhere" ? "high" : "normal",
+      priority:
+        offer.status === "countered" || offer.status === "signed-elsewhere"
+          ? "high"
+          : "normal",
       title: `Free agency: ${player?.name ?? offer.playerId} — ${offer.status}`,
-      body: offer.status === "countered"
-        ? `Agent requests ${offer.counterSalary?.toFixed(2)}M AAV and a ${offer.counterRole} role. Counteroffer valid for seven days.`
-        : offer.status === "accepted"
-          ? "Your proposed contract has been accepted and registered."
-          : offer.status === "signed-elsewhere"
-            ? `The player signed with ${offer.competingTeamId ?? "another team"}.`
-            : "The agent declined the proposal. Review the contract negotiations.",
+      body:
+        offer.status === "countered"
+          ? `Agent requests ${offer.counterSalary?.toFixed(2)}M AAV and a ${offer.counterRole} role. Counteroffer valid for seven days.`
+          : offer.status === "accepted"
+            ? "Your proposed contract has been accepted and registered."
+            : offer.status === "signed-elsewhere"
+              ? `The player signed with ${offer.competingTeamId ?? "another team"}.`
+              : "The agent declined the proposal. Review the contract negotiations.",
       action: "contracts",
       playerId: offer.playerId,
       requiresResponse: offer.status === "countered",
@@ -454,6 +464,34 @@ export function advanceDay(g: Game) {
   g.calendar!.day++;
 }
 
+export function isUserMatchday(g: Game) {
+  ensureManagementState(g);
+  const date = g.calendar!.date;
+  if (
+    g.preseasonFixtures?.some(
+      (fixture) => fixture.date === date && !fixture.result,
+    )
+  )
+    return true;
+  if (
+    g.phase === "playoffs" &&
+    g.calendar!.day % 2 === 0 &&
+    g.bracket[g.playoffRound]?.some(
+      (series) => !series.winner && [series.a, series.b].includes(g.user),
+    )
+  )
+    return true;
+  return (
+    g.phase === "regular" &&
+    fixtureDate(g, g.round) === date &&
+    g.schedule.some(
+      (fixture) =>
+        fixture.round === g.round &&
+        [fixture.home, fixture.away].includes(g.user),
+    )
+  );
+}
+
 export type ContinueMode = "day" | "next-game" | "next-event" | "week";
 
 export function continueGame(g: Game, mode: ContinueMode) {
@@ -464,6 +502,7 @@ export function continueGame(g: Game, mode: ContinueMode) {
   const limit = mode === "day" ? 1 : mode === "week" ? 7 : 45;
   let days = 0;
   while (days < limit && g.phase !== "offseason") {
+    if (mode === "next-game" && isUserMatchday(g)) break;
     advanceDay(g);
     days++;
     const urgent = g.events!.find(
@@ -474,9 +513,10 @@ export function continueGame(g: Game, mode: ContinueMode) {
         (event.priority === "critical" || event.priority === "high"),
     );
     if (urgent) break;
+    if (isUserMatchday(g)) break;
     if (
       mode === "next-game" &&
-      (g.round > startingRound || g.last !== startingLast)
+      (isUserMatchday(g) || g.round > startingRound || g.last !== startingLast)
     )
       break;
     if (

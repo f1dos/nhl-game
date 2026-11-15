@@ -40,11 +40,11 @@ test("continue advances by days, stops after the next game and remains determini
   a.id = b.id;
   const daysA = continueGame(a, "next-game");
   const daysB = continueGame(b, "next-game");
-  assert.equal(daysA, 6);
+  assert.equal(daysA, 5);
   assert.equal(daysA, daysB);
   assert.equal(a.round, 0);
-  assert.equal(a.calendar?.date, "2026-09-21");
-  assert(a.preseasonFixtures?.[0].result);
+  assert.equal(a.calendar?.date, "2026-09-20");
+  assert.equal(a.preseasonFixtures?.[0].result, undefined);
   assert.deepEqual(a, b);
 });
 

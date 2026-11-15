@@ -14,7 +14,8 @@ test('injured starter and goalie receive no ice time; backup participates',()=>{
  simulateMatch(a,b,new RNG(20));
  assert.equal(skater.stats.toi,0); assert.equal(skater.stats.gp,0);
  assert.equal(goalie.stats.toi,0); assert.equal(goalie.stats.gp,0);
- assert(a.players.some(p=>p.pos==='G' && p.stats.toi>=60));
+ // The healthy backup starts and can be pulled for an extra attacker late.
+ assert(a.players.some(p=>p.pos==='G' && p.stats.toi>=55));
  validateSave(JSON.parse(JSON.stringify(g)));
 });
 test('injury risk remains reachable at high physicality and responds to fatigue',()=>{

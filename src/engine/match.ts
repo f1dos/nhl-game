@@ -7,8 +7,15 @@ import {
 } from "./manpower";
 import { injuryProbability, inflictInjury } from "./injuries";
 import { RNG, clamp } from "./random";
-import type { Team, Player, Result, Event } from "./types";
-import { lineChemistry } from "./tactics";
+import type {
+  Team,
+  Player,
+  Result,
+  Event,
+  SpecialTeamsSituation,
+  SpecialTeamUnit,
+} from "./types";
+import { ensureSpecialTeams, lineChemistry } from "./tactics";
 import { snapshotStats, updateMatchPerformance } from "./performance";
 export function simulateMatch(
   home: Team,
@@ -85,11 +92,41 @@ export function simulateMatch(
       score: [...res.goals],
       xg,
     });
-  function onIce(i: number, time: number, count: number) {
+  function onIce(
+    i: number,
+    time: number,
+    count: number,
+    opponentCount: number,
+  ) {
     const t = teams[i],
       line = Math.floor(time / 45) % 10;
     const li = [0, 1, 0, 2, 1, 3, 0, 1, 2, 3][line];
-    const planned = [...t.lines[li], ...t.defense[Math.floor(time / 45) % 3]]
+    const situation =
+      count === 6 && opponentCount === 5
+        ? "6v5"
+        : count === 5 && opponentCount === 6
+          ? "5v6"
+          : count === 5 && opponentCount === 4
+            ? "5v4"
+            : count === 5 && opponentCount === 3
+              ? "5v3"
+              : count === 4 && opponentCount === 3
+                ? "4v3"
+                : count === 4 && opponentCount === 5
+                  ? "4v5"
+                  : count === 3 && opponentCount === 5
+                    ? "3v5"
+                    : count === 3 && opponentCount === 4
+                      ? "3v4"
+                      : count === 3 && opponentCount === 3
+                        ? "3v3"
+                        : undefined;
+    const special = situation ? ensureSpecialTeams(t)[situation] : undefined;
+    const plannedIds = special?.players ?? [
+      ...t.lines[li],
+      ...t.defense[Math.floor(time / 45) % 3],
+    ];
+    const planned = plannedIds
       .map((id) => t.players.find((p) => p.id === id)!)
       .filter(Boolean);
     const available = (p: Player) =>
@@ -127,13 +164,78 @@ export function simulateMatch(
   }
   const avg = (ps: Player[], a: string) =>
     ps.reduce((s, p) => s + effective(p, a), 0) / Math.max(1, ps.length);
+  const situationFor = (
+    count: number,
+    opponentCount: number,
+  ): SpecialTeamsSituation | undefined =>
+    count === 6 && opponentCount === 5
+      ? "6v5"
+      : count === 5 && opponentCount === 6
+        ? "5v6"
+        : count === 5 && opponentCount === 4
+          ? "5v4"
+          : count === 5 && opponentCount === 3
+            ? "5v3"
+            : count === 4 && opponentCount === 3
+              ? "4v3"
+              : count === 4 && opponentCount === 5
+                ? "4v5"
+                : count === 3 && opponentCount === 5
+                  ? "3v5"
+                  : count === 3 && opponentCount === 4
+                    ? "3v4"
+                    : count === 3 && opponentCount === 3
+                      ? "3v3"
+                      : undefined;
+  const styleImpact = (style?: SpecialTeamUnit["style"]) => {
+    const values: Record<
+      SpecialTeamUnit["style"],
+      { control: number; attack: number; defense: number }
+    > = {
+      umbrella: { control: 2, attack: 0.008, defense: 0 },
+      overload: { control: 3, attack: 0.006, defense: -0.003 },
+      "net-front": { control: -1, attack: 0.012, defense: -0.002 },
+      diamond: { control: 0, attack: 0, defense: 0.012 },
+      box: { control: -2, attack: -0.002, defense: 0.011 },
+      wedge: { control: -1, attack: 0, defense: 0.009 },
+      triangle: { control: 0, attack: 0.002, defense: 0.009 },
+      aggressive: { control: 4, attack: 0.004, defense: -0.005 },
+      possession: { control: 5, attack: 0.003, defense: 0.002 },
+      "protect-lead": { control: -3, attack: -0.004, defense: 0.014 },
+    };
+    return style
+      ? values[style]
+      : { control: 0, attack: 0, defense: 0 };
+  };
   function step(time: number, dt = 20) {
     expireMinors(penalty, time - dt);
     const counts = skaterCounts(
       penalty,
       !playoffs && time > RULES.regulationSeconds,
     );
-    const ice = [onIce(0, time, counts[0]), onIce(1, time, counts[1])];
+    const emptyNet = [false, false];
+    if (time >= 3480 && time <= RULES.regulationSeconds) {
+      const trailing =
+        res.goals[0] < res.goals[1] ? 0 : res.goals[1] < res.goals[0] ? 1 : -1;
+      if (
+        trailing >= 0 &&
+        Math.abs(res.goals[0] - res.goals[1]) <= 2 &&
+        counts[trailing] === 5
+      ) {
+        counts[trailing] = 6;
+        emptyNet[trailing] = true;
+      }
+    }
+    const ice = [
+      onIce(0, time, counts[0], counts[1]),
+      onIce(1, time, counts[1], counts[0]),
+    ];
+    const specialStyles = teams.map((team, index) => {
+      const situation = situationFor(counts[index], counts[1 - index]);
+      return styleImpact(
+        situation ? ensureSpecialTeams(team)[situation]?.style : undefined,
+      );
+    });
     currentIce = ice;
     for (let i = 0; i < 2; i++) {
       const next = counts[i] > counts[1 - i];
@@ -141,7 +243,9 @@ export function simulateMatch(
       advantage[i] = next;
     }
     ice.forEach((ps) => ps.forEach((p) => participate(p, dt)));
-    goalies.forEach((p) => participate(p, dt));
+    goalies.forEach((p, i) => {
+      if (!emptyNet[i]) participate(p, dt);
+    });
     const control = teams.map(
       (t, i) =>
         avg(ice[i], "passing") +
@@ -152,7 +256,8 @@ export function simulateMatch(
             ? -3
             : 0) +
         ((t.strengthRating ?? 75) - 75) * 0.35 +
-        (counts[i] > counts[1 - i] ? 15 : 0),
+        (counts[i] > counts[1 - i] ? 15 : 0) +
+        specialStyles[i].control,
     );
     const side =
       r.next() < clamp(0.515 + (control[0] - control[1]) * 0.004, 0.3, 0.7)
@@ -214,13 +319,17 @@ export function simulateMatch(
         (avg(ice[side], "passing") - defense) * 0.0012 +
         (chemistry - 75) * 0.0004 +
         (pp ? RULES.powerPlayExpectedGoalBonus : 0) +
+        specialStyles[side].attack -
+        specialStyles[other].defense +
         (teams[other].tactics.forecheck === "2-1-2" ? 0.009 : 0) -
         (teams[other].tactics.forecheck === "1-3-1" ? 0.006 : 0),
       0.025,
       0.24,
     );
     const chance = clamp(
-      xg + (75 - effective(goalie, "reflexes")) * 0.0015,
+      xg +
+        (75 - effective(goalie, "reflexes")) * 0.0015 +
+        (emptyNet[other] ? 0.72 : 0),
       0.018,
       0.28,
     );

@@ -1,7 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { applyOfficialIdentitySnapshot, newGame } from "../src/engine/database";
-import { callUpFromFarm, sendToFarm } from "../src/engine/roster";
+import {
+  callUpFromFarm,
+  sendToFarm,
+  swapLineupPlayer,
+} from "../src/engine/roster";
+import {
+  ensureSpecialTeams,
+  setSpecialTeamPlayer,
+} from "../src/engine/tactics";
 import { validateSave } from "../src/engine/saves";
 
 test("2026/27 identity dataset covers 32 clubs and 794 verified roster entries", () => {
@@ -87,4 +95,31 @@ test("legacy career identity migration preserves simulation data", () => {
   assert(player.headshot);
   assert(g.teams.every((team) => team.logoUrl));
   assert(validateSave(JSON.parse(JSON.stringify(g))));
+});
+
+test("lineup changes swap existing players instead of duplicating one across lines", () => {
+  const game = newGame("NYR", 52);
+  const team = game.teams.find((club) => club.id === "NYR")!;
+  const first = team.lines[0][0];
+  const second = team.lines[1][1];
+  swapLineupPlayer(team, "lines", 0, 0, second);
+  assert.equal(team.lines[0][0], second);
+  assert.equal(team.lines[1][1], first);
+  const active = [...team.lines.flat(), ...team.defense.flat(), team.goalie];
+  assert.equal(new Set(active).size, 19);
+  assert(validateSave(game));
+});
+
+test("all manpower situations have unique configurable special-team units", () => {
+  const game = newGame("NYR", 53);
+  const team = game.teams.find((club) => club.id === "NYR")!;
+  const units = ensureSpecialTeams(team);
+  assert.equal(Object.keys(units).length, 9);
+  for (const unit of Object.values(units))
+    assert.equal(new Set(unit!.players).size, unit!.players.length);
+  const unit = units["5v4"]!;
+  assert.throws(
+    () => setSpecialTeamPlayer(team, "5v4", 1, unit.players[0]),
+    /уже назначен/,
+  );
 });

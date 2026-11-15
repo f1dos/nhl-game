@@ -1,6 +1,6 @@
 import { autoLines } from "./database";
 import { salaryTotal } from "./contracts";
-import type { Game, Player } from "./types";
+import type { Game, Player, Team } from "./types";
 
 const unit = (player: Player) =>
   player.pos === "D" ? "D" : player.pos === "G" ? "G" : "F";
@@ -47,4 +47,37 @@ export function callUpFromFarm(g: Game, playerId: string) {
   const message = `${team.id}: ${player.name} recalled to the active roster.`;
   (g.transactions ??= []).push({ year: g.year, round: g.round, message });
   g.news.unshift(message);
+}
+
+export function swapLineupPlayer(
+  team: Team,
+  group: "lines" | "defense",
+  row: number,
+  slot: number,
+  playerId: string,
+) {
+  const units = team[group];
+  const previous = units[row]?.[slot];
+  if (!previous || previous === playerId) return;
+  const player = team.players.find((item) => item.id === playerId);
+  const correctGroup =
+    group === "defense"
+      ? player?.pos === "D"
+      : player && player.pos !== "D" && player.pos !== "G";
+  if (!correctGroup || player?.injury)
+    throw Error("Player is unavailable for this lineup slot");
+  let existing: [number, number] | undefined;
+  units.forEach((unitPlayers, unitIndex) =>
+    unitPlayers.forEach((id, slotIndex) => {
+      if (id === playerId) existing = [unitIndex, slotIndex];
+    }),
+  );
+  units[row][slot] = playerId;
+  if (existing) units[existing[0]][existing[1]] = previous;
+  const active = [...team.lines.flat(), ...team.defense.flat(), team.goalie];
+  if (new Set(active).size !== active.length) {
+    units[row][slot] = previous;
+    if (existing) units[existing[0]][existing[1]] = playerId;
+    throw Error("Each player can occupy only one active lineup slot");
+  }
 }

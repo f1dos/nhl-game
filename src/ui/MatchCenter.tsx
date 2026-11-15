@@ -1,22 +1,33 @@
 import { useEffect, useState } from "react";
 import { Pause, Play, Shield, SlidersHorizontal, Users } from "lucide-react";
-import type { Game, Player } from "../engine/types";
+import type { Game, Player, SpecialTeamsSituation } from "../engine/types";
 import { Crest, Panel, Rink } from "./components";
+import { swapLineupPlayer } from "../engine/roster";
+import {
+  ensureSpecialTeams,
+  setSpecialTeamPlayer,
+  SPECIAL_TEAM_LABELS,
+  SPECIAL_TEAM_STYLES,
+} from "../engine/tactics";
 
 type Edit = (fn: (game: Game) => void) => void;
 
 export default function MatchCenter({
   game,
   edit,
+  onComplete,
 }: {
   game: Game;
   edit: Edit;
+  onComplete?: () => void;
 }) {
   const result = game.last;
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [control, setControl] = useState<"lines" | "tactics">("lines");
+  const [control, setControl] = useState<"lines" | "tactics" | "special">(
+    "lines",
+  );
   useEffect(() => {
     setCursor(0);
     setRunning(false);
@@ -60,6 +71,7 @@ export default function MatchCenter({
   const home = game.teams.find((team) => team.id === result.home)!;
   const away = game.teams.find((team) => team.id === result.away)!;
   const managed = game.teams.find((team) => team.id === game.user)!;
+  ensureSpecialTeams(managed);
   const event = result.events[Math.max(0, cursor - 1)];
   const complete = cursor >= result.events.length;
   const score = complete ? result.goals : (event?.score ?? [0, 0]);
@@ -83,13 +95,14 @@ export default function MatchCenter({
   ) =>
     edit((current) => {
       const team = current.teams.find((club) => club.id === current.user)!;
-      team[group][row][slot] = playerId;
+      swapLineupPlayer(team, group, row, slot, playerId);
     });
   const selector = (
     value: string,
     candidates: Player[],
     onChange: (id: string) => void,
     key?: string,
+    disabledIds: string[] = [],
   ) => (
     <select
       key={key}
@@ -97,7 +110,11 @@ export default function MatchCenter({
       onChange={(change) => onChange(change.target.value)}
     >
       {candidates
-        .filter((player) => player.injury === 0)
+        .filter(
+          (player) =>
+            player.injury === 0 &&
+            (!disabledIds.includes(player.id) || player.id === value),
+        )
         .map((player) => (
           <option key={player.id} value={player.id}>
             {player.name} · {player.pos} · {player.ovr}
@@ -149,6 +166,11 @@ export default function MatchCenter({
                 <option value={2}>×2</option>
                 <option value={4}>×4</option>
               </select>
+              {complete && onComplete && (
+                <button className="primary" onClick={onComplete}>
+                  Пресс-конференция
+                </button>
+              )}
             </div>
           </header>
           <Rink>
@@ -223,6 +245,12 @@ export default function MatchCenter({
             >
               <SlidersHorizontal size={15} /> Тактика
             </button>
+            <button
+              className={control === "special" ? "active" : ""}
+              onClick={() => setControl("special")}
+            >
+              <Shield size={15} /> Спецбригады
+            </button>
           </nav>
           {control === "lines" ? (
             <div className="live-line-editor">
@@ -269,7 +297,7 @@ export default function MatchCenter({
                 )}
               </section>
             </div>
-          ) : (
+          ) : control === "tactics" ? (
             <div className="live-tactics">
               <label>
                 Форчек
@@ -312,6 +340,59 @@ export default function MatchCenter({
                 <Shield size={15} /> Поставьте матч на паузу и скорректируйте
                 план. Новое сочетание выходит на следующую смену.
               </p>
+            </div>
+          ) : (
+            <div className="live-special-teams">
+              <small>ИЗМЕНЕНИЯ СО СЛЕДУЮЩЕГО ВЫХОДА БРИГАДЫ</small>
+              {(
+                Object.keys(SPECIAL_TEAM_LABELS) as SpecialTeamsSituation[]
+              ).map((situation) => {
+                const unit = ensureSpecialTeams(managed)[situation]!;
+                return (
+                  <section key={situation}>
+                    <header>
+                      <b>{SPECIAL_TEAM_LABELS[situation]}</b>
+                      <select
+                        aria-label={`${situation} style`}
+                        value={unit.style}
+                        onChange={(change) =>
+                          edit((current) => {
+                            ensureSpecialTeams(
+                              current.teams.find(
+                                (club) => club.id === current.user,
+                              )!,
+                            )[situation]!.style = change.target
+                              .value as typeof unit.style;
+                          })
+                        }
+                      >
+                        {SPECIAL_TEAM_STYLES[situation].map((style) => (
+                          <option key={style}>{style}</option>
+                        ))}
+                      </select>
+                    </header>
+                    {unit.players.map((id, slot) =>
+                      selector(
+                        id,
+                        managed.players.filter((player) => player.pos !== "G"),
+                        (next) =>
+                          edit((current) =>
+                            setSpecialTeamPlayer(
+                              current.teams.find(
+                                (club) => club.id === current.user,
+                              )!,
+                              situation,
+                              slot,
+                              next,
+                            ),
+                          ),
+                        `${situation}-${slot}`,
+                        unit.players,
+                      ),
+                    )}
+                  </section>
+                );
+              })}
             </div>
           )}
         </aside>

@@ -132,7 +132,7 @@
 }
 .live-bench > nav {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   padding: 8px;
   gap: 6px;
   border-bottom: 1px solid #2b3946;
@@ -195,6 +195,32 @@
   color: #8194a5;
   font-size: 10px;
   line-height: 1.5;
+}
+.live-special-teams {
+  height: 480px;
+  overflow: auto;
+  padding: 12px;
+  display: grid;
+  gap: 9px;
+}
+.live-special-teams > small {
+  font-size: 8px;
+  color: #6fb8df;
+}
+.live-special-teams section {
+  display: grid;
+  gap: 5px;
+  padding: 9px;
+  background: #0e151b;
+  border: 1px solid #26343f;
+}
+.live-special-teams section b {
+  font-size: 9px;
+  color: #a9bdca;
+}
+.live-special-teams select {
+  font-size: 9px;
+  padding: 6px;
 }
 .standings-quick {
   display: flex;

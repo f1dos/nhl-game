@@ -83,6 +83,48 @@ export interface Tactics {
   physical: number;
   shooting: number;
 }
+export type SpecialTeamsSituation =
+  | "5v4"
+  | "5v3"
+  | "4v3"
+  | "4v5"
+  | "3v5"
+  | "3v4"
+  | "3v3"
+  | "6v5"
+  | "5v6";
+export interface SpecialTeamUnit {
+  players: string[];
+  style:
+    | "umbrella"
+    | "overload"
+    | "net-front"
+    | "diamond"
+    | "box"
+    | "wedge"
+    | "triangle"
+    | "aggressive"
+    | "possession"
+    | "protect-lead";
+}
+export type TrainingSession =
+  | "rest"
+  | "recovery"
+  | "teamwork"
+  | "tactical"
+  | "offense"
+  | "defense"
+  | "skills"
+  | "goalie"
+  | "conditioning";
+export interface TrainingDayPlan {
+  morning: TrainingSession;
+  afternoon: TrainingSession;
+}
+export interface TrainingSchedule {
+  intensity: "low" | "normal" | "high";
+  days: TrainingDayPlan[];
+}
 export interface RecordStats {
   gp: number;
   w: number;
@@ -104,6 +146,7 @@ export interface Team {
   ahlLogoUrl?: string;
   training?: import("./training").TrainingPlan;
   trainingTicks?: number;
+  trainingSchedule?: TrainingSchedule;
   prospects?: Player[];
   farm?: Player[];
   logoUrl?: string;
@@ -125,6 +168,7 @@ export interface Team {
   defense: string[][];
   goalie: string;
   tactics: Tactics;
+  specialTeams?: Partial<Record<SpecialTeamsSituation, SpecialTeamUnit>>;
   record: RecordStats;
 }
 export type InternationalRole = "depth" | "rotation" | "top-six";
