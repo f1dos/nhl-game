@@ -20,7 +20,11 @@ test('penalized players miss subsequent shifts; OT events use reduced units',()=
  const excluded=new Map<string,number>();
  for(const e of result.events){
   if(e.type==='shootout')continue;
-  for(const ids of e.skaters!){assert.equal(new Set(ids).size,ids.length);assert(ids.length>=3&&ids.length<=5);}
+  for(const ids of e.skaters!){
+   assert.equal(new Set(ids).size,ids.length);
+   assert(ids.length>=3&&ids.length<=6);
+   if(ids.length===6)assert(e.time>=3480,"extra attacker is only allowed in the final two minutes");
+  }
   for(const [id,until] of excluded)if(e.time<=until)assert(!e.skaters!.flat().includes(id));
   if(e.type==='penalty'){excluded.set(e.playerId!,e.time+120);penalties++;}
   if(e.type==='goal'&&e.text.includes('большинстве')){

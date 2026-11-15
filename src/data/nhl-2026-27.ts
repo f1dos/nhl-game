@@ -6,9 +6,9 @@ export const NHL_DATA_META = {
   source: "https://api-web.nhle.com/v1/roster/{team}/current",
   statsSource: "https://api.nhle.com/stats/rest/en/{position}/summary",
   standingsSource: "https://api-web.nhle.com/v1/standings/now",
-  ratingModel: "nhl-stats-v1",
+  ratingModel: "nhl-stats-v2-role-and-sample",
   disclaimer:
-    "Game OVR is a deterministic model derived from NHL statistics; contracts remain fictional.",
+    "Game OVR is a deterministic model derived from NHL statistics with role hierarchy and small-sample regression; contracts remain fictional.",
 } as const;
 
 export interface NhlRosterIdentity {

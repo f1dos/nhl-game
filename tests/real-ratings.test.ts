@@ -25,7 +25,7 @@ test("McDavid is the unique top-rated player and ratings match attributes", () =
     overall(mcdavid.pos, mcdavid.attributes, mcdavid.archetype),
     mcdavid.ovr,
   );
-  assert.equal(g.dataSource?.ratingModel, "nhl-stats-v1");
+  assert.equal(g.dataSource?.ratingModel, "nhl-stats-v2-role-and-sample");
 });
 
 test("Carolina is the unique strongest team in the 2026/27 snapshot", () => {
@@ -37,6 +37,19 @@ test("Carolina is the unique strongest team in the 2026/27 snapshot", () => {
   assert.equal(g.teams.filter((team) => teamOverall(team) === 92).length, 1);
   assert.equal(carolina.realWorldForm?.pointPct, 0.8);
   assert.equal(carolina.realWorldForm?.goalDifferential, 36);
+});
+
+test("goalie ratings regress tiny samples and preserve the Boston starter hierarchy", () => {
+  const game = newGame("BOS", 260027);
+  const boston = game.teams.find((team) => team.id === "BOS")!;
+  const swayman = [...boston.players, ...(boston.farm ?? [])].find(
+    (player) => player.name === "Jeremy Swayman",
+  )!;
+  const dipietro = [...boston.players, ...(boston.farm ?? [])].find(
+    (player) => player.name === "Michael DiPietro",
+  )!;
+  assert(swayman.ovr >= dipietro.ovr + 4);
+  assert.equal(boston.goalie, swayman.id);
 });
 
 test("version-5 careers can apply ratings without losing results or contracts", () => {

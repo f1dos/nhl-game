@@ -45,7 +45,7 @@ import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
 import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
-import MatchCenter from "./MatchCenter";
+import MatchdayHub from "./MatchdayHub";
 import TradeCenter from "./TradeCenter";
 import ContractCenter from "./ContractCenter";
 import { TrainingCenter } from "./ManagerWorkspace";
@@ -74,6 +74,7 @@ import {
   advanceDay,
   ensureManagementState,
   gameDate,
+  isUserMatchday,
   type ContinueMode,
 } from "../engine/management";
 const nav = [
@@ -302,13 +303,16 @@ export default function App() {
       );
       return;
     }
-    let matchPlayed = false;
+    if (g && isUserMatchday(g)) {
+      setPage("match");
+      return;
+    }
+    let reachedMatchday = false;
     edit((game) => {
-      const before = game.last;
       continueGame(game, continueMode);
-      matchPlayed = game.last !== before;
+      reachedMatchday = isUserMatchday(game);
     });
-    if (matchPlayed) setPage("match");
+    if (reachedMatchday) setPage("match");
     else
       setNotice(
         tr(
@@ -929,13 +933,7 @@ export default function App() {
     );
   else if (page === "match")
     content = (
-      <>
-        <PageTitle
-          title={tr("Матч-центр", "Match center")}
-          sub={tr("Каждое решение имеет значение.", "Every decision matters.")}
-        />
-        <MatchCenter game={g} edit={edit} />
-      </>
+      <MatchdayHub game={g} edit={edit} onExit={() => go("overview")} />
     );
   else if (page === "schedule") content = <DailyCalendar game={g} />;
   else if (page === "strategy")
@@ -1666,11 +1664,17 @@ export default function App() {
                 <option value="week">{tr("7 дней", "7 days")}</option>
               </select>
             )}
-            {g.phase === "offseason" && (g.freeAgentOffers ?? []).some((offer) => offer.status === "pending") && (
-              <button className="text-button" onClick={() => edit((world) => advanceDay(world))}>
-                {tr("Следующий день", "Next day")} <ChevronRight size={14} />
-              </button>
-            )}
+            {g.phase === "offseason" &&
+              (g.freeAgentOffers ?? []).some(
+                (offer) => offer.status === "pending",
+              ) && (
+                <button
+                  className="text-button"
+                  onClick={() => edit((world) => advanceDay(world))}
+                >
+                  {tr("Следующий день", "Next day")} <ChevronRight size={14} />
+                </button>
+              )}
             <button
               className="primary"
               disabled={busy}
@@ -1684,12 +1688,18 @@ export default function App() {
                     ),
                   );
                 } else if (g.phase === "offseason") {
-                  if ((g.freeAgentOffers ?? []).some((offer) => offer.status === "pending")) {
+                  if (
+                    (g.freeAgentOffers ?? []).some(
+                      (offer) => offer.status === "pending",
+                    )
+                  ) {
                     go("contracts");
-                    setNotice(tr(
-                      "Сначала дождитесь ответа по отправленным контрактам или отзовите предложения.",
-                      "Resolve pending contract offers or withdraw them before starting the next season.",
-                    ));
+                    setNotice(
+                      tr(
+                        "Сначала дождитесь ответа по отправленным контрактам или отзовите предложения.",
+                        "Resolve pending contract offers or withdraw them before starting the next season.",
+                      ),
+                    );
                     return;
                   }
                   edit(nextSeason);

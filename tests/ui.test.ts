@@ -56,9 +56,12 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".scout-league-table"));
   fireEvent.click(screen.getByText("Обзор клуба"));
   fireEvent.click(screen.getByText("Настроить тренировки"));
-  fireEvent.click(screen.getByText("Восстановление"));
+  fireEvent.change(screen.getByLabelText("Training 0 morning"), {
+    target: { value: "recovery" },
+  });
   assert.equal(
-    useGame.getState().game!.teams.find((t) => t.id === "TOR")!.training,
+    useGame.getState().game!.teams.find((t) => t.id === "TOR")!
+      .trainingSchedule!.days[0].morning,
     "recovery",
   );
   fireEvent.click(screen.getByText("Состав"));
@@ -104,8 +107,9 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   });
   fireEvent.click(screen.getByText("Продолжить"));
   assert.equal(useGame.getState().game?.round, 0);
-  assert(screen.getByText("МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ"));
+  assert(screen.getByText("Последние решения перед вбрасыванием"));
   fireEvent.click(screen.getByText("Начать матч"));
+  assert(screen.getByText("МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ"));
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
   assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));
@@ -122,6 +126,9 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText("РЕЙТИНГ ИГРОКОВ · TOP 50"));
   assert(screen.getAllByText("Connor McDavid").length > 0);
   fireEvent.click(screen.getByText("Контракты и рынок"));
+  // Keep this UI-form assertion independent from AI transactions made during
+  // the preceding calendar advance; cap enforcement has dedicated tests.
+  useGame.getState().game!.rules.cap = 200;
   const expiring = useGame
     .getState()
     .game!.teams.find((t) => t.id === "TOR")!
@@ -141,7 +148,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     target: { value: requestedSalary },
   });
   fireEvent.click(screen.getByText("Предложить контракт"));
-  assert(screen.getByText("Контракт подписан"));
+  await waitFor(() => assert(screen.getByText("Контракт подписан")));
   assert.equal(
     useGame
       .getState()

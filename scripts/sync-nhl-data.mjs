@@ -138,7 +138,10 @@ const goalieScore = (player) => {
   const wins = (current?.wins ?? 0) + (previous?.wins ?? 0) * 0.32;
   const savePct = (saves + 0.905 * 180) / (shots + 180);
   const winPct = (wins + 2) / (gp + 5);
-  const score = savePct * 8 + clamp(winPct, 0.2, 0.8) * 0.35;
+  const sampleConfidence = clamp(gp / 24, 0.25, 1);
+  const score =
+    (savePct * 8 + clamp(winPct, 0.2, 0.8) * 0.35) * sampleConfidence +
+    (0.908 * 8 + 0.5 * 0.35) * (1 - sampleConfidence);
   return {
     score,
     gp: Math.round(gp),
@@ -164,6 +167,8 @@ for (const [group, rows] of Object.entries(groups)) {
     const percentile = rows.length === 1 ? 0 : index / (rows.length - 1);
     const ceiling = group === "forward" ? 96 : group === "defense" ? 94 : 93;
     let ovr = Math.round(60 + (ceiling - 60) * (1 - Math.sqrt(percentile)));
+    if (row.gp < 8) ovr -= group === "goalie" ? 4 : 3;
+    else if (row.gp < 16) ovr -= 2;
     if (row.player.id === 8478402) ovr = 97;
     playerRatings[row.player.id] = {
       ovr,
