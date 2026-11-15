@@ -96,8 +96,8 @@ export class SpatialMatch {
       const situation = `${n}v${other}` as SpecialTeamsSituation;
       const unit = ensureSpecialTeams(team)[situation];
       const planned = unit?.players ?? [
-        ...team.lines[Math.floor(this.time / 40) % 4],
-        ...team.defense[Math.floor(this.time / 40) % 3],
+        ...team.lines[Math.floor(this.time / (team.tactics.shiftSeconds ?? 40)) % 4],
+        ...team.defense[Math.floor(this.time / (team.tactics.shiftSeconds ?? 40)) % 3],
       ];
       const available = team.players.filter(
         (p) =>
@@ -194,7 +194,7 @@ export class SpatialMatch {
     this.result.duration = this.time;
     const expired = this.penalties.some((p) => p.until <= this.time);
     this.penalties = this.penalties.filter((p) => p.until > this.time);
-    const shift = Math.floor(this.time / 40);
+    const shift = this.teams.reduce((sum,t)=>sum+Math.floor(this.time/(t.tactics.shiftSeconds??40)),0);
     if (shift !== this.shift || expired) {
       this.shift = shift;
       this.changeShift();
@@ -230,7 +230,7 @@ export class SpatialMatch {
         tx = clamp(puck.x + dir * (p.pos === "D" ? -9 : 5), -25, 25);
         // Cycle in support and open passing lanes rather than parking in slots.
         tx += Math.sin(this.time * 0.45 + slot) * 1.8;
-        tz = ((slot % 3) - 1) * 6 + Math.cos(this.time * 0.35 + slot) * 1.5;
+        tz = ((slot % 3) - 1) * (3+(this.teams[b.side].tactics.width??50)*.06) + Math.cos(this.time * 0.35 + slot) * 1.5;
       }
       const dx = tx - b.x,
         dz = tz - b.z,
@@ -396,7 +396,7 @@ export class SpatialMatch {
         const mates = this.frame.bodies.filter(
           (b) => b.side === owner.side && !b.goalie && b.id !== owner.id,
         );
-        if (shot || (mates.length && this.rng.next() < 0.45)) {
+        if (shot || (mates.length && this.rng.next() < .2+(this.teams[owner.side].tactics.passingRisk??50)*.005)) {
           const mate = shot ? undefined : this.rng.pick(mates);
           const tx = mate?.x ?? dir * 27,
             tz = mate?.z ?? (this.rng.next() - 0.5) * 3;

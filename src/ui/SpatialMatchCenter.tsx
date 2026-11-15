@@ -11,7 +11,7 @@ import {
 } from "../engine/tactics";
 import type { SpecialTeamsSituation } from "../engine/types";
 import { Crest } from "./components";
-import TacticsBoard from "./TacticsBoard";
+import TacticalCenter from "./TacticalCenter";
 const Arena = lazy(() => import("./MatchArena3D"));
 
 export default function SpatialMatchCenter({
@@ -100,7 +100,7 @@ export default function SpatialMatchCenter({
       </section>
       <nav className="spatial-tabs" role="tablist" aria-label="Матч и тактика"><button role="tab" aria-selected={tab==="match"} onClick={()=>setTab("match")}>Трансляция</button><button role="tab" aria-selected={tab==="tactics"} onClick={()=>{setRunning(false);setTab("tactics");}}>Тактика</button></nav>
       <div className={tab === "match" ? "live-match-layout spatial-broadcast" : "spatial-tactics"}>
-        {tab === "tactics" && <TacticsBoard team={managed} change={fn=>update(()=>fn(managed))}/>}
+        {tab === "tactics" && <TacticalCenter team={managed} change={fn=>update(()=>fn(managed))}/>}
         <section className="live-ice-panel" style={{display:tab==="match"?undefined:"none"}}>
           <header>
             <b>МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ</b>

@@ -1,3 +1,4 @@
+import TacticalCenter from "./TacticalCenter";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -515,110 +516,7 @@ export default function MatchdayHub({
             </div>
           </section>
         )}
-        {tab === "special" && (
-          <section className="special-teams-editor">
-            <header>
-              <h2>Специальные бригады</h2>
-              <p>
-                Отдельные сочетания используются движком в каждом формате
-                неравных составов.
-              </p>
-            </header>
-            <div>
-              {(
-                Object.keys(SPECIAL_TEAM_LABELS) as SpecialTeamsSituation[]
-              ).map((situation) => {
-                const unit = ensureSpecialTeams(team)[situation]!;
-                return (
-                  <section key={situation}>
-                    <header>
-                      <b>{SPECIAL_TEAM_LABELS[situation]}</b>
-                      <select
-                        value={unit.style}
-                        onChange={(event) =>
-                          edit((current) => {
-                            ensureSpecialTeams(
-                              current.teams.find(
-                                (club) => club.id === current.user,
-                              )!,
-                            )[situation]!.style = event.target
-                              .value as typeof unit.style;
-                          })
-                        }
-                      >
-                        {SPECIAL_TEAM_STYLES[situation].map((style) => (
-                          <option key={style}>{style}</option>
-                        ))}
-                      </select>
-                    </header>
-                    <div>
-                      {unit.players.map((id, slot) =>
-                        playerSelect(
-                          id,
-                          team.players.filter((player) => player.pos !== "G"),
-                          (next) =>
-                            edit((current) =>
-                              setSpecialTeamPlayer(
-                                current.teams.find(
-                                  (club) => club.id === current.user,
-                                )!,
-                                situation,
-                                slot,
-                                next,
-                              ),
-                            ),
-                          unit.players,
-                        ),
-                      )}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          </section>
-        )}
-        {tab === "tactics" && (
-          <section className="matchday-tactics">
-            <h2>Командный план</h2>
-            <label>
-              Форчек
-              <select
-                value={team.tactics.forecheck}
-                onChange={(event) =>
-                  edit((current) => {
-                    current.teams.find(
-                      (club) => club.id === current.user,
-                    )!.tactics.forecheck = event.target
-                      .value as typeof team.tactics.forecheck;
-                  })
-                }
-              >
-                <option>1-2-2</option>
-                <option>2-1-2</option>
-                <option>1-3-1</option>
-              </select>
-            </label>
-            {(["pace", "physical", "shooting"] as const).map((key) => (
-              <label key={key}>
-                <span>{key}</span>
-                <input
-                  type="range"
-                  min="20"
-                  max="90"
-                  value={team.tactics[key]}
-                  onChange={(event) =>
-                    edit((current) => {
-                      current.teams.find(
-                        (club) => club.id === current.user,
-                      )!.tactics[key] = +event.target.value;
-                    })
-                  }
-                />
-                <b>{team.tactics[key]}</b>
-              </label>
-            ))}
-          </section>
-        )}
+        {(tab === "special" || tab === "tactics") && <TacticalCenter key={tab} team={team} initial={tab==="special"?"special":"plan"} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
         {tab === "press" && (
           <section className="matchday-press">
             <span className="eyebrow">PRE-MATCH PRESS CONFERENCE</span>

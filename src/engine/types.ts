@@ -82,6 +82,9 @@ export interface Tactics {
   pace: number;
   physical: number;
   shooting: number;
+  width?: number;
+  passingRisk?: number;
+  shiftSeconds?: number;
 }
 export type SpecialTeamsSituation =
   | "5v4"

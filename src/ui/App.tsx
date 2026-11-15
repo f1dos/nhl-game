@@ -1,3 +1,4 @@
+import TacticalCenter from "./TacticalCenter";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -923,13 +924,13 @@ export default function App() {
     );
   else if (page === "tactics")
     content = (
-      <TacticsView
+      <><TacticalCenter team={team} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/><details className="legacy-tactics"><summary>Табличный редактор звеньев</summary>      <TacticsView
         game={g}
         team={team}
         edit={edit}
         tr={tr}
         onSelect={setProfile}
-      />
+      /></details></>
     );
   else if (page === "match")
     content = (
