@@ -213,6 +213,38 @@ export function playerConcerns(player: Player) {
   return concerns.length ? concerns : ["серьёзных проблем нет"];
 }
 
+export function externalContactEligibility(game: Game, playerId: string) {
+  const owner = game.teams.find((team) =>
+    [...team.players, ...(team.farm ?? [])].some(
+      (player) => player.id === playerId,
+    ),
+  );
+  if (!owner)
+    return { allowed: false, reason: "Игрок не принадлежит клубу NHL" };
+  if (owner.id === game.user)
+    return { allowed: true, reason: "Игрок вашей организации" };
+  const player = [...owner.players, ...(owner.farm ?? [])].find(
+    (item) => item.id === playerId,
+  )!;
+  const rank = [...owner.players]
+    .sort((a, b) => b.ovr - a.ovr)
+    .findIndex((item) => item.id === playerId);
+  if (rank >= 0 && rank < 5)
+    return {
+      allowed: false,
+      reason: "Клуб запретил контакт с ключевым игроком",
+    };
+  if (player.years > 1 && player.morale >= 60)
+    return {
+      allowed: false,
+      reason: "У игрока долгосрочный контракт и нет интереса к переходу",
+    };
+  return {
+    allowed: true,
+    reason: "Допустим только официальный запрос через клуб и агента",
+  };
+}
+
 export function talkToPlayer(
   game: Game,
   playerId: string,

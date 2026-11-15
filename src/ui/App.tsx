@@ -22,6 +22,7 @@ import {
   Snowflake,
   Search,
   Building2,
+  Newspaper,
   Target,
   X,
 } from "lucide-react";
@@ -36,7 +37,10 @@ import {
   applyOfficialInjurySnapshot,
   applyMinorLeagueSnapshot,
 } from "../engine/database";
-import { playerConcerns } from "../engine/conversations";
+import {
+  externalContactEligibility,
+  playerConcerns,
+} from "../engine/conversations";
 import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
@@ -53,6 +57,8 @@ import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
+import ClubCenter from "./ClubCenter";
+import PressCenter from "./PressCenter";
 import {
   effectiveOverall,
   ensureFranchiseWorld,
@@ -83,6 +89,22 @@ const nav = [
     ru: "Входящие",
     en: "Inbox",
     Icon: Mail,
+    groupRu: "РАБОЧИЙ СТОЛ",
+    groupEn: "WORKSPACE",
+  },
+  {
+    key: "clubs",
+    ru: "Клубы NHL",
+    en: "NHL clubs",
+    Icon: Building2,
+    groupRu: "РАБОЧИЙ СТОЛ",
+    groupEn: "WORKSPACE",
+  },
+  {
+    key: "press",
+    ru: "Пресс-центр",
+    en: "Press room",
+    Icon: Newspaper,
     groupRu: "РАБОЧИЙ СТОЛ",
     groupEn: "WORKSPACE",
   },
@@ -230,7 +252,9 @@ export default function App() {
     [filter, setFilter] = useState("all"),
     [seed, setSeed] = useState(260027),
     [language, setLanguage] = useState<"ru" | "en">("ru"),
-    [continueMode, setContinueMode] = useState<ContinueMode>("next-game");
+    [continueMode, setContinueMode] = useState<ContinueMode>("day"),
+    [standingsOpen, setStandingsOpen] = useState(false),
+    [selectedClub, setSelectedClub] = useState<string>();
   const [database] = useState(() => newGame());
   const ru = (g?.language || language) === "ru";
   const tr = (a: string, b: string) => (ru ? a : b);
@@ -277,8 +301,20 @@ export default function App() {
       );
       return;
     }
-    edit((game) => continueGame(game, continueMode));
-    setPage("match");
+    let matchPlayed = false;
+    edit((game) => {
+      const before = game.last;
+      continueGame(game, continueMode);
+      matchPlayed = game.last !== before;
+    });
+    if (matchPlayed) setPage("match");
+    else
+      setNotice(
+        tr(
+          "Время продвинуто до следующей точки календаря",
+          "Time advanced to the next calendar checkpoint",
+        ),
+      );
   };
   async function finish() {
     if (!g) return;
@@ -538,7 +574,15 @@ export default function App() {
               <td>
                 <div className="team-cell">
                   <Crest team={t} size={28} />
-                  <strong>{compact ? t.id : `${t.city} ${t.name}`}</strong>
+                  <button
+                    className="team-link"
+                    onClick={() => {
+                      setSelectedClub(t.id);
+                      go("clubs");
+                    }}
+                  >
+                    <strong>{compact ? t.id : `${t.city} ${t.name}`}</strong>
+                  </button>
                   {t.id === g.user && <span className="you">YOU</span>}
                 </div>
               </td>
@@ -616,6 +660,16 @@ export default function App() {
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
+  else if (page === "clubs")
+    content = (
+      <ClubCenter
+        game={g}
+        initialClub={selectedClub}
+        onPlayer={setProfile}
+        onTrade={() => go("trades")}
+      />
+    );
+  else if (page === "press") content = <PressCenter game={g} edit={edit} />;
   else if (page === "draft")
     content = <DraftCenter game={g} edit={edit} tr={tr} />;
   else if (page === "overview")
@@ -879,7 +933,7 @@ export default function App() {
           title={tr("Матч-центр", "Match center")}
           sub={tr("Каждое решение имеет значение.", "Every decision matters.")}
         />
-        <MatchCenter game={g} />
+        <MatchCenter game={g} edit={edit} />
       </>
     );
   else if (page === "schedule") content = <DailyCalendar game={g} />;
@@ -1562,6 +1616,14 @@ export default function App() {
                 {team.record.gf - team.record.ga}
               </small>
             </span>
+            <button
+              className="standings-quick"
+              onClick={() => setStandingsOpen(true)}
+            >
+              <Trophy size={15} />
+              <span>{tr("Таблица", "Standings")}</span>
+              <b>#{sorted.findIndex((club) => club.id === g.user) + 1}</b>
+            </button>
             <span className="game-date">
               <CalendarDays size={15} />
               {g.phase === "regular"
@@ -1675,6 +1737,41 @@ export default function App() {
           >
             <X size={15} />
           </button>
+        </div>
+      )}
+      {standingsOpen && (
+        <div
+          className="standings-drawer-backdrop"
+          onClick={() => setStandingsOpen(false)}
+        >
+          <aside
+            className="standings-drawer"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <span className="eyebrow">NHL REGULAR SEASON</span>
+                <h2>{tr("Турнирная таблица", "League standings")}</h2>
+              </div>
+              <button
+                className="icon-button"
+                aria-label="Close standings"
+                onClick={() => setStandingsOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </header>
+            {teamTable(sorted, false)}
+            <button
+              className="primary"
+              onClick={() => {
+                setStandingsOpen(false);
+                go("league");
+              }}
+            >
+              {tr("Открыть полный центр лиги", "Open league center")}
+            </button>
+          </aside>
         </div>
       )}
       {profile && (
@@ -2082,6 +2179,13 @@ function PlayerProfile({
     p.stats.g +
     p.stats.a;
   const previous = p.history.at(-1)?.ovr ?? p.ovr;
+  const owner = game.teams.find((team) =>
+    [...team.players, ...(team.farm ?? [])].some(
+      (player) => player.id === p.id,
+    ),
+  );
+  const external = owner && owner.id !== game.user;
+  const contact = externalContactEligibility(game, p.id);
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section
@@ -2284,12 +2388,20 @@ function PlayerProfile({
               {tr("мотивация", "motivation")} {p.motivation ?? 50}%
             </p>
           </div>
-          <button onClick={onConversation}>
-            {p.lastConversationRound === game.round
-              ? tr("Открыть историю разговора", "Open conversation history")
-              : tr("Начать личную встречу", "Start private meeting")}
+          <button
+            onClick={onConversation}
+            disabled={external && !contact.allowed}
+          >
+            {external && !contact.allowed
+              ? tr("Контакт запрещён клубом", "Contact blocked by club")
+              : external
+                ? tr("Связаться через агента", "Contact through agent")
+                : p.lastConversationRound === game.round
+                  ? tr("Открыть историю разговора", "Open conversation history")
+                  : tr("Начать личную встречу", "Start private meeting")}
             <ArrowUpRight size={16} />
           </button>
+          {external && <small>{contact.reason}</small>}
           {p.conversationHistory?.[0] && (
             <blockquote>{p.conversationHistory[0].response}</blockquote>
           )}

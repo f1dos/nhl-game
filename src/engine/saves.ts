@@ -173,6 +173,28 @@ export function validateSave(value: unknown): Game {
   )
     throw Error("Invalid management calendar");
   if (
+    g.preseasonFixtures &&
+    (!Array.isArray(g.preseasonFixtures) ||
+      g.preseasonFixtures.some(
+        (fixture) =>
+          !/^\d{4}-\d{2}-\d{2}$/.test(fixture.date) ||
+          !ids.has(fixture.home) ||
+          !ids.has(fixture.away) ||
+          fixture.home === fixture.away,
+      ))
+  )
+    throw Error("Invalid preseason calendar");
+  if (
+    g.pressHistory &&
+    (!Array.isArray(g.pressHistory) ||
+      g.pressHistory.some(
+        (appearance) =>
+          !["pre-match", "post-match"].includes(appearance.type) ||
+          !["protective", "balanced", "ambitious"].includes(appearance.tone),
+      ))
+  )
+    throw Error("Invalid press history");
+  if (
     g.franchiseStrategy !== undefined &&
     ![
       "draft-lottery",

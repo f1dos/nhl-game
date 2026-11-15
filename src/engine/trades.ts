@@ -64,16 +64,29 @@ export function evaluateTrade(
       "Права на драфт-пик изменились / Draft-pick ownership changed",
     );
   if (
-    give.some((id) => !a.players.some((p) => p.id === id)) ||
-    take.some((id) => !b.players.some((p) => p.id === id))
+    give.some(
+      (id) => ![...a.players, ...(a.farm ?? [])].some((p) => p.id === id),
+    ) ||
+    take.some(
+      (id) => ![...b.players, ...(b.farm ?? [])].some((p) => p.id === id),
+    )
   )
     return reject(
       "Игрок больше не принадлежит клубу / Player ownership changed",
     );
-  const outgoing = a.players.filter((p) => give.includes(p.id)),
-    incoming = b.players.filter((p) => take.includes(p.id));
-  const nextA = [...a.players.filter((p) => !give.includes(p.id)), ...incoming],
-    nextB = [...b.players.filter((p) => !take.includes(p.id)), ...outgoing];
+  const outgoing = [...a.players, ...(a.farm ?? [])].filter((p) =>
+      give.includes(p.id),
+    ),
+    incoming = [...b.players, ...(b.farm ?? [])].filter((p) =>
+      take.includes(p.id),
+    );
+  const incomingNhl = b.players.filter((p) => take.includes(p.id));
+  const outgoingNhl = a.players.filter((p) => give.includes(p.id));
+  const nextA = [
+      ...a.players.filter((p) => !give.includes(p.id)),
+      ...incomingNhl,
+    ],
+    nextB = [...b.players.filter((p) => !take.includes(p.id)), ...outgoingNhl];
   if (!legal(nextA) || !legal(nextB))
     return reject("Недостаточно игроков по позициям / Invalid roster balance");
   if (payroll(nextA) > g.rules.cap || payroll(nextB) > g.rules.cap)
@@ -116,10 +129,32 @@ export function executeTrade(
   if (!evaluation.accepted) throw Error(evaluation.reason);
   const a = g.teams.find((t) => t.id === g.user)!,
     b = g.teams.find((t) => t.id === other)!;
-  const outgoing = a.players.filter((p) => give.includes(p.id)),
-    incoming = b.players.filter((p) => take.includes(p.id));
-  a.players = [...a.players.filter((p) => !give.includes(p.id)), ...incoming];
-  b.players = [...b.players.filter((p) => !take.includes(p.id)), ...outgoing];
+  const outgoing = [...a.players, ...(a.farm ?? [])].filter((p) =>
+      give.includes(p.id),
+    ),
+    incoming = [...b.players, ...(b.farm ?? [])].filter((p) =>
+      take.includes(p.id),
+    );
+  const outgoingNhl = a.players.filter((p) => give.includes(p.id));
+  const incomingNhl = b.players.filter((p) => take.includes(p.id));
+  const outgoingFarm = (a.farm ?? []).filter((p) => give.includes(p.id));
+  const incomingFarm = (b.farm ?? []).filter((p) => take.includes(p.id));
+  a.players = [
+    ...a.players.filter((p) => !give.includes(p.id)),
+    ...incomingNhl,
+  ];
+  b.players = [
+    ...b.players.filter((p) => !take.includes(p.id)),
+    ...outgoingNhl,
+  ];
+  a.farm = [
+    ...(a.farm ?? []).filter((p) => !give.includes(p.id)),
+    ...incomingFarm,
+  ];
+  b.farm = [
+    ...(b.farm ?? []).filter((p) => !take.includes(p.id)),
+    ...outgoingFarm,
+  ];
   const givePicks =
     g.draftAssets?.filter((pick) => assets.givePicks?.includes(pick.id)) ?? [];
   const takePicks =

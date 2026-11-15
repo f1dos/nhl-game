@@ -75,3 +75,20 @@ test("draft picks transfer in GM negotiations and rival clubs demand a premium",
   assert.equal(edmPick.currentTeam, "CGY");
   assert.equal(cgyPick.currentTeam, "EDM");
 });
+test("AHL assets can be negotiated and remain in the receiving farm system", () => {
+  const g = newGame("BOS");
+  ensureManagementState(g);
+  g.rules.cap = 300;
+  const bosFarm = g.teams.find((team) => team.id === "BOS")!.farm![0];
+  const bufFarm = g.teams.find((team) => team.id === "BUF")!.farm![0];
+  bosFarm.ovr = 90;
+  bosFarm.potential = 95;
+  bosFarm.salary = 1;
+  bufFarm.ovr = 50;
+  bufFarm.potential = 50;
+  bufFarm.salary = 1;
+  assert(evaluateTrade(g, "BUF", [bosFarm.id], [bufFarm.id]).accepted);
+  executeTrade(g, "BUF", [bosFarm.id], [bufFarm.id]);
+  assert(g.teams.find((team) => team.id === "BUF")!.farm!.includes(bosFarm));
+  assert(g.teams.find((team) => team.id === "BOS")!.farm!.includes(bufFarm));
+});

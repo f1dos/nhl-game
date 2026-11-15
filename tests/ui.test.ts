@@ -99,14 +99,25 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     useGame.getState().game!.teams.find((t) => t.id === "TOR")!.lines[0][0],
     replacement.id,
   );
+  fireEvent.change(screen.getByLabelText("Режим продолжения"), {
+    target: { value: "next-game" },
+  });
   fireEvent.click(screen.getByText("Продолжить"));
-  assert.equal(useGame.getState().game?.round, 1);
-  assert(screen.getByText("Повтор ключевых событий"));
-  fireEvent.click(screen.getByText("Результат"));
-  assert(screen.getByText(/FINAL/));
+  assert.equal(useGame.getState().game?.round, 0);
+  assert(screen.getByText("МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ"));
+  fireEvent.click(screen.getByText("Начать матч"));
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
   assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));
+  fireEvent.click(screen.getByText("Клубы NHL"));
+  assert(screen.getByText("Профили клубов"));
+  assert(screen.getByText("Основной состав NHL"));
+  fireEvent.click(screen.getByText("Пресс-центр"));
+  assert(
+    screen.getByText(
+      "Предматчевые и послематчевые ответы влияют на ожидания фанатов, раздевалку и руководство.",
+    ),
+  );
   fireEvent.click(screen.getByText("Статистика"));
   assert(screen.getByText("РЕЙТИНГ ИГРОКОВ · TOP 50"));
   assert(screen.getAllByText("Connor McDavid").length > 0);
@@ -146,13 +157,13 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   const g = structuredClone(useGame.getState().game!);
   await saveGame(g);
   const saves = await listGames();
-  assert.equal(validateSave(saves.find((s) => s.id === g.id)).round, 1);
+  assert.equal(validateSave(saves.find((s) => s.id === g.id)).round, 0);
   cleanup();
   useGame.setState({ game: null });
   render(React.createElement(App));
   await waitFor(() =>
     assert(screen.getByText("A new day. A new opportunity.")),
   );
-  assert.equal(useGame.getState().game?.round, 1);
+  assert.equal(useGame.getState().game?.round, 0);
   cleanup();
 });

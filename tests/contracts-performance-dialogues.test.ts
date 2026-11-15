@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
-import { conversationOptions, talkToPlayer } from "../src/engine/conversations";
+import {
+  conversationOptions,
+  externalContactEligibility,
+  talkToPlayer,
+} from "../src/engine/conversations";
 import {
   recordPlayerPerformance,
   prepareAnnualDevelopment,
@@ -73,4 +77,15 @@ test("player conversations alter morale, relationship and motivation with a cool
   assert.equal(p.conversationHistory?.length, 1);
   assert.equal(p.conversationHistory?.[0].managerLine, result.managerLine);
   assert.throws(() => talkToPlayer(g, p.id, "role", "direct"), /уже говорили/);
+});
+
+test("external player contact differs from own-team meetings and blocks protected stars", () => {
+  const g = newGame("TOR", 45);
+  const opponent = g.teams.find((team) => team.id === "EDM")!;
+  const star = [...opponent.players].sort((a, b) => b.ovr - a.ovr)[0];
+  assert.equal(externalContactEligibility(g, star.id).allowed, false);
+  const depth = [...opponent.farm!].sort((a, b) => a.ovr - b.ovr)[0];
+  depth.years = 1;
+  depth.morale = 45;
+  assert.equal(externalContactEligibility(g, depth.id).allowed, true);
 });

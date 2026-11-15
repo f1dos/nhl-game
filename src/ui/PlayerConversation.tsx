@@ -6,6 +6,7 @@ import {
   conversationOptions,
   playerConcerns,
   talkToPlayer,
+  externalContactEligibility,
   type ConversationTopic,
 } from "../engine/conversations";
 import type { Game, Player } from "../engine/types";
@@ -22,6 +23,14 @@ export default function PlayerConversation({
   onClose: () => void;
 }) {
   const ru = game.language === "ru";
+  const owner = game.teams.find((team) =>
+    [...team.players, ...(team.farm ?? [])].some(
+      (item) => item.id === player.id,
+    ),
+  );
+  const external = owner && owner.id !== game.user;
+  const eligibility = externalContactEligibility(game, player.id);
+  const [externalReply, setExternalReply] = useState("");
   const [topic, setTopic] = useState<ConversationTopic>(
     player.injury > 0
       ? "injury"
@@ -37,6 +46,111 @@ export default function PlayerConversation({
   const [error, setError] = useState("");
   const completed = player.lastConversationRound === game.round || !!result;
   const history = player.conversationHistory ?? [];
+  if (external)
+    return (
+      <div
+        className="conversation-window external-contact"
+        role="dialog"
+        aria-modal="true"
+      >
+        <header>
+          <button className="icon-button" aria-label="Back" onClick={onClose}>
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <span className="eyebrow">OFFICIAL CONTACT · {owner.id}</span>
+            <strong>Запрос по игроку другого клуба</strong>
+          </div>
+          <button
+            className="icon-button"
+            aria-label="Close conversation"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </button>
+        </header>
+        <div className="external-contact-layout">
+          <aside className="conversation-player">
+            <div
+              className={`conversation-photo ${player.headshot ? "has-photo" : ""}`}
+            >
+              {player.headshot ? (
+                <img src={player.headshot} alt={player.name} />
+              ) : (
+                <span>{player.number}</span>
+              )}
+            </div>
+            <h1>{player.name}</h1>
+            <p>
+              {owner.city} {owner.name} · {player.pos} · {player.ovr} OVR
+            </p>
+            <div className="conversation-vitals">
+              <div>
+                <span>Контракт</span>
+                <b>{player.years}Y</b>
+              </div>
+              <div>
+                <span>Мораль</span>
+                <b>{player.morale}%</b>
+              </div>
+            </div>
+          </aside>
+          <main className="conversation-room">
+            <span className="eyebrow">НЕ ЛИЧНАЯ ВСТРЕЧА</span>
+            <h2>Контакт только через клуб и агента</h2>
+            <p>
+              Разговоры о роли, форме и игровом времени доступны только со
+              своими хоккеистами. Обращение к игроку на контракте без разрешения
+              клуба считается tampering.
+            </p>
+            <div
+              className={`contact-permission ${eligibility.allowed ? "allowed" : "blocked"}`}
+            >
+              <b>
+                {eligibility.allowed
+                  ? "Официальный запрос разрешён"
+                  : "Контакт недоступен"}
+              </b>
+              <span>{eligibility.reason}</span>
+            </div>
+            {eligibility.allowed && !externalReply && (
+              <div className="dialogue-choices">
+                <button
+                  onClick={() =>
+                    setExternalReply(
+                      "Агент подтвердил: игрок готов выслушать спортивный проект, но клуб сначала требует согласовать компенсацию.",
+                    )
+                  }
+                >
+                  <span>Уточнить интерес игрока</span>
+                  <p>
+                    Передать агенту роль, срок и направление развития клуба.
+                  </p>
+                </button>
+                <button
+                  onClick={() =>
+                    setExternalReply(
+                      "GM клуба не дал разрешение на прямой разговор. Предложено начать с официального обмена.",
+                    )
+                  }
+                >
+                  <span>Запросить разрешение клуба</span>
+                  <p>Официально связаться с GM команды-владельца.</p>
+                </button>
+              </div>
+            )}
+            {externalReply && (
+              <section className="dialogue-result neutral">
+                <div className="speech player">
+                  <small>ОТВЕТ АГЕНТА / КЛУБА</small>
+                  <p>{externalReply}</p>
+                </div>
+              </section>
+            )}
+          </main>
+        </div>
+      </div>
+    );
   return (
     <div className="conversation-window" role="dialog" aria-modal="true">
       <header>
