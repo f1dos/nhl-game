@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export type Position = "LW" | "C" | "RW" | "D" | "G";
 export interface Stats {
   gp: number;
@@ -87,15 +89,7 @@ export interface Tactics {
   shiftSeconds?: number;
 }
 export type SpecialTeamsSituation =
-  | "5v4"
-  | "5v3"
-  | "4v3"
-  | "4v5"
-  | "3v5"
-  | "3v4"
-  | "3v3"
-  | "6v5"
-  | "5v6";
+  "5v4" | "5v3" | "4v3" | "4v5" | "3v5" | "3v4" | "3v3" | "6v5" | "5v6";
 export interface SpecialTeamUnit {
   players: string[];
   style:
@@ -474,7 +468,7 @@ export interface Game {
   news: string[];
   history: { year: number; champion: string; points: number }[];
   rules: { cap: number };
-  language: "ru" | "en";
+  language: Locale;
 }
 export const emptyStats = (): Stats => ({
   gp: 0,
