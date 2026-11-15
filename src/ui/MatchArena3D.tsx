@@ -36,7 +36,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     for (const z of [-13.2, 13.2]) {
       box(0, 0.6, z, 61, 1.2, 0.35, "#fafafa");
       box(0, 0.1, z - Math.sign(z) * 0.2, 61, 0.2, 0.1, "#eab83b");
-      box(0, 2.5, z + Math.sign(z) * 3, 65, 4, 5, "#273b52");
+      if (z < 0) box(0, 2.5, z - 5, 65, 4, 5, "#273b52");
     }
     for (const x of [-30.5, 30.5]) box(x, 0.6, 0, 0.35, 1.2, 26, "#fafafa");
     for (const [x, color] of [[0, "#d03c4a"], [-9, "#307fb8"], [9, "#307fb8"], [-26, "#d03c4a"], [26, "#d03c4a"]] as const)
@@ -103,7 +103,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
           group.lookAt(target.x, 0, target.z); group.position.lerp(target, Math.min(1, dt * 2));
         });
       }
-      const desired = mode.current === "overhead" ? new THREE.Vector3(0, 65, 0.1) : mode.current === "follow" ? new THREE.Vector3(puck.position.x * 0.45, 26, 31) : new THREE.Vector3(0, 38, 45);
+      const desired = mode.current === "overhead" ? new THREE.Vector3(0, 65, 0.1) : mode.current === "follow" ? new THREE.Vector3(puck.position.x * 0.45, 26, 31) : new THREE.Vector3(0, 45, 38);
       camera.position.lerp(desired, 0.08); camera.lookAt(mode.current === "follow" ? puck.position.x * 0.35 : 0, 0, 0);
       renderer.render(scene, camera); frame = requestAnimationFrame(animate);
     };

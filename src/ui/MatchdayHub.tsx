@@ -24,6 +24,7 @@ import {
 } from "../engine/tactics";
 import { Crest } from "./components";
 import SpatialMatchCenter from "./SpatialMatchCenter";
+import TacticsBoard from "./TacticsBoard";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
@@ -390,6 +391,7 @@ export default function MatchdayHub({
         ))}
       </nav>
       <main className="matchday-content">
+        {tab === "lineup" && <TacticsBoard team={team} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
         {tab === "briefing" && (
           <section className="matchday-brief">
             <div>
@@ -433,7 +435,7 @@ export default function MatchdayHub({
             </div>
           </section>
         )}
-        {tab === "lineup" && (
+        {false && (
           <section className="matchday-lineup">
             <header>
               <h2>Заявка и сочетания</h2>

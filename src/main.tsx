@@ -18,3 +18,4 @@ import "./ui/trade-desk.css";
 import "./ui/manager-control.css";
 import "./ui/free-agency.css";
 import "./ui/matchday.css";
+import "./ui/tactics-board.css";

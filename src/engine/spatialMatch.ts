@@ -199,6 +199,11 @@ export class SpatialMatch {
     }
     const puck = this.frame.puck;
     const owner = this.frame.bodies.find((b) => b.id === this.owner);
+    // Assign an actual puck retriever per side. Formation offsets previously
+    // left every player outside pickup range around a stationary loose puck.
+    const retrievers = [0, 1].map(side => this.frame.bodies
+      .filter(b => b.side === side && !b.goalie && b.id !== owner?.id)
+      .sort((a, b) => Math.hypot(a.x-puck.x,a.z-puck.z)-Math.hypot(b.x-puck.x,b.z-puck.z))[0]?.id);
     this.frame.bodies.forEach((b, slot) => {
       const p = this.player(b.id),
         dir = this.direction(b.side);
@@ -216,11 +221,14 @@ export class SpatialMatch {
             : this.teams[b.side].tactics.forecheck === "1-3-1"
               ? 5
               : 3;
-        tx = puck.x + dir * (slot % 3 === 0 ? 0 : -pressure);
-        tz = puck.z + ((slot % 3) - 1) * 2;
+        const retrieving = retrievers[b.side] === b.id;
+        tx = puck.x + (retrieving ? 0 : -dir * pressure);
+        tz = puck.z + (retrieving ? 0 : ((slot % 3) - 1) * 3);
       } else {
         tx = clamp(puck.x + dir * (p.pos === "D" ? -9 : 5), -25, 25);
-        tz = ((slot % 3) - 1) * 6;
+        // Cycle in support and open passing lanes rather than parking in slots.
+        tx += Math.sin(this.time * 0.45 + slot) * 1.8;
+        tz = ((slot % 3) - 1) * 6 + Math.cos(this.time * 0.35 + slot) * 1.5;
       }
       const dx = tx - b.x,
         dz = tz - b.z,

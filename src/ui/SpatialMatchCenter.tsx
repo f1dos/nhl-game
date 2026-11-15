@@ -10,6 +10,8 @@ import {
   setSpecialTeamPlayer,
 } from "../engine/tactics";
 import type { SpecialTeamsSituation } from "../engine/types";
+import { Crest } from "./components";
+import TacticsBoard from "./TacticsBoard";
 const Arena = lazy(() => import("./MatchArena3D"));
 
 export default function SpatialMatchCenter({
@@ -29,6 +31,7 @@ export default function SpatialMatchCenter({
     () => new SpatialMatch(home, away, game.seed, game.phase === "playoffs"),
   );
   const [running, setRunning] = useState(false);
+  const [tab, setTab] = useState<"match" | "tactics">("match");
   const [speed, setSpeed] = useState(8);
   const [, redraw] = useState(0);
   const committed = useRef(false);
@@ -78,9 +81,9 @@ export default function SpatialMatchCenter({
   return (
     <div className="live-match-center">
       <section className="live-scoreboard">
-        <b>
+        <div className="score-club"><Crest team={away} size={52}/><b>
           {away.city} {away.name}
-        </b>
+        </b></div>
         <div>
           <small>
             {match.done
@@ -91,12 +94,14 @@ export default function SpatialMatchCenter({
             {match.result.goals[1]} : {match.result.goals[0]}
           </strong>
         </div>
-        <b>
+        <div className="score-club"><b>
           {home.city} {home.name}
-        </b>
+        </b><Crest team={home} size={52}/></div>
       </section>
-      <div className="live-match-layout">
-        <section className="live-ice-panel">
+      <nav className="spatial-tabs" role="tablist" aria-label="Матч и тактика"><button role="tab" aria-selected={tab==="match"} onClick={()=>setTab("match")}>Трансляция</button><button role="tab" aria-selected={tab==="tactics"} onClick={()=>{setRunning(false);setTab("tactics");}}>Тактика</button></nav>
+      <div className={tab === "match" ? "live-match-layout spatial-broadcast" : "spatial-tactics"}>
+        {tab === "tactics" && <TacticsBoard team={managed} change={fn=>update(()=>fn(managed))}/>}
+        <section className="live-ice-panel" style={{display:tab==="match"?undefined:"none"}}>
           <header>
             <b>МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ</b>
             <div>
@@ -146,7 +151,7 @@ export default function SpatialMatchCenter({
                 : "ПАУЗА"}
           </p>
         </section>
-        <section className="live-feed">
+        <section className="live-feed" style={{display:tab==="match"?undefined:"none"}}>
           <header>События матча</header>
           {match.result.events
             .slice(-30)
@@ -161,9 +166,10 @@ export default function SpatialMatchCenter({
               </div>
             ))}
         </section>
-        <aside className="live-bench">
+        <aside className="live-bench" style={{display:tab==="tactics"?undefined:"none"}}>
           <div className="live-tactics">
             <h3>Тренерский пульт</h3>
+            <label>Форчек<select value={managed.tactics.forecheck} onChange={e=>update(()=>{managed.tactics.forecheck=e.target.value as typeof managed.tactics.forecheck;})}>{["1-2-2","2-1-2","1-3-1"].map(v=><option key={v}>{v}</option>)}</select></label>
             <p>Звенья и план применяются со следующей смены.</p>
             {(["pace", "shooting", "physical"] as const).map((key) => (
               <label key={key}>

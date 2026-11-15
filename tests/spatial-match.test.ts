@@ -3,6 +3,16 @@ import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
 import { SpatialMatch } from "../src/engine/spatialMatch";
 
+test("loose puck is recovered instead of players parking outside pickup radius", () => {
+  const g = newGame();
+  const m = new SpatialMatch(g.teams[0], g.teams[1], 5);
+  const state = m as unknown as { owner: string; flight: unknown };
+  state.owner = ""; state.flight = undefined;
+  m.frame.puck.x = 18; m.frame.puck.z = 8;
+  for (let i=0; i<150; i++) m.step();
+  assert(Math.hypot(m.frame.puck.x-18,m.frame.puck.z-8)>2, "play must continue after the loose puck");
+});
+
 test("spatial simulation is incremental, deterministic and stays inside the rink", () => {
   const g = newGame();
   const a = new SpatialMatch(g.teams[0], g.teams[1], 42);
