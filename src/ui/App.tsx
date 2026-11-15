@@ -65,6 +65,7 @@ import {
 } from "./ManagementRevolution";
 import {
   continueGame,
+  advanceDay,
   ensureManagementState,
   gameDate,
   type ContinueMode,
@@ -1603,6 +1604,11 @@ export default function App() {
                 <option value="week">{tr("7 дней", "7 days")}</option>
               </select>
             )}
+            {g.phase === "offseason" && (g.freeAgentOffers ?? []).some((offer) => offer.status === "pending") && (
+              <button className="text-button" onClick={() => edit((world) => advanceDay(world))}>
+                {tr("Следующий день", "Next day")} <ChevronRight size={14} />
+              </button>
+            )}
             <button
               className="primary"
               disabled={busy}
@@ -1616,6 +1622,14 @@ export default function App() {
                     ),
                   );
                 } else if (g.phase === "offseason") {
+                  if ((g.freeAgentOffers ?? []).some((offer) => offer.status === "pending")) {
+                    go("contracts");
+                    setNotice(tr(
+                      "Сначала дождитесь ответа по отправленным контрактам или отзовите предложения.",
+                      "Resolve pending contract offers or withdraw them before starting the next season.",
+                    ));
+                    return;
+                  }
                   edit(nextSeason);
                   go("overview");
                 } else play();
