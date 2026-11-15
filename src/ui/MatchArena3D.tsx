@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
+import type { SpatialFrame } from "../engine/spatialMatch";
 
 /** Event-driven presentation layer. Does not invent or modify match results. */
-export default function MatchArena3D({ home, away, event, running }: {
-  home: Team; away: Team; event?: Event; running: boolean;
+export default function MatchArena3D({ home, away, event, running, spatial }: {
+  home: Team; away: Team; event?: Event; running: boolean; spatial?: SpatialFrame;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const current = useRef({ event, running });
-  current.current = { event, running };
+  const current = useRef({ event, running, spatial });
+  current.current = { event, running, spatial };
   const [cameraMode, setCameraMode] = useState("broadcast");
   const mode = useRef(cameraMode);
   mode.current = cameraMode;
@@ -82,7 +83,15 @@ export default function MatchArena3D({ home, away, event, running }: {
       const data = current.current;
       const x = data.event ? (data.event.x / 100 - 0.5) * 56 : 0;
       const z = data.event ? (data.event.y / 100 - 0.5) * 23 : 0;
-      if (data.running) {
+      if (data.spatial) {
+        puck.position.set(data.spatial.puck.x, data.spatial.puck.y, data.spatial.puck.z);
+        actors.forEach(({ group, side, slot }) => {
+          const bodies = data.spatial!.bodies.filter(b => b.side === side);
+          const body = slot === 6 ? bodies.find(b => b.goalie) : bodies.filter(b => !b.goalie)[slot];
+          group.visible = !!body;
+          if (body) { group.position.set(body.x, 0, body.z); if (Math.hypot(body.vx, body.vz) > 0.1) group.rotation.y = Math.atan2(body.vx, body.vz); }
+        });
+      } else if (data.running) {
         puck.position.lerp(new THREE.Vector3(x, 0.1, z), Math.min(1, dt * 5));
         actors.forEach(({ group, side, slot }) => {
           const ids = data.event?.skaters?.[side];

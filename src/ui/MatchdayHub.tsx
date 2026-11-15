@@ -23,7 +23,7 @@ import {
   SPECIAL_TEAM_STYLES,
 } from "../engine/tactics";
 import { Crest } from "./components";
-import MatchCenter from "./MatchCenter";
+import SpatialMatchCenter from "./SpatialMatchCenter";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
@@ -281,8 +281,10 @@ export default function MatchdayHub({
   if (stage === "live")
     return (
       <div className="matchday-window">
-        <MatchCenter
+        <SpatialMatchCenter
           game={game}
+          home={game.teams.find(t => t.id === (preseason?.home ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.a : playoffSeries.b) : fixture?.home)))!}
+          away={game.teams.find(t => t.id === (preseason?.away ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.b : playoffSeries.a) : fixture?.away)))!}
           edit={edit}
           onComplete={() => setStage("post")}
         />
@@ -665,7 +667,6 @@ export default function MatchdayHub({
         <button
           className="primary"
           onClick={() => {
-            edit((current) => advanceDay(current));
             setStage("live");
           }}
         >

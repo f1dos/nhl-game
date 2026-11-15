@@ -383,7 +383,7 @@ function aiTradeDay(g: Game) {
   });
 }
 
-function processCurrentDay(g: Game) {
+function processCurrentDay(g: Game, completed?: import("./types").Result) {
   const date = g.calendar!.date;
   processDeadlines(g, date);
   const preseason = g.preseasonFixtures?.find(
@@ -391,7 +391,7 @@ function processCurrentDay(g: Game) {
   );
   if (preseason) {
     const rng = new RNG(g.seed);
-    preseason.result = simulateMatch(
+    preseason.result = completed ?? simulateMatch(
       structuredClone(g.teams.find((team) => team.id === preseason.home)!),
       structuredClone(g.teams.find((team) => team.id === preseason.away)!),
       rng,
@@ -413,7 +413,7 @@ function processCurrentDay(g: Game) {
       : g.phase === "regular" && fixtureDate(g, g.round) === date;
   if (hasGames) {
     const before = g.round;
-    advance(g);
+    advance(g, completed);
     pushEvent(g, {
       date,
       category: "game",
@@ -457,9 +457,9 @@ function processCurrentDay(g: Game) {
   g.calendar!.lastProcessedDate = date;
 }
 
-export function advanceDay(g: Game) {
+export function advanceDay(g: Game, completed?: import("./types").Result) {
   ensureManagementState(g);
-  processCurrentDay(g);
+  processCurrentDay(g, completed);
   g.calendar!.date = addDays(g.calendar!.date, 1);
   g.calendar!.day++;
 }

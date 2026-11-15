@@ -92,13 +92,13 @@ function seedConference(teams: Team[]): Series[] {
     ])
     .map(([a, b]) => ({ a: a.id, b: b.id, wins: [0, 0], games: [] }));
 }
-export function advance(g: Game) {
+export function advance(g: Game, completed?: Result) {
   if (g.phase === "offseason") return;
   const previousResult = g.last;
   const r = new RNG(g.seed);
   g.teams.forEach(trainTeam);
   const play = (home: string, away: string, po: boolean) =>
-    simulateMatch(
+    completed?.home === home && completed.away === away ? completed : simulateMatch(
       g.teams.find((t) => t.id === home)!,
       g.teams.find((t) => t.id === away)!,
       r,
