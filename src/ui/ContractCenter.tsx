@@ -172,13 +172,13 @@ export default function ContractCenter({
                   else proposeFreeAgentContract(g,player.id,years,salary,role);
                 });
                 setMessage(renewing
-                  ? (ru?"Контракт продлён":"Contract extended")
+                  ? (ru?"Контракт подписан":"Contract signed")
                   : (ru?"Предложение отправлено агенту. Ответ поступит через несколько игровых дней.":"Offer sent to the agent. Expect an answer in a few in-game days."));
                 if(renewing)setSelected("");
               }catch(e){setMessage((e as Error).message);}
             }}>
             {renewing
-              ? (ru?"Продлить контракт":"Extend contract")
+              ? (ru?"Предложить контракт":"Offer contract")
               : (ru?"Отправить предложение агенту":"Submit offer to agent")}
           </button>
           {latest && ["pending","countered"].includes(latest.status) &&
