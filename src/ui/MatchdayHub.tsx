@@ -1,3 +1,4 @@
+import TacticalCenter from "./TacticalCenter";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -23,7 +24,8 @@ import {
   SPECIAL_TEAM_STYLES,
 } from "../engine/tactics";
 import { Crest } from "./components";
-import MatchCenter from "./MatchCenter";
+import SpatialMatchCenter from "./SpatialMatchCenter";
+import TacticsBoard from "./TacticsBoard";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
@@ -51,11 +53,11 @@ const prePress: PressChoice[] = [
   {
     title: "Подчеркнуть план",
     line: "Мы детально разобрали соперника. Решат дисциплина, смены и качество спецбригад.",
-    response: "Штаб и руководство довольны профессиональным тоном.",
+    response: "Руководство одобрило план, но игроки почувствовали дополнительную ответственность.",
     tone: "balanced",
     fan: 1,
     board: 1,
-    morale: 1,
+    morale: -1,
   },
   {
     title: "Потребовать победу",
@@ -74,7 +76,7 @@ const prePress: PressChoice[] = [
       "Первое звено получило заряд уверенности, игроки глубины ждут своего шанса.",
     tone: "protective",
     fan: 1,
-    board: 0,
+    board: -1,
     morale: 2,
   },
   {
@@ -83,7 +85,7 @@ const prePress: PressChoice[] = [
     response:
       "Ответ сочли взвешенным; тактическая дисциплина стала главным посылом.",
     tone: "balanced",
-    fan: 0,
+    fan: -1,
     board: 1,
     morale: 1,
   },
@@ -110,11 +112,11 @@ const postPress: PressChoice[] = [
   {
     title: "Разобрать детали",
     line: "Нам нужно улучшить смены, контроль центра и качество первого паса. Сделаем выводы завтра.",
-    response: "Спокойный анализ не создал лишнего давления.",
+    response: "Руководство оценило анализ, но публичная критика деталей задела игроков.",
     tone: "balanced",
     fan: 1,
     board: 1,
-    morale: 1,
+    morale: -1,
   },
   {
     title: "Потребовать большего",
@@ -129,11 +131,11 @@ const postPress: PressChoice[] = [
   {
     title: "Отметить спецбригады",
     line: "Сегодня ключевым фактором стали наши решения в неравных составах.",
-    response: "Тренерский штаб получил публичное признание.",
+    response: "Штаб получил признание, но игроки вне спецбригад почувствовали, что их вклад недооценён.",
     tone: "balanced",
     fan: 1,
     board: 1,
-    morale: 1,
+    morale: -1,
   },
   {
     title: "Похвалить характер",
@@ -141,7 +143,7 @@ const postPress: PressChoice[] = [
     response: "Командная мораль заметно выросла.",
     tone: "protective",
     fan: 1,
-    board: 0,
+    board: -1,
     morale: 2,
   },
   {
@@ -281,8 +283,10 @@ export default function MatchdayHub({
   if (stage === "live")
     return (
       <div className="matchday-window">
-        <MatchCenter
+        <SpatialMatchCenter
           game={game}
+          home={game.teams.find(t => t.id === (preseason?.home ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.a : playoffSeries.b) : fixture?.home)))!}
+          away={game.teams.find(t => t.id === (preseason?.away ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.b : playoffSeries.a) : fixture?.away)))!}
           edit={edit}
           onComplete={() => setStage("post")}
         />
@@ -388,6 +392,7 @@ export default function MatchdayHub({
         ))}
       </nav>
       <main className="matchday-content">
+        {tab === "lineup" && <TacticsBoard team={team} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
         {tab === "briefing" && (
           <section className="matchday-brief">
             <div>
@@ -431,7 +436,7 @@ export default function MatchdayHub({
             </div>
           </section>
         )}
-        {tab === "lineup" && (
+        {false && (
           <section className="matchday-lineup">
             <header>
               <h2>Заявка и сочетания</h2>
@@ -511,110 +516,7 @@ export default function MatchdayHub({
             </div>
           </section>
         )}
-        {tab === "special" && (
-          <section className="special-teams-editor">
-            <header>
-              <h2>Специальные бригады</h2>
-              <p>
-                Отдельные сочетания используются движком в каждом формате
-                неравных составов.
-              </p>
-            </header>
-            <div>
-              {(
-                Object.keys(SPECIAL_TEAM_LABELS) as SpecialTeamsSituation[]
-              ).map((situation) => {
-                const unit = ensureSpecialTeams(team)[situation]!;
-                return (
-                  <section key={situation}>
-                    <header>
-                      <b>{SPECIAL_TEAM_LABELS[situation]}</b>
-                      <select
-                        value={unit.style}
-                        onChange={(event) =>
-                          edit((current) => {
-                            ensureSpecialTeams(
-                              current.teams.find(
-                                (club) => club.id === current.user,
-                              )!,
-                            )[situation]!.style = event.target
-                              .value as typeof unit.style;
-                          })
-                        }
-                      >
-                        {SPECIAL_TEAM_STYLES[situation].map((style) => (
-                          <option key={style}>{style}</option>
-                        ))}
-                      </select>
-                    </header>
-                    <div>
-                      {unit.players.map((id, slot) =>
-                        playerSelect(
-                          id,
-                          team.players.filter((player) => player.pos !== "G"),
-                          (next) =>
-                            edit((current) =>
-                              setSpecialTeamPlayer(
-                                current.teams.find(
-                                  (club) => club.id === current.user,
-                                )!,
-                                situation,
-                                slot,
-                                next,
-                              ),
-                            ),
-                          unit.players,
-                        ),
-                      )}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          </section>
-        )}
-        {tab === "tactics" && (
-          <section className="matchday-tactics">
-            <h2>Командный план</h2>
-            <label>
-              Форчек
-              <select
-                value={team.tactics.forecheck}
-                onChange={(event) =>
-                  edit((current) => {
-                    current.teams.find(
-                      (club) => club.id === current.user,
-                    )!.tactics.forecheck = event.target
-                      .value as typeof team.tactics.forecheck;
-                  })
-                }
-              >
-                <option>1-2-2</option>
-                <option>2-1-2</option>
-                <option>1-3-1</option>
-              </select>
-            </label>
-            {(["pace", "physical", "shooting"] as const).map((key) => (
-              <label key={key}>
-                <span>{key}</span>
-                <input
-                  type="range"
-                  min="20"
-                  max="90"
-                  value={team.tactics[key]}
-                  onChange={(event) =>
-                    edit((current) => {
-                      current.teams.find(
-                        (club) => club.id === current.user,
-                      )!.tactics[key] = +event.target.value;
-                    })
-                  }
-                />
-                <b>{team.tactics[key]}</b>
-              </label>
-            ))}
-          </section>
-        )}
+        {(tab === "special" || tab === "tactics") && <TacticalCenter key={tab} team={team} initial={tab==="special"?"special":"plan"} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
         {tab === "press" && (
           <section className="matchday-press">
             <span className="eyebrow">PRE-MATCH PRESS CONFERENCE</span>
@@ -665,7 +567,6 @@ export default function MatchdayHub({
         <button
           className="primary"
           onClick={() => {
-            edit((current) => advanceDay(current));
             setStage("live");
           }}
         >

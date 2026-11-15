@@ -1,4 +1,5 @@
 import type { Game } from "./types";
+import { isLocale } from "../i18n/locales";
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -12,7 +13,7 @@ export function validateSave(value: unknown): Game {
     g.round < 0 ||
     g.round > 82 ||
     !["regular", "playoffs", "offseason"].includes(g.phase) ||
-    !["ru", "en"].includes(g.language)
+    !isLocale(g.language)
   )
     throw Error("Неподдерживаемое или повреждённое сохранение");
   const ids = new Set(g.teams.map((t) => t.id));
@@ -46,6 +47,18 @@ export function validateSave(value: unknown): Game {
       !t.tactics
     )
       throw Error("Неверные данные клуба");
+    for (const [key, min, max] of [
+      ["width", 20, 90],
+      ["passingRisk", 20, 90],
+      ["shiftSeconds", 25, 60],
+    ] as const) {
+      const value = t.tactics[key];
+      if (
+        value !== undefined &&
+        (!Number.isFinite(value) || value < min || value > max)
+      )
+        throw Error("Invalid tactical instruction");
+    }
     for (const p of t.players) {
       if (
         players.has(p.id) ||

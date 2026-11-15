@@ -1,3 +1,6 @@
+import TacticalCenter from "./TacticalCenter";
+import { LOCALES, LOCALE_NAMES, type Locale } from "../i18n/locales";
+import { setDocumentLocale } from "../i18n/runtime";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
@@ -253,13 +256,16 @@ export default function App() {
     [notice, setNotice] = useState(""),
     [filter, setFilter] = useState("all"),
     [seed, setSeed] = useState(260027),
-    [language, setLanguage] = useState<"ru" | "en">("ru"),
+    [language, setLanguage] = useState<Locale>("ru"),
     [continueMode, setContinueMode] = useState<ContinueMode>("day"),
     [standingsOpen, setStandingsOpen] = useState(false),
     [selectedClub, setSelectedClub] = useState<string>();
   const [database] = useState(() => newGame());
   const ru = (g?.language || language) === "ru";
   const tr = (a: string, b: string) => (ru ? a : b);
+  useEffect(() => {
+    void setDocumentLocale(g?.language ?? language);
+  }, [g?.language, language]);
   useEffect(() => {
     listGames()
       .then((xs) => {
@@ -388,10 +394,13 @@ export default function App() {
           <select
             aria-label="Language"
             value={language}
-            onChange={(e) => setLanguage(e.target.value as "ru" | "en")}
+            onChange={(e) => setLanguage(e.target.value as Locale)}
           >
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
+            {LOCALES.map((locale) => (
+              <option key={locale} value={locale}>
+                {LOCALE_NAMES[locale]}
+              </option>
+            ))}
           </select>
         </div>
         <div className="start-heading">
@@ -923,13 +932,26 @@ export default function App() {
     );
   else if (page === "tactics")
     content = (
-      <TacticsView
-        game={g}
-        team={team}
-        edit={edit}
-        tr={tr}
-        onSelect={setProfile}
-      />
+      <>
+        <TacticalCenter
+          team={team}
+          change={(fn) =>
+            edit((current) =>
+              fn(current.teams.find((t) => t.id === current.user)!),
+            )
+          }
+        />
+        <details className="legacy-tactics">
+          <summary>Табличный редактор звеньев</summary>{" "}
+          <TacticsView
+            game={g}
+            team={team}
+            edit={edit}
+            tr={tr}
+            onSelect={setProfile}
+          />
+        </details>
+      </>
     );
   else if (page === "match")
     content = (
@@ -1401,12 +1423,15 @@ export default function App() {
               value={g.language}
               onChange={(e) =>
                 edit((x) => {
-                  x.language = e.target.value as "ru" | "en";
+                  x.language = e.target.value as Locale;
                 })
               }
             >
-              <option value="ru">Русский</option>
-              <option value="en">English</option>
+              {LOCALES.map((locale) => (
+                <option key={locale} value={locale}>
+                  {LOCALE_NAMES[locale]}
+                </option>
+              ))}
             </select>
             {(!g.dataSource || g.dataSource.kind === "fictional") && (
               <button

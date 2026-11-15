@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Pause, Play, Shield, SlidersHorizontal, Users } from "lucide-react";
 import type { Game, Player, SpecialTeamsSituation } from "../engine/types";
 import { Crest, Panel, Rink } from "./components";
@@ -11,6 +11,7 @@ import {
 } from "../engine/tactics";
 
 type Edit = (fn: (game: Game) => void) => void;
+const MatchArena3D = lazy(() => import("./MatchArena3D"));
 
 export default function MatchCenter({
   game,
@@ -25,6 +26,7 @@ export default function MatchCenter({
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(1);
+  const [view, setView] = useState<"2d" | "3d">("2d");
   const [control, setControl] = useState<"lines" | "tactics" | "special">(
     "lines",
   );
@@ -173,7 +175,13 @@ export default function MatchCenter({
               )}
             </div>
           </header>
-          <Rink>
+          <div style={{ display: "flex", gap: 8, padding: 12 }}>
+            <button onClick={() => setView("3d")} aria-pressed={view === "3d"}>3D-арена</button>
+            <button onClick={() => setView("2d")} aria-pressed={view === "2d"}>2D-схема</button>
+          </div>
+          {view === "3d" ? <Suspense fallback={<p>Загрузка 3D-арены…</p>}>
+            <MatchArena3D home={home} away={away} event={cursor ? event : undefined} running={running} />
+          </Suspense> : <Rink>
             {event && (
               <>
                 <span
@@ -193,7 +201,7 @@ export default function MatchCenter({
                 />
               </>
             )}
-          </Rink>
+          </Rink>}
           <div className="live-shift">
             <span>НА ЛЬДУ</span>
             {managed.players
