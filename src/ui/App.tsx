@@ -65,6 +65,7 @@ import {
 } from "./ManagementRevolution";
 import {
   continueGame,
+  advanceDay,
   ensureManagementState,
   gameDate,
   type ContinueMode,
@@ -1621,6 +1622,14 @@ export default function App() {
                     ),
                   );
                 } else if (g.phase === "offseason") {
+                  if ((g.freeAgentOffers ?? []).some((offer) => offer.status === "pending")) {
+                    go("contracts");
+                    setNotice(tr(
+                      "Сначала дождитесь ответа по отправленным контрактам или отзовите предложения.",
+                      "Resolve pending contract offers or withdraw them before starting the next season.",
+                    ));
+                    return;
+                  }
                   edit(nextSeason);
                   go("overview");
                 } else play();
