@@ -139,6 +139,7 @@ export default function SpatialMatchCenter({
               home={home}
               away={away}
               running={running}
+              playback={speed}
               spatial={match.frame}
             />
           </Suspense>

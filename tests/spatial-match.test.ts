@@ -100,3 +100,26 @@ test("full spatial game finishes, pauses at intervals and records goalie shots c
     ),
   );
 });
+
+test("presentation cues describe on-ice actions without affecting the result", () => {
+  const g = newGame();
+  const cued = new SpatialMatch(g.teams[0], g.teams[1], 9);
+  const seen = new Map<string, number>();
+  let last = 0;
+  while (!cued.done) {
+    cued.resume();
+    cued.step();
+    for (const cue of cued.frame.cues) {
+      if (cue.seq <= last) continue;
+      assert.equal(cue.seq, last + 1, "cue sequence numbers have no gaps");
+      last = cue.seq;
+      seen.set(cue.kind, (seen.get(cue.kind) ?? 0) + 1);
+      assert(cued.frame.bodies.some((b) => b.id === cue.id) || cue.kind === "goal" || cue.kind === "check" || cue.kind === "penalty" || cue.kind === "save" || cue.kind === "shot" || cue.kind === "pass" || cue.kind === "faceoff");
+    }
+    assert(cued.frame.cues.length <= 24);
+  }
+  for (const kind of ["faceoff", "pass", "shot"]) assert((seen.get(kind) ?? 0) > 0, `no ${kind} cues in a full game`);
+  const plain = new SpatialMatch(g.teams[0], g.teams[1], 9);
+  while (!plain.done) { plain.resume(); plain.step(); }
+  assert.deepEqual(plain.result, cued.result);
+});

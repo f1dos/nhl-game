@@ -1,25 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { clone } from "three/addons/utils/SkeletonUtils.js";
 import type { Event, Team } from "../engine/types";
 import type { SpatialFrame } from "../engine/spatialMatch";
+import { RigFactory, type HockeyRig, type TeamKit } from "./hockeyRig";
+
+const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
+/** Home plays in its colour, away in a light kit trimmed in its own colour. */
+const kitFor = (team: Team, away: boolean): TeamKit => away
+  ? { jersey: "#e8edf3", trim: team.color, pants: shade(team.color, 0.55), helmet: shade(team.color, 0.7), socks: team.color }
+  : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color };
 
 /** Event-driven presentation layer. Does not invent or modify match results. */
-export default function MatchArena3D({ home, away, event, running, spatial }: {
-  home: Team; away: Team; event?: Event; running: boolean; spatial?: SpatialFrame;
+export default function MatchArena3D({ home, away, event, running, spatial, playback = 1 }: {
+  home: Team; away: Team; event?: Event; running: boolean; spatial?: SpatialFrame; playback?: number;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const current = useRef({ event, running, spatial });
-  current.current = { event, running, spatial };
+  const current = useRef({ event, running, spatial, playback });
+  current.current = { event, running, spatial, playback };
   const [cameraMode, setCameraMode] = useState("broadcast");
   const mode = useRef(cameraMode);
   mode.current = cameraMode;
   const [unavailable, setUnavailable] = useState(false);
-  const [assetStatus, setAssetStatus] = useState("Загрузка моделей…");
   useEffect(() => {
     const container = host.current;
     if (!container) return;
+    const data0 = current.current.spatial;
     let renderer: THREE.WebGLRenderer;
     try { renderer = new THREE.WebGLRenderer({ antialias: true }); }
     catch { setUnavailable(true); return; }
@@ -27,9 +32,7 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
     let disposed = false;
-    setAssetStatus("Загрузка моделей…");
-    const mixers: { mixer: THREE.AnimationMixer; group: THREE.Group; last: THREE.Vector3; goalie: boolean }[] = [];
-    const assetRoots: THREE.Object3D[] = [];
+    const factory = new RigFactory();
     const labels = Array.from({length: 3}, () => {
       const label = document.createElement("div");
       Object.assign(label.style, {position:"absolute", padding:"5px 9px", borderRadius:"5px", background:"#101d2eee", color:"white", fontSize:"12px", fontWeight:"600", pointerEvents:"none", whiteSpace:"nowrap", transform:"translate(-50%, -100%)", border:"1px solid #7296ad"});
@@ -72,15 +75,15 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
       }
     }
     crowd.count=crowdIndex;scene.add(crowd);
-    const reserves: {mesh:THREE.Mesh;id:string}[]=[];
+    const reserves: {mesh:THREE.Object3D;id:string}[]=[];
     [home,away].forEach((team,side)=>{
       const center=side?9:-9;
       box(center,.45,-15,14,.4,2,"#354e63");
       box(center,1.1,-16,14,1.2,.15,"#668295");
       const roster=team.players.filter(p=>!p.injury);
       roster.forEach((p,index)=>{
-        const reserve=new THREE.Mesh(new THREE.CapsuleGeometry(.26,.55,3,6),new THREE.MeshStandardMaterial({color:side?"#eeeeee":team.color}));
-        reserve.position.set(center-6+(index%12)*1.05,1,-14.4-Math.floor(index/12)*.8);scene.add(reserve);reserves.push({mesh:reserve,id:p.id});
+        const reserve=factory.bench(kitFor(team,side===1));
+        reserve.position.set(center-6+(index%12)*1.05,.45,-14.7-Math.floor(index/12)*.8);reserve.rotation.y=Math.PI;scene.add(reserve);reserves.push({mesh:reserve,id:p.id});
       });
       for(let i=0;i<3;i++) {const staff=new THREE.Mesh(new THREE.CapsuleGeometry(.3,.95,3,6),new THREE.MeshStandardMaterial({color:"#152333"}));staff.position.set(center-3+i*3,1.3,-16.5);scene.add(staff);}
     });
@@ -97,48 +100,20 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
       box(x, 1.2, 0, 0.1, 0.1, 2.1, "#db3545");
       box(x + Math.sign(x) * 0.7, 0.5, 0, 0.08, 1, 2, "#a3b9c4");
     }
-    const actors: { group: THREE.Group; side: number; slot: number }[] = [];
-    [home, away].forEach((team, side) => {
+    // Seven rigs per side: up to six skaters (6v5 with the goalie pulled) + goalie.
+    const kits = [kitFor(home, false), kitFor(away, true)];
+    const actors: { rig: HockeyRig; side: number; slot: number }[] = [];
+    [home, away].forEach((_team, side) => {
       for (let slot = 0; slot < 7; slot++) {
-        const group = new THREE.Group();
-        group.position.set((side ? 1 : -1) * (slot === 6 ? 25 : 8), 0, (slot % 3 - 1) * 5);
-        scene.add(group); actors.push({ group, side, slot });
+        const rig = slot === 6 ? factory.goalie(kits[side]) : factory.skater(kits[side]);
+        rig.root.position.set((side ? 1 : -1) * (slot === 6 ? 25 : 8), 0, (slot % 3 - 1) * 5);
+        rig.setVisible(false);
+        scene.add(rig.root); actors.push({ rig, side, slot });
       }
     });
-    const loader = new GLTFLoader();
-    Promise.all(["skater", "goalie"].map(name => loader.loadAsync(`/models/hockey/${name}-study.glb`))).then(assets => {
-      const release = (root: THREE.Object3D) => root.traverse(object => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
-          (Array.isArray(object.material) ? object.material : [object.material]).forEach(m => m.dispose());
-        }
-      });
-      if (disposed) { assets.forEach(asset => release(asset.scene)); return; }
-      assets.forEach(asset => assetRoots.push(asset.scene));
-      actors.forEach(({group, side, slot}) => {
-        const asset = assets[slot === 6 ? 1 : 0];
-        const model = clone(asset.scene);
-        // Blender forward is -Y, exported glTF forward is +Z.
-        model.traverse(object => {
-          if (!(object instanceof THREE.Mesh)) return;
-          const materials = Array.isArray(object.material) ? object.material : [object.material];
-          const tinted = materials.map(source => {
-            const material = source.clone();
-            if (material instanceof THREE.MeshStandardMaterial && material.name.startsWith("Jersey")) material.color.set(side ? "#e8edf3" : home.color);
-            return material;
-          });
-          object.material = Array.isArray(object.material) ? tinted : tinted[0];
-          // Demonstration identities must not masquerade as career player names.
-          if (["NORTH","SKATER","KEEPER","27","31"].includes(object.name)) object.visible = false;
-          object.frustumCulled = false;
-        });
-        group.add(model);
-        const mixer = new THREE.AnimationMixer(model);
-        if (slot !== 6 && asset.animations[0]) mixer.clipAction(asset.animations[0]).play();
-        mixers.push({mixer,group,last:group.position.clone(),goalie:slot===6});
-      });
-      setAssetStatus("");
-    }).catch(() => { if (!disposed) setAssetStatus("Не удалось загрузить модели. Обновите страницу для повторной загрузки."); });
+    const playerOf = (side: number, id: string) => [home, away][side].players.find(p => p.id === id);
+    const byBody = new Map<string, HockeyRig>();
+    let seenCue = data0?.cues.at(-1)?.seq ?? 0;
     const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.12, 12), new THREE.MeshStandardMaterial({ color: "#111111" }));
     puck.position.y = 0.1; scene.add(puck);
     const resize = () => {
@@ -147,33 +122,65 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
     };
     const observer = new ResizeObserver(resize); observer.observe(container); resize();
     let frame = 0, previous = performance.now();
+    const lookAt = new THREE.Vector3(), desired = new THREE.Vector3();
     const animate = (now: number) => {
       const dt = Math.min(0.05, (now - previous) / 1000); previous = now;
       const data = current.current;
+      // Stride cadence tracks playback speed up to a readable limit.
+      const animDt = data.running ? dt * Math.min(Math.max(1, data.playback), 2.5) : 0;
       const x = data.event ? (data.event.x / 100 - 0.5) * 56 : 0;
       const z = data.event ? (data.event.y / 100 - 0.5) * 23 : 0;
+      byBody.clear();
       if (data.spatial) {
-        puck.position.set(data.spatial.puck.x, data.spatial.puck.y, data.spatial.puck.z);
-        actors.forEach(({ group, side, slot }) => {
-          const bodies = data.spatial!.bodies.filter(b => b.side === side);
+        const frameData = data.spatial;
+        puck.position.set(frameData.puck.x, frameData.puck.y, frameData.puck.z);
+        actors.forEach(({ rig, side, slot }) => {
+          const bodies = frameData.bodies.filter(b => b.side === side);
           const body = slot === 6 ? bodies.find(b => b.goalie) : bodies.filter(b => !b.goalie)[slot];
-          group.visible = !!body;
-          if (body) { group.position.set(body.x, 0, body.z); if (Math.hypot(body.vx, body.vz) > 0.1) group.rotation.y = Math.atan2(body.vx, body.vz); }
+          rig.setVisible(!!body);
+          if (!body) return;
+          const player = playerOf(side, body.id);
+          if (player) rig.setIdentity({ id: player.id, name: player.name, number: player.number }, player.pos);
+          byBody.set(body.id, rig);
+          rig.update(dt, animDt, { x: body.x, z: body.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id });
         });
+        // One-shot animations raised by the simulation (each cue plays once).
+        for (const cue of frameData.cues) {
+          if (cue.seq <= seenCue) continue;
+          seenCue = cue.seq;
+          if (!data.running && cue.kind !== "faceoff") continue;
+          const actor = byBody.get(cue.id), other = cue.target ? byBody.get(cue.target) : undefined;
+          const at = (id?: string) => frameData.bodies.find(b => b.id === id);
+          if (cue.kind === "shot" || cue.kind === "pass") actor?.trigger(cue.kind);
+          else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger("checked"); }
+          else if (cue.kind === "goal") { actor?.trigger("celebrate"); other?.trigger("conceded"); }
+          else if (cue.kind === "penalty") actor?.trigger("protest");
+          else if (cue.kind === "faceoff") actor?.trigger("faceoff");
+          else if (cue.kind === "save") {
+            const keeper = at(cue.id), shooter = at(cue.target);
+            actor?.trigger("save", keeper && shooter ? { x: shooter.x - keeper.x, z: shooter.z - keeper.z } : undefined);
+          }
+        }
       } else if (data.running) {
         puck.position.lerp(new THREE.Vector3(x, 0.1, z), Math.min(1, dt * 5));
-        actors.forEach(({ group, side, slot }) => {
+        actors.forEach(({ rig, side, slot }) => {
           const ids = data.event?.skaters?.[side];
-          group.visible = slot === 6 ? (ids?.length ?? 5) < 6 : slot < (ids?.length ?? 5);
-          const carrier = data.event?.team === [home.id, away.id][side] && ids?.[slot] === data.event.playerId;
+          rig.setVisible(slot === 6 ? (ids?.length ?? 5) < 6 : slot < (ids?.length ?? 5));
+          const id = ids?.[slot];
+          const player = id ? playerOf(side, id) : slot === 6 ? [home, away][side].players.find(p => p.id === [home, away][side].goalie) : undefined;
+          if (player) rig.setIdentity({ id: player.id, name: player.name, number: player.number }, player.pos);
+          const carrier = data.event?.team === [home.id, away.id][side] && id === data.event.playerId;
           const tx = slot === 6 ? (side ? 25 : -25) : carrier ? x : Math.max(-27, Math.min(27, x * 0.55 + (side ? 1 : -1) * (slot < 3 ? 5 : 12)));
           const tz = slot === 6 ? z * 0.07 : carrier ? z + 0.6 : (slot % 3 - 1) * 6 + z * 0.25;
-          const target = new THREE.Vector3(tx, 0, tz);
-          group.lookAt(target.x, 0, target.z); group.position.lerp(target, Math.min(1, dt * 2));
+          const here = rig.root.position;
+          rig.update(dt, animDt, { x: here.x + (tx - here.x) * Math.min(1, dt * 2), z: here.z + (tz - here.z) * Math.min(1, dt * 2), vx: (tx - here.x) * 0.8, vz: (tz - here.z) * 0.8, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: carrier });
         });
       }
-      const desired = mode.current === "overhead" ? new THREE.Vector3(0, 65, 0.1) : mode.current === "follow" ? new THREE.Vector3(puck.position.x * 0.45, 26, 31) : new THREE.Vector3(0, 45, 38);
-      camera.position.lerp(desired, 0.08); camera.lookAt(mode.current === "follow" ? puck.position.x * 0.35 : 0, 0, 0);
+      if (mode.current === "overhead") { desired.set(0, 65, 0.1); lookAt.set(0, 0, 0); }
+      else if (mode.current === "follow") { desired.set(puck.position.x * 0.45, 26, 31); lookAt.set(puck.position.x * 0.35, 0, 0); }
+      else if (mode.current === "close") { desired.set(puck.position.x * 0.9, 7, puck.position.z * 0.5 + 10.5); lookAt.set(puck.position.x, 0.8, puck.position.z); }
+      else { desired.set(0, 45, 38); lookAt.set(0, 0, 0); }
+      camera.position.lerp(desired, mode.current === "close" ? 0.05 : 0.08); camera.lookAt(lookAt);
       const bodies=data.spatial?.bodies??[];
       reserves.forEach(r=>{r.mesh.visible=!bodies.some(b=>b.id===r.id);});
       const labelled=[bodies.find(b=>b.id===data.spatial?.carrierId),...bodies.filter(b=>b.goalie)];
@@ -185,33 +192,28 @@ export default function MatchArena3D({ home, away, event, running, spatial }: {
         const p=[home,away][body.side].players.find(p=>p.id===body.id);
         label.textContent=`${index===0?"● ":"G · "}${p?.name??""}`;label.style.borderColor=index===0?"#f1c958":"#7296ad";
       });
-      mixers.forEach(actor => {
-        const speed = actor.group.position.distanceTo(actor.last) / Math.max(dt, .001);
-        actor.last.copy(actor.group.position);
-        if (data.running && actor.group.visible && !actor.goalie && speed > .1) actor.mixer.update(dt * Math.min(2, speed / 3));
-      });
       renderer.render(scene, camera); frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 38, 45); frame = requestAnimationFrame(animate);
     return () => {
       disposed = true;
-      mixers.forEach(({mixer}) => { mixer.stopAllAction(); mixer.uncacheRoot(mixer.getRoot()); });
-      assetRoots.forEach(root => root.traverse(object => { if (object instanceof THREE.Mesh) (Array.isArray(object.material) ? object.material : [object.material]).forEach(m => m.dispose()); }));
+      actors.forEach(({ rig }) => rig.dispose());
       cancelAnimationFrame(frame); observer.disconnect();
+      // Rig geometry/materials are shared and owned by the factory.
       scene.traverse(object => { if (object instanceof THREE.Mesh) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
+      factory.dispose();
       labels.forEach(label=>label.remove());renderer.dispose(); renderer.domElement.remove();
     };
   }, [home.id, away.id]);
   return <div>
     <div style={{ display: "flex", gap: 8, padding: 12 }}>
       <label>Камера <select value={cameraMode} onChange={e => setCameraMode(e.target.value)}>
-        <option value="broadcast">Трансляция</option><option value="overhead">Тактическая</option><option value="follow">За шайбой</option>
+        <option value="broadcast">Трансляция</option><option value="overhead">Тактическая</option><option value="follow">За шайбой</option><option value="close">Крупный план</option>
       </select></label>
       <span style={{ marginLeft: "auto", color: "#8aa7bd" }}>3D · {home.id} / {away.id}</span>
     </div>
     <div ref={host} style={{ position:"relative", overflow:"hidden", height: "clamp(320px, 45vw, 580px)", width: "100%" }} role="img" aria-label="Трёхмерная хоккейная площадка">
       {unavailable && <p>3D недоступен: включите аппаратное ускорение или выберите режим 2D.</p>}
-      {assetStatus && !unavailable && <p style={{position:"absolute",top:12,left:12,background:"#101b2b",padding:12}} role="status">{assetStatus}</p>}
     </div>
   </div>;
 }

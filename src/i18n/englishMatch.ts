@@ -300,6 +300,7 @@ export const englishMatch: Record<string, string> = {
   Камера: "Camera",
   Тактическая: "Tactical",
   "За шайбой": "Follow puck",
+  "Крупный план": "Close-up",
   "Трёхмерная хоккейная площадка": "3D hockey rink",
   "3D недоступен: включите аппаратное ускорение или выберите режим 2D.":
     "3D unavailable: enable hardware acceleration or select 2D mode.",
