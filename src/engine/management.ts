@@ -111,6 +111,16 @@ function seedOpeningEvents(g: Game) {
     requiresResponse: true,
     responseDue: addDays(g.calendar!.date, 7),
   });
+  pushEvent(g, {
+    date: g.calendar!.date,
+    category: "organization",
+    priority: "normal",
+    title: "Назначьте капитана и двух ассистентов",
+    body: "Тренерский штаб подготовил рейтинг лидеров. Решение повлияет на атмосферу и обсуждение целей сезона.",
+    action: "leadership",
+    requiresResponse: false,
+    responseDue: addDays(g.calendar!.date, 10),
+  });
   const injured = team.players.filter((player) => player.injury > 0);
   if (injured.length)
     pushEvent(g, {

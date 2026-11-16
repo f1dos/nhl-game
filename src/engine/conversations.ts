@@ -219,8 +219,16 @@ export function externalContactEligibility(game: Game, playerId: string) {
       (player) => player.id === playerId,
     ),
   );
-  if (!owner)
-    return { allowed: false, reason: "Игрок не принадлежит клубу NHL" };
+  if (!owner) {
+    const freeAgent = game.freeAgents?.some((player) => player.id === playerId);
+    return freeAgent
+      ? {
+          allowed: true,
+          reason:
+            "Свободный агент доступен для официальных переговоров через агента",
+        }
+      : { allowed: false, reason: "Игрок не найден в базе лиги" };
+  }
   if (owner.id === game.user)
     return { allowed: true, reason: "Игрок вашей организации" };
   const player = [...owner.players, ...(owner.farm ?? [])].find(

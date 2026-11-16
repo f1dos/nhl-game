@@ -62,6 +62,7 @@ import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
 import ClubCenter from "./ClubCenter";
 import PressCenter from "./PressCenter";
+import LeadershipCenter from "./LeadershipCenter";
 import {
   effectiveOverall,
   ensureFranchiseWorld,
@@ -158,6 +159,14 @@ const nav = [
     ru: "Стратегия клуба",
     en: "Franchise strategy",
     Icon: Target,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "leadership",
+    ru: "Лидерская группа",
+    en: "Leadership group",
+    Icon: Users,
     groupRu: "УПРАВЛЕНИЕ",
     groupEn: "MANAGEMENT",
   },
@@ -979,6 +988,7 @@ export default function App() {
       <>
         <TacticalCenter
           team={team}
+          onPlayer={setProfile}
           change={(fn) =>
             edit((current) =>
               fn(current.teams.find((t) => t.id === current.user)!),
@@ -999,11 +1009,18 @@ export default function App() {
     );
   else if (page === "match")
     content = (
-      <MatchdayHub game={g} edit={edit} onExit={() => go("overview")} />
+      <MatchdayHub
+        game={g}
+        edit={edit}
+        onExit={() => go("overview")}
+        onPlayer={setProfile}
+      />
     );
   else if (page === "schedule") content = <DailyCalendar game={g} />;
   else if (page === "strategy")
     content = <StrategyCenter game={g} edit={edit} />;
+  else if (page === "leadership")
+    content = <LeadershipCenter game={g} edit={edit} />;
   else if (page === "league")
     content = (
       <>
@@ -2318,7 +2335,7 @@ function PlayerProfile({
   const external = owner && owner.id !== game.user;
   const contact = externalContactEligibility(game, p.id);
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop player-profile-backdrop" onClick={onClose}>
       <section
         className="profile-modal"
         role="dialog"

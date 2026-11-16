@@ -166,6 +166,8 @@ export interface Team {
   goalie: string;
   tactics: Tactics;
   specialTeams?: Partial<Record<SpecialTeamsSituation, SpecialTeamUnit>>;
+  captainId?: string;
+  alternateCaptainIds?: string[];
   record: RecordStats;
 }
 export type InternationalRole = "depth" | "rotation" | "top-six";
@@ -329,7 +331,13 @@ export interface ManagementEvent {
   teamId?: string;
   playerId?: string;
   action?:
-    "roster" | "injuries" | "contracts" | "trades" | "draft" | "strategy";
+    | "roster"
+    | "injuries"
+    | "contracts"
+    | "trades"
+    | "draft"
+    | "strategy"
+    | "leadership";
   responseDue?: string;
   requiresResponse?: boolean;
   read: boolean;
@@ -416,6 +424,16 @@ export interface Game {
   events?: ManagementEvent[];
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;
+  leadershipSeason?: number;
+  leadershipStrategyChanged?: boolean;
+  teamMeetings?: {
+    date: string;
+    reason: "preseason" | "losing-streak" | "playoffs" | "morale";
+    tone: "supportive" | "calm" | "demanding";
+    leaderId: string;
+    outcome: "positive" | "neutral" | "negative";
+    message: string;
+  }[];
   franchiseObjectives?: FranchiseObjective[];
   managerEmployment?: ManagerEmployment;
   fans?: Record<string, FanState>;

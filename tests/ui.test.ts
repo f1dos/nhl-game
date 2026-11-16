@@ -108,6 +108,8 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Продолжить"));
   assert.equal(useGame.getState().game?.round, 0);
   assert(screen.getByText("Последние решения перед вбрасыванием"));
+  fireEvent.click(screen.getByText("Перейти к пресс-конференции"));
+  fireEvent.click(screen.getByText("Снять давление"));
   fireEvent.click(screen.getByText("Начать матч"));
   assert(screen.getByText("МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ"));
   fireEvent.click(screen.getByText("Таблица лиги"));

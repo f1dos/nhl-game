@@ -307,6 +307,14 @@ export function chooseSeasonStrategy(g: Game, strategy: FranchiseStrategy) {
   refreshObjectives(g);
 }
 
+export function reconsiderSeasonStrategy(g: Game, strategy: FranchiseStrategy) {
+  if (g.leadershipStrategyChanged)
+    throw Error("Капитан уже использовал единственную возможность пересмотра");
+  g.strategySeason = undefined;
+  chooseSeasonStrategy(g, strategy);
+  g.leadershipStrategyChanged = true;
+}
+
 export function reviewSeasonStrategy(g: Game) {
   if (!g.franchiseObjectives?.length || g.strategySeason !== g.year) return;
   if (g.franchiseObjectives.every((objective) => objective.evaluated)) return;
