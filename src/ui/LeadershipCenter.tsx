@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Crown,
@@ -153,6 +153,64 @@ export default function LeadershipCenter({
       ? captainAppointmentRisk(selectedCandidate, recommendedPlayer)
       : "recommended";
 
+  useEffect(() => {
+    if (
+      !assigned ||
+      game.leadershipConsequenceSeason === game.year ||
+      !captainPlayer ||
+      !recommendedPlayer
+    )
+      return;
+    edit((current) => {
+      if (current.leadershipConsequenceSeason === current.year) return;
+      const club = current.teams.find((item) => item.id === current.user)!;
+      const appointed = club.players.find(
+        (player) => player.id === club.captainId,
+      );
+      const staffChoice = club.players.find(
+        (player) => player.id === recommended,
+      );
+      if (!appointed || !staffChoice) return;
+      const risk = captainAppointmentRisk(appointed, staffChoice);
+      if (risk !== "recommended") {
+        const morale = risk === "severe" ? -5 : -2;
+        club.players.forEach((player) => {
+          player.morale = clamp(player.morale + morale, 0, 100);
+          if (risk === "severe")
+            player.motivation = clamp((player.motivation ?? 50) - 3, 0, 100);
+        });
+        staffChoice.morale = clamp(
+          staffChoice.morale - (risk === "severe" ? 7 : 3),
+          0,
+          100,
+        );
+        staffChoice.relationship = clamp(
+          (staffChoice.relationship ?? 50) - (risk === "severe" ? 10 : 4),
+          0,
+          100,
+        );
+        if (current.managerEmployment)
+          current.managerEmployment.confidence = clamp(
+            current.managerEmployment.confidence - (risk === "severe" ? 6 : 2),
+            0,
+            100,
+          );
+        current.news.unshift(
+          `Раздевалка отреагировала на спорное назначение капитана ${appointed.name}.`,
+        );
+      }
+      current.leadershipConsequenceSeason = current.year;
+    });
+  }, [
+    assigned,
+    captainPlayer,
+    edit,
+    game.leadershipConsequenceSeason,
+    game.year,
+    recommended,
+    recommendedPlayer,
+  ]);
+
   const tr = (russian: string, english: string) => (ru ? russian : english);
   const updateAlternate = (index: number, value: string) =>
     setAlternates((current) => {
@@ -217,6 +275,7 @@ export default function LeadershipCenter({
       club.captainId = captain;
       club.alternateCaptainIds = alternates.slice(0, 2);
       current.leadershipSeason = current.year;
+      current.leadershipConsequenceSeason = current.year;
       current.events
         ?.filter((event) => event.action === "leadership")
         .forEach((event) => {
