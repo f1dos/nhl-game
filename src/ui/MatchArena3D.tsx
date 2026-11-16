@@ -11,6 +11,8 @@ const kitFor = (team: Team, away: boolean): TeamKit => away
   : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color };
 
 /** Event-driven presentation layer. Does not invent or modify match results. */
+const _focusTarget = new THREE.Vector3();
+
 export default function MatchArena3D({ home, away, event, running, spatial, playback = 1 }: {
   home: Team; away: Team; event?: Event; running: boolean; spatial?: SpatialFrame; playback?: number;
 }) {
@@ -123,6 +125,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const observer = new ResizeObserver(resize); observer.observe(container); resize();
     let frame = 0, previous = performance.now();
     const lookAt = new THREE.Vector3(), desired = new THREE.Vector3();
+    // Cameras follow a heavily smoothed focus point, not the raw puck: simulation
+    // frames arrive in coarse steps (especially at high speed) and the puck can
+    // change direction instantly, which would otherwise shake the view.
+    const focus = new THREE.Vector3(), lookSmooth = new THREE.Vector3(0, 0, 0);
+    let cameraReady = false;
     const animate = (now: number) => {
       const dt = Math.min(0.05, (now - previous) / 1000); previous = now;
       const data = current.current;
@@ -133,7 +140,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       byBody.clear();
       if (data.spatial) {
         const frameData = data.spatial;
-        puck.position.set(frameData.puck.x, frameData.puck.y, frameData.puck.z);
+        // Ease the puck between 10 Hz simulation frames; snap on faceoff resets.
+        if (Math.hypot(frameData.puck.x - puck.position.x, frameData.puck.z - puck.position.z) > 8) puck.position.set(frameData.puck.x, frameData.puck.y, frameData.puck.z);
+        else {
+          const kp = 1 - Math.exp(-dt * 16);
+          puck.position.set(puck.position.x + (frameData.puck.x - puck.position.x) * kp, frameData.puck.y, puck.position.z + (frameData.puck.z - puck.position.z) * kp);
+        }
         actors.forEach(({ rig, side, slot }) => {
           const bodies = frameData.bodies.filter(b => b.side === side);
           const body = slot === 6 ? bodies.find(b => b.goalie) : bodies.filter(b => !b.goalie)[slot];
@@ -176,11 +188,17 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           rig.update(dt, animDt, { x: here.x + (tx - here.x) * Math.min(1, dt * 2), z: here.z + (tz - here.z) * Math.min(1, dt * 2), vx: (tx - here.x) * 0.8, vz: (tz - here.z) * 0.8, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: carrier });
         });
       }
+      // Focus drifts toward the puck slowly (time-based, frame-rate independent).
+      const tx = Math.max(-26, Math.min(26, puck.position.x)), tz = Math.max(-10, Math.min(10, puck.position.z));
+      if (!cameraReady) focus.set(tx, 0, tz);
+      else focus.lerp(_focusTarget.set(tx, 0, tz), 1 - Math.exp(-dt * 1.6));
       if (mode.current === "overhead") { desired.set(0, 65, 0.1); lookAt.set(0, 0, 0); }
-      else if (mode.current === "follow") { desired.set(puck.position.x * 0.45, 26, 31); lookAt.set(puck.position.x * 0.35, 0, 0); }
-      else if (mode.current === "close") { desired.set(puck.position.x * 0.9, 7, puck.position.z * 0.5 + 10.5); lookAt.set(puck.position.x, 0.8, puck.position.z); }
+      else if (mode.current === "follow") { desired.set(focus.x * 0.45, 26, 31); lookAt.set(focus.x * 0.35, 0, 0); }
+      else if (mode.current === "close") { desired.set(focus.x * 0.9, 7, focus.z * 0.5 + 10.5); lookAt.set(focus.x, 0.8, focus.z); }
       else { desired.set(0, 45, 38); lookAt.set(0, 0, 0); }
-      camera.position.lerp(desired, mode.current === "close" ? 0.05 : 0.08); camera.lookAt(lookAt);
+      if (!cameraReady) { cameraReady = true; lookSmooth.copy(lookAt); }
+      const kc = 1 - Math.exp(-dt * (mode.current === "close" ? 3 : 4));
+      camera.position.lerp(desired, kc); lookSmooth.lerp(lookAt, kc); camera.lookAt(lookSmooth);
       const bodies=data.spatial?.bodies??[];
       reserves.forEach(r=>{r.mesh.visible=!bodies.some(b=>b.id===r.id);});
       const labelled=[bodies.find(b=>b.id===data.spatial?.carrierId),...bodies.filter(b=>b.goalie)];
