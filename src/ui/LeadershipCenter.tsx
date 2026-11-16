@@ -53,7 +53,7 @@ const realWorldCaptains: Record<string, string> = {
   UTA: "Clayton Keller",
 };
 
-function leadershipScore(player: Player) {
+export function leadershipScore(player: Player) {
   const a = player.attributes;
   const ageFit =
     player.age >= 27 && player.age <= 35 ? 8 : player.age >= 24 ? 3 : -4;
@@ -65,6 +65,21 @@ function leadershipScore(player: Player) {
       player.ovr * 0.2 +
       ageFit,
   );
+}
+
+export type CaptainAppointmentRisk = "recommended" | "questionable" | "severe";
+
+export function captainAppointmentRisk(
+  selected: Player,
+  recommended: Player,
+): CaptainAppointmentRisk {
+  const leadershipGap =
+    leadershipScore(recommended) - leadershipScore(selected);
+  const overallGap = recommended.ovr - selected.ovr;
+  if (selected.ovr < 70 || leadershipGap >= 12 || overallGap >= 12)
+    return "severe";
+  if (leadershipGap >= 6 || overallGap >= 7) return "questionable";
+  return "recommended";
 }
 
 export default function LeadershipCenter({
@@ -81,14 +96,10 @@ export default function LeadershipCenter({
       [...team.players].sort((a, b) => leadershipScore(b) - leadershipScore(a)),
     [team.players],
   );
-  const savedCaptain =
-    team.captainId && team.players.some((p) => p.id === team.captainId)
-      ? team.captainId
-      : undefined;
   const realCaptain = team.players.find(
     (player) => player.name === realWorldCaptains[team.id],
   );
-  const recommended = savedCaptain ?? realCaptain?.id ?? ranked[0]?.id ?? "";
+  const [recommended] = useState(realCaptain?.id ?? ranked[0]?.id ?? "");
   const [captain, setCaptain] = useState(team.captainId ?? recommended);
   const alternateDefaults =
     team.alternateCaptainIds ??
@@ -131,6 +142,16 @@ export default function LeadershipCenter({
   const captainPlayer = team.players.find(
     (player) => player.id === (team.captainId ?? captain),
   );
+  const recommendedPlayer = team.players.find(
+    (player) => player.id === recommended,
+  );
+  const selectedCandidate = team.players.find(
+    (player) => player.id === captain,
+  );
+  const appointmentRisk =
+    selectedCandidate && recommendedPlayer
+      ? captainAppointmentRisk(selectedCandidate, recommendedPlayer)
+      : "recommended";
 
   const tr = (russian: string, english: string) => (ru ? russian : english);
   const updateAlternate = (index: number, value: string) =>
@@ -158,13 +179,41 @@ export default function LeadershipCenter({
           old.relationship = clamp((old.relationship ?? 50) - 7, 0, 100);
         }
       }
-      const isRecommended = captain === recommended;
-      club.players.forEach((player) => {
-        player.morale = clamp(player.morale + (isRecommended ? 1 : -1), 0, 100);
-      });
       const selected = club.players.find((p) => p.id === captain)!;
+      const staffChoice = club.players.find((p) => p.id === recommended)!;
+      const risk = captainAppointmentRisk(selected, staffChoice);
+      const teamMoraleDelta =
+        risk === "severe" ? -6 : risk === "questionable" ? -3 : 1;
+      club.players.forEach((player) => {
+        player.morale = clamp(player.morale + teamMoraleDelta, 0, 100);
+        if (risk === "severe")
+          player.motivation = clamp((player.motivation ?? 50) - 3, 0, 100);
+      });
       selected.morale = clamp(selected.morale + 2, 0, 100);
-      selected.relationship = clamp((selected.relationship ?? 50) + 3, 0, 100);
+      selected.relationship = clamp(
+        (selected.relationship ?? 50) + (risk === "severe" ? -2 : 3),
+        0,
+        100,
+      );
+      if (risk !== "recommended" && staffChoice.id !== selected.id) {
+        staffChoice.morale = clamp(
+          staffChoice.morale - (risk === "severe" ? 7 : 3),
+          0,
+          100,
+        );
+        staffChoice.relationship = clamp(
+          (staffChoice.relationship ?? 50) - (risk === "severe" ? 10 : 4),
+          0,
+          100,
+        );
+      }
+      if (current.managerEmployment)
+        current.managerEmployment.confidence = clamp(
+          current.managerEmployment.confidence -
+            (risk === "severe" ? 6 : risk === "questionable" ? 2 : 0),
+          0,
+          100,
+        );
       club.captainId = captain;
       club.alternateCaptainIds = alternates.slice(0, 2);
       current.leadershipSeason = current.year;
@@ -175,7 +224,9 @@ export default function LeadershipCenter({
           event.resolved = true;
         });
       current.news.unshift(
-        `${selected.name} назначен капитаном ${club.city} ${club.name}.`,
+        risk === "severe"
+          ? `Спорное назначение: ${selected.name} стал капитаном, лидеры ${club.id} требуют объяснений.`
+          : `${selected.name} назначен капитаном ${club.city} ${club.name}.`,
       );
     });
     setCaptainDialogue(true);
@@ -185,9 +236,21 @@ export default function LeadershipCenter({
     if (strategyMismatch) {
       edit((current) => {
         const club = current.teams.find((item) => item.id === current.user)!;
-        club.players.forEach(
-          (player) => (player.morale = clamp(player.morale - 1, 0, 100)),
+        club.players.forEach((player) => {
+          player.morale = clamp(player.morale - 3, 0, 100);
+          player.motivation = clamp((player.motivation ?? 50) - 2, 0, 100);
+        });
+        const leader = club.players.find(
+          (player) => player.id === club.captainId,
         );
+        if (leader)
+          leader.relationship = clamp((leader.relationship ?? 50) - 4, 0, 100);
+        if (current.managerEmployment)
+          current.managerEmployment.confidence = clamp(
+            current.managerEmployment.confidence - 3,
+            0,
+            100,
+          );
       });
     }
     setCaptainDecision("kept");
@@ -322,6 +385,30 @@ export default function LeadershipCenter({
               ))}
             </select>
           </label>
+          {appointmentRisk !== "recommended" && !assigned && (
+            <div className={`captain-risk ${appointmentRisk}`}>
+              <Shield size={20} />
+              <div>
+                <b>
+                  {appointmentRisk === "severe"
+                    ? tr(
+                        "Штаб категорически против этого назначения",
+                        "The staff strongly opposes this appointment",
+                      )
+                    : tr(
+                        "Лидеры раздевалки сомневаются в выборе",
+                        "Dressing-room leaders question this choice",
+                      )}
+                </b>
+                <span>
+                  {tr(
+                    `${selectedCandidate?.name}: ${selectedCandidate?.ovr} OVR / ${selectedCandidate ? leadershipScore(selectedCandidate) : 0} LEAD. Рекомендация: ${recommendedPlayer?.name}, ${recommendedPlayer?.ovr} OVR. Назначение ухудшит мораль, мотивацию и доверие к GM.`,
+                    `${selectedCandidate?.name}: ${selectedCandidate?.ovr} OVR / ${selectedCandidate ? leadershipScore(selectedCandidate) : 0} LEAD. Recommended: ${recommendedPlayer?.name}, ${recommendedPlayer?.ovr} OVR. The appointment will damage morale, motivation and confidence in the GM.`,
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
           <div className="alternate-grid">
             {[0, 1].map((index) => (
               <label key={index}>
@@ -354,7 +441,12 @@ export default function LeadershipCenter({
               }
             >
               <Crown size={17} />
-              {tr("Утвердить лидерскую группу", "Confirm leadership group")}
+              {appointmentRisk === "severe"
+                ? tr(
+                    "Утвердить спорное назначение",
+                    "Confirm controversial appointment",
+                  )
+                : tr("Утвердить лидерскую группу", "Confirm leadership group")}
             </button>
           )}
         </section>
@@ -502,12 +594,36 @@ export default function LeadershipCenter({
             <div className="speech player">
               <small>{captainPlayer.name.toUpperCase()}</small>
               <p>
-                {tr(
-                  "Спасибо за доверие. Для меня это честь. Я хочу убедиться, что раздевалка верит в цели клуба.",
-                  "Thank you for the trust. It is an honour. I want to make sure the room believes in the club's objectives.",
-                )}
+                {appointmentRisk === "severe"
+                  ? tr(
+                      "Спасибо за доверие. Но я не буду притворяться: старшие игроки удивлены, и мне придётся доказать, что я готов к этой роли.",
+                      "Thank you for the trust. I will not pretend otherwise: the senior players are surprised, and I will have to prove I am ready for this role.",
+                    )
+                  : tr(
+                      "Спасибо за доверие. Для меня это честь. Я хочу убедиться, что раздевалка верит в цели клуба.",
+                      "Thank you for the trust. It is an honour. I want to make sure the room believes in the club's objectives.",
+                    )}
               </p>
             </div>
+            {appointmentRisk !== "recommended" && (
+              <div className={`captain-risk dialogue ${appointmentRisk}`}>
+                <Shield size={20} />
+                <div>
+                  <b>
+                    {tr(
+                      "Назначение уже вызвало недовольство раздевалки",
+                      "The appointment has already unsettled the dressing room",
+                    )}
+                  </b>
+                  <span>
+                    {tr(
+                      "Авторитетные игроки ждут объяснений. Мораль и доверие к руководству снизились.",
+                      "Senior players expect an explanation. Morale and confidence in management have fallen.",
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="strategy-dialogue-card">
               <MessageCircle />
               <div>

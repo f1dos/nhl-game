@@ -221,13 +221,27 @@ export function externalContactEligibility(game: Game, playerId: string) {
   );
   if (!owner) {
     const freeAgent = game.freeAgents?.some((player) => player.id === playerId);
-    return freeAgent
-      ? {
-          allowed: true,
-          reason:
-            "Свободный агент доступен для официальных переговоров через агента",
-        }
-      : { allowed: false, reason: "Игрок не найден в базе лиги" };
+    if (freeAgent)
+      return {
+        allowed: true,
+        reason:
+          "Свободный агент доступен для официальных переговоров через агента",
+      };
+    if (game.internationalMarket?.some((item) => item.player.id === playerId))
+      return {
+        allowed: false,
+        reason:
+          "Сначала завершите скаутинг и установите контакт через международный рынок",
+      };
+    if (game.juniorPlayers?.some((player) => player.id === playerId))
+      return {
+        allowed: false,
+        reason: "Прямой контакт ограничен юниорскими правами и правилами лиги",
+      };
+    return {
+      allowed: false,
+      reason: "Организация и статус прав игрока не установлены",
+    };
   }
   if (owner.id === game.user)
     return { allowed: true, reason: "Игрок вашей организации" };

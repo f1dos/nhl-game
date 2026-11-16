@@ -95,6 +95,33 @@
   color: #91a5b6;
   line-height: 1.55;
 }
+.captain-risk {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  margin: 14px 0;
+  border: 1px solid #77573e;
+  border-left: 3px solid #d49a61;
+  background: #2a211a;
+  color: #e7c29e;
+}
+.captain-risk.severe {
+  border-color: #824747;
+  border-left-color: #e36f6f;
+  background: #2d191b;
+  color: #f0adad;
+}
+.captain-risk > div {
+  display: grid;
+  gap: 6px;
+}
+.captain-risk span {
+  color: #c4a99b;
+  line-height: 1.5;
+}
+.captain-risk.dialogue {
+  margin: 0 0 18px;
+}
 .leadership-panel label {
   display: grid;
   gap: 7px;
@@ -160,9 +187,14 @@
   background: #0b1117;
 }
 .leadership-dialogue > header {
+  width: 100%;
+  height: auto;
   min-height: 76px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 18px max(28px, calc((100vw - 1100px) / 2));
 }
 .leadership-dialogue > .conversation-room {
+  width: min(1100px, calc(100vw - 48px));
   max-width: 1100px;
   margin: 60px auto;
 }

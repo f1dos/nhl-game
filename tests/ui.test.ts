@@ -23,6 +23,9 @@ const React = await import("react");
 const { render, screen, fireEvent, waitFor, cleanup } =
   await import("@testing-library/react");
 const { default: App } = await import("../src/ui/App");
+const { default: PlayerConversation } =
+  await import("../src/ui/PlayerConversation");
+const { newGame } = await import("../src/engine/database");
 const { useGame } = await import("../src/store");
 const { saveGame, listGames, validateSave } =
   await import("../src/engine/saves");
@@ -174,5 +177,23 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
     assert(screen.getByText("A new day. A new opportunity.")),
   );
   assert.equal(useGame.getState().game?.round, 0);
+  cleanup();
+});
+
+test("an unattached player never receives own-team conversation topics", () => {
+  const game = newGame("TOR", 9901);
+  const source = game.teams.find((team) => team.id === "EDM")!.players[0];
+  const unattached = { ...source, id: "unattached-ui-player" };
+  render(
+    React.createElement(PlayerConversation, {
+      player: unattached,
+      game,
+      edit: () => undefined,
+      onClose: () => undefined,
+    }),
+  );
+  assert(screen.getByText("Внутренние темы недоступны"));
+  assert.equal(screen.queryByText("Игровое время"), null);
+  assert(screen.getByText(/Организация и статус прав/));
   cleanup();
 });
