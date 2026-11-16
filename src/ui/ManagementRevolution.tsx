@@ -25,8 +25,9 @@ import type {
   Game,
   ManagementEvent,
   Player,
+  TrainingSession,
 } from "../engine/types";
-import { readiness } from "../engine/training";
+import { ensureTrainingSchedule, readiness } from "../engine/training";
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
 import { refreshObjectives, STRATEGY_POLICIES } from "../engine/strategy";
@@ -614,6 +615,19 @@ export function DailyCalendar({ game }: { game: Game }) {
     addDays(gridStart, index),
   );
   const currentMonth = game.calendar!.date.slice(0, 7);
+  const team = game.teams.find((club) => club.id === game.user)!;
+  const training = ensureTrainingSchedule(team);
+  const trainingNames: Record<TrainingSession, { ru: string; en: string }> = {
+    rest: { ru: "Отдых", en: "Rest" },
+    recovery: { ru: "Восстановление", en: "Recovery" },
+    teamwork: { ru: "Командная игра", en: "Teamwork" },
+    tactical: { ru: "Тактика", en: "Tactical" },
+    offense: { ru: "Атака", en: "Offense" },
+    defense: { ru: "Оборона", en: "Defense" },
+    skills: { ru: "Техника", en: "Skills" },
+    goalie: { ru: "Вратари", en: "Goalies" },
+    conditioning: { ru: "Физика", en: "Conditioning" },
+  };
   const stage =
     game.calendar!.date < game.calendar!.seasonStart
       ? ru
@@ -646,6 +660,14 @@ export function DailyCalendar({ game }: { game: Game }) {
       </div>
       <div className="calendar-grid">
         {days.map((date) => {
+          const dayOffset = Math.round(
+            (Date.parse(`${date}T00:00:00Z`) -
+              Date.parse(`${game.calendar!.date}T00:00:00Z`)) /
+              86_400_000,
+          );
+          const trainingIndex =
+            ((((team.trainingTicks ?? 0) + dayOffset) % 7) + 7) % 7;
+          const trainingDay = training.days[trainingIndex];
           const round = Array.from({ length: 82 }, (_, index) => index).find(
             (index) => fixtureDate(game, index) === date,
           );
@@ -692,17 +714,30 @@ export function DailyCalendar({ game }: { game: Game }) {
                   {fixture.home === game.user ? fixture.away : fixture.home}
                 </p>
               )}
-              {!fixture && !preseason && !events.length && (
-                <p className="calendar-rest">
-                  {date < game.calendar!.seasonStart
-                    ? ru
-                      ? "Сборы / тренировка"
-                      : "Camp / training"
-                    : ru
-                      ? "Тренировка / восстановление"
-                      : "Training / recovery"}
-                </p>
-              )}
+              <div
+                className="calendar-training"
+                title={ru ? "План тренировки" : "Training plan"}
+              >
+                <Activity size={12} />
+                <span>
+                  {ru
+                    ? trainingNames[trainingDay.morning].ru
+                    : trainingNames[trainingDay.morning].en}
+                </span>
+                <span>
+                  {ru
+                    ? trainingNames[trainingDay.afternoon].ru
+                    : trainingNames[trainingDay.afternoon].en}
+                </span>
+                <b>
+                  {
+                    [trainingDay.morning, trainingDay.afternoon].filter(
+                      (session) => session !== "rest",
+                    ).length
+                  }
+                  /2
+                </b>
+              </div>
               {events.slice(0, 2).map((event) => (
                 <p
                   key={event.id}

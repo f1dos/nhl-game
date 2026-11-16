@@ -41,15 +41,16 @@ function trait(team: string, name: string) {
   return 25 + (numberFrom(`${team}:${name}`) % 71);
 }
 
-function initialStrategy(team: Team): FranchiseStrategy {
+export function initialStrategy(team: Team): FranchiseStrategy {
   const core = [...team.players].sort((a, b) => b.ovr - a.ovr).slice(0, 18);
   const rating =
     core.reduce((sum, player) => sum + player.ovr, 0) / core.length;
   const age = core.reduce((sum, player) => sum + player.age, 0) / core.length;
-  if (rating >= 82) return "stanley-cup";
-  if (rating >= 79) return "playoff-breakthrough";
-  if (rating < 76) return "draft-lottery";
-  return age < 26 ? "wild-card-hunt" : "playoff-breakthrough";
+  const modeled = team.strengthRating ?? rating;
+  if (modeled >= 82 || rating >= 81.5) return "stanley-cup";
+  if (modeled >= 79 || rating >= 79) return "playoff-breakthrough";
+  if (modeled < 76 || rating < 76) return "draft-lottery";
+  return age < 25 && modeled < 77 ? "draft-lottery" : "wild-card-hunt";
 }
 
 function createProfile(team: Team): AiGeneralManagerProfile {
@@ -211,6 +212,18 @@ export function ensureManagementState(g: Game) {
     ensureSpecialTeams(team);
     ensureTrainingSchedule(team);
   }
+  // Repair careers created by the old youth-preference rule, which could put
+  // nearly the entire AI league into Wild Card Hunt.
+  const aiTeams = g.teams.filter((team) => team.id !== g.user);
+  if (
+    aiTeams.length > 0 &&
+    aiTeams.filter((team) => team.aiProfile?.strategy === "wild-card-hunt")
+      .length >=
+      aiTeams.length * 0.8
+  )
+    aiTeams.forEach((team) => {
+      team.aiProfile!.strategy = initialStrategy(team);
+    });
   if (!g.events.length) seedOpeningEvents(g);
   ensureStrategyEvent(g);
   return g;
@@ -274,12 +287,12 @@ function adaptAiStrategies(g: Game) {
       ? team.record.pts / (team.record.gp * 2)
       : (team.strengthRating ?? 78) / 100;
     const previous = profile.strategy;
+    const ratingStrategy = initialStrategy(team);
     if (team.record.gp >= 20 && pointPct < 0.42)
       profile.strategy = "draft-lottery";
     else if (team.record.gp >= 20 && pointPct > 0.61)
       profile.strategy = "stanley-cup";
-    else if (profile.youthPreference > 72) profile.strategy = "wild-card-hunt";
-    else profile.strategy = initialStrategy(team);
+    else profile.strategy = ratingStrategy;
     if (previous !== profile.strategy)
       pushEvent(g, {
         date: g.calendar!.date,
@@ -391,12 +404,14 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   );
   if (preseason) {
     const rng = new RNG(g.seed);
-    preseason.result = completed ?? simulateMatch(
-      structuredClone(g.teams.find((team) => team.id === preseason.home)!),
-      structuredClone(g.teams.find((team) => team.id === preseason.away)!),
-      rng,
-      false,
-    );
+    preseason.result =
+      completed ??
+      simulateMatch(
+        structuredClone(g.teams.find((team) => team.id === preseason.home)!),
+        structuredClone(g.teams.find((team) => team.id === preseason.away)!),
+        rng,
+        false,
+      );
     g.seed = rng.seed;
     g.last = preseason.result;
     pushEvent(g, {

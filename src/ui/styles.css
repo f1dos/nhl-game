@@ -16,6 +16,127 @@
 body {
   margin: 0;
 }
+.game-splash {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  background: radial-gradient(
+    circle at 50% 35%,
+    #183b55 0,
+    #0d1822 28%,
+    #070b10 72%
+  );
+}
+.splash-mark {
+  width: 86px;
+  height: 86px;
+  display: grid;
+  place-items: center;
+  color: #71c9f5;
+  border: 1px solid #39789c;
+  border-radius: 22px;
+  box-shadow: 0 0 45px #2c9bd744;
+  animation: splash-float 1.4s ease-in-out infinite;
+}
+.game-splash h2 {
+  font: 800 40px "Barlow Condensed";
+  letter-spacing: 0.08em;
+}
+.game-splash h2 b {
+  color: #51b8ec;
+}
+.splash-progress {
+  width: min(320px, 70vw);
+  height: 3px;
+  margin-top: 14px;
+  background: #1e303e;
+  overflow: hidden;
+}
+.splash-progress i {
+  display: block;
+  width: 45%;
+  height: 100%;
+  background: #5bc5fa;
+  animation: splash-load 1.2s ease-in-out infinite;
+}
+@keyframes splash-load {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(330%);
+  }
+}
+@keyframes splash-float {
+  50% {
+    transform: translateY(-5px) scale(1.03);
+  }
+}
+.calendar-shortcut {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  padding: 7px;
+}
+.calendar-shortcut:hover {
+  background: #172532;
+  color: #76c9f2;
+}
+.time-advance-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  background: #05090dcc;
+  backdrop-filter: blur(8px);
+}
+.time-advance-card {
+  width: min(480px, calc(100vw - 32px));
+  padding: 34px;
+  text-align: center;
+  border: 1px solid #3b6077;
+  background: linear-gradient(145deg, #152431, #0c1219);
+  box-shadow: 0 25px 90px #000;
+}
+.time-advance-card > svg {
+  color: #6ec8f5;
+  animation: splash-float 1.4s ease-in-out infinite;
+}
+.time-advance-card h2 {
+  margin: 8px 0 20px;
+  font-size: 34px;
+}
+.time-route {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+.time-route i {
+  height: 1px;
+  background: linear-gradient(90deg, #345268, #6fcaf5);
+}
+.time-progress {
+  height: 3px;
+  background: #243746;
+  margin: 20px 0;
+  overflow: hidden;
+}
+.time-progress i {
+  display: block;
+  height: 100%;
+  width: 42%;
+  background: #5fc5f3;
+  animation: splash-load 1s linear infinite;
+}
+.time-advance-card p {
+  color: #9bafbe;
+}
 button,
 input,
 select {

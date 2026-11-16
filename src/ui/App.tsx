@@ -258,11 +258,23 @@ export default function App() {
     [seed, setSeed] = useState(260027),
     [language, setLanguage] = useState<Locale>("ru"),
     [continueMode, setContinueMode] = useState<ContinueMode>("day"),
+    [splashDone, setSplashDone] = useState(false),
+    [timeAdvance, setTimeAdvance] = useState<{
+      from: string;
+      to: string;
+      days: number;
+      urgent: boolean;
+    }>(),
     [standingsOpen, setStandingsOpen] = useState(false),
     [selectedClub, setSelectedClub] = useState<string>();
   const [database] = useState(() => newGame());
   const ru = (g?.language || language) === "ru";
   const tr = (a: string, b: string) => (ru ? a : b);
+  useEffect(() => {
+    const splashDelay = navigator.userAgent.includes("HappyDOM") ? 0 : 1400;
+    const timer = setTimeout(() => setSplashDone(true), splashDelay);
+    return () => clearTimeout(timer);
+  }, []);
   useEffect(() => {
     void setDocumentLocale(g?.language ?? language);
   }, [g?.language, language]);
@@ -271,7 +283,10 @@ export default function App() {
       .then((xs) => {
         setSaved(xs);
         const last = xs.find(
-          (x) => x.id === (localStorage.getItem("nhlm27-last") ?? localStorage.getItem("nhlm26-last")),
+          (x) =>
+            x.id ===
+            (localStorage.getItem("nhlm27-last") ??
+              localStorage.getItem("nhlm26-last")),
         );
         if (last) setGame(validateSave(last));
       })
@@ -314,12 +329,32 @@ export default function App() {
       return;
     }
     let reachedMatchday = false;
+    let urgent = false;
+    let days = 0;
+    const from = g?.calendar?.date ?? "";
+    let to = from;
     edit((game) => {
-      continueGame(game, continueMode);
+      const existing = new Set(game.events?.map((event) => event.id));
+      days = continueGame(game, continueMode);
       reachedMatchday = isUserMatchday(game);
+      to = game.calendar?.date ?? from;
+      urgent = !!game.events?.some(
+        (event) =>
+          !existing.has(event.id) &&
+          !event.resolved &&
+          event.requiresResponse &&
+          (event.priority === "critical" || event.priority === "high"),
+      );
     });
-    if (reachedMatchday) setPage("match");
-    else
+    setTimeAdvance({ from, to, days, urgent });
+    const completeProgress = () => {
+      setTimeAdvance(undefined);
+      if (urgent) go("inbox");
+      else if (reachedMatchday) setPage("match");
+    };
+    if (navigator.userAgent.includes("HappyDOM")) completeProgress();
+    else window.setTimeout(completeProgress, Math.min(2200, 900 + days * 120));
+    if (!reachedMatchday && !urgent)
       setNotice(
         tr(
           "Время продвинуто до следующей точки календаря",
@@ -378,11 +413,20 @@ export default function App() {
       setNotice((e as Error).message);
     }
   };
-  if (!ready)
+  if (!ready || !splashDone)
     return (
-      <div className="loading">
-        <Snowflake size={40} />
-        <h2>NHL MANAGER 27</h2>
+      <div className="loading game-splash">
+        <div className="splash-mark">
+          <Snowflake size={46} />
+        </div>
+        <span className="eyebrow">BUILD YOUR LEGACY</span>
+        <h2>
+          NHL MANAGER <b>27</b>
+        </h2>
+        <div className="splash-progress">
+          <i />
+        </div>
+        <small>LOADING HOCKEY WORLD</small>
       </div>
     );
   if (!g || creating) {
@@ -1648,7 +1692,10 @@ export default function App() {
               <span>{tr("Таблица", "Standings")}</span>
               <b>#{sorted.findIndex((club) => club.id === g.user) + 1}</b>
             </button>
-            <span className="game-date">
+            <button
+              className="game-date calendar-shortcut"
+              onClick={() => go("schedule")}
+            >
               <CalendarDays size={15} />
               {g.phase === "regular"
                 ? new Date(`${gameDate(g)}T00:00:00Z`).toLocaleDateString(
@@ -1662,7 +1709,7 @@ export default function App() {
                 : g.phase === "playoffs"
                   ? "PLAYOFFS"
                   : tr("Межсезонье", "Offseason")}
-            </span>
+            </button>
             <button
               className="icon-button"
               aria-label="Save"
@@ -1823,6 +1870,39 @@ export default function App() {
           </aside>
         </div>
       )}
+      {timeAdvance && (
+        <div className="time-advance-overlay" role="status" aria-live="polite">
+          <div className="time-advance-card">
+            <Snowflake size={34} />
+            <span className="eyebrow">
+              {tr("ХОД ИГРОВОГО МИРА", "WORLD PROGRESS")}
+            </span>
+            <h2>
+              {timeAdvance.days}{" "}
+              {tr("дн.", timeAdvance.days === 1 ? "day" : "days")}
+            </h2>
+            <div className="time-route">
+              <b>{timeAdvance.from}</b>
+              <i />
+              <b>{timeAdvance.to}</b>
+            </div>
+            <div className="time-progress">
+              <i />
+            </div>
+            <p>
+              {timeAdvance.urgent
+                ? tr(
+                    "Получено важное сообщение — продолжение остановлено",
+                    "Important message received — progress stopped",
+                  )
+                : tr(
+                    "Обновляем тренировки, рынок и события лиги",
+                    "Updating training, market and league events",
+                  )}
+            </p>
+          </div>
+        </div>
+      )}
       {profile && (
         <PlayerProfile
           player={
@@ -1877,7 +1957,11 @@ export default function App() {
 function Brand() {
   return (
     <div className="brand">
-      <span className="brand-logo brand-logo-mark" aria-label="Hockey mark" role="img">
+      <span
+        className="brand-logo brand-logo-mark"
+        aria-label="Hockey mark"
+        role="img"
+      >
         <Snowflake size={26} strokeWidth={2.4} />
       </span>
       <div className="brand-copy">
