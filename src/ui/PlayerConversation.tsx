@@ -28,9 +28,11 @@ export default function PlayerConversation({
       (item) => item.id === player.id,
     ),
   );
-  const external = owner && owner.id !== game.user;
+  const freeAgent = game.freeAgents?.some((item) => item.id === player.id);
+  const external = !!freeAgent || (!!owner && owner.id !== game.user);
   const eligibility = externalContactEligibility(game, player.id);
   const [externalReply, setExternalReply] = useState("");
+  const [followUp, setFollowUp] = useState("");
   const [topic, setTopic] = useState<ConversationTopic>(
     player.injury > 0
       ? "injury"
@@ -58,8 +60,20 @@ export default function PlayerConversation({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <span className="eyebrow">OFFICIAL CONTACT · {owner.id}</span>
-            <strong>Запрос по игроку другого клуба</strong>
+            <span className="eyebrow">
+              {freeAgent
+                ? "FREE AGENT NEGOTIATION"
+                : `OFFICIAL CONTACT · ${owner?.id}`}
+            </span>
+            <strong>
+              {freeAgent
+                ? ru
+                  ? "Переговоры через агента"
+                  : "Negotiation through the player agent"
+                : ru
+                  ? "Запрос по игроку другого клуба"
+                  : "Request about another club's player"}
+            </strong>
           </div>
           <button
             className="icon-button"
@@ -82,7 +96,12 @@ export default function PlayerConversation({
             </div>
             <h1>{player.name}</h1>
             <p>
-              {owner.city} {owner.name} · {player.pos} · {player.ovr} OVR
+              {freeAgent
+                ? ru
+                  ? "Свободный агент"
+                  : "Free agent"
+                : `${owner?.city} ${owner?.name}`}{" "}
+              · {player.pos} · {player.ovr} OVR
             </p>
             <div className="conversation-vitals">
               <div>
@@ -96,20 +115,44 @@ export default function PlayerConversation({
             </div>
           </aside>
           <main className="conversation-room">
-            <span className="eyebrow">НЕ ЛИЧНАЯ ВСТРЕЧА</span>
-            <h2>Контакт только через клуб и агента</h2>
+            <span className="eyebrow">
+              {freeAgent
+                ? ru
+                  ? "ОФИЦИАЛЬНЫЕ ПЕРЕГОВОРЫ"
+                  : "OFFICIAL NEGOTIATION"
+                : ru
+                  ? "НЕ ЛИЧНАЯ ВСТРЕЧА"
+                  : "NO DIRECT MEETING"}
+            </span>
+            <h2>
+              {freeAgent
+                ? ru
+                  ? "Обсудите проект и условия контракта"
+                  : "Discuss the project and contract framework"
+                : ru
+                  ? "Контакт только через клуб и агента"
+                  : "Contact only through the club and agent"}
+            </h2>
             <p>
-              Разговоры о роли, форме и игровом времени доступны только со
-              своими хоккеистами. Обращение к игроку на контракте без разрешения
-              клуба считается tampering.
+              {freeAgent
+                ? ru
+                  ? "Это не разговор со своим игроком: агент оценивает роль, срок, деньги, амбиции клуба и конкуренцию за место."
+                  : "This is not an internal player meeting. The agent weighs role, term, salary, club ambition and competition for a roster spot."
+                : ru
+                  ? "Разговоры о роли, форме и игровом времени доступны только со своими хоккеистами. Обращение к игроку на контракте без разрешения клуба считается tampering."
+                  : "Role, form and ice-time meetings are reserved for your own players. Contacting a contracted player without club permission is tampering."}
             </p>
             <div
               className={`contact-permission ${eligibility.allowed ? "allowed" : "blocked"}`}
             >
               <b>
                 {eligibility.allowed
-                  ? "Официальный запрос разрешён"
-                  : "Контакт недоступен"}
+                  ? ru
+                    ? "Официальный запрос разрешён"
+                    : "Official approach available"
+                  : ru
+                    ? "Контакт недоступен"
+                    : "Contact unavailable"}
               </b>
               <span>{eligibility.reason}</span>
             </div>
@@ -118,24 +161,58 @@ export default function PlayerConversation({
                 <button
                   onClick={() =>
                     setExternalReply(
-                      "Агент подтвердил: игрок готов выслушать спортивный проект, но клуб сначала требует согласовать компенсацию.",
+                      freeAgent
+                        ? ru
+                          ? "Агент готов продолжить: назовите роль, срок и финансовый диапазон. Интерес игрока зависит от шансов на Кубок и игрового времени."
+                          : "The agent is ready to continue: define the role, term and salary range. The player's interest depends on contention and ice time."
+                        : ru
+                          ? "Агент подтвердил: игрок готов выслушать спортивный проект, но клуб сначала требует согласовать компенсацию."
+                          : "The agent confirms some interest, but the club requires compensation to be agreed first.",
                     )
                   }
                 >
-                  <span>Уточнить интерес игрока</span>
+                  <span>
+                    {ru
+                      ? "Уточнить интерес игрока"
+                      : "Ask about player interest"}
+                  </span>
                   <p>
-                    Передать агенту роль, срок и направление развития клуба.
+                    {ru
+                      ? "Передать агенту роль, срок и направление развития клуба."
+                      : "Present the role, term and direction of the club."}
                   </p>
                 </button>
                 <button
                   onClick={() =>
                     setExternalReply(
-                      "GM клуба не дал разрешение на прямой разговор. Предложено начать с официального обмена.",
+                      freeAgent
+                        ? ru
+                          ? "Агент запросил официальный контрактный оффер через центр контрактов."
+                          : "The agent requests a formal offer through the contract centre."
+                        : ru
+                          ? "GM клуба не дал разрешение на прямой разговор. Предложено начать с официального обмена."
+                          : "The club's GM denied direct contact and asks you to begin with a formal trade proposal.",
                     )
                   }
                 >
-                  <span>Запросить разрешение клуба</span>
-                  <p>Официально связаться с GM команды-владельца.</p>
+                  <span>
+                    {freeAgent
+                      ? ru
+                        ? "Перейти к офферу"
+                        : "Move toward an offer"
+                      : ru
+                        ? "Запросить разрешение клуба"
+                        : "Request club permission"}
+                  </span>
+                  <p>
+                    {freeAgent
+                      ? ru
+                        ? "Уточнить ожидания перед официальным предложением."
+                        : "Clarify expectations before a formal proposal."
+                      : ru
+                        ? "Официально связаться с GM команды-владельца."
+                        : "Contact the owning club's GM formally."}
+                  </p>
                 </button>
               </div>
             )}
@@ -313,6 +390,52 @@ export default function PlayerConversation({
                   {result.motivationDelta} MOT
                 </b>
               </div>
+              {!followUp && (
+                <div className="dialogue-choices conversation-follow-up">
+                  <button
+                    onClick={() =>
+                      setFollowUp(
+                        ru
+                          ? "Хорошо, теперь я понимаю конкретно, чего вы от меня ждёте."
+                          : "Good. I understand exactly what you expect from me now.",
+                      )
+                    }
+                  >
+                    <span>
+                      {ru ? "Уточнить ожидания" : "Clarify expectations"}
+                    </span>
+                    <p>
+                      {ru
+                        ? "Закрепить разговор конкретной ролью и ближайшей задачей."
+                        : "Finish with a specific role and a near-term target."}
+                    </p>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setFollowUp(
+                        ru
+                          ? "Спасибо, что выслушали. Для меня было важно сказать это напрямую."
+                          : "Thanks for listening. It mattered that I could say that directly.",
+                      )
+                    }
+                  >
+                    <span>
+                      {ru ? "Выслушать игрока" : "Hear the player out"}
+                    </span>
+                    <p>
+                      {ru
+                        ? "Дать игроку последнее слово без нового обещания."
+                        : "Give the player the final word without making another promise."}
+                    </p>
+                  </button>
+                </div>
+              )}
+              {followUp && (
+                <div className="speech player">
+                  <small>{player.name.toUpperCase()}</small>
+                  <p>{followUp}</p>
+                </div>
+              )}
             </section>
           )}
           {!result && completed && (

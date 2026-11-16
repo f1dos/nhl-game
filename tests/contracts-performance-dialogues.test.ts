@@ -88,4 +88,8 @@ test("external player contact differs from own-team meetings and blocks protecte
   depth.years = 1;
   depth.morale = 45;
   assert.equal(externalContactEligibility(g, depth.id).allowed, true);
+  const freeAgent = { ...depth, id: "test-free-agent" };
+  g.freeAgents = [freeAgent];
+  assert.equal(externalContactEligibility(g, freeAgent.id).allowed, true);
+  assert.match(externalContactEligibility(g, freeAgent.id).reason, /агента/);
 });

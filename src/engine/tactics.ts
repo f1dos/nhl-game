@@ -71,10 +71,11 @@ export function setSpecialTeamPlayer(
 ) {
   const units = ensureSpecialTeams(team);
   const unit = units[situation]!;
-  if (unit.players.includes(playerId))
-    throw Error("Игрок уже назначен в эту спецбригаду");
+  const occupied = unit.players.indexOf(playerId);
   if (!team.players.some((player) => player.id === playerId && !player.injury))
     throw Error("Игрок недоступен");
+  if (occupied >= 0 && occupied !== slot)
+    throw Error("Игрок уже назначен в эту спецбригаду");
   unit.players[slot] = playerId;
 }
 

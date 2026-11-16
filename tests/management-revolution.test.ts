@@ -11,6 +11,7 @@ import {
 import { validateSave } from "../src/engine/saves";
 import {
   chooseSeasonStrategy,
+  reconsiderSeasonStrategy,
   reviewSeasonStrategy,
 } from "../src/engine/strategy";
 
@@ -102,4 +103,16 @@ test("strategy is chosen once per season, creates tiered objectives and can cost
   chooseSeasonStrategy(game, "draft-lottery");
   reviewSeasonStrategy(game);
   assert.equal(game.managerEmployment?.status, "fired");
+});
+
+test("captain discussion grants exactly one strategy reconsideration", () => {
+  const game = ensureManagementState(newGame("SJS", 7821));
+  chooseSeasonStrategy(game, "stanley-cup");
+  reconsiderSeasonStrategy(game, "draft-lottery");
+  assert.equal(game.franchiseStrategy, "draft-lottery");
+  assert.equal(game.leadershipStrategyChanged, true);
+  assert.throws(
+    () => reconsiderSeasonStrategy(game, "wild-card-hunt"),
+    /единственную возможность/,
+  );
 });

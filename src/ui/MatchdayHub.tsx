@@ -53,7 +53,8 @@ const prePress: PressChoice[] = [
   {
     title: "Подчеркнуть план",
     line: "Мы детально разобрали соперника. Решат дисциплина, смены и качество спецбригад.",
-    response: "Руководство одобрило план, но игроки почувствовали дополнительную ответственность.",
+    response:
+      "Руководство одобрило план, но игроки почувствовали дополнительную ответственность.",
     tone: "balanced",
     fan: 1,
     board: 1,
@@ -112,7 +113,8 @@ const postPress: PressChoice[] = [
   {
     title: "Разобрать детали",
     line: "Нам нужно улучшить смены, контроль центра и качество первого паса. Сделаем выводы завтра.",
-    response: "Руководство оценило анализ, но публичная критика деталей задела игроков.",
+    response:
+      "Руководство оценило анализ, но публичная критика деталей задела игроков.",
     tone: "balanced",
     fan: 1,
     board: 1,
@@ -131,7 +133,8 @@ const postPress: PressChoice[] = [
   {
     title: "Отметить спецбригады",
     line: "Сегодня ключевым фактором стали наши решения в неравных составах.",
-    response: "Штаб получил признание, но игроки вне спецбригад почувствовали, что их вклад недооценён.",
+    response:
+      "Штаб получил признание, но игроки вне спецбригад почувствовали, что их вклад недооценён.",
     tone: "balanced",
     fan: 1,
     board: 1,
@@ -162,14 +165,17 @@ export default function MatchdayHub({
   game,
   edit,
   onExit,
+  onPlayer,
 }: {
   game: Game;
   edit: Edit;
   onExit: () => void;
+  onPlayer?: (player: Player) => void;
 }) {
   const [stage, setStage] = useState<"pre" | "live" | "post">("pre");
   const [tab, setTab] = useState<MatchdayTab>("briefing");
   const [preAnswer, setPreAnswer] = useState<PressChoice>();
+  const [prePressSkipped, setPrePressSkipped] = useState(false);
   const [postAnswer, setPostAnswer] = useState<PressChoice>();
   const [matchDate] = useState(game.calendar?.date ?? "");
   const team = game.teams.find((club) => club.id === game.user)!;
@@ -216,6 +222,22 @@ export default function MatchdayHub({
       (appearance) =>
         appearance.date === matchDate && appearance.type === "post-match",
     );
+  const skipPrePress = () => {
+    edit((current) => {
+      const fans = current.fans?.[current.user];
+      if (fans) {
+        fans.happiness = clamp(fans.happiness - 1, 0, 100);
+        fans.lastChange = "GM пропустил предматчевые медиа-обязательства";
+      }
+      if (current.managerEmployment)
+        current.managerEmployment.confidence = clamp(
+          current.managerEmployment.confidence - 1,
+          0,
+          100,
+        );
+    });
+    setPrePressSkipped(true);
+  };
   const press = (choice: PressChoice, type: PressAppearance["type"]) => {
     edit((current) => {
       current.pressHistory ??= [];
@@ -285,8 +307,30 @@ export default function MatchdayHub({
       <div className="matchday-window">
         <SpatialMatchCenter
           game={game}
-          home={game.teams.find(t => t.id === (preseason?.home ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.a : playoffSeries.b) : fixture?.home)))!}
-          away={game.teams.find(t => t.id === (preseason?.away ?? (playoffSeries ? ([0, 1, 4, 6].includes(playoffSeries.wins[0] + playoffSeries.wins[1]) ? playoffSeries.b : playoffSeries.a) : fixture?.away)))!}
+          home={game.teams.find(
+            (t) =>
+              t.id ===
+              (preseason?.home ??
+                (playoffSeries
+                  ? [0, 1, 4, 6].includes(
+                      playoffSeries.wins[0] + playoffSeries.wins[1],
+                    )
+                    ? playoffSeries.a
+                    : playoffSeries.b
+                  : fixture?.home)),
+          )!}
+          away={game.teams.find(
+            (t) =>
+              t.id ===
+              (preseason?.away ??
+                (playoffSeries
+                  ? [0, 1, 4, 6].includes(
+                      playoffSeries.wins[0] + playoffSeries.wins[1],
+                    )
+                    ? playoffSeries.b
+                    : playoffSeries.a
+                  : fixture?.away)),
+          )!}
           edit={edit}
           onComplete={() => setStage("post")}
         />
@@ -392,7 +436,17 @@ export default function MatchdayHub({
         ))}
       </nav>
       <main className="matchday-content">
-        {tab === "lineup" && <TacticsBoard team={team} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
+        {tab === "lineup" && (
+          <TacticsBoard
+            team={team}
+            onPlayer={onPlayer}
+            change={(fn) =>
+              edit((current) =>
+                fn(current.teams.find((t) => t.id === current.user)!),
+              )
+            }
+          />
+        )}
         {tab === "briefing" && (
           <section className="matchday-brief">
             <div>
@@ -516,7 +570,19 @@ export default function MatchdayHub({
             </div>
           </section>
         )}
-        {(tab === "special" || tab === "tactics") && <TacticalCenter key={tab} team={team} initial={tab==="special"?"special":"plan"} change={fn=>edit(current=>fn(current.teams.find(t=>t.id===current.user)!))}/>}
+        {(tab === "special" || tab === "tactics") && (
+          <TacticalCenter
+            key={tab}
+            team={team}
+            initial={tab === "special" ? "special" : "plan"}
+            onPlayer={onPlayer}
+            change={(fn) =>
+              edit((current) =>
+                fn(current.teams.find((t) => t.id === current.user)!),
+              )
+            }
+          />
+        )}
         {tab === "press" && (
           <section className="matchday-press">
             <span className="eyebrow">PRE-MATCH PRESS CONFERENCE</span>
@@ -562,15 +628,29 @@ export default function MatchdayHub({
         <span>
           {preDone
             ? "Медиа-обязательства выполнены"
-            : "Пресс-конференцию можно пропустить, но это заметят СМИ"}
+            : prePressSkipped
+              ? "Вы сознательно пропустили пресс-конференцию — СМИ это отметят"
+              : "До матча нужно ответить СМИ или явно отказаться от пресс-конференции"}
         </span>
+        {!preDone && !prePressSkipped && (
+          <button className="press-skip" onClick={skipPrePress}>
+            Пропустить СМИ и принять последствия
+          </button>
+        )}
         <button
           className="primary"
           onClick={() => {
+            if (!preDone && !prePressSkipped) {
+              setTab("press");
+              return;
+            }
             setStage("live");
           }}
         >
-          <Play size={16} /> Начать матч
+          <Play size={16} />
+          {!preDone && !prePressSkipped
+            ? "Перейти к пресс-конференции"
+            : "Начать матч"}
         </button>
       </footer>
     </div>
