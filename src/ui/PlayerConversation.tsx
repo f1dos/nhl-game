@@ -29,7 +29,12 @@ export default function PlayerConversation({
     ),
   );
   const freeAgent = game.freeAgents?.some((item) => item.id === player.id);
-  const external = !!freeAgent || (!!owner && owner.id !== game.user);
+  const international = game.internationalMarket?.some(
+    (item) => item.player.id === player.id,
+  );
+  const junior = game.juniorPlayers?.some((item) => item.id === player.id);
+  const unattached = !owner;
+  const external = unattached || owner.id !== game.user;
   const eligibility = externalContactEligibility(game, player.id);
   const [externalReply, setExternalReply] = useState("");
   const [followUp, setFollowUp] = useState("");
@@ -63,16 +68,22 @@ export default function PlayerConversation({
             <span className="eyebrow">
               {freeAgent
                 ? "FREE AGENT NEGOTIATION"
-                : `OFFICIAL CONTACT · ${owner?.id}`}
+                : owner
+                  ? `OFFICIAL CONTACT · ${owner.id}`
+                  : "EXTERNAL PLAYER · AGENT / RIGHTS HOLDER"}
             </span>
             <strong>
               {freeAgent
                 ? ru
                   ? "Переговоры через агента"
                   : "Negotiation through the player agent"
-                : ru
-                  ? "Запрос по игроку другого клуба"
-                  : "Request about another club's player"}
+                : unattached
+                  ? ru
+                    ? "Запрос через агента и владельца прав"
+                    : "Approach through agent and rights holder"
+                  : ru
+                    ? "Запрос по игроку другого клуба"
+                    : "Request about another club's player"}
             </strong>
           </div>
           <button
@@ -100,7 +111,19 @@ export default function PlayerConversation({
                 ? ru
                   ? "Свободный агент"
                   : "Free agent"
-                : `${owner?.city} ${owner?.name}`}{" "}
+                : owner
+                  ? `${owner.city} ${owner.name}`
+                  : international
+                    ? ru
+                      ? "Зарубежный рынок"
+                      : "International market"
+                    : junior
+                      ? ru
+                        ? "Юниорские права"
+                        : "Junior rights"
+                      : ru
+                        ? "Организация не установлена"
+                        : "Organization not established"}{" "}
               · {player.pos} · {player.ovr} OVR
             </p>
             <div className="conversation-vitals">
@@ -129,18 +152,26 @@ export default function PlayerConversation({
                 ? ru
                   ? "Обсудите проект и условия контракта"
                   : "Discuss the project and contract framework"
-                : ru
-                  ? "Контакт только через клуб и агента"
-                  : "Contact only through the club and agent"}
+                : unattached
+                  ? ru
+                    ? "Внутренние темы недоступны"
+                    : "Internal player topics are unavailable"
+                  : ru
+                    ? "Контакт только через клуб и агента"
+                    : "Contact only through the club and agent"}
             </h2>
             <p>
               {freeAgent
                 ? ru
                   ? "Это не разговор со своим игроком: агент оценивает роль, срок, деньги, амбиции клуба и конкуренцию за место."
                   : "This is not an internal player meeting. The agent weighs role, term, salary, club ambition and competition for a roster spot."
-                : ru
-                  ? "Разговоры о роли, форме и игровом времени доступны только со своими хоккеистами. Обращение к игроку на контракте без разрешения клуба считается tampering."
-                  : "Role, form and ice-time meetings are reserved for your own players. Contacting a contracted player without club permission is tampering."}
+                : unattached
+                  ? ru
+                    ? "Игрок не входит в вашу организацию. Роль в составе, игровое время, настроение и внутренняя критика недоступны; сначала требуется установить права и допустимый канал переговоров."
+                    : "This player is not part of your organization. Roster role, ice time, morale and internal feedback are unavailable until rights and a legal negotiation channel are established."
+                  : ru
+                    ? "Разговоры о роли, форме и игровом времени доступны только со своими хоккеистами. Обращение к игроку на контракте без разрешения клуба считается tampering."
+                    : "Role, form and ice-time meetings are reserved for your own players. Contacting a contracted player without club permission is tampering."}
             </p>
             <div
               className={`contact-permission ${eligibility.allowed ? "allowed" : "blocked"}`}

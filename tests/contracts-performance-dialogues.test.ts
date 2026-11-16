@@ -92,4 +92,7 @@ test("external player contact differs from own-team meetings and blocks protecte
   g.freeAgents = [freeAgent];
   assert.equal(externalContactEligibility(g, freeAgent.id).allowed, true);
   assert.match(externalContactEligibility(g, freeAgent.id).reason, /агента/);
+  const unknown = { ...depth, id: "unattached-player" };
+  assert.equal(externalContactEligibility(g, unknown.id).allowed, false);
+  assert.match(externalContactEligibility(g, unknown.id).reason, /статус прав/);
 });

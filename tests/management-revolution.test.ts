@@ -14,6 +14,7 @@ import {
   reconsiderSeasonStrategy,
   reviewSeasonStrategy,
 } from "../src/engine/strategy";
+import { captainAppointmentRisk } from "../src/ui/LeadershipCenter";
 
 test("management state creates a daily calendar, AI identities and unique draft assets", () => {
   const game = ensureManagementState(newGame("SJS", 606));
@@ -115,4 +116,15 @@ test("captain discussion grants exactly one strategy reconsideration", () => {
     () => reconsiderSeasonStrategy(game, "wild-card-hunt"),
     /единственную возможность/,
   );
+});
+
+test("appointing a low-rated outsider as captain is a severe dressing-room risk", () => {
+  const game = ensureManagementState(newGame("NYR", 8821));
+  const players = game.teams.find((team) => team.id === "NYR")!.players;
+  const leader = [...players].sort(
+    (a, b) => b.attributes.leadership - a.attributes.leadership,
+  )[0];
+  const outsider = [...players].sort((a, b) => a.ovr - b.ovr)[0];
+  outsider.ovr = 66;
+  assert.equal(captainAppointmentRisk(outsider, leader), "severe");
 });
