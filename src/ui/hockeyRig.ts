@@ -112,19 +112,83 @@ const K = (
   lift: number,
   offF: number,
   headPitch: number,
-) => [t, bx, by, bz, gx, gy, gz, twist, lean, crouch, armsUp, lift, offF, headPitch];
-const N = (t: number) => K(t, 0.3, 0.02, 1.0, 0.14, 0.14, 0.36, 0, 0, 0, 0, 0, 0, 0);
+) => [
+  t,
+  bx,
+  by,
+  bz,
+  gx,
+  gy,
+  gz,
+  twist,
+  lean,
+  crouch,
+  armsUp,
+  lift,
+  offF,
+  headPitch,
+];
+const N = (t: number) =>
+  K(t, 0.3, 0.02, 1.0, 0.14, 0.14, 0.36, 0, 0, 0, 0, 0, 0, 0);
 const NEUTRAL = N(0).slice(1);
 
-const ACTIONS: Record<Exclude<RigActionKind, "save">, { dur: number; keys: number[][] }> = {
+const ACTIONS: Record<
+  Exclude<RigActionKind, "save">,
+  { dur: number; keys: number[][] }
+> = {
   // Wind-up, fast strike through the puck, high follow-through.
   shot: {
     dur: 0.85,
     keys: [
       N(0),
-      K(0.26, 0.55, 0.85, -0.25, 0.3, 0.5, 0.0, 0.75, 0.05, 0.05, 0, 0, 0, 0.05),
-      K(0.38, 0.22, 0.02, 1.12, 0.12, 0.06, 0.42, -0.35, 0.3, 0.14, 0, 0, 0.12, 0.12),
-      K(0.6, -0.05, 0.72, 1.05, -0.04, 0.5, 0.42, -0.65, 0.12, 0, 0, 0, 0.12, 0),
+      K(
+        0.26,
+        0.55,
+        0.85,
+        -0.25,
+        0.3,
+        0.5,
+        0.0,
+        0.75,
+        0.05,
+        0.05,
+        0,
+        0,
+        0,
+        0.05,
+      ),
+      K(
+        0.38,
+        0.22,
+        0.02,
+        1.12,
+        0.12,
+        0.06,
+        0.42,
+        -0.35,
+        0.3,
+        0.14,
+        0,
+        0,
+        0.12,
+        0.12,
+      ),
+      K(
+        0.6,
+        -0.05,
+        0.72,
+        1.05,
+        -0.04,
+        0.5,
+        0.42,
+        -0.65,
+        0.12,
+        0,
+        0,
+        0,
+        0.12,
+        0,
+      ),
       N(0.85),
     ],
   },
@@ -133,8 +197,38 @@ const ACTIONS: Record<Exclude<RigActionKind, "save">, { dur: number; keys: numbe
     keys: [
       N(0),
       K(0.2, 0.5, 0.02, 0.2, 0.25, 0.12, 0.2, 0.35, 0.1, 0.06, 0, 0, 0, 0.05),
-      K(0.34, 0.06, 0.02, 1.2, 0.14, 0.1, 0.46, -0.3, 0.14, 0.08, 0, 0, 0.04, 0.05),
-      K(0.52, 0.14, 0.12, 1.28, 0.14, 0.14, 0.44, -0.12, 0.06, 0, 0, 0, 0.04, 0),
+      K(
+        0.34,
+        0.06,
+        0.02,
+        1.2,
+        0.14,
+        0.1,
+        0.46,
+        -0.3,
+        0.14,
+        0.08,
+        0,
+        0,
+        0.04,
+        0.05,
+      ),
+      K(
+        0.52,
+        0.14,
+        0.12,
+        1.28,
+        0.14,
+        0.14,
+        0.44,
+        -0.12,
+        0.06,
+        0,
+        0,
+        0,
+        0.04,
+        0,
+      ),
       N(0.7),
     ],
   },
@@ -144,7 +238,22 @@ const ACTIONS: Record<Exclude<RigActionKind, "save">, { dur: number; keys: numbe
     keys: [
       N(0),
       K(0.18, 0.2, 0.02, 0.6, 0.1, 0.1, 0.3, 0.3, 0.25, 0.3, 0.2, 0, 0, 0.1),
-      K(0.34, 0.1, 0.02, 0.7, 0.05, 0.02, 0.28, -0.5, 0.46, 0.34, 0.3, 0, 0.45, 0.2),
+      K(
+        0.34,
+        0.1,
+        0.02,
+        0.7,
+        0.05,
+        0.02,
+        0.28,
+        -0.5,
+        0.46,
+        0.34,
+        0.3,
+        0,
+        0.45,
+        0.2,
+      ),
       K(0.5, 0.1, 0.02, 0.8, 0.06, 0.04, 0.3, -0.3, 0.3, 0.2, 0.1, 0, 0.3, 0.1),
       N(0.65),
     ],
@@ -154,8 +263,38 @@ const ACTIONS: Record<Exclude<RigActionKind, "save">, { dur: number; keys: numbe
     dur: 0.85,
     keys: [
       N(0),
-      K(0.14, 0.6, 0.45, 0.45, 0.3, 0.3, 0.2, 0.55, -0.42, 0.12, 0.5, 0, -0.34, -0.15),
-      K(0.45, 0.45, 0.2, 0.7, 0.2, 0.2, 0.3, 0.3, -0.22, 0.14, 0.3, 0, -0.16, 0),
+      K(
+        0.14,
+        0.6,
+        0.45,
+        0.45,
+        0.3,
+        0.3,
+        0.2,
+        0.55,
+        -0.42,
+        0.12,
+        0.5,
+        0,
+        -0.34,
+        -0.15,
+      ),
+      K(
+        0.45,
+        0.45,
+        0.2,
+        0.7,
+        0.2,
+        0.2,
+        0.3,
+        0.3,
+        -0.22,
+        0.14,
+        0.3,
+        0,
+        -0.16,
+        0,
+      ),
       N(0.85),
     ],
   },
@@ -220,7 +359,12 @@ const _a = new THREE.Vector3(),
   _mi = new THREE.Matrix4();
 
 /** Place a unit-length (along Y) mesh between two points. */
-function orient(mesh: THREE.Object3D, from: THREE.Vector3, to: THREE.Vector3, thickness = 1) {
+function orient(
+  mesh: THREE.Object3D,
+  from: THREE.Vector3,
+  to: THREE.Vector3,
+  thickness = 1,
+) {
   _a.subVectors(to, from);
   const length = Math.max(0.001, _a.length());
   mesh.position.copy(from).addScaledVector(_a, 0.5);
@@ -272,14 +416,35 @@ export class RigFactory {
   private geos = new Map<string, THREE.BufferGeometry>();
   private kits = new Map<string, Mats>();
   private disposables: { dispose(): void }[] = [];
-  readonly skin = SKIN.map((c) => this.own(new THREE.MeshStandardMaterial({ color: c, roughness: 0.75 })));
-  readonly dark = this.own(new THREE.MeshStandardMaterial({ color: "#14181f", roughness: 0.7 }));
-  readonly glove = this.own(new THREE.MeshStandardMaterial({ color: "#1b2029", roughness: 0.8 }));
-  readonly steel = this.own(new THREE.MeshStandardMaterial({ color: "#b8c4cc", roughness: 0.25, metalness: 0.7 }));
-  readonly wood = this.own(new THREE.MeshStandardMaterial({ color: "#1d1d20", roughness: 0.5 }));
-  readonly tape = this.own(new THREE.MeshStandardMaterial({ color: "#f0f0f0", roughness: 0.9 }));
+  readonly skin = SKIN.map((c) =>
+    this.own(new THREE.MeshStandardMaterial({ color: c, roughness: 0.75 })),
+  );
+  readonly dark = this.own(
+    new THREE.MeshStandardMaterial({ color: "#14181f", roughness: 0.7 }),
+  );
+  readonly glove = this.own(
+    new THREE.MeshStandardMaterial({ color: "#1b2029", roughness: 0.8 }),
+  );
+  readonly steel = this.own(
+    new THREE.MeshStandardMaterial({
+      color: "#b8c4cc",
+      roughness: 0.25,
+      metalness: 0.7,
+    }),
+  );
+  readonly wood = this.own(
+    new THREE.MeshStandardMaterial({ color: "#1d1d20", roughness: 0.5 }),
+  );
+  readonly tape = this.own(
+    new THREE.MeshStandardMaterial({ color: "#f0f0f0", roughness: 0.9 }),
+  );
   readonly visor = this.own(
-    new THREE.MeshStandardMaterial({ color: "#a9d7ee", roughness: 0.1, transparent: true, opacity: 0.35 }),
+    new THREE.MeshStandardMaterial({
+      color: "#a9d7ee",
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.35,
+    }),
   );
   readonly shadow: THREE.MeshBasicMaterial;
   constructor() {
@@ -294,7 +459,13 @@ export class RigFactory {
       ctx.fillRect(0, 0, 64, 64);
     }
     const tex = this.own(new THREE.CanvasTexture(canvas));
-    this.shadow = this.own(new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
+    this.shadow = this.own(
+      new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
   }
   private own<T extends { dispose(): void }>(item: T): T {
     this.disposables.push(item);
@@ -311,7 +482,10 @@ export class RigFactory {
   }
   /** Unit-length capsule along Y (scaled by orient()). */
   capsule(radius: number) {
-    return this.geo(`cap${radius}`, () => new THREE.CapsuleGeometry(radius, 1, 3, 8));
+    return this.geo(
+      `cap${radius}`,
+      () => new THREE.CapsuleGeometry(radius, 1, 3, 8),
+    );
   }
   box(w: number, h: number, d: number) {
     return this.geo(`box${w},${h},${d}`, () => new THREE.BoxGeometry(w, h, d));
@@ -349,7 +523,13 @@ export class RigFactory {
   bench(kit: TeamKit) {
     const mats = this.kit(kit);
     const g = new THREE.Group();
-    const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
+    const add = (
+      geo: THREE.BufferGeometry,
+      mat: THREE.Material,
+      x: number,
+      y: number,
+      z: number,
+    ) => {
       const m = new THREE.Mesh(geo, mat);
       m.position.set(x, y, z);
       g.add(m);
@@ -358,7 +538,13 @@ export class RigFactory {
     add(this.box(0.4, 0.5, 0.26), mats.jersey, 0, 0.55, 0);
     add(this.box(0.46, 0.14, 0.3), mats.pants, 0, 0.26, 0.04);
     for (const s of [-1, 1]) {
-      const thigh = add(this.box(0.15, 0.14, 0.42), mats.pants, s * 0.11, 0.3, 0.2);
+      const thigh = add(
+        this.box(0.15, 0.14, 0.42),
+        mats.pants,
+        s * 0.11,
+        0.3,
+        0.2,
+      );
       thigh.rotation.x = -0.1;
       add(this.box(0.12, 0.42, 0.13), mats.socks, s * 0.11, 0.1, 0.4);
     }
@@ -396,7 +582,11 @@ export class HockeyRig {
   private hips: THREE.Group[] = [];
   private knees: THREE.Group[] = [];
   private ankles: THREE.Group[] = [];
-  private armMeshes: { upper: THREE.Mesh; fore: THREE.Mesh; hand: THREE.Object3D }[] = [];
+  private armMeshes: {
+    upper: THREE.Mesh;
+    fore: THREE.Mesh;
+    hand: THREE.Object3D;
+  }[] = [];
   private shaft: THREE.Mesh;
   private blade = new THREE.Group();
   private catcher?: THREE.Object3D;
@@ -421,7 +611,13 @@ export class HockeyRig {
   private stopT = 0;
   private stopDir = 1;
   private clock = Math.random() * 10;
-  private action: { kind: RigActionKind; t: number; dur: number; sx: number; sz: number } | null = null;
+  private action: {
+    kind: RigActionKind;
+    t: number;
+    dur: number;
+    sx: number;
+    sz: number;
+  } | null = null;
   private bf = 0;
   private reach = 0;
   private reachUp = 0;
@@ -436,7 +632,10 @@ export class HockeyRig {
     this.ground = THIGH + SHIN + FOOT;
     this.root.add(this.build);
     // Blob shadow
-    const shadow = new THREE.Mesh(f.geo("shadowPlane", () => new THREE.PlaneGeometry(1.2, 1.2)), f.shadow);
+    const shadow = new THREE.Mesh(
+      f.geo("shadowPlane", () => new THREE.PlaneGeometry(1.2, 1.2)),
+      f.shadow,
+    );
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.y = 0.014;
     shadow.renderOrder = 1;
@@ -457,7 +656,14 @@ export class HockeyRig {
     };
     const g = goalie;
     // Hips / shorts
-    const hipMesh = add(this.pelvis, f.geo("hips", () => new THREE.CylinderGeometry(0.17, 0.18, 0.24, 14)), mats.pants, 0, -0.02, 0);
+    const hipMesh = add(
+      this.pelvis,
+      f.geo("hips", () => new THREE.CylinderGeometry(0.17, 0.18, 0.24, 14)),
+      mats.pants,
+      0,
+      -0.02,
+      0,
+    );
     hipMesh.scale.set(g ? 1.25 : 1, 1, g ? 1.0 : 0.78);
     // Legs
     for (const s of [-1, 1]) {
@@ -472,17 +678,42 @@ export class HockeyRig {
       knee.position.y = -THIGH;
       hip.add(knee);
       this.knees.push(knee);
-      const shin = add(knee, f.capsule(g ? 0.085 : 0.062), g ? mats.pad : mats.socks);
+      const shin = add(
+        knee,
+        f.capsule(g ? 0.085 : 0.062),
+        g ? mats.pad : mats.socks,
+      );
       shin.scale.y = SHIN - 0.04;
       shin.position.y = -SHIN / 2;
       if (!g) {
-        const guard = add(knee, f.box(0.13, 0.14, 0.12), mats.pants, 0, -0.02, 0.035);
+        const guard = add(
+          knee,
+          f.box(0.13, 0.14, 0.12),
+          mats.pants,
+          0,
+          -0.02,
+          0.035,
+        );
         guard.rotation.x = -0.1;
       } else {
         // Leg pad: broad rectangular shell with knee roll.
         add(knee, f.box(0.23, PAD_H, 0.19), mats.pad, 0, PAD_Y, 0.02);
-        add(knee, f.box(0.25, 0.06, 0.21), mats.trim, 0, PAD_Y + PAD_H / 2 - 0.09, 0.02);
-        add(knee, f.box(0.25, 0.06, 0.21), mats.trim, 0, PAD_Y - PAD_H / 2 + 0.07, 0.02);
+        add(
+          knee,
+          f.box(0.25, 0.06, 0.21),
+          mats.trim,
+          0,
+          PAD_Y + PAD_H / 2 - 0.09,
+          0.02,
+        );
+        add(
+          knee,
+          f.box(0.25, 0.06, 0.21),
+          mats.trim,
+          0,
+          PAD_Y - PAD_H / 2 + 0.07,
+          0.02,
+        );
         add(hip, f.box(0.2, 0.36, 0.16), mats.pad, 0, -0.2, 0.04);
       }
       const ankle = new THREE.Group();
@@ -498,29 +729,95 @@ export class HockeyRig {
     this.spine.position.y = 0.04;
     const torso = add(
       this.spine,
-      f.geo(g ? "torsoG" : "torso", () => new THREE.CylinderGeometry(g ? 0.27 : 0.215, g ? 0.24 : 0.17, 0.5, 16)),
+      f.geo(
+        g ? "torsoG" : "torso",
+        () =>
+          new THREE.CylinderGeometry(
+            g ? 0.27 : 0.215,
+            g ? 0.24 : 0.17,
+            0.5,
+            16,
+          ),
+      ),
       mats.jersey,
       0,
       0.25,
       0,
     );
     torso.scale.z = g ? 0.78 : 0.64;
-    const hem = add(this.spine, f.geo(g ? "hemG" : "hem", () => new THREE.CylinderGeometry(g ? 0.243 : 0.174, g ? 0.243 : 0.174, 0.07, 16)), mats.trim, 0, 0.05, 0);
+    const hem = add(
+      this.spine,
+      f.geo(
+        g ? "hemG" : "hem",
+        () =>
+          new THREE.CylinderGeometry(
+            g ? 0.243 : 0.174,
+            g ? 0.243 : 0.174,
+            0.07,
+            16,
+          ),
+      ),
+      mats.trim,
+      0,
+      0.05,
+      0,
+    );
     hem.scale.z = g ? 0.78 : 0.64;
-    const stripe = add(this.spine, f.geo(g ? "stripeG" : "stripe", () => new THREE.CylinderGeometry(g ? 0.262 : 0.206, g ? 0.262 : 0.206, 0.05, 16)), mats.trim, 0, 0.31, 0);
+    const stripe = add(
+      this.spine,
+      f.geo(
+        g ? "stripeG" : "stripe",
+        () =>
+          new THREE.CylinderGeometry(
+            g ? 0.262 : 0.206,
+            g ? 0.262 : 0.206,
+            0.05,
+            16,
+          ),
+      ),
+      mats.trim,
+      0,
+      0.31,
+      0,
+    );
     stripe.scale.z = g ? 0.78 : 0.64;
-    const shoulders = add(this.spine, f.capsule(g ? 0.12 : 0.092), mats.jersey, 0, SHOULDER_Y - 0.02, 0);
+    const shoulders = add(
+      this.spine,
+      f.capsule(g ? 0.12 : 0.092),
+      mats.jersey,
+      0,
+      SHOULDER_Y - 0.02,
+      0,
+    );
     shoulders.rotation.z = Math.PI / 2;
     shoulders.scale.y = g ? 0.5 : 0.46;
-    const neck = add(this.spine, f.geo("neck", () => new THREE.CylinderGeometry(0.05, 0.058, 0.1, 10)), f.skin[2], 0, SHOULDER_Y + 0.08, 0);
+    const neck = add(
+      this.spine,
+      f.geo("neck", () => new THREE.CylinderGeometry(0.05, 0.058, 0.1, 10)),
+      f.skin[2],
+      0,
+      SHOULDER_Y + 0.08,
+      0,
+    );
     this.skinMesh.push(neck);
     // Back number + name plate
     this.numberCanvas.width = this.numberCanvas.height = 256;
     this.numberTex = new THREE.CanvasTexture(this.numberCanvas);
     this.numberTex.colorSpace = THREE.SRGBColorSpace;
     this.numberTex.anisotropy = 4;
-    this.numberMat = new THREE.MeshStandardMaterial({ map: this.numberTex, transparent: true, roughness: 1 });
-    const plate = add(this.spine, f.geo("numberPlane", () => new THREE.PlaneGeometry(0.34, 0.34)), this.numberMat, 0, 0.3, g ? -0.212 : -0.142);
+    this.numberMat = new THREE.MeshStandardMaterial({
+      map: this.numberTex,
+      transparent: true,
+      roughness: 1,
+    });
+    const plate = add(
+      this.spine,
+      f.geo("numberPlane", () => new THREE.PlaneGeometry(0.34, 0.34)),
+      this.numberMat,
+      0,
+      0.3,
+      g ? -0.212 : -0.142,
+    );
     plate.rotation.y = Math.PI;
     // Head
     this.spine.add(this.head);
@@ -528,10 +825,15 @@ export class HockeyRig {
     const face = add(this.head, f.sphere(0.1), f.skin[2], 0, 0, 0.01);
     face.scale.set(0.95, 1.12, 1);
     this.skinMesh.push(face);
-    for (const s of [-1, 1]) add(this.head, f.sphere(0.014, 6, 5), f.dark, s * 0.04, 0.025, 0.093);
+    for (const s of [-1, 1])
+      add(this.head, f.sphere(0.014, 6, 5), f.dark, s * 0.04, 0.025, 0.093);
     const helmet = add(
       this.head,
-      f.geo("helmetCap", () => new THREE.SphereGeometry(0.128, 18, 12, 0, TAU, 0, Math.PI * 0.62)),
+      f.geo(
+        "helmetCap",
+        () =>
+          new THREE.SphereGeometry(0.128, 18, 12, 0, TAU, 0, Math.PI * 0.62),
+      ),
       g ? mats.mask : mats.helmet,
       0,
       0.012,
@@ -539,14 +841,33 @@ export class HockeyRig {
     );
     helmet.scale.set(1.02, 1.0, 1.12);
     if (g) {
-      for (const [y, r] of [[-0.02, 0.118], [0.03, 0.124], [-0.065, 0.1]] as const) {
-        const ring = add(this.head, f.geo(`cage${r}`, () => new THREE.TorusGeometry(r, 0.006, 5, 18)), f.steel, 0, y, 0.015);
+      for (const [y, r] of [
+        [-0.02, 0.118],
+        [0.03, 0.124],
+        [-0.065, 0.1],
+      ] as const) {
+        const ring = add(
+          this.head,
+          f.geo(`cage${r}`, () => new THREE.TorusGeometry(r, 0.006, 5, 18)),
+          f.steel,
+          0,
+          y,
+          0.015,
+        );
         ring.rotation.x = Math.PI / 2;
         ring.scale.set(1, 1.05, 1);
       }
-      for (const x of [-0.04, 0, 0.04]) add(this.head, f.box(0.008, 0.16, 0.008), f.steel, x, -0.025, 0.125);
+      for (const x of [-0.04, 0, 0.04])
+        add(this.head, f.box(0.008, 0.16, 0.008), f.steel, x, -0.025, 0.125);
     } else {
-      add(this.head, f.box(0.17, 0.07, 0.025), f.visor, 0, -0.005, 0.112).rotation.x = 0.15;
+      add(
+        this.head,
+        f.box(0.17, 0.07, 0.025),
+        f.visor,
+        0,
+        -0.005,
+        0.112,
+      ).rotation.x = 0.15;
     }
     // Arms (positioned in spine space every frame by IK)
     for (const _ of [0, 1]) {
@@ -567,11 +888,17 @@ export class HockeyRig {
       blocker.position.set(0, 0, 0.0);
     }
     // Stick
-    const shaftGeo = f.geo(g ? "shaftG" : "shaft", () => new THREE.BoxGeometry(g ? 0.045 : 0.028, 1, 0.02));
+    const shaftGeo = f.geo(
+      g ? "shaftG" : "shaft",
+      () => new THREE.BoxGeometry(g ? 0.045 : 0.028, 1, 0.02),
+    );
     this.shaft = new THREE.Mesh(shaftGeo, f.wood);
     this.root.add(this.shaft);
     this.root.add(this.blade);
-    const bl = new THREE.Mesh(f.box(0.02, g ? 0.22 : 0.085, g ? 0.3 : 0.3), f.wood);
+    const bl = new THREE.Mesh(
+      f.box(0.02, g ? 0.22 : 0.085, g ? 0.3 : 0.3),
+      f.wood,
+    );
     bl.position.set(0, g ? 0.11 : 0.042, 0.14);
     this.blade.add(bl);
     const tape = new THREE.Mesh(f.box(0.024, g ? 0.1 : 0.05, 0.2), f.tape);
@@ -584,13 +911,17 @@ export class HockeyRig {
     if (this.identity === id.id) return;
     this.identity = id.id;
     this.hs = hash01(id.id, 3) < 0.62 ? 1 : -1;
-    const tall = pos === "D" ? 1.03 : pos === "G" ? 1.02 : pos === "C" ? 1.0 : 0.99;
+    const tall =
+      pos === "D" ? 1.03 : pos === "G" ? 1.02 : pos === "C" ? 1.0 : 0.99;
     const h = tall * (0.955 + hash01(id.id, 5) * 0.09);
     const w = 0.95 + hash01(id.id, 7) * 0.12 + (pos === "D" ? 0.05 : 0);
     // Slightly exaggerated size keeps figures readable at broadcast distance.
     this.build.scale.set(w * 1.1, h * 1.1, w * 1.1);
     const tone = hash01(id.id, 11);
-    const skin = this.factory.skin[tone < 0.5 ? 0 : tone < 0.75 ? 1 : tone < 0.9 ? 2 : tone < 0.97 ? 3 : 4];
+    const skin =
+      this.factory.skin[
+        tone < 0.5 ? 0 : tone < 0.75 ? 1 : tone < 0.9 ? 2 : tone < 0.97 ? 3 : 4
+      ];
     this.skinMesh.forEach((m) => (m.material = skin));
     const ctx = this.numberCanvas.getContext("2d");
     if (ctx) {
@@ -609,9 +940,19 @@ export class HockeyRig {
   trigger(kind: RigActionKind, toward?: { x: number; z: number }) {
     const spec = kind === "save" ? { dur: 1.0 } : ACTIONS[kind];
     // Reactions to being hit or scoring take priority over routine motions.
-    const urgent = kind === "checked" || kind === "celebrate" || kind === "conceded" || kind === "save";
+    const urgent =
+      kind === "checked" ||
+      kind === "celebrate" ||
+      kind === "conceded" ||
+      kind === "save";
     if (this.action && !urgent && this.action.t < this.action.dur * 0.8) return;
-    this.action = { kind, t: 0, dur: spec.dur, sx: toward?.x ?? 0, sz: toward?.z ?? 0 };
+    this.action = {
+      kind,
+      t: 0,
+      dur: spec.dur,
+      sx: toward?.x ?? 0,
+      sz: toward?.z ?? 0,
+    };
   }
   update(dt: number, animDt: number, inp: RigInput) {
     this.clock += animDt;
@@ -621,7 +962,8 @@ export class HockeyRig {
       this.pz = inp.z;
       this.svx = inp.vx;
       this.svz = inp.vz;
-      if (!this.placed) this.yaw = Math.atan2(inp.puckX - inp.x, inp.puckZ - inp.z);
+      if (!this.placed)
+        this.yaw = Math.atan2(inp.puckX - inp.x, inp.puckZ - inp.z);
       this.placed = true;
     } else {
       const k = 1 - Math.exp(-dt * 10);
@@ -642,12 +984,15 @@ export class HockeyRig {
       want = outward + clamp(wrap(toPuck - outward), -1.15, 1.15);
     } else if (inp.hasPuck) want = sp > 1 ? heading : this.yaw;
     else if (sp < 1.2) want = toPuck;
-    else if (puckDist < 15 && Math.abs(wrap(heading - toPuck)) > 1.75) want = toPuck;
+    else if (puckDist < 15 && Math.abs(wrap(heading - toPuck)) > 1.75)
+      want = toPuck;
     else want = heading;
     if (this.stopT > 0) want = this.yaw;
     const before = this.yaw;
     const diff = wrap(want - this.yaw);
-    this.yaw = wrap(this.yaw + clamp(diff, -7 * dt, 7 * dt) * (this.goalie ? 0.8 : 1));
+    this.yaw = wrap(
+      this.yaw + clamp(diff, -7 * dt, 7 * dt) * (this.goalie ? 0.8 : 1),
+    );
     const yawRate = dt > 0 ? wrap(this.yaw - before) / dt : 0;
     // --- local velocity
     const fx = Math.sin(this.yaw),
@@ -665,12 +1010,18 @@ export class HockeyRig {
     const stop = this.stopT > 0 ? Math.sin((this.stopT / 0.55) * Math.PI) : 0;
     // --- skating cycle
     const wantAmp = smooth(clamp((sp - 0.35) / 6, 0, 1));
-    this.amp += (wantAmp - this.amp) * (1 - Math.exp(-dt * 7));
+    // Input velocity is authoritative for the stride. The smoothed body velocity
+    // intentionally lags for placement, but must not make a stopped player run
+    // in place while that lag decays; the separate stop pose handles braking.
+    if (Math.hypot(inp.vx, inp.vz) < 0.08) this.amp = 0;
+    else this.amp += (wantAmp - this.amp) * (1 - Math.exp(-dt * 7));
     const cadence = 0.28 + Math.min(sp, 12) * 0.12;
     const dir = this.goalie ? Math.sign(vl || vf || 1) : vf >= -0.4 ? 1 : -1;
     this.phase = (this.phase + animDt * cadence * dir + 8) % 1;
     const amp = this.goalie ? this.amp * 0.55 : this.amp;
-    this.bank += (clamp(-yawRate * sp * 0.028, -0.42, 0.42) - this.bank) * (1 - Math.exp(-dt * 6));
+    this.bank +=
+      (clamp(-yawRate * sp * 0.028, -0.42, 0.42) - this.bank) *
+      (1 - Math.exp(-dt * 6));
     // --- action pose
     const v = this.v;
     for (let i = 0; i < 13; i++) v[i] = NEUTRAL[i];
@@ -683,13 +1034,21 @@ export class HockeyRig {
       if (a.t >= a.dur) this.action = null;
       else if (a.kind === "save") {
         const u = a.t / a.dur;
-        saveBf = u < 0.12 ? smooth(u / 0.12) : u < 0.6 ? 1 : 1 - smooth((u - 0.6) / 0.4);
-        const left = (a.sx * fz - a.sz * fx) / Math.max(0.5, Math.hypot(a.sx, a.sz));
-        this.reach += (clamp(left * 1.6, -1, 1) - this.reach) * (1 - Math.exp(-dt * 18));
+        saveBf =
+          u < 0.12
+            ? smooth(u / 0.12)
+            : u < 0.6
+              ? 1
+              : 1 - smooth((u - 0.6) / 0.4);
+        const left =
+          (a.sx * fz - a.sz * fx) / Math.max(0.5, Math.hypot(a.sx, a.sz));
+        this.reach +=
+          (clamp(left * 1.6, -1, 1) - this.reach) * (1 - Math.exp(-dt * 18));
         this.reachUp = saveBf;
       } else {
         sampleKeys(ACTIONS[a.kind].keys, a.t, v);
-        if (a.kind === "celebrate") hop = Math.abs(Math.sin(a.t * 9)) * 0.13 * v[10];
+        if (a.kind === "celebrate")
+          hop = Math.abs(Math.sin(a.t * 9)) * 0.13 * v[10];
         free = v[9];
       }
     }
@@ -703,7 +1062,8 @@ export class HockeyRig {
       v[0] += Math.sin(this.clock * 5.2) * 0.1;
       v[2] += 0.06 * Math.sin(this.clock * 10.4);
     }
-    const idleSway = Math.sin(this.clock * 1.7 + this.phase * 6) * 0.025 * (1 - this.amp);
+    const idleSway =
+      Math.sin(this.clock * 1.7 + this.phase * 6) * 0.025 * (1 - this.amp);
     // --- stance modifiers
     const gk = this.goalie;
     const baseCrouch = gk ? 0.42 : 0.12 + (1 - this.amp) * 0.06;
@@ -732,13 +1092,25 @@ export class HockeyRig {
     }
     // --- torso
     const lean =
-      (gk ? 0.22 : 0.1) + this.amp * 0.3 + crouch * 0.45 + v[7] - stop * 0.15 - this.bf * 0.1;
-    const twist = v[6] * this.hs + Math.sin(this.phase * TAU) * 0.14 * amp * (dir || 1);
+      (gk ? 0.22 : 0.1) +
+      this.amp * 0.3 +
+      crouch * 0.45 +
+      v[7] -
+      stop * 0.15 -
+      this.bf * 0.1;
+    const twist =
+      v[6] * this.hs + Math.sin(this.phase * TAU) * 0.14 * amp * (dir || 1);
     this.spine.rotation.set(lean, twist, this.bank + idleSway);
     this.pelvis.rotation.y = -twist * 0.25;
     // Head keeps looking up-ice and tracks the puck.
-    const look = clamp(wrap(toPuck - this.yaw), -1.1, 1.1) * 0.55 + (this.action?.kind === "protest" ? Math.sin(this.clock * 12) * 0.35 : 0);
-    this.head.rotation.set(-lean * 0.7 + v[12], look - twist * 0.6, -this.bank * 0.4);
+    const look =
+      clamp(wrap(toPuck - this.yaw), -1.1, 1.1) * 0.55 +
+      (this.action?.kind === "protest" ? Math.sin(this.clock * 12) * 0.35 : 0);
+    this.head.rotation.set(
+      -lean * 0.7 + v[12],
+      look - twist * 0.6,
+      -this.bank * 0.4,
+    );
     // --- root placement
     const stopYaw = stop * this.stopDir * 1.2;
     this.root.rotation.y = this.yaw + stopYaw;
@@ -772,14 +1144,21 @@ export class HockeyRig {
     const shoulderTop = _c.set(topSign * SHOULDER_X, SHOULDER_Y, 0).clone();
     const shoulderLow = _d.set(-topSign * SHOULDER_X, SHOULDER_Y, 0).clone();
     const grip = new THREE.Vector3(v[3] * hs, v[4], v[5]);
-    if (gk) grip.set(hs * (0.3 + this.reach * 0.1), 0.05 + this.reachUp * 0.15, 0.4);
+    if (gk)
+      grip.set(hs * (0.3 + this.reach * 0.1), 0.05 + this.reachUp * 0.15, 0.4);
     // Keep the top hand within reach of its shoulder.
     const reachMax = (UPPER + FORE) * 0.96;
     _e.subVectors(grip, shoulderTop);
-    if (_e.length() > reachMax) grip.copy(shoulderTop).addScaledVector(_e.normalize(), reachMax);
+    if (_e.length() > reachMax)
+      grip.copy(shoulderTop).addScaledVector(_e.normalize(), reachMax);
     const gripRoot = grip.clone().applyMatrix4(_m);
     const bladeRoot = new THREE.Vector3(v[0] * hs, v[1], v[2]);
-    if (gk) bladeRoot.set(hs * 0.3 + this.reach * hs * 0.15, 0.02, 1.15 - this.bf * 0.15);
+    if (gk)
+      bladeRoot.set(
+        hs * 0.3 + this.reach * hs * 0.15,
+        0.02,
+        1.15 - this.bf * 0.15,
+      );
     const stick = bladeRoot.clone().sub(gripRoot);
     const len = clamp(stick.length(), 1.05, 1.5);
     stick.setLength(len);
@@ -813,8 +1192,21 @@ export class HockeyRig {
     const elbow = new THREE.Vector3(),
       hand = new THREE.Vector3(),
       pole = new THREE.Vector3();
-    const arm = (idx: number, shoulder: THREE.Vector3, target: THREE.Vector3, side: number) => {
-      solveArm(shoulder, target, pole.set(side * 0.7, -0.6, -0.5), UPPER, FORE, elbow, hand);
+    const arm = (
+      idx: number,
+      shoulder: THREE.Vector3,
+      target: THREE.Vector3,
+      side: number,
+    ) => {
+      solveArm(
+        shoulder,
+        target,
+        pole.set(side * 0.7, -0.6, -0.5),
+        UPPER,
+        FORE,
+        elbow,
+        hand,
+      );
       const m = this.armMeshes[idx];
       orient(m.upper, shoulder, elbow);
       orient(m.fore, elbow, hand);
@@ -823,8 +1215,14 @@ export class HockeyRig {
     arm(0, shoulderTop, grip, topSign);
     arm(1, shoulderLow, lowTarget, -topSign);
     if (this.catcher) {
-      this.catcher.position.copy(this.armMeshes[1].hand.position).add(_b.set(0, 0.03, 0.06));
-      this.catcher.rotation.set(0.2 - this.reachUp * 0.5, 0, -hs * (0.1 + this.reach * 0.2));
+      this.catcher.position
+        .copy(this.armMeshes[1].hand.position)
+        .add(_b.set(0, 0.03, 0.06));
+      this.catcher.rotation.set(
+        0.2 - this.reachUp * 0.5,
+        0,
+        -hs * (0.1 + this.reach * 0.2),
+      );
     }
   }
   setVisible(v: boolean) {
