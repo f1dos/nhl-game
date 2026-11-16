@@ -12,17 +12,35 @@ export interface SkaterBody {
   vz: number;
   goalie: boolean;
 }
+/**
+ * Presentation-only hints describing what just happened on the ice, so the
+ * renderer can play matching animations. They never feed back into the
+ * simulation and are produced without touching the seeded random stream.
+ */
+export interface SpatialCue {
+  /** Monotonic sequence number; the renderer plays each cue once. */
+  seq: number;
+  kind: "pass" | "shot" | "check" | "save" | "goal" | "faceoff" | "penalty";
+  /** Body performing the action. */
+  id: string;
+  /** Body receiving the action (pass target, checked player, shooter for a save). */
+  target?: string;
+  /** Simulation time at which the cue was raised. */
+  time: number;
+}
 export interface SpatialFrame {
   carrierId?: string;
   bodies: SkaterBody[];
   puck: { x: number; y: number; z: number };
+  cues: SpatialCue[];
 }
 /** Fixed-step, seeded simulation. Rendering never advances the simulation. */
 export class SpatialMatch {
   readonly teams: Team[];
   readonly result: Result;
   readonly rng: RNG;
-  frame: SpatialFrame = { bodies: [], puck: { x: 0, y: 0.12, z: 0 } };
+  frame: SpatialFrame = { bodies: [], puck: { x: 0, y: 0.12, z: 0 }, cues: [] };
+  private cueSeq = 0;
   time = 0;
   done = false;
   intermission = false;
@@ -70,6 +88,11 @@ export class SpatialMatch {
   }
   private player(id: string): Player {
     return this.teams.flatMap((t) => t.players).find((p) => p.id === id)!;
+  }
+  private cue(kind: SpatialCue["kind"], id: string, target?: string) {
+    this.frame.cues.push({ seq: ++this.cueSeq, kind, id, target, time: this.time });
+    // Keep only a short window; the renderer consumes cues by sequence number.
+    this.frame.cues = this.frame.cues.filter((c) => this.time - c.time <= 3).slice(-24);
   }
   private direction(side: number) {
     return (
@@ -172,6 +195,7 @@ export class SpatialMatch {
     center.x = 0;
     center.z = 0;
     this.emit("faceoff", center, "Вбрасывание");
+    this.cue("faceoff", center.id);
     this.decision = this.time + 1;
   }
   /** Commands are applied to the next shift, and do not alter prior events. */
@@ -298,6 +322,7 @@ export class SpatialMatch {
               const index = this.penalties.findIndex((p) => p.side !== f.side);
               if (index >= 0) this.penalties.splice(index, 1);
             }
+            this.cue("goal", shooter.id, goalie?.id);
             this.emit(
               "goal",
               shooter,
@@ -311,6 +336,7 @@ export class SpatialMatch {
             this.changeShift();
             this.faceoff();
           } else {
+            if (goalie) this.cue("save", goalie.id, shooter.id);
             this.emit("shot", shooter, "Бросок — сейв", quality);
             this.faceoff();
           }
@@ -369,12 +395,15 @@ export class SpatialMatch {
           });
           this.player(pressure.id).stats.pim += 2;
           this.result.ppo[owner.side]++;
+          this.cue("check", pressure.id, owner.id);
           this.emit("penalty", pressure, "2 минуты за нарушение");
+          this.cue("penalty", pressure.id, owner.id);
           this.changeShift();
           this.faceoff();
         } else {
           this.owner = pressure.id;
           this.touches = [pressure.id];
+          this.cue("check", pressure.id, owner.id);
           this.emit("turnover", pressure, "Отбор шайбы");
         }
       } else {
@@ -412,6 +441,7 @@ export class SpatialMatch {
             side: owner.side,
             shot,
           };
+          this.cue(shot ? "shot" : "pass", owner.id, mate?.id);
           this.owner = "";
         }
       }

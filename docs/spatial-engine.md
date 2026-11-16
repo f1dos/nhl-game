@@ -18,8 +18,29 @@ do not change regular-season statistics.
 
 Current limitations: this is an initial spatial simulation, not feature parity
 with Football Manager. Offside, icing, body collisions, detailed stick contact,
-goalkeeper save animations, live-session persistence across page reloads and
-calibration across thousands of matches remain unfinished. The simple player
-meshes need a dedicated animation and art pass. Do not describe those features
-as implemented. The normal career is saved before and after the match; reloading
+live-session persistence across page reloads and calibration across thousands
+of matches remain unfinished. Do not describe those features as implemented. The normal career is saved before and after the match; reloading
 an unfinished match returns to preparation.
+
+## Player figures and animation
+
+The 3D match view (`src/ui/MatchArena3D.tsx`) draws procedural, jointed figures
+from `src/ui/hockeyRig.ts` in a stylised football-manager-like look: broad
+shoulders, helmets with visors, team-coloured kits, name and number on the back,
+per-player height, build, skin tone and stick hand. Goalies have pads, blocker,
+catcher and mask.
+
+Motion is driven by the simulation but never feeds back into it:
+
+- skating stride (hip abduction, knee drive, counter-rotating torso), forward,
+  backward and crossover skating relative to where the player faces, forward
+  lean with speed, banking in turns and hockey stops;
+- hands are placed on the stick with two-bone IK, and the lowest skate blade is
+  always kept on the ice;
+- `SpatialFrame.cues` carries one-shot hints (`pass`, `shot`, `check`, `save`,
+  `goal`, `faceoff`, `penalty`) that trigger a wind-up and strike, body check and
+  stagger, celebration, goalie butterfly save and so on. Cues are produced
+  without using the seeded random stream, so results are unchanged.
+
+The camera menu has a new close-up mode that follows the puck. The earlier
+Blender studies in `public/models/hockey` are no longer loaded by the match.
