@@ -446,6 +446,26 @@
   background: #3b2b24;
   color: #efac7f;
 }
+.calendar-training {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px;
+  margin-top: 4px;
+  background: #152a25;
+  color: #8bd5ae;
+  border-left: 2px solid #4aa97a;
+  font-size: 8px;
+}
+.calendar-training span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.calendar-training b {
+  color: #d7efe2;
+}
 .inbox-toolbar {
   display: flex;
   align-items: center;

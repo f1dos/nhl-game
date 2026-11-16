@@ -116,7 +116,14 @@ export function TrainingCenter({
       <Panel title="РАСПИСАНИЕ ПЕРВОЙ КОМАНДЫ">
         <div className="training-week">
           {schedule.days.map((day, index) => (
-            <section key={days[index]}>
+            <section
+              key={days[index]}
+              className={
+                index === (team.trainingTicks ?? 0) % 7
+                  ? "current-training-day"
+                  : ""
+              }
+            >
               <header>
                 <b>{days[index]}</b>
                 <small>
