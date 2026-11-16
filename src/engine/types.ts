@@ -425,6 +425,7 @@ export interface Game {
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;
   leadershipSeason?: number;
+  leadershipConsequenceSeason?: number;
   leadershipStrategyChanged?: boolean;
   teamMeetings?: {
     date: string;
