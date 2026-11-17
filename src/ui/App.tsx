@@ -82,6 +82,7 @@ import {
   DailyHeadquarters,
   DecisionInbox,
   StrategyCenter,
+  type InboxFocus,
 } from "./ManagementRevolution";
 import {
   continueGame,
@@ -89,6 +90,8 @@ import {
   ensureManagementState,
   gameDate,
   isUserMatchday,
+  newImportantEvents,
+  unreadImportantCount,
   type ContinueMode,
 } from "../engine/management";
 const nav = [
@@ -284,6 +287,7 @@ export default function App() {
       days: number;
       urgent: boolean;
     }>(),
+    [inboxFocus, setInboxFocus] = useState<InboxFocus | null>(null),
     [standingsOpen, setStandingsOpen] = useState(false),
     [selectedClub, setSelectedClub] = useState<string>();
   const [database] = useState(() => newGame());
@@ -321,6 +325,7 @@ export default function App() {
     setPage(p);
     setSearch("");
     setFilter("all");
+    setInboxFocus(null);
   };
   const play = () => {
     if (g?.managerEmployment?.status === "fired") {
@@ -349,6 +354,7 @@ export default function App() {
     }
     let reachedMatchday = false;
     let urgent = false;
+    let importantIds: string[] = [];
     let days = 0;
     const from = g?.calendar?.date ?? "";
     let to = from;
@@ -357,19 +363,26 @@ export default function App() {
       days = continueGame(game, continueMode);
       reachedMatchday = isUserMatchday(game);
       to = game.calendar?.date ?? from;
-      urgent = !!game.events?.some(
-        (event) =>
-          !existing.has(event.id) &&
-          !event.resolved &&
-          event.requiresResponse &&
-          (event.priority === "critical" || event.priority === "high"),
+      importantIds = newImportantEvents(game, existing).map(
+        (event) => event.id,
       );
+      urgent = importantIds.length > 0;
     });
     setTimeAdvance({ from, to, days, urgent });
     const completeProgress = () => {
       setTimeAdvance(undefined);
-      if (urgent) go("inbox");
-      else if (reachedMatchday) setPage("match");
+      // An important message stopped the sim: open the inbox on the
+      // "important" tab with the new messages highlighted at the top.
+      if (urgent) {
+        go("inbox");
+        setInboxFocus({
+          ids: importantIds,
+          from,
+          to,
+          days,
+          matchday: reachedMatchday,
+        });
+      } else if (reachedMatchday) setPage("match");
     };
     if (navigator.userAgent.includes("HappyDOM")) completeProgress();
     else window.setTimeout(completeProgress, Math.min(2200, 900 + days * 120));
@@ -601,6 +614,7 @@ export default function App() {
   ensureFranchiseWorld(g);
   const team = g.teams.find((t) => t.id === g.user)!;
   const sorted = standings(g.teams);
+  const importantUnread = unreadImportantCount(g);
   const conference = standings(
     g.teams.filter((t) => t.conference === team.conference),
   );
@@ -1426,7 +1440,16 @@ export default function App() {
       </>
     );
   else if (page === "inbox")
-    content = <DecisionInbox game={g} edit={edit} go={go} />;
+    content = (
+      <DecisionInbox
+        key={inboxFocus?.ids.join() ?? "inbox"}
+        game={g}
+        edit={edit}
+        go={go}
+        focus={inboxFocus}
+        onDismissFocus={() => setInboxFocus(null)}
+      />
+    );
   else if (page === "history")
     content = (
       <>
@@ -1701,6 +1724,14 @@ export default function App() {
                       ).length ?? g.news.length}
                     </em>
                   )}
+                  {key === "inbox" && importantUnread > 0 && (
+                    <em
+                      className="important-count"
+                      title={tr("Непрочитанные важные", "Unread important")}
+                    >
+                      !{importantUnread}
+                    </em>
+                  )}
                 </button>
               </div>
             ),
@@ -1760,6 +1791,26 @@ export default function App() {
                   ? "PLAYOFFS"
                   : tr("Межсезонье", "Offseason")}
             </button>
+            {importantUnread > 0 && (
+              <button
+                className="inbox-quick"
+                aria-label={tr("Важные сообщения", "Important messages")}
+                onClick={() => {
+                  go("inbox");
+                  // Open straight on the "important" tab (no stop banner).
+                  setInboxFocus({
+                    ids: [],
+                    from: "",
+                    to: "",
+                    days: 0,
+                    matchday: false,
+                  });
+                }}
+              >
+                <Mail size={15} />
+                <em>{importantUnread}</em>
+              </button>
+            )}
             <button
               className="icon-button"
               aria-label="Save"
