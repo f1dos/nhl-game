@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
-import { BENCH, RINK } from "../engine/rink";
+import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
 import { RigFactory, type HockeyRig, type RigState, type TeamKit } from "./hockeyRig";
 import { TrackSmoother } from "./motionSmoothing";
-import { buildArena } from "./arenaScene";
+import { buildArena, insideBoards } from "./arenaScene";
 
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
 /** Home plays in its colour, away in a light kit trimmed in its own colour. */
@@ -48,14 +48,18 @@ interface Official {
  * Event-driven presentation layer for the live match: it renders what the
  * simulation reports and never invents or changes a result.
  */
-export default function MatchArena3D({ home, away, event, running, spatial, playback = 1, camera: cameraProp, onCamera, height, language = "ru" }: {
+export default function MatchArena3D({ home, away, event, running, spatial, playback = 1, camera: cameraProp, onCamera, height, language = "ru", scoreboard }: {
   home: Team; away: Team; event?: Event; running: boolean; spatial?: SpatialFrame; playback?: number;
   /** Controlled camera; when omitted the arena shows its own camera menu. */
   camera?: CameraMode; onCamera?: (mode: CameraMode) => void;
   /** CSS height of the view; defaults to a responsive panel height. */
   height?: string; language?: "ru" | "en";
+  /** Live score for the centre-hung scoreboard. */
+  scoreboard?: { home: number; away: number; clock: string; period: string };
 }) {
   const host = useRef<HTMLDivElement>(null);
+  const scoreRef = useRef(scoreboard);
+  scoreRef.current = scoreboard;
   const current = useRef({ event, running, spatial, playback });
   current.current = { event, running, spatial, playback };
   const [ownCamera, setOwnCamera] = useState<CameraMode>("broadcast");
@@ -92,8 +96,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         scene.add(rig.root); actors.push({ rig, side, slot });
       }
     });
-    // --- benches: every dressed player has a seat and a full figure
-    const bench: { rig: HockeyRig; id: string; side: number; seatX: number }[] = [];
+    // --- benches: every dressed player has a seat and a full figure. Players
+    // skate between the ice, their bench gate and the penalty box.
+    type Spot = { x: number; z: number };
+    interface Member { rig: HockeyRig; id: string; side: number; seatX: number; mode: "seat" | "moving" | "box"; x: number; z: number; vx: number; vz: number; path: Spot[]; boxSeat?: Spot }
+    const bench: Member[] = [];
+    const memberOf = new Map<string, Member>();
     teams.forEach((team, side) => {
       const list = dressed(team);
       const span = BENCH.halfLength * 2 - 0.8;
@@ -104,9 +112,27 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         rig.place(seatX, BENCH.seatZ, 0);
         rig.setState("seated", (i * 0.37) % 1);
         scene.add(rig.root);
-        bench.push({ rig, id: p.id, side, seatX });
+        const m: Member = { rig, id: p.id, side, seatX, mode: "seat", x: seatX, z: BENCH.seatZ, vx: 0, vz: 0, path: [] };
+        bench.push(m);
+        memberOf.set(p.id, m);
       });
     });
+    const benchDoor = (m: Member): Spot => ({ x: Math.max(BENCH.centerX[m.side] - BENCH.halfLength + 0.8, Math.min(BENCH.centerX[m.side] + BENCH.halfLength - 0.8, m.seatX)), z: BENCH.doorZ });
+    const boxDoor = (side: number): Spot => ({ x: PENALTY_BOX.centerX[side], z: PENALTY_BOX.doorZ });
+    // --- coaches: head coach and assistant behind each bench, on the step
+    const coaches = teams.flatMap((team, side) => [0, 1].map((k) => {
+      const rig = factory.coach(team.color, k ? "#2a2f38" : "#1b2230");
+      rig.setIdentity({ id: `${team.id}-coach-${k}`, name: k ? "Assistant" : "Head coach", number: 0 }, "C");
+      const x = BENCH.centerX[side] + (k ? 2.6 : -1.2);
+      rig.root.position.y = 0.25;
+      rig.place(x, BENCH.seatZ - 1.35, 0);
+      scene.add(rig.root);
+      return { rig, side, head: k === 0, x };
+    }));
+    const prevOnIce = new Set<string>();
+    let icePrimed = false;
+    const lastIce = new Map<string, Spot>();
+    const entering = new Map<string, { dx: number; dz: number; t: number }>();
     // --- officials: two referees (orange armbands) and two linesmen
     const officials: Official[] = (["referee", "referee", "linesman", "linesman"] as const).map((role, i) => {
       const rig = factory.official(role);
@@ -221,7 +247,24 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           const look = skaterState(body, stoppage, frameData);
           rig.setState(look.state, look.variant ?? 0, look.side ?? 1);
           const track = tracks.get(body.id)?.sample(stamp);
-          rig.update(dt, stoppage ? showDt : animDt, { x: track?.x ?? body.x, z: track?.z ?? body.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id, face: look.face });
+          let x = track?.x ?? body.x, z = track?.z ?? body.z;
+          // A player stepping on mid-play comes over the boards from his gate
+          // (or the penalty box) and skates into his logical position.
+          if (icePrimed && !prevOnIce.has(body.id) && !body.goalie) {
+            const m = memberOf.get(body.id);
+            const from = m ? (m.mode === "box" ? boxDoor(m.side) : benchDoor(m)) : undefined;
+            if (from) entering.set(body.id, { dx: from.x - x, dz: from.z - z, t: 0 });
+          }
+          const enter = entering.get(body.id);
+          if (enter) {
+            enter.t += dt * Math.min(Math.max(1, data.playback), 2.5);
+            const k = 1 - smoothstep(enter.t / 1.3);
+            x += enter.dx * k; z += enter.dz * k;
+            if (enter.t >= 1.3) entering.delete(body.id);
+          }
+          const inside = insideBoards(x, z);
+          lastIce.set(body.id, inside);
+          rig.update(dt, stoppage ? showDt : animDt, { x: inside.x, z: inside.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id, face: look.face });
         });
         // --- one-shot animations raised by the simulation (each cue plays once)
         for (const cue of frameData.cues) {
@@ -257,7 +300,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           else { px = stoppage.dot.x; pz = stoppage.dot.z; py = 0.04; }
         }
         puckY += (py - puckY) * (1 - Math.exp(-dt * (py < puckY ? 14 : 6)));
-        puck.position.set(px, puckY, pz);
+        const pIn = insideBoards(px, pz, 0.3);
+        puck.position.set(pIn.x, puckY, pIn.z);
       } else if (data.running && data.event) {
         // Event replay (no spatial frames): a simple read of the event position.
         const x = (data.event.x / 100 - 0.5) * 56, z = (data.event.y / 100 - 0.5) * 23;
@@ -276,22 +320,70 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         });
       }
 
-      // --- benches: seated, standing and cheering, reaching out for the line
+      // --- benches: seated, standing and cheering, reaching out for the line;
+      // players going off skate to their gate (or the box) and sit down.
       const onIce = new Set(frameData?.bodies.map(b => b.id) ?? []);
+      const boxed = new Map<string, number>();
+      frameData?.penaltyBox.forEach((p, i) => boxed.set(p.id, i));
       const scorer = stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? frameData?.bodies.find(b => b.id === stoppage.actor) : undefined;
-      bench.forEach(({ rig, id, side, seatX }) => {
-        const away2 = onIce.has(id);
-        rig.setVisible(!away2);
-        if (away2) return;
-        let state: RigState = "seated";
-        if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") {
+      const moveDt = data.running ? dt * Math.min(Math.max(1, data.playback), 2.5) : 0;
+      bench.forEach((m) => {
+        const { rig, id, side, seatX } = m;
+        if (onIce.has(id)) { rig.setVisible(false); return; }
+        rig.setVisible(true);
+        const inBox = boxed.has(id);
+        const boxSeat = { x: PENALTY_BOX.centerX[side] + ((boxed.get(id) ?? 0) % 2 ? 0.7 : -0.7), z: PENALTY_BOX.seatZ };
+        const seat = { x: seatX, z: BENCH.seatZ };
+        if (icePrimed && prevOnIce.has(id)) {
+          // Just came off the ice.
+          const from = lastIce.get(id) ?? seat;
+          m.x = from.x; m.z = from.z;
+          m.path = inBox ? [boxDoor(side), boxSeat] : [benchDoor(m), seat];
+          m.mode = "moving";
+        } else if (m.mode === "box" && !inBox) {
+          m.path = [boxDoor(side), { x: m.x, z: 11.5 }, benchDoor(m), seat];
+          m.mode = "moving";
+        } else if (m.mode === "seat" && inBox) {
+          m.path = [boxSeat];
+          m.mode = "moving";
+        }
+        if (m.mode === "moving") {
+          const target = m.path[0];
+          const dx = target.x - m.x, dz = target.z - m.z, d = Math.hypot(dx, dz);
+          const speed = Math.min(7, d * 3 + 1.5);
+          m.vx = d > 0.01 ? (dx / d) * speed : 0; m.vz = d > 0.01 ? (dz / d) * speed : 0;
+          const step = Math.min(d, speed * moveDt);
+          if (d > 0.01) { m.x += (dx / d) * step; m.z += (dz / d) * step; }
+          if (d < 0.08) {
+            m.path.shift();
+            if (!m.path.length) { m.mode = inBox ? "box" : "seat"; m.vx = m.vz = 0; }
+          }
+        }
+        let state: RigState = m.mode === "box" ? "box" : "seated";
+        if (m.mode === "moving") state = "play";
+        else if (m.mode === "seat" && stoppage?.kind === "goal" && stoppage.phase === "celebrate") {
           if (side === stoppage.side) {
             const near = scorer && stoppage.t >= 3.9 && Math.abs(scorer.x - seatX) < 3.2;
             state = near ? "bench-reach" : stoppage.t < 3.9 ? "bench-cheer" : "bench-stand";
           } else state = "bench-dejected";
         }
         rig.setState(state, rig.currentState === state ? undefined : (seatX * 0.37 + 5) % 1);
-        rig.update(dt, data.running ? dt : 0, { x: seatX, z: BENCH.seatZ, vx: 0, vz: 0, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face: 0 });
+        const face = m.mode === "seat" ? 0 : m.mode === "box" ? Math.PI : undefined;
+        rig.update(dt, data.running ? dt : 0, { x: m.x, z: m.z, vx: m.vx, vz: m.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face });
+      });
+      prevOnIce.clear(); onIce.forEach(id => prevOnIce.add(id));
+      if (frameData) icePrimed = true;
+
+      // --- coaches react to the game
+      coaches.forEach((c) => {
+        let state: RigState = "coach-idle";
+        let variant = c.head ? 0.2 : 0.8;
+        const own = stoppage?.side === c.side;
+        if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") state = own ? (c.head ? "coach-clap" : "coach-point") : c.head ? "coach-despair" : "coach-idle";
+        else if (stoppage?.kind === "penalty" && stoppage.phase === "whistle" && own && c.head) state = "coach-point";
+        else if (!stoppage && c.head && Math.floor((now / 1000 + c.side * 5) / 9) % 3 === 0) { variant = 0.8; }
+        c.rig.setState(state, variant);
+        c.rig.update(dt, data.running ? dt : dt * 0.5, { x: c.x, z: BENCH.seatZ - 1.35, vx: 0, vz: 0, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face: 0 });
       });
 
       // --- officials: follow play, run faceoffs, signal goals and penalties
@@ -326,7 +418,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       });
 
       // --- arena reactions (goal lights, crowd)
-      arena.update(dt, { goalSide: stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? Math.sign(frameData?.puck.x ?? 0) : 0, homeScored: stoppage?.kind === "goal" && stoppage.side === 0 && stoppage.phase === "celebrate" });
+      arena.update(dt, { goalSide: stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? Math.sign(frameData?.puck.x ?? 0) : 0, homeScored: stoppage?.kind === "goal" && stoppage.side === 0 && stoppage.phase === "celebrate", score: scoreRef.current });
 
       // --- camera director: goals, saves and faceoffs get tighter shots
       let fx = Math.max(-26, Math.min(26, puck.position.x)), fz = Math.max(-10, Math.min(10, puck.position.z));
@@ -356,6 +448,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         desired.set(focus.x * 0.85, lerp(12, 7.5, zoom), lerp(27, focus.z + 14, zoom));
         lookAt.set(focus.x * lerp(0.95, 1, zoom), lerp(0, 0.9, zoom), focus.z * lerp(0.3, 1, zoom));
       }
+      arena.setCeilingVisible(m !== "overhead");
       if (!cameraReady) { cameraReady = true; lookSmooth.copy(lookAt); camera.position.copy(desired); }
       const kc = 1 - Math.exp(-dt * (m === "close" ? 3 : 3.5));
       camera.position.lerp(desired, kc); lookSmooth.lerp(lookAt, kc); camera.lookAt(lookSmooth);
@@ -378,7 +471,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frame); observer.disconnect();
-      [...actors, ...bench, ...officials].forEach(({ rig }) => rig.dispose());
+      [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());
       arena.dispose();
       scene.traverse(object => { if (object instanceof THREE.Mesh && !object.userData.shared) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       factory.dispose();
@@ -400,4 +493,5 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
 }
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
+function smoothstep(t: number) { const u = Math.max(0, Math.min(1, t)); return u * u * (3 - 2 * u); }
 void RINK;
