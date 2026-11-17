@@ -1,4 +1,15 @@
+import { englishLegacy, englishLegacyPatterns } from "./englishLegacy";
+import {
+  englishInboxLegacy,
+  englishInboxLegacyPatterns,
+} from "./englishInboxLegacy";
+
+const cyrillic = /[А-Яа-яЁё]/;
+const legacyPatterns = [...englishInboxLegacyPatterns, ...englishLegacyPatterns];
+
 export const englishMatch: Record<string, string> = {
+  ...englishLegacy,
+  ...englishInboxLegacy,
   "Полный отдых": "Full rest",
   Восстановление: "Recovery",
   "Командная игра": "Teamwork",
@@ -323,6 +334,27 @@ export const englishMatch: Record<string, string> = {
 
 export function englishDynamic(value: string): string {
   if (englishMatch[value]) return englishMatch[value];
+  if (!cyrillic.test(value)) return value;
+  for (const [pattern, english] of legacyPatterns)
+    if (pattern.test(value)) {
+      const result = value.replace(pattern, english as string);
+      if (!cyrillic.test(result)) return result;
+    }
+  const chained = chainedEnglish(value);
+  if (!cyrillic.test(chained)) return chained;
+  // Composite messages ("names. Sentence one. Sentence two." or
+  // "fragment; fragment") are translated piece by piece.
+  for (const separator of [/(?<=[.!?]) (?=[A-ZА-ЯЁ])/, /; /]) {
+    const parts = value.split(separator);
+    if (parts.length < 2) continue;
+    const translated = parts.map((part) => englishDynamic(part));
+    if (translated.every((part) => !cyrillic.test(part)))
+      return translated.join(separator.source === "; " ? "; " : " ");
+  }
+  return chained;
+}
+
+function chainedEnglish(value: string): string {
   return value
     .replace(/ПЕРИОД (\d+)/g, "PERIOD $1")
     .replace(/^Звено (\d+)/, "Line $1")

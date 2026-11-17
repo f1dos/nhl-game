@@ -11,6 +11,7 @@ let generation = 0;
 const originalText = new WeakMap<Text, string>();
 const renderedText = new WeakMap<Text, string>();
 const originalAttributes = new WeakMap<Element, Map<string, string>>();
+const renderedAttributes = new WeakMap<Element, Map<string, string>>();
 const translatedAttributes = ["placeholder", "title", "aria-label"] as const;
 const machineCache = new Map<string, string>();
 const pending = new Set<string>();
@@ -119,18 +120,25 @@ function translateElement(element: Element) {
   if (element.tagName === "OPTION" && !element.hasAttribute("value"))
     element.setAttribute("value", (element as HTMLOptionElement).value);
   let originals = originalAttributes.get(element);
-  if (!originals) {
+  let rendered = renderedAttributes.get(element);
+  if (!originals || !rendered) {
     originals = new Map();
+    rendered = new Map();
     originalAttributes.set(element, originals);
+    renderedAttributes.set(element, rendered);
   }
   for (const name of translatedAttributes) {
     const current = element.getAttribute(name);
-    if (current !== null && !originals.has(name)) originals.set(name, current);
+    // React may replace the attribute (e.g. after a language switch): the new
+    // value becomes the source instead of the stale first-seen original.
+    if (current !== null && current !== rendered.get(name))
+      originals.set(name, current);
     const source = originals.get(name);
-    if (source !== undefined) {
+    if (source !== undefined && current !== null) {
       queueMachineTranslation(source);
       const next = locale === "ru" ? source : translated(source);
       if (current !== next) element.setAttribute(name, next);
+      rendered.set(name, next);
     }
   }
 }

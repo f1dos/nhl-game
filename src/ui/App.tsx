@@ -566,7 +566,7 @@ export default function App() {
             <button
               className="primary"
               onClick={() => {
-                const career = newGame(selected, seed);
+                const career = newGame(selected, seed, language);
                 career.language = language;
                 ensureDraft(career);
                 ensureManagementState(career);
@@ -1015,7 +1015,7 @@ export default function App() {
           }
         />
         <details className="legacy-tactics">
-          <summary>Табличный редактор звеньев</summary>{" "}
+          <summary>{tr("Табличный редактор звеньев", "Table line editor")}</summary>{" "}
           <TacticsView
             game={g}
             team={team}

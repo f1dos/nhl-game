@@ -6,6 +6,7 @@ import type {
   ObjectiveMetric,
   ObjectiveTier,
 } from "./types";
+import { isRussian, tx } from "./text";
 
 export const STRATEGY_LABELS: Record<
   FranchiseStrategy,
@@ -68,6 +69,121 @@ export const STRATEGY_POLICIES: Record<
     youngContractFactor: 1.05,
   },
 };
+
+const POLICIES_EN: Record<
+  FranchiseStrategy,
+  { roster: string; youth: string; finance: string; picks: string }
+> = {
+  "draft-lottery": {
+    roster: "Veterans are available for trade; ice time goes to players aged 24 and under.",
+    youth: "Top development priority and patience with young players' mistakes.",
+    finance: "No long, expensive contracts; keep at least $8M in cap space.",
+    picks: "Round 1–3 picks are protected and valued above immediate upgrades.",
+  },
+  "wild-card-hunt": {
+    roster: "A balanced roster without selling the key future assets.",
+    youth: "Young players get a chance if they can help right now.",
+    finance: "Keep $4M for targeted upgrades during the season.",
+    picks: "The first round is protected; mid-round picks can be used in trades.",
+  },
+  "playoff-breakthrough": {
+    roster: "Priority on depth, special teams and players with playoff experience.",
+    youth: "Development continues, but roster spots must be earned.",
+    finance: "Using almost the entire cap to win a series is acceptable.",
+    picks: "Picks after the first round are available for a roster player.",
+  },
+  "stanley-cup": {
+    roster: "Only Cup-ready players; weak positions are upgraded immediately.",
+    youth: "Prospects can become trade chips for a star or for depth.",
+    finance: "Use the full cap without creating uncontrolled future debt.",
+    picks: "Future picks are available for a player who changes the Cup odds.",
+  },
+};
+
+/** Strategy policy texts in the career's language. */
+export function strategyPolicy(
+  strategy: FranchiseStrategy,
+  language?: string,
+) {
+  const policy = STRATEGY_POLICIES[strategy];
+  return isRussian({ language }) ? policy : { ...policy, ...POLICIES_EN[strategy] };
+}
+
+/** English versions of the objective titles and details (keyed by Russian). */
+const OBJECTIVE_EN: Record<string, string> = {
+  "Не жертвовать перестройкой": "Don't sacrifice the rebuild",
+  "Завершить сезон не выше 12-го места конференции и сохранить шанс на высокий пик.":
+    "Finish no higher than 12th in the conference and keep the chance of a high pick.",
+  "Омолодить основу": "Get younger at the core",
+  "Дать постоянное место в NHL минимум шести игрокам не старше 24 лет.":
+    "Give a regular NHL spot to at least six players aged 24 or younger.",
+  "Сохранить финансовую гибкость": "Keep financial flexibility",
+  "Закончить сезон минимум с $8M свободного пространства.":
+    "Finish the season with at least $8M in cap space.",
+  "Накопить капитал драфта": "Build draft capital",
+  "Сохранить или получить минимум девять пиков первых трёх раундов на три года.":
+    "Keep or acquire at least nine picks in the first three rounds over three years.",
+  "Остаться в гонке за Wild Card": "Stay in the Wild Card race",
+  "Завершить сезон в зоне плей-офф.": "Finish the season in a playoff spot.",
+  "Финишировать в первой восьмёрке": "Finish in the top eight",
+  "Занять 7–8 место конференции или выше.":
+    "Finish 7th–8th in the conference or higher.",
+  "Не остановить развитие": "Keep development going",
+  "Сохранить минимум четырёх молодых игроков в составе NHL.":
+    "Keep at least four young players on the NHL roster.",
+  "Резерв на дедлайн": "Deadline reserve",
+  "Сохранить минимум $4M пространства под потолком.":
+    "Keep at least $4M of cap space.",
+  "Пройти первый раунд": "Win a playoff round",
+  "Победить минимум в одной серии плей-офф.":
+    "Win at least one playoff series.",
+  "Уверенно выйти в плей-офф": "Make the playoffs comfortably",
+  "Попадание в плей-офф обязательно.": "Making the playoffs is mandatory.",
+  "Сохранить раздевалку": "Keep the room together",
+  "Средняя мораль основного состава должна быть не ниже 70.":
+    "Average roster morale must be at least 70.",
+  "Выиграть Кубок Стэнли": "Win the Stanley Cup",
+  "Любой другой итог сезона не соответствует конкурентному окну клуба.":
+    "Any other outcome falls short of the club's competitive window.",
+  "Дойти минимум до финала конференции": "Reach at least the conference final",
+  "Победить минимум в двух сериях плей-офф.":
+    "Win at least two playoff series.",
+  "Домашний лёд": "Home ice",
+  "Завершить регулярный сезон в топ-4 конференции.":
+    "Finish the regular season in the conference top 4.",
+  "Кубковая атмосфера": "Cup atmosphere",
+  "Средняя мораль состава должна быть не ниже 75.":
+    "Average roster morale must be at least 75.",
+  "Выиграть принципиальное противостояние": "Win the rivalry",
+};
+const OBJECTIVE_RU = Object.fromEntries(
+  Object.entries(OBJECTIVE_EN).map(([ru, en]) => [en, ru]),
+);
+
+/** Translate one stored objective text (works for saves in either language). */
+export function objectiveText(text: string, language?: string) {
+  if (isRussian({ language })) {
+    const rivalry = text.match(/^Win at least two games against: (.+)\.$/);
+    if (rivalry) return `Добиться победы минимум в двух матчах: ${rivalry[1]}.`;
+    return OBJECTIVE_RU[text] ?? text;
+  }
+  const exact = OBJECTIVE_EN[text];
+  if (exact) return exact;
+  const rivalry = text.match(/^Добиться победы минимум в двух матчах: (.+)\.$/);
+  if (rivalry) return `Win at least two games against: ${rivalry[1]}.`;
+  return text;
+}
+
+/** Objective title and detail in the career's language. */
+export function localizeObjective(
+  objective: Pick<FranchiseObjective, "title" | "detail">,
+  language?: string,
+) {
+  return {
+    title: objectiveText(objective.title, language),
+    detail: objectiveText(objective.detail, language),
+  };
+}
 
 type ObjectiveTemplate = Omit<
   FranchiseObjective,
@@ -213,9 +329,11 @@ export function defaultEmployment(): ManagerEmployment {
 export function createSeasonObjectives(
   strategy: FranchiseStrategy,
   season: number,
+  language?: string,
 ): FranchiseObjective[] {
   return templates(strategy).map((item, index) => ({
     ...item,
+    ...localizeObjective(item, language ?? "ru"),
     id: `${season}-${strategy}-${index}`,
     season,
     progress: 0,
@@ -278,7 +396,11 @@ export function objectiveProgress(g: Game, metric: ObjectiveMetric) {
 
 function objectiveMet(objective: FranchiseObjective, progress: number) {
   if (objective.metric === "conference-finish") {
-    if (objective.title === "Не жертвовать перестройкой")
+    if (
+      objective.id.includes("-draft-lottery-0") ||
+      objective.title === "Не жертвовать перестройкой" ||
+      objective.title === OBJECTIVE_EN["Не жертвовать перестройкой"]
+    )
       return progress >= objective.target;
     return progress <= objective.target;
   }
@@ -295,10 +417,16 @@ export function refreshObjectives(g: Game, evaluated = false) {
 
 export function chooseSeasonStrategy(g: Game, strategy: FranchiseStrategy) {
   if (g.strategySeason === g.year)
-    throw Error("Стратегия на этот сезон уже утверждена");
+    throw Error(
+      tx(
+        g,
+        "Стратегия на этот сезон уже утверждена",
+        "The strategy for this season has already been approved",
+      ),
+    );
   g.franchiseStrategy = strategy;
   g.strategySeason = g.year;
-  g.franchiseObjectives = createSeasonObjectives(strategy, g.year);
+  g.franchiseObjectives = createSeasonObjectives(strategy, g.year, g.language);
   g.managerEmployment ??= defaultEmployment();
   const team = g.teams.find((club) => club.id === g.user)!;
   team.aiProfile && (team.aiProfile.strategy = strategy);
@@ -309,7 +437,13 @@ export function chooseSeasonStrategy(g: Game, strategy: FranchiseStrategy) {
 
 export function reconsiderSeasonStrategy(g: Game, strategy: FranchiseStrategy) {
   if (g.leadershipStrategyChanged)
-    throw Error("Капитан уже использовал единственную возможность пересмотра");
+    throw Error(
+      tx(
+        g,
+        "Капитан уже использовал единственную возможность пересмотра",
+        "The captain has already used the one chance to revisit the strategy",
+      ),
+    );
   g.strategySeason = undefined;
   chooseSeasonStrategy(g, strategy);
   g.leadershipStrategyChanged = true;
@@ -344,8 +478,16 @@ export function reviewSeasonStrategy(g: Game) {
           : "secure";
   g.news.unshift(
     employment.status === "fired"
-      ? `Совет директоров уволил генерального менеджера ${g.user}: доверие ${employment.confidence}%.`
-      : `Оценка генерального менеджера ${g.user}: ${employment.status}, доверие ${employment.confidence}%.`,
+      ? tx(
+          g,
+          `Совет директоров уволил генерального менеджера ${g.user}: доверие ${employment.confidence}%.`,
+          `The board fired the ${g.user} general manager: confidence ${employment.confidence}%.`,
+        )
+      : tx(
+          g,
+          `Оценка генерального менеджера ${g.user}: ${employment.status}, доверие ${employment.confidence}%.`,
+          `${g.user} general manager review: ${employment.status.replace("-", " ")}, confidence ${employment.confidence}%.`,
+        ),
   );
 }
 

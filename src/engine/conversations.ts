@@ -1,3 +1,4 @@
+import { tx } from "./text";
 import { clamp } from "./random";
 import type { ConversationLine, Game, Player, Team } from "./types";
 import { syncMoraleBonus } from "./franchiseWorld";
@@ -467,26 +468,26 @@ export function externalContactEligibility(game: Game, playerId: string) {
       return {
         allowed: true,
         reason:
-          "Свободный агент доступен для официальных переговоров через агента",
+          tx(game, "Свободный агент доступен для официальных переговоров через агента", "Free agent: available for official negotiations through his agent"),
       };
     if (game.internationalMarket?.some((item) => item.player.id === playerId))
       return {
         allowed: false,
         reason:
-          "Сначала завершите скаутинг и установите контакт через международный рынок",
+          tx(game, "Сначала завершите скаутинг и установите контакт через международный рынок", "Finish scouting and make contact through the international market first"),
       };
     if (game.juniorPlayers?.some((player) => player.id === playerId))
       return {
         allowed: false,
-        reason: "Прямой контакт ограничен юниорскими правами и правилами лиги",
+        reason: tx(game, "Прямой контакт ограничен юниорскими правами и правилами лиги", "Direct contact is restricted by junior rights and league rules"),
       };
     return {
       allowed: false,
-      reason: "Организация и статус прав игрока не установлены",
+      reason: tx(game, "Организация и статус прав игрока не установлены", "The player's organization and rights status are unknown"),
     };
   }
   if (owner.id === game.user)
-    return { allowed: true, reason: "Игрок вашей организации" };
+    return { allowed: true, reason: tx(game, "Игрок вашей организации", "Player in your organization") };
   const player = [...owner.players, ...(owner.farm ?? [])].find(
     (item) => item.id === playerId,
   )!;
@@ -496,16 +497,16 @@ export function externalContactEligibility(game: Game, playerId: string) {
   if (rank >= 0 && rank < 5)
     return {
       allowed: false,
-      reason: "Клуб запретил контакт с ключевым игроком",
+      reason: tx(game, "Клуб запретил контакт с ключевым игроком", "The club has forbidden contact with a key player"),
     };
   if (player.years > 1 && player.morale >= 60)
     return {
       allowed: false,
-      reason: "У игрока долгосрочный контракт и нет интереса к переходу",
+      reason: tx(game, "У игрока долгосрочный контракт и нет интереса к переходу", "The player has a long-term contract and no interest in a move"),
     };
   return {
     allowed: true,
-    reason: "Допустим только официальный запрос через клуб и агента",
+    reason: tx(game, "Допустим только официальный запрос через клуб и агента", "Only an official request through the club and agent is allowed"),
   };
 }
 
@@ -589,7 +590,7 @@ export function openConversation(
   if (!found) throw Error("Player unavailable");
   const { player, team } = found;
   if (player.lastConversationRound === game.round)
-    throw Error("С этим игроком уже говорили в текущем туре");
+    throw Error(tx(game, "С этим игроком уже говорили в текущем туре", "You have already spoken with this player this round"));
   const ctx = conversationContext(player, team);
   const score = openingFit(player, ctx, topic, tone);
   const mood = moodFor(score);
@@ -878,7 +879,7 @@ export function concludeConversation(
   if (!found) throw Error("Player unavailable");
   const { player } = found;
   if (player.lastConversationRound === game.round)
-    throw Error("С этим игроком уже говорили в текущем туре");
+    throw Error(tx(game, "С этим игроком уже говорили в текущем туре", "You have already spoken with this player this round"));
   const abrupt = !!options.abrupt && !state.finished && state.exchanges > 1;
   const effects = conversationEffects(state, abrupt);
   const summary = outcomeSummary(game, state, abrupt);

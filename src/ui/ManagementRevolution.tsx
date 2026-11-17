@@ -32,7 +32,11 @@ import type {
 import { ensureTrainingSchedule, readiness } from "../engine/training";
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
-import { refreshObjectives, STRATEGY_POLICIES } from "../engine/strategy";
+import {
+  localizeObjective,
+  refreshObjectives,
+  strategyPolicy,
+} from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
 import { ClubLink, EventLinks } from "./links";
 
@@ -387,15 +391,15 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
             <div className="confirm-policy">
               <p>
                 <b>{ru ? "Состав:" : "Roster:"}</b>{" "}
-                {STRATEGY_POLICIES[pendingStrategy].roster}
+                {strategyPolicy(pendingStrategy, game.language).roster}
               </p>
               <p>
                 <b>{ru ? "Финансы:" : "Finance:"}</b>{" "}
-                {STRATEGY_POLICIES[pendingStrategy].finance}
+                {strategyPolicy(pendingStrategy, game.language).finance}
               </p>
               <p>
                 <b>{ru ? "Пики:" : "Picks:"}</b>{" "}
-                {STRATEGY_POLICIES[pendingStrategy].picks}
+                {strategyPolicy(pendingStrategy, game.language).picks}
               </p>
             </div>
             <strong>
@@ -456,18 +460,18 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
           <div className="strategy-policy">
             {(
               [
-                ["ROSTER", STRATEGY_POLICIES[game.franchiseStrategy].roster],
+                ["ROSTER", strategyPolicy(game.franchiseStrategy, game.language).roster],
                 [
                   ru ? "МОЛОДЁЖЬ" : "YOUTH",
-                  STRATEGY_POLICIES[game.franchiseStrategy].youth,
+                  strategyPolicy(game.franchiseStrategy, game.language).youth,
                 ],
                 [
                   ru ? "ФИНАНСЫ" : "FINANCE",
-                  STRATEGY_POLICIES[game.franchiseStrategy].finance,
+                  strategyPolicy(game.franchiseStrategy, game.language).finance,
                 ],
                 [
                   ru ? "ДРАФТ-ПИКИ" : "DRAFT PICKS",
-                  STRATEGY_POLICIES[game.franchiseStrategy].picks,
+                  strategyPolicy(game.franchiseStrategy, game.language).picks,
                 ],
               ] as const
             ).map(([label, text]) => (
@@ -579,8 +583,10 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
                       : "SUPPORTING"}
               </span>
               <div>
-                <strong>{objective.title}</strong>
-                <p>{objective.detail}</p>
+                <strong>
+                  {localizeObjective(objective, game.language).title}
+                </strong>
+                <p>{localizeObjective(objective, game.language).detail}</p>
               </div>
               <b>
                 {objective.progress} / {objective.target}

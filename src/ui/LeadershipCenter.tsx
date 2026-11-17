@@ -10,6 +10,7 @@ import type { FranchiseStrategy, Game, Player } from "../engine/types";
 import { reconsiderSeasonStrategy } from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
 import { clamp } from "../engine/random";
+import { tx } from "../engine/text";
 import { PlayerLink } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
@@ -197,7 +198,11 @@ export default function LeadershipCenter({
             100,
           );
         current.news.unshift(
-          `Раздевалка отреагировала на спорное назначение капитана ${appointed.name}.`,
+          tx(
+            current,
+            `Раздевалка отреагировала на спорное назначение капитана ${appointed.name}.`,
+            `The room reacted to the controversial choice of ${appointed.name} as captain.`,
+          ),
         );
       }
       current.leadershipConsequenceSeason = current.year;
@@ -285,8 +290,16 @@ export default function LeadershipCenter({
         });
       current.news.unshift(
         risk === "severe"
-          ? `Спорное назначение: ${selected.name} стал капитаном, лидеры ${club.id} требуют объяснений.`
-          : `${selected.name} назначен капитаном ${club.city} ${club.name}.`,
+          ? tx(
+              current,
+              `Спорное назначение: ${selected.name} стал капитаном, лидеры ${club.id} требуют объяснений.`,
+              `Controversial pick: ${selected.name} is captain and the ${club.id} leaders want an explanation.`,
+            )
+          : tx(
+              current,
+              `${selected.name} назначен капитаном ${club.city} ${club.name}.`,
+              `${selected.name} named captain of the ${club.city} ${club.name}.`,
+            ),
       );
     });
     setCaptainDialogue(true);
@@ -358,8 +371,16 @@ export default function LeadershipCenter({
         leaderId: leader.id,
         outcome,
         message: fit
-          ? "Команда приняла посыл и договорилась о следующем шаге."
-          : "Раздевалка сочла тон несвоевременным.",
+          ? tx(
+              current,
+              "Команда приняла посыл и договорилась о следующем шаге.",
+              "The team accepted the message and agreed on the next step.",
+            )
+          : tx(
+              current,
+              "Раздевалка сочла тон несвоевременным.",
+              "The room felt the tone was poorly timed.",
+            ),
       });
     });
     setMeetingTone(tone);

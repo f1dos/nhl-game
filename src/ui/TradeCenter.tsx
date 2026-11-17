@@ -31,6 +31,8 @@ export default function TradeCenter({
   const [leftTab, setLeftTab] = useState<RosterTab>("nhl");
   const [rightTab, setRightTab] = useState<RosterTab>("nhl");
   const [reply, setReply] = useState<string>();
+  const ru = game.language === "ru";
+  const tr = (russian: string, english: string) => (ru ? russian : english);
   const user = game.teams.find((team) => team.id === game.user)!;
   const partner = game.teams.find((team) => team.id === other)!;
   const rival = rivalryBetween(game, game.user, other);
@@ -97,7 +99,7 @@ export default function TradeCenter({
               className={tab === value ? "active" : ""}
               onClick={() => setTab(value)}
             >
-              {value === "picks" ? "ДРАФТ" : value.toUpperCase()}{" "}
+              {value === "picks" ? tr("ДРАФТ", "PICKS") : value.toUpperCase()}{" "}
               <span>
                 {value === "nhl"
                   ? team.players.length
@@ -117,7 +119,7 @@ export default function TradeCenter({
                   onClick={() => toggle(pick.id, pickSelected, setPickSelected)}
                 >
                   <span>{pick.year}</span>
-                  <b>{pick.round}-й раунд</b>
+                  <b>{ru ? `${pick.round}-й раунд` : `Round ${pick.round}`}</b>
                   <small>
                     {pick.originalTeam} · value {pick.value}
                   </small>
@@ -143,7 +145,8 @@ export default function TradeCenter({
                       </PlayerLink>
                     </b>
                     <small>
-                      {player.pos} · {player.age} лет · ${player.salary}M
+                      {player.pos} · {player.age} {tr("лет", "yrs")} · $
+                      {player.salary}M
                     </small>
                   </span>
                   <Rating value={player.ovr} />
@@ -166,8 +169,13 @@ export default function TradeCenter({
       <div className="page-intro">
         <div>
           <span className="eyebrow">TRADE DESK · GM-TO-GM</span>
-          <h1>Переговорная по обменам</h1>
-          <p>Игроки NHL, активы фарма и драфт-пики в одном предложении.</p>
+          <h1>{tr("Переговорная по обменам", "Trade negotiation room")}</h1>
+          <p>
+            {tr(
+              "Игроки NHL, активы фарма и драфт-пики в одном предложении.",
+              "NHL players, farm assets and draft picks in a single offer.",
+            )}
+          </p>
         </div>
         <select
           value={other}
@@ -191,13 +199,16 @@ export default function TradeCenter({
             {""}
           </ClubLink>
           <div>
-            <small>ЛИНИЯ СВЯЗИ ОТКРЫТА</small>
-            <b>Генеральный менеджер · {partner.id}</b>
+            <small>{tr("ЛИНИЯ СВЯЗИ ОТКРЫТА", "LINE OPEN")}</small>
+            <b>
+              {tr("Генеральный менеджер", "General manager")} · {partner.id}
+            </b>
             <span>
-              Ищет:{" "}
+              {tr("Ищет:", "Looking for:")}{" "}
               {(game.teamNeeds?.[other] ?? [])
                 .map((need) => need.position)
-                .join(", ") || "лучший доступный актив"}
+                .join(", ") ||
+                tr("лучший доступный актив", "best available asset")}
             </span>
           </div>
         </div>
@@ -206,11 +217,23 @@ export default function TradeCenter({
           <p>
             {rival ? (
               <>
-                <b>Переговоры будут тяжёлыми.</b> {rival.label}: за сделку с
-                принципиальным соперником потребуется существенная премия.
+                <b>
+                  {tr(
+                    "Переговоры будут тяжёлыми.",
+                    "This will be a tough negotiation.",
+                  )}
+                </b>{" "}
+                {rival.label}:{" "}
+                {tr(
+                  "за сделку с принципиальным соперником потребуется существенная премия.",
+                  "a deal with a rival will require a significant premium.",
+                )}
               </>
             ) : (
-              "Покажите структуру предложения. Я оценю ценность, контрактный баланс и наши потребности."
+              tr(
+                "Покажите структуру предложения. Я оценю ценность, контрактный баланс и наши потребности.",
+                "Show me the structure of the offer. I will weigh value, contract balance and our needs.",
+              )
             )}
           </p>
         </div>
@@ -220,8 +243,8 @@ export default function TradeCenter({
           >
             <b>
               {evaluation.accepted
-                ? "Предложение принято"
-                : "GM отклонил предложение"}
+                ? tr("Предложение принято", "Offer accepted")
+                : tr("GM отклонил предложение", "The GM rejected the offer")}
             </b>
             <span>{reply}</span>
           </div>
@@ -239,26 +262,30 @@ export default function TradeCenter({
         )}
         <section className="trade-offer-card">
           <header>
-            <small>ТЕКУЩЕЕ ПРЕДЛОЖЕНИЕ</small>
+            <small>{tr("ТЕКУЩЕЕ ПРЕДЛОЖЕНИЕ", "CURRENT OFFER")}</small>
             <button aria-label="Clear trade" onClick={clear}>
               <X size={16} />
             </button>
           </header>
           <div>
-            <span>{user.id} ОТДАЁТ</span>
+            <span>
+              {user.id} {tr("ОТДАЁТ", "SEND")}
+            </span>
             {outgoing.length ? (
               outgoing.map((name) => <b key={name}>{name}</b>)
             ) : (
-              <i>Активы не выбраны</i>
+              <i>{tr("Активы не выбраны", "No assets selected")}</i>
             )}
           </div>
           <hr />
           <div>
-            <span>{partner.id} ОТДАЁТ</span>
+            <span>
+              {partner.id} {tr("ОТДАЁТ", "SEND")}
+            </span>
             {incoming.length ? (
               incoming.map((name) => <b key={name}>{name}</b>)
             ) : (
-              <i>Активы не выбраны</i>
+              <i>{tr("Активы не выбраны", "No assets selected")}</i>
             )}
           </div>
           <footer>
@@ -267,7 +294,7 @@ export default function TradeCenter({
               disabled={!outgoing.length || !incoming.length}
               onClick={() => setReply(evaluation.reason)}
             >
-              <Send size={15} /> Отправить GM
+              <Send size={15} /> {tr("Отправить GM", "Send to GM")}
             </button>
             <button
               disabled={!evaluation.accepted || !reply}
@@ -278,7 +305,7 @@ export default function TradeCenter({
                 clear();
               }}
             >
-              Оформить сделку
+              {tr("Оформить сделку", "Complete trade")}
             </button>
           </footer>
         </section>
@@ -293,8 +320,10 @@ export default function TradeCenter({
         )}
       </div>
       <p className="note">
-        Прямые денежные выплаты не используются как обычный актив NHL. Сделка
-        проверяется на потолок зарплат, структуру составов и права на пики.
+        {tr(
+          "Прямые денежные выплаты не используются как обычный актив NHL. Сделка проверяется на потолок зарплат, структуру составов и права на пики.",
+          "Cash payments are not used as a regular NHL asset. The deal is checked against the salary cap, roster structure and pick ownership.",
+        )}
       </p>
     </div>
   );

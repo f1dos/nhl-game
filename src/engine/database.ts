@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+import { tx } from "./text";
 import { RULES } from "./rules";
 import { archetypes, rolesFor, overall } from "./ratings";
 import { RNG, clamp } from "./random";
@@ -234,7 +236,11 @@ function calibrateRosterHierarchy(players: Player[]) {
       setPlayerOverall(goalie, starter.ovr - 4);
   }
 }
-export function newGame(user = "TOR", seed = 260027): Game {
+export function newGame(
+  user = "TOR",
+  seed = 260027,
+  language: Locale = "ru",
+): Game {
   const r = new RNG(seed);
   const teams: Team[] = clubs.map(([id, city, name, division, color], i) => {
     const level = r.int(69, 79);
@@ -304,11 +310,15 @@ export function newGame(user = "TOR", seed = 260027): Game {
     bracket: [],
     playoffRound: 0,
     news: [
-      "Создана новая карьера. Составы NHL/AHL/OHL, реальные контракты и текущий лазарет 2026/27 синхронизированы с публичными источниками.",
+      tx(
+        { language },
+        "Создана новая карьера. Составы NHL/AHL/OHL, реальные контракты и текущий лазарет 2026/27 синхронизированы с публичными источниками.",
+        "New career created. NHL/AHL/OHL rosters, real contracts and the current 2026/27 injury list are synced from public sources.",
+      ),
     ],
     history: [],
     rules: { cap: RULES.defaultSalaryCapMillions },
-    language: "ru",
+    language,
     dataSource: {
       kind: "official-identities-modeled-ratings",
       season: NHL_DATA_META.season,
@@ -629,7 +639,11 @@ export function applyOfficialIdentitySnapshot(g: Game) {
     ratingModel: NHL_DATA_META.ratingModel,
   };
   g.news.unshift(
-    "Карьера обновлена: личности, эмблемы и статистическая модель рейтингов синхронизированы со снимком NHL 2026/27; контракты и результаты сохранены.",
+    tx(
+      g,
+      "Карьера обновлена: личности, эмблемы и статистическая модель рейтингов синхронизированы со снимком NHL 2026/27; контракты и результаты сохранены.",
+      "Career updated: identities, logos and the statistical rating model are synced with the NHL 2026/27 snapshot; contracts and results are kept.",
+    ),
   );
 }
 
@@ -672,7 +686,11 @@ export function applyOfficialRatingsSnapshot(g: Game) {
     ratingModel: NHL_DATA_META.ratingModel,
   };
   g.news.unshift(
-    `Обновлены рейтинги ${updated} игроков. McDavid — 97 OVR; Carolina — 92 OVR / #1.`,
+    tx(
+      g,
+      `Обновлены рейтинги ${updated} игроков. McDavid — 97 OVR; Carolina — 92 OVR / #1.`,
+      `Ratings updated for ${updated} players. McDavid — 97 OVR; Carolina — 92 OVR / #1.`,
+    ),
   );
 }
 
@@ -698,7 +716,11 @@ export function applyOfficialContractSnapshot(g: Game) {
   g.dataSource.contractSource = NHL_CONTRACT_META.source;
   g.dataSource.contractsFetchedAt = NHL_CONTRACT_META.fetchedAt;
   g.news.unshift(
-    `Проверенные контракты PuckPedia применены: ${updated} игроков; остальные контракты помечены как игровые.`,
+    tx(
+      g,
+      `Проверенные контракты PuckPedia применены: ${updated} игроков; остальные контракты помечены как игровые.`,
+      `Verified PuckPedia contracts applied: ${updated} players; the remaining contracts are marked as game-generated.`,
+    ),
   );
   return updated;
 }
@@ -726,7 +748,11 @@ export function applyOfficialInjurySnapshot(g: Game) {
   g.dataSource.injurySource = NHL_INJURY_META.source;
   g.dataSource.injuriesFetchedAt = NHL_INJURY_META.fetchedAt;
   g.news.unshift(
-    `Лазарет PuckPedia обновлён: ${updated} игроков NHL с реальными ожидаемыми датами возвращения.`,
+    tx(
+      g,
+      `Лазарет PuckPedia обновлён: ${updated} игроков NHL с реальными ожидаемыми датами возвращения.`,
+      `PuckPedia injury list updated: ${updated} NHL players with real expected return dates.`,
+    ),
   );
   return updated;
 }
@@ -765,7 +791,11 @@ export function applyMinorLeagueSnapshot(g: Game) {
   g.dataSource.minorsFetchedAt = MINOR_LEAGUE_META.fetchedAt;
   g.seed = r.seed;
   g.news.unshift(
-    `Подключены официальные составы AHL и OHL 2026/27: ${added} новых игроков фарма и ${g.juniorPlayers.length} юниоров.`,
+    tx(
+      g,
+      `Подключены официальные составы AHL и OHL 2026/27: ${added} новых игроков фарма и ${g.juniorPlayers.length} юниоров.`,
+      `Official 2026/27 AHL and OHL rosters connected: ${added} new farm players and ${g.juniorPlayers.length} juniors.`,
+    ),
   );
   return added;
 }

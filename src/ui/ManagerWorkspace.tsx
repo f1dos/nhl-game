@@ -38,6 +38,7 @@ export function TrainingCenter({
   game: Game;
   edit: (fn: (game: Game) => void) => void;
 }) {
+  const ru = game.language === "ru";
   const team = game.teams.find((club) => club.id === game.user)!;
   const schedule = ensureTrainingSchedule(team);
   const load = trainingLoad(team);
@@ -232,7 +233,10 @@ export function TrainingCenter({
                 <span>
                   {player.ovr} / {player.potential} OVR
                 </span>
-                <span>{Math.round(100 - player.fatigue)}% готовность</span>
+                <span>
+                  {Math.round(100 - player.fatigue)}%{" "}
+                  {ru ? "готовность" : "condition"}
+                </span>
                 <progress max="100" value={player.ovr} />
               </div>
             ))}

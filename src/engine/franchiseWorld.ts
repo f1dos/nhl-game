@@ -11,6 +11,7 @@ import type {
   Team,
   TeamNeed,
 } from "./types";
+import { textFor, tx, type Tx } from "./text";
 
 const rivalrySeeds: [string, string, string, number][] = [
   ["MTL", "BOS", "Original Six: Montréal — Boston", 96],
@@ -53,7 +54,7 @@ export function likelyStrategy(team: Team): FranchiseStrategy {
   return "draft-lottery";
 }
 
-function createFans(team: Team): FanState {
+function createFans(team: Team, t: Tx): FanState {
   const brand =
     popularity[team.id] ?? 68 + Math.max(0, 18 - (team.strengthRank ?? 18));
   const supporters = Math.round(180_000 + brand * 23_000);
@@ -63,7 +64,7 @@ function createFans(team: Team): FanState {
     happiness: 50,
     attendance: clamp(62 + Math.round(brand / 3), 65, 100),
     revenueMultiplier: Number((0.78 + brand / 250).toFixed(2)),
-    lastChange: "Старт сезона",
+    lastChange: t("Старт сезона", "Season start"),
   };
 }
 
@@ -99,14 +100,18 @@ export function calculateTeamNeeds(game: Game, team: Team): TeamNeed[] {
     .map(({ position, rating }, index) => ({
       position,
       priority: rating < 72 ? "critical" : index === 0 ? "high" : "medium",
-      reason: `${position}: средняя сила ротации ${rating.toFixed(1)} OVR`,
+      reason: tx(
+        game,
+        `${position}: средняя сила ротации ${rating.toFixed(1)} OVR`,
+        `${position}: average rotation strength ${rating.toFixed(1)} OVR`,
+      ),
       budget: Number(Math.min(capSpace, rating < 74 ? 6.5 : 3.5).toFixed(2)),
     }));
 }
 
 export function ensureFranchiseWorld(game: Game) {
   game.fans ??= Object.fromEntries(
-    game.teams.map((team) => [team.id, createFans(team)]),
+    game.teams.map((team) => [team.id, createFans(team, textFor(game))]),
   );
   game.rivalries ??= createRivalries();
   game.teamNeeds ??= Object.fromEntries(
@@ -128,7 +133,12 @@ export function effectiveOverall(player: Player) {
   return Math.min(99, player.ovr + (player.moraleOvrBonus ?? 0));
 }
 
-function changeFans(fans: FanState, won: boolean, rivalry: boolean) {
+function changeFans(
+  fans: FanState,
+  won: boolean,
+  rivalry: boolean,
+  t: Tx,
+) {
   const scale = rivalry ? 2 : 1;
   fans.happiness = clamp(fans.happiness + (won ? scale : -scale), 0, 100);
   fans.engagement = clamp(
@@ -150,11 +160,11 @@ function changeFans(fans: FanState, won: boolean, rivalry: boolean) {
   );
   fans.lastChange = won
     ? rivalry
-      ? "Победа в принципиальном матче"
-      : "Победа команды"
+      ? t("Победа в принципиальном матче", "Rivalry win")
+      : t("Победа команды", "Team win")
     : rivalry
-      ? "Поражение в принципиальном матче"
-      : "Поражение команды";
+      ? t("Поражение в принципиальном матче", "Rivalry loss")
+      : t("Поражение команды", "Team loss");
 }
 
 export function applyWorldMatchReaction(game: Game, result: Result) {
@@ -166,8 +176,9 @@ export function applyWorldMatchReaction(game: Game, result: Result) {
       [item.teamA, item.teamB].includes(result.home) &&
       [item.teamA, item.teamB].includes(result.away),
   );
-  changeFans(game.fans![winner], true, !!rivalry);
-  changeFans(game.fans![loser], false, !!rivalry);
+  const t = textFor(game);
+  changeFans(game.fans![winner], true, !!rivalry, t);
+  changeFans(game.fans![loser], false, !!rivalry, t);
   for (const id of [winner, loser]) {
     const won = id === winner;
     const team = game.teams.find((club) => club.id === id)!;
@@ -188,7 +199,14 @@ export function applyWorldMatchReaction(game: Game, result: Result) {
         100,
       );
     game.news.unshift(
-      `${rivalry.label}: ${userWon ? "победа укрепила поддержку клуба" : "поражение немного разочаровало фанатов"}.`,
+      `${rivalry.label}: ${
+        userWon
+          ? t("победа укрепила поддержку клуба", "the win strengthened fan support")
+          : t(
+              "поражение немного разочаровало фанатов",
+              "the loss left the fans a little disappointed",
+            )
+      }.`,
     );
   }
 }
@@ -241,8 +259,16 @@ export function addRivalryObjective(game: Game) {
     season: game.year,
     tier: "supporting",
     metric: "rivalry-wins",
-    title: "Выиграть принципиальное противостояние",
-    detail: `Добиться победы минимум в двух матчах: ${rivals.map((item) => item.label).join(", ")}.`,
+    title: tx(
+      game,
+      "Выиграть принципиальное противостояние",
+      "Win the rivalry",
+    ),
+    detail: tx(
+      game,
+      `Добиться победы минимум в двух матчах: ${rivals.map((item) => item.label).join(", ")}.`,
+      `Win at least two games against: ${rivals.map((item) => item.label).join(", ")}.`,
+    ),
     target: 2,
     progress: 0,
     completed: false,

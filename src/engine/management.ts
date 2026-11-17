@@ -6,13 +6,18 @@ import { payroll, tradeValue } from "./trades";
 import { processFreeAgentOffers } from "./freeAgency";
 import { ensureTrainingSchedule, trainTeam } from "./training";
 import { ensureSpecialTeams } from "./tactics";
-import { chooseSeasonStrategy, defaultEmployment } from "./strategy";
+import {
+  chooseSeasonStrategy,
+  defaultEmployment,
+  STRATEGY_LABELS,
+} from "./strategy";
 import {
   addRivalryObjective,
   applyWeeklyMood,
   ensureFranchiseWorld,
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
+import { textFor } from "./text";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -100,14 +105,25 @@ export function pushEvent(
   g.news = g.news.slice(0, 100);
 }
 
+const STRATEGY_EVENT_TITLES = [
+  "Утвердите стратегию франшизы",
+  "Approve the franchise strategy",
+];
+const isStrategyEvent = (event: ManagementEvent) =>
+  event.action === "strategy" && STRATEGY_EVENT_TITLES.includes(event.title);
+
 function seedOpeningEvents(g: Game) {
+  const t = textFor(g);
   const team = g.teams.find((club) => club.id === g.user)!;
   pushEvent(g, {
     date: g.calendar!.date,
     category: "organization",
     priority: "high",
-    title: "Утвердите стратегию франшизы",
-    body: "Владелец ждёт выбранное направление развития клуба на сезон.",
+    title: t("Утвердите стратегию франшизы", "Approve the franchise strategy"),
+    body: t(
+      "Владелец ждёт выбранное направление развития клуба на сезон.",
+      "The owner is waiting for the club's chosen direction for the season.",
+    ),
     action: "strategy",
     requiresResponse: true,
     responseDue: addDays(g.calendar!.date, 7),
@@ -116,8 +132,14 @@ function seedOpeningEvents(g: Game) {
     date: g.calendar!.date,
     category: "organization",
     priority: "normal",
-    title: "Назначьте капитана и двух ассистентов",
-    body: "Тренерский штаб подготовил рейтинг лидеров. Решение повлияет на атмосферу и обсуждение целей сезона.",
+    title: t(
+      "Назначьте капитана и двух ассистентов",
+      "Name a captain and two alternates",
+    ),
+    body: t(
+      "Тренерский штаб подготовил рейтинг лидеров. Решение повлияет на атмосферу и обсуждение целей сезона.",
+      "The coaching staff has ranked the leaders. The decision will shape the room and the discussion of season goals.",
+    ),
     action: "leadership",
     requiresResponse: false,
     responseDue: addDays(g.calendar!.date, 10),
@@ -128,11 +150,17 @@ function seedOpeningEvents(g: Game) {
       date: g.calendar!.date,
       category: "medical",
       priority: "high",
-      title: `Медицинский отчёт: недоступны ${injured.length}`,
+      title: t(
+        `Медицинский отчёт: недоступны ${injured.length}`,
+        `Medical report: ${injured.length} unavailable`,
+      ),
       body: `${injured
         .slice(0, 3)
         .map((player) => player.name)
-        .join(", ")}. Проверьте состав и варианты замены из AHL.`,
+        .join(", ")}. ${t(
+        "Проверьте состав и варианты замены из AHL.",
+        "Review the lineup and AHL replacement options.",
+      )}`,
       action: "injuries",
       requiresResponse: true,
       responseDue: addDays(g.calendar!.date, 3),
@@ -143,8 +171,14 @@ function seedOpeningEvents(g: Game) {
       date: g.calendar!.date,
       category: "contract",
       priority: "normal",
-      title: `${expiring.length} контрактов требуют планирования`,
-      body: "Финансовый отдел подготовил список соглашений, истекающих после сезона.",
+      title: t(
+        `${expiring.length} контрактов требуют планирования`,
+        `${expiring.length} contracts require planning`,
+      ),
+      body: t(
+        "Финансовый отдел подготовил список соглашений, истекающих после сезона.",
+        "The finance department has listed the contracts expiring after the season.",
+      ),
       action: "contracts",
       requiresResponse: false,
     });
@@ -153,18 +187,19 @@ function seedOpeningEvents(g: Game) {
 function ensureStrategyEvent(g: Game) {
   if (
     g.strategySeason === g.year ||
-    g.events!.some(
-      (event) =>
-        event.title === "Утвердите стратегию франшизы" && !event.resolved,
-    )
+    g.events!.some((event) => isStrategyEvent(event) && !event.resolved)
   )
     return;
+  const t = textFor(g);
   pushEvent(g, {
     date: g.calendar!.date,
     category: "organization",
     priority: "critical",
-    title: "Утвердите стратегию франшизы",
-    body: "До продолжения сезона совет директоров требует выбрать уровень спортивных амбиций и принять задачи.",
+    title: t("Утвердите стратегию франшизы", "Approve the franchise strategy"),
+    body: t(
+      "До продолжения сезона совет директоров требует выбрать уровень спортивных амбиций и принять задачи.",
+      "Before the season continues, the board requires you to set the level of ambition and accept the objectives.",
+    ),
     action: "strategy",
     requiresResponse: true,
     responseDue: addDays(g.calendar!.date, 7),
@@ -258,21 +293,31 @@ function categoryAction(category: ManagementEventCategory) {
 }
 
 function processDeadlines(g: Game, date: string) {
+  const t = textFor(g);
   const dates: Record<string, [ManagementEventCategory, string, string]> = {
     [`${g.year}-12-19`]: [
       "league",
-      "Праздничный мораторий на сделки",
-      "Торговая активность лиги временно приостановлена.",
+      t("Праздничный мораторий на сделки", "Holiday trade freeze"),
+      t(
+        "Торговая активность лиги временно приостановлена.",
+        "League trading activity is temporarily suspended.",
+      ),
     ],
     [`${g.year + 1}-03-05`]: [
       "trade",
-      "Trade Deadline — финальный день",
-      "Последняя возможность усилить состав или обменять активы перед плей-офф.",
+      t("Trade Deadline — финальный день", "Trade Deadline — final day"),
+      t(
+        "Последняя возможность усилить состав или обменять активы перед плей-офф.",
+        "Last chance to strengthen the roster or move assets before the playoffs.",
+      ),
     ],
     [`${g.year + 1}-04-18`]: [
       "league",
-      "Финиш регулярного чемпионата",
-      "Клубы подводят итоги и готовятся к плей-офф.",
+      t("Финиш регулярного чемпионата", "Regular season finish"),
+      t(
+        "Клубы подводят итоги и готовятся к плей-офф.",
+        "Clubs take stock and prepare for the playoffs.",
+      ),
     ],
   };
   const item = dates[date];
@@ -309,8 +354,14 @@ function adaptAiStrategies(g: Game) {
         date: g.calendar!.date,
         category: "league",
         priority: "normal",
-        title: `${team.id} меняет курс: ${profile.strategy}`,
-        body: "Руководство скорректировало конкурентное окно после анализа результатов, возраста и активов.",
+        title: textFor(g)(
+          `${team.id} меняет курс: ${profile.strategy}`,
+          `${team.id} changes direction: ${STRATEGY_LABELS[profile.strategy].en}`,
+        ),
+        body: textFor(g)(
+          "Руководство скорректировало конкурентное окно после анализа результатов, возраста и активов.",
+          "Management adjusted its competitive window after reviewing results, age and assets.",
+        ),
         teamId: team.id,
       });
   }
@@ -344,8 +395,14 @@ function aiContractDay(g: Game) {
     date: g.calendar!.date,
     category: "contract",
     priority: player.ovr >= 84 ? "high" : "normal",
-    title: `${team.id} продлил контракт с ${player.name}`,
-    body: `${years} года, $${salary.toFixed(2)}M за сезон. Решение принято с учётом роли и потолка зарплат.`,
+    title: textFor(g)(
+      `${team.id} продлил контракт с ${player.name}`,
+      `${team.id} extended ${player.name}`,
+    ),
+    body: textFor(g)(
+      `${years} года, $${salary.toFixed(2)}M за сезон. Решение принято с учётом роли и потолка зарплат.`,
+      `${years} years, $${salary.toFixed(2)}M per season. The decision reflects role and cap considerations.`,
+    ),
     teamId: team.id,
     playerId: player.id,
   });
@@ -396,14 +453,21 @@ function aiTradeDay(g: Game) {
   b.players[bIndex] = pa;
   autoLines(a);
   autoLines(b);
-  const message = `${a.id} получает ${pb.name}; ${b.id} получает ${pa.name}`;
+  const t = textFor(g);
+  const message = t(
+    `${a.id} получает ${pb.name}; ${b.id} получает ${pa.name}`,
+    `${a.id} acquire ${pb.name}; ${b.id} acquire ${pa.name}`,
+  );
   (g.transactions ??= []).push({ year: g.year, round: g.round, message });
   pushEvent(g, {
     date: g.calendar!.date,
     category: "trade",
     priority: Math.max(pa.ovr, pb.ovr) >= 84 ? "high" : "normal",
-    title: `Сделка между ${a.id} и ${b.id}`,
-    body: `${message}. Оба клуба сохранили допустимую зарплатную ведомость.`,
+    title: t(`Сделка между ${a.id} и ${b.id}`, `Trade between ${a.id} and ${b.id}`),
+    body: `${message}. ${t(
+      "Оба клуба сохранили допустимую зарплатную ведомость.",
+      "Both clubs remain cap compliant.",
+    )}`,
   });
 }
 
@@ -429,8 +493,14 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
       date,
       category: "game",
       priority: "normal",
-      title: `Предсезонный матч: ${preseason.away} @ ${preseason.home}`,
-      body: "Результат не влияет на таблицу. Используйте матч для проверки сочетаний и тактики.",
+      title: textFor(g)(
+        `Предсезонный матч: ${preseason.away} @ ${preseason.home}`,
+        `Preseason game: ${preseason.away} @ ${preseason.home}`,
+      ),
+      body: textFor(g)(
+        "Результат не влияет на таблицу. Используйте матч для проверки сочетаний и тактики.",
+        "The result does not count in the standings. Use the game to test combinations and tactics.",
+      ),
     });
   }
   const hasGames =
@@ -444,8 +514,14 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
       date,
       category: "game",
       priority: "normal",
-      title: `Игровой день ${before + 1} завершён`,
-      body: "Результаты, статистика, форма и состояние игроков обновлены.",
+      title: textFor(g)(
+        `Игровой день ${before + 1} завершён`,
+        `Game day ${before + 1} completed`,
+      ),
+      body: textFor(g)(
+        "Результаты, статистика, форма и состояние игроков обновлены.",
+        "Results, statistics, form and player condition have been updated.",
+      ),
     });
   } else if (g.phase === "regular" && !preseason) {
     for (const team of g.teams) trainTeam(team);
@@ -571,8 +647,7 @@ export function selectFranchiseStrategy(g: Game, strategy: FranchiseStrategy) {
   chooseSeasonStrategy(g, strategy);
   addRivalryObjective(g);
   const opening = g.events!.find(
-    (event) =>
-      event.title === "Утвердите стратегию франшизы" && !event.resolved,
+    (event) => isStrategyEvent(event) && !event.resolved,
   );
   if (opening) {
     opening.read = true;
@@ -582,8 +657,14 @@ export function selectFranchiseStrategy(g: Game, strategy: FranchiseStrategy) {
     date: g.calendar!.date,
     category: "organization",
     priority: "normal",
-    title: `Стратегия клуба утверждена: ${strategy}`,
-    body: "Рекомендации, оценка активов и приоритеты развития теперь учитывают выбранный курс.",
+    title: textFor(g)(
+      `Стратегия клуба утверждена: ${strategy}`,
+      `Club strategy approved: ${STRATEGY_LABELS[strategy].en}`,
+    ),
+    body: textFor(g)(
+      "Рекомендации, оценка активов и приоритеты развития теперь учитывают выбранный курс.",
+      "Recommendations, asset valuations and development priorities now follow the chosen direction.",
+    ),
   });
 }
 
@@ -599,23 +680,28 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
   ensureManagementState(g);
   const team = g.teams.find((club) => club.id === g.user)!;
   const salary = payroll(team.players);
+  const t = textFor(g);
   const recommendations: AdvisorRecommendation[] = [];
   if (g.franchiseStrategy === "draft-lottery")
     recommendations.push({
       id: "rebuild-assets",
       priority: "normal",
-      title: "Защитите будущие активы",
-      detail:
+      title: t("Защитите будущие активы", "Protect future assets"),
+      detail: t(
         "Курс на перестройку повышает приоритет молодых игроков и пиков первых трёх раундов.",
+        "The rebuild raises the priority of young players and picks from the first three rounds.",
+      ),
       action: "strategy",
     });
   if (g.franchiseStrategy === "stanley-cup")
     recommendations.push({
       id: "competitive-window",
       priority: "normal",
-      title: "Конкурентное окно открыто",
-      detail:
+      title: t("Конкурентное окно открыто", "The competitive window is open"),
+      detail: t(
         "Ищите усиление верхних звеньев, сохраняя достаточно места под потолком к дедлайну.",
+        "Look to upgrade the top lines while keeping enough cap space for the deadline.",
+      ),
       action: "trades",
     });
   const centers = team.players.filter(
@@ -628,8 +714,11 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
     recommendations.push({
       id: "center-depth",
       priority: "high",
-      title: "Недостаточная глубина в центре",
-      detail: `Доступны ${centers.length} здоровых центров; для четырёх звеньев нужен ещё один вариант.`,
+      title: t("Недостаточная глубина в центре", "Not enough depth at center"),
+      detail: t(
+        `Доступны ${centers.length} здоровых центров; для четырёх звеньев нужен ещё один вариант.`,
+        `${centers.length} healthy centers are available; another option is needed for four lines.`,
+      ),
       action: "trades",
     });
   const expiring = team.players.filter(
@@ -639,19 +728,30 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
     recommendations.push({
       id: "expiring-core",
       priority: "high",
-      title: `Риск потери ключевых игроков: ${expiring.length}`,
+      title: t(
+        `Риск потери ключевых игроков: ${expiring.length}`,
+        `Risk of losing key players: ${expiring.length}`,
+      ),
       detail: `${expiring
         .slice(0, 2)
         .map((player) => player.name)
-        .join(", ")} требуют решения по контракту.`,
+        .join(", ")} ${t(
+        "требуют решения по контракту.",
+        expiring.slice(0, 2).length === 1
+          ? "needs a contract decision."
+          : "need contract decisions.",
+      )}`,
       action: "contracts",
     });
   if (g.rules.cap - salary < 3)
     recommendations.push({
       id: "cap-risk",
       priority: "high",
-      title: "Опасно мало места под потолком",
-      detail: `Свободно $${(g.rules.cap - salary).toFixed(2)}M. Любое усиление потребует расчистить ведомость.`,
+      title: t("Опасно мало места под потолком", "Dangerously low cap space"),
+      detail: t(
+        `Свободно $${(g.rules.cap - salary).toFixed(2)}M. Любое усиление потребует расчистить ведомость.`,
+        `$${(g.rules.cap - salary).toFixed(2)}M available. Any addition will require clearing payroll.`,
+      ),
       action: "finances",
     });
   const ready = (team.farm ?? []).filter(
@@ -661,11 +761,21 @@ export function advisorRecommendations(g: Game): AdvisorRecommendation[] {
     recommendations.push({
       id: "ahl-ready",
       priority: "normal",
-      title: `${ready.length} игроков AHL близки к NHL`,
+      title: t(
+        `${ready.length} игроков AHL близки к NHL`,
+        ready.length === 1
+          ? "1 AHL player is close to the NHL"
+          : `${ready.length} AHL players are close to the NHL`,
+      ),
       detail: `${ready
         .slice(0, 2)
         .map((player) => player.name)
-        .join(", ")} готовы получить шанс.`,
+        .join(", ")} ${t(
+        "готовы получить шанс.",
+        ready.slice(0, 2).length === 1
+          ? "is ready for an opportunity."
+          : "are ready for an opportunity.",
+      )}`,
       action: "organization",
     });
   return recommendations.slice(0, 4);
