@@ -53,6 +53,8 @@ export interface Player {
   injuryBurden?: number;
   motivation?: number;
   relationship?: number;
+  /** Set when the player has asked to be traded. */
+  tradeRequest?: { year: number; reason: "captaincy" | "meeting" };
   lastConversationRound?: number;
   conversationHistory?: {
     year: number;
@@ -371,6 +373,16 @@ export interface ManagementEvent {
     | "finances";
   responseDue?: string;
   requiresResponse?: boolean;
+  /** Message family for messages with special handling (reply options). */
+  kind?: "captaincy-letter";
+  /** Reply options shown in the inbox (career-language text). */
+  replies?: { id: string; label: string; detail?: string }[];
+  /** The reply the manager chose; replies apply their effects once. */
+  replyId?: string;
+  replyOutcome?: string;
+  replyEffects?: { morale: number; relationship: number };
+  /** Dressing-room approval of the decision the message is about. */
+  approval?: number;
   read: boolean;
   resolved: boolean;
 }
@@ -466,6 +478,54 @@ export interface Series {
   winner?: string;
   games: Result[];
 }
+export type TeamMeetingTopic =
+  | "praise"
+  | "demand-more"
+  | "losing-streak"
+  | "big-game"
+  | "discipline"
+  | "back-player"
+  | "expectations";
+export type TeamMeetingTone = "supportive" | "calm" | "demanding" | "furious";
+export type MeetingGroup = "leaders" | "veterans" | "young" | "unhappy";
+export type MeetingReaction =
+  | "inspired"
+  | "positive"
+  | "indifferent"
+  | "unconvinced"
+  | "angry";
+export interface TeamMeetingRecord {
+  date: string;
+  /** Legacy reasons from saves before topic-based meetings, or a topic. */
+  reason: "preseason" | "losing-streak" | "playoffs" | "morale" | TeamMeetingTopic;
+  tone: TeamMeetingTone;
+  leaderId: string;
+  outcome: "positive" | "neutral" | "negative";
+  message: string;
+  topic?: TeamMeetingTopic;
+  targetPlayerId?: string;
+  score?: number;
+  messageI18n?: { ru: string; en: string };
+  reactions?: {
+    group: MeetingGroup;
+    reaction: MeetingReaction;
+    count: number;
+    ru: string;
+    en: string;
+  }[];
+  moraleDelta?: number;
+  motivationDelta?: number;
+}
+export interface LeadershipLogEntry {
+  date: string;
+  year: number;
+  captainId: string;
+  alternateIds: string[];
+  previousCaptainId?: string;
+  approval: number;
+  verdict: "united" | "approved" | "doubts" | "upset" | "revolt";
+  letterEventId?: string;
+}
 export interface Game {
   freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
@@ -478,14 +538,11 @@ export interface Game {
   leadershipSeason?: number;
   leadershipConsequenceSeason?: number;
   leadershipStrategyChanged?: boolean;
-  teamMeetings?: {
-    date: string;
-    reason: "preseason" | "losing-streak" | "playoffs" | "morale";
-    tone: "supportive" | "calm" | "demanding";
-    leaderId: string;
-    outcome: "positive" | "neutral" | "negative";
-    message: string;
-  }[];
+  teamMeetings?: TeamMeetingRecord[];
+  /** Captaincy changes and the room's verdict, newest first. */
+  leadershipLog?: LeadershipLogEntry[];
+  /** User-club player id → year he joined the club. */
+  clubTenure?: Record<string, number>;
   franchiseObjectives?: FranchiseObjective[];
   managerEmployment?: ManagerEmployment;
   fans?: Record<string, FanState>;
