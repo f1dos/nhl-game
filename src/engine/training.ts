@@ -2,7 +2,7 @@ import type { Team, TrainingSchedule, TrainingSession } from "./types";
 import { overall } from "./ratings";
 export type TrainingPlan = "balanced" | "recovery" | "shooting" | "defense";
 
-const balancedWeek: TrainingSchedule = {
+export const balancedWeek: TrainingSchedule = {
   intensity: "normal",
   days: [
     { morning: "recovery", afternoon: "tactical" },
@@ -20,7 +20,8 @@ export function ensureTrainingSchedule(team: Team) {
   return team.trainingSchedule;
 }
 
-const recoveryValue: Record<TrainingSession, number> = {
+/** Fatigue removed by one session (negative adds fatigue). */
+export const recoveryValue: Record<TrainingSession, number> = {
   rest: 8,
   recovery: 7,
   teamwork: 3,
@@ -32,7 +33,8 @@ const recoveryValue: Record<TrainingSession, number> = {
   conditioning: -2,
 };
 
-const skillFocus: Partial<Record<TrainingSession, string[]>> = {
+/** Attributes a session develops on a development tick. */
+export const skillFocus: Partial<Record<TrainingSession, string[]>> = {
   teamwork: ["teamwork", "passing"],
   tactical: ["decisions", "offensivePosition", "defensivePosition"],
   offense: ["shooting", "accuracy", "puckControl"],

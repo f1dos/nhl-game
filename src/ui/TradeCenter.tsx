@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, MessageSquare, Plus, Send, X } from "lucide-react";
+import { Check, IdCard, MessageSquare, Plus, Send, X } from "lucide-react";
 import type { Game, Player, Team } from "../engine/types";
 import {
   evaluateTrade,
@@ -8,7 +8,8 @@ import {
   tradeValue,
 } from "../engine/trades";
 import { rivalryBetween } from "../engine/franchiseWorld";
-import { Crest, Rating } from "./components";
+import { Rating } from "./components";
+import { ClubLink, PlayerLink } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
 type RosterTab = "nhl" | "ahl" | "picks";
@@ -76,10 +77,12 @@ export default function TradeCenter({
     return (
       <section className="trade-assets-column">
         <header>
-          <Crest team={team} size={44} />
+          <ClubLink team={team} crest={44}>
+            {""}
+          </ClubLink>
           <div>
             <b>
-              {team.city} {team.name}
+              <ClubLink team={team} />
             </b>
             <small>
               ${payroll(team.players).toFixed(1)}M / $
@@ -133,7 +136,12 @@ export default function TradeCenter({
                 >
                   <span className="trade-number">{player.number}</span>
                   <span>
-                    <b>{player.name}</b>
+                    <b>
+                      {player.name}{" "}
+                      <PlayerLink player={player} className="trade-card-link">
+                        <IdCard size={13} />
+                      </PlayerLink>
+                    </b>
                     <small>
                       {player.pos} · {player.age} лет · ${player.salary}M
                     </small>
@@ -179,7 +187,9 @@ export default function TradeCenter({
       </div>
       <section className="trade-gm-room">
         <div className="gm-identity">
-          <Crest team={partner} size={52} />
+          <ClubLink team={partner} crest={52}>
+            {""}
+          </ClubLink>
           <div>
             <small>ЛИНИЯ СВЯЗИ ОТКРЫТА</small>
             <b>Генеральный менеджер · {partner.id}</b>

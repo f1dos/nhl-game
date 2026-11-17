@@ -40,10 +40,6 @@ import {
   applyOfficialInjurySnapshot,
   applyMinorLeagueSnapshot,
 } from "../engine/database";
-import {
-  externalContactEligibility,
-  playerConcerns,
-} from "../engine/conversations";
 import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
@@ -58,7 +54,9 @@ import {
 import MatchdayHub from "./MatchdayHub";
 import TradeCenter from "./TradeCenter";
 import ContractCenter from "./ContractCenter";
-import { TrainingCenter } from "./ManagerWorkspace";
+import { TrainingCenter } from "./TrainingCalendar";
+import PlayerCard from "./PlayerCard";
+import { ClubLink, EntityLinkProvider, PlayerLink, findPlayer } from "./links";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
 import { ensureDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
@@ -66,8 +64,6 @@ import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
 import { AwardHistory, AwardRace } from "./MatchRatings";
-import { averageRating } from "../engine/matchRatings";
-import { AWARDS } from "../engine/awards";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
 import ClubCenter from "./ClubCenter";
@@ -650,16 +646,9 @@ export default function App() {
               <td className="muted">{i + 1}</td>
               <td>
                 <div className="team-cell">
-                  <Crest team={t} size={28} />
-                  <button
-                    className="team-link"
-                    onClick={() => {
-                      setSelectedClub(t.id);
-                      go("clubs");
-                    }}
-                  >
+                  <ClubLink team={t} crest={28} className="team-link">
                     <strong>{compact ? t.id : `${t.city} ${t.name}`}</strong>
-                  </button>
+                  </ClubLink>
                   {t.id === g.user && <span className="you">YOU</span>}
                 </div>
               </td>
@@ -710,10 +699,11 @@ export default function App() {
               )}
             </time>
             <span className="venue">{f.home === g.user ? "H" : "A"}</span>
-            <Crest team={opp} size={28} />
-            <strong>
-              {opp.city} {opp.name}
-            </strong>
+            <ClubLink team={opp} crest={28}>
+              <strong>
+                {opp.city} {opp.name}
+              </strong>
+            </ClubLink>
             {f.result ? (
               <b>
                 {f.result.goals[f.home === g.user ? 0 : 1]} –{" "}
@@ -742,6 +732,7 @@ export default function App() {
       <ClubCenter
         game={g}
         initialClub={selectedClub}
+        onSelectClub={setSelectedClub}
         onPlayer={setProfile}
         onTrade={() => go("trades")}
       />
@@ -822,11 +813,12 @@ export default function App() {
               </div>
               <div className="next-content">
                 <div>
-                  <Crest team={team} size={80} />
-                  <h2>
-                    {team.city}
-                    <small>{team.name}</small>
-                  </h2>
+                  <ClubLink team={team} crest={80} className="next-club">
+                    <h2>
+                      {team.city}
+                      <small>{team.name}</small>
+                    </h2>
+                  </ClubLink>
                 </div>
                 <div className="versus">
                   <span>
@@ -851,11 +843,12 @@ export default function App() {
                 <div>
                   {opponent ? (
                     <>
-                      <Crest team={opponent} size={80} />
-                      <h2>
-                        {opponent.city}
-                        <small>{opponent.name}</small>
-                      </h2>
+                      <ClubLink team={opponent} crest={80} className="next-club">
+                        <h2>
+                          {opponent.city}
+                          <small>{opponent.name}</small>
+                        </h2>
+                      </ClubLink>
                     </>
                   ) : (
                     <Trophy size={74} color="#baa775" />
@@ -941,7 +934,9 @@ export default function App() {
                   <small>
                     {leader.pos} · {leader.nation}
                   </small>
-                  <h3>{leader.name}</h3>
+                  <h3>
+                    <PlayerLink player={leader} />
+                  </h3>
                   <span>
                     {leader.stats.g} G <i>·</i> {leader.stats.a} A <i>·</i>{" "}
                     {leader.stats.g + leader.stats.a} PTS
@@ -1095,10 +1090,11 @@ export default function App() {
                         <td className="muted">{club.strengthRank}</td>
                         <td>
                           <div className="team-cell">
-                            <Crest team={club} size={28} />
-                            <strong>
-                              {club.city} {club.name}
-                            </strong>
+                            <ClubLink team={club} crest={28}>
+                              <strong>
+                                {club.city} {club.name}
+                              </strong>
+                            </ClubLink>
                           </div>
                         </td>
                         <td>
@@ -1166,11 +1162,11 @@ export default function App() {
                   {round.map((s) => (
                     <div className="series" key={s.a}>
                       <span className={s.winner === s.a ? "winner" : ""}>
-                        {s.a}
+                        <ClubLink id={s.a} crest={20} label="id" />
                         <b>{s.wins[0]}</b>
                       </span>
                       <span className={s.winner === s.b ? "winner" : ""}>
-                        {s.b}
+                        <ClubLink id={s.b} crest={20} label="id" />
                         <b>{s.wins[1]}</b>
                       </span>
                     </div>
@@ -1251,7 +1247,9 @@ export default function App() {
                   <tr key={player.id} onClick={() => setProfile(player)}>
                     <td className="muted">{index + 1}</td>
                     <td>
-                      <strong>{player.name}</strong>
+                      <PlayerLink player={player}>
+                        <strong>{player.name}</strong>
+                      </PlayerLink>
                       <small>
                         {player.ratingSource === "nhl-stats-model"
                           ? "NHL STATS MODEL"
@@ -1260,8 +1258,7 @@ export default function App() {
                     </td>
                     <td>
                       <div className="team-cell">
-                        <Crest team={club} size={25} />
-                        <b>{club.id}</b>
+                        <ClubLink team={club} crest={25} label="id" />
                       </div>
                     </td>
                     <td>
@@ -1283,6 +1280,7 @@ export default function App() {
             players={players.slice(0, 50)}
             onSelect={setProfile}
             lang={g.language}
+            showClub
           />
         </Panel>
         <Panel title={tr("ВРАТАРИ", "GOALTENDERS")}>
@@ -1308,7 +1306,9 @@ export default function App() {
                   .slice(0, 32)
                   .map((p) => (
                     <tr key={p.id} onClick={() => setProfile(p)}>
-                      <td>{p.name}</td>
+                      <td>
+                        <PlayerLink player={p} />
+                      </td>
                       <td>{p.stats.gp}</td>
                       <td>{p.stats.wins}</td>
                       <td>{p.stats.sa}</td>
@@ -1397,7 +1397,9 @@ export default function App() {
                 .sort((a, b) => b.salary - a.salary)
                 .map((p) => (
                   <tr key={p.id}>
-                    <td>{p.name}</td>
+                    <td>
+                      <PlayerLink player={p} />
+                    </td>
                     <td>{p.pos}</td>
                     <td>${p.salary.toFixed(2)}M</td>
                     <td>{p.years}</td>
@@ -1458,7 +1460,9 @@ export default function App() {
                   {h.year}/{h.year + 1}
                 </b>
                 <Trophy size={22} />
-                <strong>{h.champion}</strong>
+                <strong>
+                  <ClubLink id={h.champion} />
+                </strong>
                 <span>
                   {h.points} PTS · {g.user}
                 </span>
@@ -1669,7 +1673,24 @@ export default function App() {
         </Panel>
       </>
     );
+  const openClub = (id: string) => {
+    setProfile(null);
+    setSelectedClub(id);
+    go("clubs");
+  };
   return (
+    <EntityLinkProvider
+      value={{
+        game: g,
+        openPlayer: (player) =>
+          setProfile(
+            typeof player === "string"
+              ? (findPlayer(g, player) ?? null)
+              : player,
+          ),
+        openClub,
+      }}
+    >
     <div className="app">
       <aside className="sidebar">
         <Brand />
@@ -1954,7 +1975,7 @@ export default function App() {
         </div>
       )}
       {profile && (
-        <PlayerProfile
+        <PlayerCard
           player={
             g.teams
               .flatMap((t) => [
@@ -2002,6 +2023,7 @@ export default function App() {
         </div>
       )}
     </div>
+    </EntityLinkProvider>
   );
 }
 function Brand() {
@@ -2289,383 +2311,5 @@ function TacticsView({
         </div>
       </div>
     </>
-  );
-}
-function PlayerProfile({
-  player: p,
-  game,
-  tr,
-  onClose,
-  onConversation,
-}: {
-  player: Player;
-  game: Game;
-  tr: (a: string, b: string) => string;
-  onClose: () => void;
-  onConversation: () => void;
-}) {
-  const skaterCategories: [string, string[]][] = [
-    [
-      tr("АТАКА", "OFFENSE"),
-      [
-        "shooting",
-        "accuracy",
-        "passing",
-        "puckControl",
-        "offensivePosition",
-        "offPuck",
-        "faceoffs",
-      ],
-    ],
-    [
-      tr("ЗАЩИТА", "DEFENSE"),
-      ["defensivePosition", "checking", "blocking", "firstPass", "penaltyKill"],
-    ],
-    [
-      tr("КАТАНИЕ И ФИЗИКА", "SKATING & PHYSICAL"),
-      ["speed", "acceleration", "skating", "strength", "stamina", "durability"],
-    ],
-    [
-      tr("МЕНТАЛЬНЫЕ", "MENTAL"),
-      [
-        "composure",
-        "discipline",
-        "leadership",
-        "decisions",
-        "consistency",
-        "teamwork",
-        "resilience",
-      ],
-    ],
-  ];
-  const goalieCategories: [string, string[]][] = [
-    [
-      tr("МЕНТАЛЬНЫЕ", "MENTAL"),
-      ["composure", "discipline", "decisions", "consistency", "resilience"],
-    ],
-    [
-      tr("ВРАТАРСКИЕ", "GOALTENDING"),
-      [
-        "reflexes",
-        "goaliePosition",
-        "glove",
-        "reboundControl",
-        "stickhandling",
-      ],
-    ],
-  ];
-  const visibleCategories = p.pos === "G" ? goalieCategories : skaterCategories;
-  const career =
-    p.history.reduce((n, h) => n + h.stats.g + h.stats.a, 0) +
-    p.stats.g +
-    p.stats.a;
-  const previous = p.history.at(-1)?.ovr ?? p.ovr;
-  const owner = game.teams.find((team) =>
-    [...team.players, ...(team.farm ?? [])].some(
-      (player) => player.id === p.id,
-    ),
-  );
-  const external = owner && owner.id !== game.user;
-  const contact = externalContactEligibility(game, p.id);
-  return (
-    <div className="modal-backdrop player-profile-backdrop" onClick={onClose}>
-      <section
-        className="profile-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={p.name}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          className="modal-close icon-button"
-          aria-label="Close"
-          onClick={onClose}
-        >
-          <X size={22} />
-        </button>
-        <div className="profile-hero">
-          <div className={`profile-number ${p.headshot ? "has-photo" : ""}`}>
-            {p.headshot ? (
-              <img src={p.headshot} alt={p.name} />
-            ) : (
-              <>
-                <span>{p.number}</span>
-                <small>{p.pos}</small>
-              </>
-            )}
-          </div>
-          <div>
-            <span className="eyebrow">
-              {p.pos} · {p.nation} · {p.age} {tr("ЛЕТ", "YEARS OLD")}
-            </span>
-            <h1>{p.name}</h1>
-            <p>
-              {p.archetype || tr("Универсальный игрок", "Utility player")} ·{" "}
-              {p.injury
-                ? tr(
-                    `Лазарет: ${p.injuryReason ?? "травма"} · ${p.injuryReturnDate ?? `${p.injury} шагов`}`,
-                    `Injury reserve: ${p.injuryReason ?? "injury"} · ${p.injuryReturnDate ?? `${p.injury} steps`}`,
-                  )
-                : tr("Готов к игре", "Available")}
-            </p>
-          </div>
-          <div className="profile-ratings">
-            <div>
-              <b>{effectiveOverall(p)}</b>
-              <small>OVR</small>
-            </div>
-            <div>
-              <b>{p.potential}</b>
-              <small>POT</small>
-            </div>
-            <span className={p.ovr >= previous ? "up" : "down"}>
-              {p.ovr >= previous ? "↗" : "↘"} {Math.abs(p.ovr - previous)}
-            </span>
-            {p.ratingSource === "nhl-stats-model" && p.ratingRank && (
-              <span className="rating-provenance">
-                NHL MODEL · #{p.ratingRank}{" "}
-                {p.pos === "G" ? "G" : p.pos === "D" ? "D" : "F"}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="profile-summary">
-          {[
-            ["GP", p.stats.gp],
-            ["G", p.stats.g],
-            ["A", p.stats.a],
-            ["PTS", p.stats.g + p.stats.a],
-            ["PIM", p.stats.pim],
-            ["TOI", p.stats.toi.toFixed(0)],
-            [tr("ОЦЕНКА", "AV RAT"), averageRating(p.stats)?.toFixed(1) ?? "—"],
-            ["★", p.stats.stars ?? 0],
-          ].map(([l, v]) => (
-            <div key={l}>
-              <small>{l}</small>
-              <b>{v}</b>
-            </div>
-          ))}
-        </div>
-        {!!game.awards?.some((award) => award.playerId === p.id) && (
-          <div className="profile-awards">
-            {game.awards!
-              .filter((award) => award.playerId === p.id)
-              .map((award) => (
-                <span key={`${award.year}-${award.key}`}>
-                  <Trophy size={14} /> {AWARDS[award.key].en} ·{" "}
-                  {award.year}/{String(award.year + 1).slice(2)}
-                </span>
-              ))}
-          </div>
-        )}
-        <div className="profile-body">
-          <div className="attribute-sections">
-            {visibleCategories.map(([title, keys]) => (
-              <section key={title}>
-                <h3>{title}</h3>
-                <div className="attribute-grid">
-                  {keys.map((k) => {
-                    const v = p.attributes[k];
-                    return (
-                      <div key={k}>
-                        <span>{k.replace(/([A-Z])/g, " $1")}</span>
-                        <i>
-                          <em
-                            className={
-                              v >= 80 ? "strong" : v < 65 ? "weak" : ""
-                            }
-                            style={{ width: `${v}%` }}
-                          />
-                        </i>
-                        <b>{v}</b>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
-          <aside className="profile-facts">
-            <h3>{tr("СТАТУС И КОНТРАКТ", "STATUS & CONTRACT")}</h3>
-            <dl>
-              <div>
-                <dt>{tr("Зарплата", "Cap hit")}</dt>
-                <dd>${p.salary.toFixed(2)}M</dd>
-              </div>
-              <div>
-                <dt>{tr("Срок", "Term")}</dt>
-                <dd>
-                  {p.years} {tr("лет", "years")}
-                </dd>
-              </div>
-              <div>
-                <dt>{tr("Остаток", "Remaining value")}</dt>
-                <dd>
-                  ${(p.contractRemainingValue ?? p.salary * p.years).toFixed(2)}
-                  M
-                </dd>
-              </div>
-              <div>
-                <dt>{tr("Истекает", "Expiry")}</dt>
-                <dd>
-                  {p.contractExpiryYear ?? game.year + p.years}{" "}
-                  {p.contractStatus ?? ""}
-                </dd>
-              </div>
-              <div>
-                <dt>{tr("Источник", "Source")}</dt>
-                <dd>
-                  {p.contractSource === "puckpedia"
-                    ? "PuckPedia"
-                    : tr("Игровой", "Game")}
-                </dd>
-              </div>
-              <div>
-                <dt>{tr("Мораль", "Morale")}</dt>
-                <dd>{p.morale}%</dd>
-              </div>
-              <div>
-                <dt>{tr("Форма", "Form")}</dt>
-                <dd>
-                  {(p.performanceForm ?? 0) >= 0 ? "+" : ""}
-                  {(p.performanceForm ?? 0).toFixed(1)} · OVR{" "}
-                  {(p.formAdjustment ?? 0) >= 0 ? "+" : ""}
-                  {p.formAdjustment ?? 0}
-                </dd>
-              </div>
-              <div>
-                <dt>{tr("Готовность", "Condition")}</dt>
-                <dd>{Math.round(100 - p.fatigue)}%</dd>
-              </div>
-              {p.injury > 0 && (
-                <>
-                  <div>
-                    <dt>{tr("Статус травмы", "Injury status")}</dt>
-                    <dd>
-                      {p.injuryStatus ?? "OUT"} ·{" "}
-                      {p.injuryTimeline ?? `${p.injury} steps`}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{tr("Ожидаемое возвращение", "Expected return")}</dt>
-                    <dd>
-                      {p.injuryReturnDate ??
-                        tr("по игровой симуляции", "simulation estimate")}
-                    </dd>
-                  </div>
-                </>
-              )}
-              <div>
-                <dt>{tr("Очки за карьеру", "Career points")}</dt>
-                <dd>{career}</dd>
-              </div>
-            </dl>
-            <h3>{tr("ОЦЕНКА РОЛИ", "ROLE FIT")}</h3>
-            <p>{p.archetype || "—"}</p>
-            <progress max="100" value={p.ovr} />
-            <small>
-              {tr(
-                "Рейтинг рассчитан с весами позиции и архетипа.",
-                "Rating uses position and archetype weights.",
-              )}
-            </small>
-          </aside>
-        </div>
-        <section className="conversation-panel">
-          <div>
-            <span className="eyebrow">
-              {tr("РАЗГОВОР С ИГРОКОМ", "PLAYER CONVERSATION")}
-            </span>
-            <h3>{tr("Обсудить ситуацию", "Discuss the situation")}</h3>
-            <p>
-              {tr("Темы", "Concerns")}: {playerConcerns(p).join(", ")} ·{" "}
-              {tr("отношения", "relationship")} {p.relationship ?? 50}% ·{" "}
-              {tr("мотивация", "motivation")} {p.motivation ?? 50}%
-            </p>
-          </div>
-          <button
-            onClick={onConversation}
-            disabled={external && !contact.allowed}
-          >
-            {external && !contact.allowed
-              ? tr("Контакт запрещён клубом", "Contact blocked by club")
-              : external
-                ? tr("Связаться через агента", "Contact through agent")
-                : p.lastConversationRound === game.round
-                  ? tr("Открыть историю разговора", "Open conversation history")
-                  : tr("Начать личную встречу", "Start private meeting")}
-            <ArrowUpRight size={16} />
-          </button>
-          {external && <small>{contact.reason}</small>}
-          {p.conversationHistory?.[0] && (
-            <blockquote>{p.conversationHistory[0].response}</blockquote>
-          )}
-        </section>
-        {(p.developmentLog?.length ?? 0) > 0 && (
-          <section>
-            <h3>{tr("Почему изменился рейтинг", "Why the rating changed")}</h3>
-            {p.developmentLog!.slice(0, 4).map((entry) => (
-              <p key={`${entry.year}-${entry.ovrAfter}`}>
-                {entry.year}: {entry.ovrBefore} → {entry.ovrAfter} (
-                {entry.delta >= 0 ? "+" : ""}
-                {entry.delta}) · {entry.reason}
-              </p>
-            ))}
-          </section>
-        )}
-        {p.history.length > 0 && (
-          <>
-            <h3>
-              {tr("История регулярных сезонов", "Regular season history")}
-            </h3>
-            <div className="development-chart">
-              {p.history.map((h) => (
-                <div key={h.year}>
-                  <i style={{ height: `${Math.max(8, h.ovr - 40) * 2}px` }} />
-                  <span>{h.ovr}</span>
-                  <small>{h.year}</small>
-                </div>
-              ))}
-              <div>
-                <i
-                  className="current"
-                  style={{ height: `${Math.max(8, p.ovr - 40) * 2}px` }}
-                />
-                <span>{p.ovr}</span>
-                <small>{tr("Сейчас", "Now")}</small>
-              </div>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>SEASON</th>
-                  <th>OVR</th>
-                  <th>GP</th>
-                  <th>G</th>
-                  <th>A</th>
-                  <th>PTS</th>
-                  <th>{tr("ОЦЕНКА", "AV RAT")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {p.history.map((h) => (
-                  <tr key={h.year}>
-                    <td>
-                      {h.year}/{h.year + 1}
-                    </td>
-                    <td>{h.ovr}</td>
-                    <td>{h.stats.gp}</td>
-                    <td>{h.stats.g}</td>
-                    <td>{h.stats.a}</td>
-                    <td>{h.stats.g + h.stats.a}</td>
-                    <td>{averageRating(h.stats)?.toFixed(1) ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
-      </section>
-    </div>
   );
 }

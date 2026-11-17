@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Team, Player } from "../engine/types";
 import { effectiveOverall } from "../engine/franchiseWorld";
 import { averageRating, ratingTone } from "../engine/matchRatings";
+import { ClubLink, playerClub, useEntityLinks } from "./links";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -24,7 +25,9 @@ export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
           onError={() => setLogoFailed(true)}
         />
       ) : (
-        <span>{team.id}</span>
+        <span style={{ fontSize: Math.max(7, Math.round(size * 0.34)) }}>
+          {team.id}
+        </span>
       )}
     </span>
   );
@@ -82,12 +85,16 @@ export function PlayerTable({
   onSelect,
   lang,
   onAssign,
+  showClub,
 }: {
   players: Player[];
   onSelect: (p: Player) => void;
   lang: string;
   onAssign?: (playerId: string) => void;
+  /** Adds the player's club (crest link) under the name. */
+  showClub?: boolean;
 }) {
+  const links = useEntityLinks();
   const ru = lang === "ru";
   const [sort, setSort] = useState("default");
   const [available, setAvailable] = useState(false);
@@ -182,6 +189,16 @@ export function PlayerTable({
                 )}
                 <strong>{p.name}</strong>
                 <small>
+                  {showClub && links && playerClub(links.game, p.id) && (
+                    <>
+                      <ClubLink
+                        team={playerClub(links.game, p.id)}
+                        crest={14}
+                        label="id"
+                      />{" "}
+                      ·{" "}
+                    </>
+                  )}
                   {p.nation}
                   {p.injury > 0 ? " · ✚" : ""}
                 </small>
