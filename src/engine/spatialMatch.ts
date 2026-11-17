@@ -328,6 +328,112 @@ export class SpatialMatch {
     const x = -this.direction(defendingSide) * RINK.dotX;
     return { x, z: this.frame.puck.z >= 0 ? RINK.dotZ : -RINK.dotZ };
   }
+  /**
+   * Positional play. Only the puck carrier and one or two pressure players go
+   * to the puck; everybody else holds a role in the team structure: wingers on
+   * lanes and the net front, defencemen at the points or between the puck and
+   * their net, the centre covering the slot. Deterministic, no randomness.
+   */
+  private positions(owner: SkaterBody | undefined, puck: { x: number; z: number }) {
+    const spots = new Map<string, Dot>();
+    const at = (x: number, z: number): Dot => ({
+      x: clamp(x, -RINK.goalieX - 1.5, RINK.goalieX + 1.5),
+      z: clamp(z, -RINK.halfWidth + 1, RINK.halfWidth - 1),
+    });
+    const side = (z: number) => (z >= 0 ? 1 : -1);
+    const wobble = (i: number, k: number) => Math.sin(this.time * (0.4 + 0.07 * i) + i * 1.7) * k;
+    for (const s of [0, 1]) {
+      const d = this.direction(s);
+      const tactics = this.teams[s].tactics;
+      const lane = 4.5 + (tactics.width ?? 50) * 0.045;
+      const skaters = this.frame.bodies.filter((b) => b.side === s && !b.goalie);
+      const isD = (b: SkaterBody) => this.player(b.id).pos === "D";
+      const adv = puck.x * d; // > 0: puck in this team's attacking half
+      const byDistance = [...skaters].sort(
+        (a, b) => Math.hypot(a.x - puck.x, a.z - puck.z) - Math.hypot(b.x - puck.x, b.z - puck.z),
+      );
+      if (owner && owner.side === s) {
+        // In possession: carrier drives, others give options.
+        spots.set(owner.id, at(d * 23, puck.z * 0.8));
+        const others = skaters.filter((b) => b.id !== owner.id);
+        const forwards = others.filter((b) => !isD(b));
+        const defence = others.filter(isD);
+        const ozone = adv > RINK.blueLine;
+        const strong = side(puck.z);
+        forwards.forEach((b, i) => {
+          const role = i % 3;
+          const spot = ozone
+            ? role === 0
+              ? at(d * 23.6, -strong * 1.3) // net-front screen
+              : role === 1
+                ? at(d * 19.5 + wobble(i, 1.5), -strong * lane) // weak-side flank
+                : at(d * 15.5, strong * 2 + wobble(i, 1.5)) // high slot
+            : role === 0
+              ? at(puck.x + d * 8, -strong * lane) // stretch lane
+              : role === 1
+                ? at(puck.x + d * 4 + wobble(i, 1.5), strong * lane) // wide support
+                : at(puck.x - d * 3, puck.z * 0.4); // trailer
+          spots.set(b.id, spot);
+        });
+        defence.forEach((b, i) => {
+          const z = (i % 2 ? 1 : -1) * (ozone ? 6.2 : 4.6) + wobble(i + 5, 1);
+          spots.set(b.id, ozone ? at(d * 17.2, z) : at(Math.min(puck.x * d - 9, 12) * d, z));
+        });
+        if (!forwards.length && !defence.length) continue;
+        continue;
+      }
+      // Without the puck: one or two pressure players, the rest in structure.
+      const style = tactics.forecheck;
+      const dzone = adv < -RINK.blueLine;
+      const pressers = owner
+        ? dzone || style !== "2-1-2"
+          ? 1
+          : 2
+        : 1;
+      const chase = byDistance.slice(0, pressers);
+      // The first presser goes all the way to the puck, even into the corners.
+      chase.forEach((b, i) =>
+        spots.set(
+          b.id,
+          i === 0
+            ? { x: clamp(puck.x - d * (owner ? 0.4 : 0), -29, 29), z: clamp(puck.z, -12, 12) }
+            : at(puck.x - d * 2.5, puck.z * 0.6 + (puck.z >= 0 ? -2.5 : 2.5)),
+        ),
+      );
+      // A loose puck draws a second skater in support a few metres back.
+      if (!owner && byDistance[1]) spots.set(byDistance[1].id, at(puck.x - d * 4, puck.z * 0.6));
+      const rest = skaters.filter((b) => !spots.has(b.id));
+      const forwards = rest.filter((b) => !isD(b));
+      const defence = rest.filter(isD);
+      const net = { x: -d * 25, z: 0 };
+      if (dzone) {
+        defence.forEach((b, i) => {
+          const k = 0.34;
+          spots.set(b.id, at(net.x + (puck.x - net.x) * k, puck.z * k + (i % 2 ? 1.8 : -1.8)));
+        });
+        forwards.forEach((b, i) => {
+          const role = i % 3;
+          spots.set(
+            b.id,
+            role === 0
+              ? at(-d * 20.5, puck.z * 0.25) // centre covers the slot
+              : at(-d * 16, (role === 1 ? 1 : -1) * 6.5 + wobble(i, 0.8)), // wingers on the points
+          );
+        });
+      } else {
+        const gap = style === "1-3-1" ? 13 : 11;
+        defence.forEach((b, i) =>
+          spots.set(b.id, at(Math.max(puck.x * d - gap, -24) * d, (i % 2 ? 1 : -1) * 4.5 + puck.z * 0.2)),
+        );
+        const back = style === "1-3-1" ? 7 : style === "2-1-2" ? 3.5 : 5;
+        const lanes = style === "1-3-1" ? [-lane, 0, lane] : [-lane * 0.8, lane * 0.8, 0];
+        forwards.forEach((b, i) =>
+          spots.set(b.id, at(puck.x - d * (back + (i === 2 ? 3 : 0)), lanes[i % 3] * 0.9 + puck.z * 0.25 + wobble(i, 0.8))),
+        );
+      }
+    }
+    return spots;
+  }
   private faceoff(dot: Dot = CENTER_DOT) {
     this.flight = undefined;
     this.owner = "";
@@ -541,34 +647,18 @@ export class SpatialMatch {
     const owner = this.frame.bodies.find((b) => b.id === this.owner);
     // Assign an actual puck retriever per side. Formation offsets previously
     // left every player outside pickup range around a stationary loose puck.
-    const retrievers = [0, 1].map(side => this.frame.bodies
-      .filter(b => b.side === side && !b.goalie && b.id !== owner?.id)
-      .sort((a, b) => Math.hypot(a.x-puck.x,a.z-puck.z)-Math.hypot(b.x-puck.x,b.z-puck.z))[0]?.id);
-    this.frame.bodies.forEach((b, slot) => {
+    const spots = this.positions(owner, puck);
+    this.frame.bodies.forEach((b) => {
       const p = this.player(b.id),
         dir = this.direction(b.side);
       let tx: number, tz: number;
       if (b.goalie) {
         tx = -dir * 25;
         tz = clamp(puck.z * 0.12, -0.9, 0.9);
-      } else if (owner?.id === b.id) {
-        tx = dir * 23;
-        tz = puck.z * 0.8;
-      } else if (!owner || owner.side !== b.side) {
-        const pressure =
-          this.teams[b.side].tactics.forecheck === "2-1-2"
-            ? 1
-            : this.teams[b.side].tactics.forecheck === "1-3-1"
-              ? 5
-              : 3;
-        const retrieving = retrievers[b.side] === b.id;
-        tx = puck.x + (retrieving ? 0 : -dir * pressure);
-        tz = puck.z + (retrieving ? 0 : ((slot % 3) - 1) * 3);
       } else {
-        tx = clamp(puck.x + dir * (p.pos === "D" ? -9 : 5), -25, 25);
-        // Cycle in support and open passing lanes rather than parking in slots.
-        tx += Math.sin(this.time * 0.45 + slot) * 1.8;
-        tz = ((slot % 3) - 1) * (3+(this.teams[b.side].tactics.width??50)*.06) + Math.cos(this.time * 0.35 + slot) * 1.5;
+        const spot = spots.get(b.id)!;
+        tx = spot.x;
+        tz = spot.z;
       }
       const dx = tx - b.x,
         dz = tz - b.z,

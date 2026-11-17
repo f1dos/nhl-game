@@ -99,6 +99,45 @@ function canvasTexture(w: number, h: number, draw: (ctx: CanvasRenderingContext2
   return { tex, canvas, ctx };
 }
 
+/**
+ * Loads a club emblem for canvas drawing. Resolves null if it cannot be
+ * loaded or would taint the canvas (no CORS), so callers keep their fallback.
+ */
+const logoCache = new Map<string, Promise<HTMLImageElement | null>>();
+export function loadLogo(url?: string): Promise<HTMLImageElement | null> {
+  if (!url || typeof Image === "undefined") return Promise.resolve(null);
+  if (!logoCache.has(url))
+    logoCache.set(
+      url,
+      new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          try {
+            const probe = document.createElement("canvas");
+            probe.width = probe.height = 4;
+            const c = probe.getContext("2d");
+            c?.drawImage(img, 0, 0, 4, 4);
+            c?.getImageData(0, 0, 1, 1);
+            resolve(img);
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      }),
+    );
+  return logoCache.get(url)!;
+}
+/** Draws an image centred in a box, keeping its aspect ratio. */
+function drawContained(c: CanvasRenderingContext2D, img: HTMLImageElement, cx: number, cy: number, w: number, h: number) {
+  const iw = img.naturalWidth || img.width || 1,
+    ih = img.naturalHeight || img.height || 1;
+  const k = Math.min(w / iw, h / ih);
+  c.drawImage(img, cx - (iw * k) / 2, cy - (ih * k) / 2, iw * k, ih * k);
+}
+
 /** Painted ice: lines, circles, dots, creases, trapezoids and the centre logo. */
 function iceTexture(home: Team) {
   const W = 2440,
@@ -222,6 +261,135 @@ function sponsorTexture(s: (typeof SPONSORS)[number]) {
   }).tex;
 }
 
+/**
+ * A regulation NHL goal: red posts and crossbar (1.83 × 1.22 m), a white base
+ * frame curving 1.12 m back, white padding and fine netting on the sides, back
+ * and roof. Local +x points away from the ice (behind the goal line).
+ */
+function buildGoals(own: <T extends { dispose(): void }>(x: T) => T) {
+  const W = 0.915,
+    H = 1.22;
+  const base = new THREE.CatmullRomCurve3(
+    [
+      [0, -W],
+      [0.38, -1.0],
+      [0.82, -0.94],
+      [1.08, -0.58],
+      [1.12, 0],
+      [1.08, 0.58],
+      [0.82, 0.94],
+      [0.38, 1.0],
+      [0, W],
+    ].map(([x, z]) => new THREE.Vector3(x, 0.04, z)),
+  );
+  const top = new THREE.CatmullRomCurve3(
+    [
+      [0, -W],
+      [0.3, -0.86],
+      [0.52, -0.55],
+      [0.58, 0],
+      [0.52, 0.55],
+      [0.3, 0.86],
+      [0, W],
+    ].map(([x, z]) => new THREE.Vector3(x, H, z)),
+  );
+  const N = 40;
+  const lower = base.getSpacedPoints(N),
+    upper = top.getSpacedPoints(N);
+  // Netting texture: fine white mesh with transparent holes.
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 64;
+  const c = canvas.getContext("2d");
+  if (c) {
+    c.clearRect(0, 0, 64, 64);
+    c.strokeStyle = "rgba(255,255,255,0.95)";
+    c.lineWidth = 5;
+    c.beginPath();
+    c.moveTo(0, 2);
+    c.lineTo(64, 2);
+    c.moveTo(2, 0);
+    c.lineTo(2, 64);
+    c.stroke();
+  }
+  const tex = own(new THREE.CanvasTexture(canvas));
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 4;
+  const netMat = own(new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.9, color: "#ffffff" }));
+  const cell = 0.085;
+  // Skirt: sides and back between the top and base outlines.
+  const pos: number[] = [],
+    uv: number[] = [],
+    idx: number[] = [];
+  let run = 0;
+  for (let i = 0; i <= N; i++) {
+    if (i) run += lower[i].distanceTo(lower[i - 1]);
+    const t = upper[i],
+      b2 = lower[i];
+    pos.push(t.x, t.y, t.z, b2.x, b2.y + 0.02, b2.z);
+    uv.push(run / cell, H / cell, run / cell, 0);
+    if (i) {
+      const k = i * 2;
+      idx.push(k - 2, k - 1, k, k - 1, k + 1, k);
+    }
+  }
+  const skirt = own(new THREE.BufferGeometry());
+  skirt.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  skirt.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  skirt.setIndex(idx);
+  skirt.computeVertexNormals();
+  // Roof: from the crossbar back to the top outline.
+  const rp: number[] = [],
+    ru: number[] = [],
+    ri: number[] = [];
+  for (let i = 0; i <= N; i++) {
+    const t = upper[i];
+    rp.push(0, H, t.z, t.x, H, t.z);
+    ru.push(t.z / cell, 0, t.z / cell, t.x / cell);
+    if (i) {
+      const k = i * 2;
+      ri.push(k - 2, k, k - 1, k - 1, k, k + 1);
+    }
+  }
+  const roof = own(new THREE.BufferGeometry());
+  roof.setAttribute("position", new THREE.Float32BufferAttribute(rp, 3));
+  roof.setAttribute("uv", new THREE.Float32BufferAttribute(ru, 2));
+  roof.setIndex(ri);
+  roof.computeVertexNormals();
+  const red = own(new THREE.MeshStandardMaterial({ color: "#d11f2a", roughness: 0.35, metalness: 0.3 }));
+  const white = own(new THREE.MeshStandardMaterial({ color: "#f4f6f8", roughness: 0.5 }));
+  const pad = own(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.85 }));
+  const post = own(new THREE.CylinderGeometry(0.03, 0.03, H, 12));
+  const bar = own(new THREE.CylinderGeometry(0.03, 0.03, W * 2 + 0.06, 12));
+  const baseTube = own(new THREE.TubeGeometry(base, 48, 0.022, 8, false));
+  const topTube = own(new THREE.TubeGeometry(top, 40, 0.016, 8, false));
+  const padTube = own(
+    new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3(lower.slice(3, N - 2).map((p) => new THREE.Vector3(p.x * 0.96, 0.07, p.z * 0.96))),
+      40,
+      0.05,
+      8,
+      false,
+    ),
+  );
+  return {
+    make() {
+      const g = new THREE.Group();
+      for (const z of [-W, W]) {
+        const m = new THREE.Mesh(post, red);
+        m.position.set(0, H / 2, z);
+        g.add(m);
+      }
+      const cross = new THREE.Mesh(bar, red);
+      cross.rotation.x = Math.PI / 2;
+      cross.position.set(0, H, 0);
+      g.add(cross);
+      g.add(new THREE.Mesh(baseTube, white), new THREE.Mesh(topTube, white), new THREE.Mesh(padTube, pad));
+      g.add(new THREE.Mesh(skirt, netMat), new THREE.Mesh(roof, netMat));
+      return g;
+    },
+  };
+}
+
 export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   const disposables: { dispose(): void }[] = [];
   const own = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x);
@@ -263,7 +431,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     uv[i * 2 + 1] = (pos.getY(i) + HALF_Z) / (HALF_Z * 2);
   }
   iceGeo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-  const iceTex = own(iceTexture(home).tex);
+  const icePaint = iceTexture(home);
+  const iceTex = own(icePaint.tex);
+  let disposed = false;
+  const logo = loadLogo(home.logoUrl);
   const ice = new THREE.Mesh(iceGeo, own(new THREE.MeshStandardMaterial({ map: iceTex, roughness: 0.18, metalness: 0.05 })));
   ice.rotation.x = -Math.PI / 2;
   group.add(ice);
@@ -325,31 +496,11 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
 
   // --- nets: red pipes, white mesh, base frame
   const lights: THREE.MeshStandardMaterial[] = [];
-  const netMat = own(new THREE.MeshStandardMaterial({ color: "#f2f2f2", roughness: 0.9, transparent: true, opacity: 0.55, side: THREE.DoubleSide, wireframe: true }));
-  const pipeMat = mat("#d11f2a", 0.35, 0.3);
+  const goals = buildGoals(own);
   for (const side of [-1, 1]) {
-    const gx = side * 26.9;
-    const net = new THREE.Group();
-    net.position.set(gx, 0, 0);
+    const net = goals.make();
+    net.position.set(side * 26.9, 0, 0);
     net.rotation.y = side > 0 ? 0 : Math.PI;
-    for (const z of [-0.915, 0.915]) {
-      const post = new THREE.Mesh(own(new THREE.CylinderGeometry(0.04, 0.04, 1.22, 10)), pipeMat);
-      post.position.set(0, 0.61, z);
-      net.add(post);
-    }
-    const bar = new THREE.Mesh(own(new THREE.CylinderGeometry(0.04, 0.04, 1.83, 10)), pipeMat);
-    bar.rotation.x = Math.PI / 2;
-    bar.position.set(0, 1.22, 0);
-    net.add(bar);
-    const back = new THREE.Mesh(own(new THREE.CylinderGeometry(0.95, 0.95, 1.18, 14, 4, true, -Math.PI / 2, Math.PI)), netMat);
-    back.scale.set(1.05, 1, 1);
-    back.position.set(0.05, 0.6, 0);
-    back.rotation.y = 0;
-    net.add(back);
-    const roof = new THREE.Mesh(own(new THREE.CircleGeometry(0.95, 14, -Math.PI / 2, Math.PI)), netMat);
-    roof.rotation.x = -Math.PI / 2;
-    roof.position.set(0.05, 1.2, 0);
-    net.add(roof);
     group.add(net);
     // Goal light behind the glass.
     const housing = new THREE.Mesh(own(new THREE.CylinderGeometry(0.16, 0.2, 0.18, 14)), mat("#1d1f24", 0.5));
@@ -507,6 +658,14 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
       c.fillText(home.city.toUpperCase(), 128, 280);
     });
     own(banner.tex);
+    void logo.then((img) => {
+      if (!img || disposed || !banner.ctx) return;
+      const c = banner.ctx;
+      c.fillStyle = i % 2 ? home.color : "#ffffff";
+      c.fillRect(24, 24, 208, 300);
+      drawContained(c, img, 128, 175, 180, 180);
+      banner.tex.needsUpdate = true;
+    });
     const b = new THREE.Mesh(own(new THREE.PlaneGeometry(2.4, 4.8)), own(new THREE.MeshStandardMaterial({ map: banner.tex, side: THREE.DoubleSide, roughness: 0.9 })));
     b.position.set(-HALF_X - 6, 20, -9 + i * 6);
     b.rotation.y = Math.PI / 2;
@@ -514,6 +673,7 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   }
 
   // --- centre-hung scoreboard with the live score
+  const logos = new Map<string, HTMLImageElement>();
   const board = new THREE.Group();
   board.position.set(0, 17.5, 0);
   group.add(board);
@@ -565,7 +725,11 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
         c.textAlign = "center";
         c.textBaseline = "middle";
         c.font = "900 84px system-ui, Arial, sans-serif";
-        c.fillText(t.id, x, 128);
+        const emblem = logos.get(t.id);
+        if (emblem) {
+          drawContained(c, emblem, x - 130, 125, 100, 96);
+          c.fillText(t.id, x + 50, 128);
+        } else c.fillText(t.id, x, 128);
         c.font = "900 190px system-ui, Arial, sans-serif";
         c.fillText(String(score), x, 320);
       };
@@ -581,6 +745,27 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     screen.tex.needsUpdate = true;
   };
   drawScore({ home: 0, away: 0, clock: "20:00", period: "1ST" }, false, 0);
+  for (const t of [home, away])
+    void loadLogo(t.logoUrl).then((img) => {
+      if (img && !disposed) {
+        logos.set(t.id, img);
+        lastText = "";
+      }
+    });
+  // The real home emblem at centre ice, replacing the painted fallback.
+  void logo.then((img) => {
+    const c = icePaint.ctx;
+    if (!img || disposed || !c) return;
+    const W = icePaint.canvas.width,
+      H = icePaint.canvas.height;
+    const r = 3.0 * (W / (HALF_X * 2));
+    c.fillStyle = "#eef6f8";
+    c.beginPath();
+    c.arc(W / 2, H / 2, r * 1.06, 0, Math.PI * 2);
+    c.fill();
+    drawContained(c, img, W / 2, H / 2, r * 2, r * 2);
+    iceTex.needsUpdate = true;
+  });
 
   let clock = 0;
   let jumping = false;
@@ -617,6 +802,7 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
       ceiling.forEach((o) => (o.visible = visible));
     },
     dispose() {
+      disposed = true;
       disposables.forEach((d) => d.dispose());
       scene.remove(group);
     },
