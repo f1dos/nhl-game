@@ -8,10 +8,16 @@ import "./ui/premium.css";
 import "./ui/draft.css";
 import "./ui/organization.css";
 import "./ui/management-revolution.css";
+import BroadcastDemo from "./ui/BroadcastDemo";
 installDomLocalization();
+// `?demo=broadcast` (or a packaged preview) opens a live match broadcast
+// without a career, for quick previews of the 3D match.
+const demo =
+  new URLSearchParams(location.search).get("demo") ??
+  (globalThis as { __NHL_DEMO__?: string }).__NHL_DEMO__;
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    {demo === "broadcast" ? <BroadcastDemo /> : <App />}
   </React.StrictMode>,
 );
 import "./ui/scouting.css";
@@ -23,3 +29,4 @@ import "./ui/free-agency.css";
 import "./ui/matchday.css";
 import "./ui/tactics-board.css";
 import "./ui/leadership.css";
+import "./ui/broadcast.css";

@@ -71,7 +71,7 @@ export interface SpatialFrame {
   /** Incremented on every simulation step; lets the renderer detect new frames. */
   tick: number;
   /** Players currently serving penalties (shown in the penalty box). */
-  penaltyBox: { id: string; side: number }[];
+  penaltyBox: { id: string; side: number; until: number }[];
   /** Present while play is stopped in presentation mode. */
   stoppage?: SpatialStoppage;
   /** Faceoff dot of the last faceoff. */
@@ -245,7 +245,7 @@ export class SpatialMatch {
     this.syncPenaltyBox();
   }
   private syncPenaltyBox() {
-    this.frame.penaltyBox = this.penalties.map(({ id, side }) => ({ id, side }));
+    this.frame.penaltyBox = this.penalties.map(({ id, side, until }) => ({ id, side, until }));
   }
   private emit(
     type: Result["events"][number]["type"],

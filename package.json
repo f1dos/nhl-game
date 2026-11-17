@@ -12,7 +12,8 @@
     "sync:contracts": "node scripts/sync-contracts.mjs",
     "sync:injuries": "node scripts/sync-injuries.mjs",
     "sync:minors": "node scripts/sync-minor-leagues.mjs",
-    "sync:scouting": "node scripts/sync-scout-leagues.mjs"
+    "sync:scouting": "node scripts/sync-scout-leagues.mjs",
+    "build:preview": "node scripts/build-preview.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

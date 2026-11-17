@@ -114,7 +114,9 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Перейти к пресс-конференции"));
   fireEvent.click(screen.getByText("Снять давление"));
   fireEvent.click(screen.getByText("Начать матч"));
-  assert(screen.getByText("МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ"));
+  assert(screen.getByText(/^МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ/));
+  // The live match opens as a full-screen broadcast with its own controls.
+  assert(screen.getByRole("radiogroup", { name: "Скорость матча" }));
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
   assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));
