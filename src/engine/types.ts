@@ -12,6 +12,12 @@ export interface Stats {
   sa: number;
   ga: number;
   wins: number;
+  /** Sum of match ratings (1–10) for rated games; see matchRatings.ts. */
+  ratingSum?: number;
+  /** Number of games with a match rating. */
+  rated?: number;
+  /** Times named one of the three stars of a game. */
+  stars?: number;
 }
 export interface Player {
   league?:
@@ -408,6 +414,10 @@ export interface Result {
   so: boolean;
   duration: number;
   events: Event[];
+  /** Match rating (1–10) per player id who appeared. */
+  ratings?: Record<string, number>;
+  /** Three stars of the game, first star first. */
+  stars?: string[];
 }
 export interface Series {
   a: string;
@@ -486,6 +496,7 @@ export interface Game {
   last?: Result;
   news: string[];
   history: { year: number; champion: string; points: number }[];
+  awards?: import("./awards").SeasonAward[];
   rules: { cap: number };
   language: Locale;
 }

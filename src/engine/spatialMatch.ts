@@ -2,6 +2,7 @@ import { RNG, clamp } from "./random";
 import type { Team, Player, Result, SpecialTeamsSituation } from "./types";
 import { ensureSpecialTeams } from "./tactics";
 import { snapshotStats, updateMatchPerformance } from "./performance";
+import { rateMatch } from "./matchRatings";
 
 export interface SkaterBody {
   id: string;
@@ -483,5 +484,6 @@ export class SpatialMatch {
     );
     if (goalie) goalie.stats.wins++;
     updateMatchPerformance(this.teams, this.baseline, this.teams[winner].id);
+    rateMatch(this.teams, this.baseline, this.teams[winner].id, this.result);
   }
 }

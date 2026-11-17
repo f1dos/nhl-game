@@ -15,6 +15,7 @@ import type {
   SpecialTeamsSituation,
 } from "../engine/types";
 import { advanceDay } from "../engine/management";
+import { MatchRatingsPanel } from "./MatchRatings";
 import { clamp } from "../engine/random";
 import { swapLineupPlayer } from "../engine/roster";
 import {
@@ -351,6 +352,7 @@ export default function MatchdayHub({
             </b>
           </div>
         </header>
+        {game.last && <MatchRatingsPanel game={game} result={game.last} />}
         <div className="matchday-press-stage">
           <span className="eyebrow">ПОСЛЕМАТЧЕВАЯ ПРЕСС-КОНФЕРЕНЦИЯ</span>
           <h1>Последнее слово после игры</h1>

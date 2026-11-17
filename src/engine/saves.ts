@@ -381,6 +381,27 @@ export function validateSave(value: unknown): Game {
     )
   )
     throw Error("Invalid team needs");
+  if (
+    g.awards &&
+    (!Array.isArray(g.awards) ||
+      g.awards.some(
+        (award) =>
+          !Number.isInteger(award?.year) ||
+          ![
+            "hart",
+            "art-ross",
+            "rocket-richard",
+            "vezina",
+            "norris",
+            "calder",
+            "conn-smythe",
+          ].includes(award.key) ||
+          typeof award.playerId !== "string" ||
+          typeof award.player !== "string" ||
+          typeof award.team !== "string",
+      ))
+  )
+    throw Error("Invalid season awards");
   return g;
 }
 // NHL Manager 27 uses a new database name, but legacy 26 careers are
