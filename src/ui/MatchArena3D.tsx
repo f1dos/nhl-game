@@ -338,8 +338,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           m.path = [boxDoor(side), { x: m.x, z: 11.5 }, benchDoor(m), seat];
           m.mode = "moving";
         } else if (m.mode === "seat" && inBox) {
-          m.path = [boxSeat];
-          m.mode = "moving";
+          // Already serving when the view opened: sit him straight in the box.
+          m.x = boxSeat.x; m.z = boxSeat.z; m.path = [];
+          m.mode = "box";
+          rig.place(m.x, m.z, Math.PI);
         }
         if (m.mode === "moving") {
           const target = m.path[0];
