@@ -14,6 +14,7 @@ import { resolveInternationalOffers } from "./international";
 import { refreshInternationalMarket } from "./database";
 import { reviewSeasonStrategy } from "./strategy";
 import { applyWorldMatchReaction } from "./franchiseWorld";
+import { decideConnSmythe, decideRegularSeasonAwards } from "./awards";
 import {
   emptyRecord,
   emptyStats,
@@ -108,8 +109,10 @@ export function advance(g: Game, completed?: Result) {
     for (const f of g.schedule.filter((f) => f.round === g.round)) {
       const res = play(f.home, f.away, false);
       recordResult(g, res);
-      if ([f.home, f.away].includes(g.user)) g.last = res;
-      f.result = { ...res, events: [] };
+      const own = [f.home, f.away].includes(g.user);
+      if (own) g.last = res;
+      // Per-player ratings are kept only for the managed club's games.
+      f.result = { ...res, events: [], ratings: own ? res.ratings : undefined };
     }
     g.round++;
     resolveInternationalOffers(g);
@@ -123,6 +126,7 @@ export function advance(g: Game, completed?: Result) {
         ],
       ];
       g.news.unshift("Регулярный сезон завершён. Начинается плей-офф.");
+      decideRegularSeasonAwards(g);
       g.teams.forEach((t) =>
         t.players.forEach((p) => {
           p.history.push({ year: g.year, ovr: p.ovr, stats: { ...p.stats } });
@@ -139,8 +143,9 @@ export function advance(g: Game, completed?: Result) {
       const res = play(home, away, true);
       const winner = res.goals[0] > res.goals[1] ? home : away;
       s.wins[winner === s.a ? 0 : 1]++;
-      s.games.push({ ...res, events: [] });
-      if ([s.a, s.b].includes(g.user)) g.last = res;
+      const own = [s.a, s.b].includes(g.user);
+      s.games.push({ ...res, events: [], ratings: own ? res.ratings : undefined });
+      if (own) g.last = res;
       if (s.wins.includes(4)) s.winner = winner;
     }
     if (series.every((s) => s.winner)) {
@@ -154,6 +159,11 @@ export function advance(g: Game, completed?: Result) {
         reviewSeasonStrategy(g);
         g.news.unshift(
           `${series[0].winner} — обладатель Кубка Стэнли ${g.year + 1}.`,
+        );
+        decideConnSmythe(
+          g,
+          series[0].winner!,
+          series[0].winner === series[0].a ? series[0].b : series[0].a,
         );
         openDraft(g, r);
       } else {

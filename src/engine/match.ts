@@ -17,6 +17,7 @@ import type {
 } from "./types";
 import { ensureSpecialTeams, lineChemistry } from "./tactics";
 import { snapshotStats, updateMatchPerformance } from "./performance";
+import { rateMatch } from "./matchRatings";
 export function simulateMatch(
   home: Team,
   away: Team,
@@ -418,5 +419,6 @@ export function simulateMatch(
       }),
   );
   updateMatchPerformance(teams, statsBefore, teams[winner].id);
+  rateMatch(teams, statsBefore, teams[winner].id, res);
   return res;
 }

@@ -47,7 +47,14 @@ import {
 import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
 import type { Game, Team, Player } from "../engine/types";
-import { Crest, Panel, Rating, PlayerTable, Rink } from "./components";
+import {
+  Crest,
+  Panel,
+  Rating,
+  PlayerTable,
+  Rink,
+  SeasonRating,
+} from "./components";
 import MatchdayHub from "./MatchdayHub";
 import TradeCenter from "./TradeCenter";
 import ContractCenter from "./ContractCenter";
@@ -58,6 +65,9 @@ import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
+import { AwardHistory, AwardRace } from "./MatchRatings";
+import { averageRating } from "../engine/matchRatings";
+import { AWARDS } from "../engine/awards";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
 import ClubCenter from "./ClubCenter";
@@ -1206,6 +1216,20 @@ export default function App() {
                 )
           }
         />
+        {g.phase === "regular" && (
+          <Panel title={tr("ГОНКА ЗА НАГРАДАМИ", "AWARD RACE")}>
+            <AwardRace game={g} onPlayer={setProfile} />
+          </Panel>
+        )}
+        {g.phase !== "regular" &&
+          !!g.awards?.some((award) => award.year === g.year) && (
+            <Panel title={tr("НАГРАДЫ СЕЗОНА", "SEASON AWARDS")}>
+              <AwardHistory
+                game={g}
+                awards={g.awards!.filter((award) => award.year === g.year)}
+              />
+            </Panel>
+          )}
         <Panel
           title={tr("РЕЙТИНГ ИГРОКОВ · TOP 50", "PLAYER RATINGS · TOP 50")}
         >
@@ -1273,6 +1297,7 @@ export default function App() {
                   <th>GA</th>
                   <th>SV%</th>
                   <th>GAA</th>
+                  <th>{tr("ОЦЕНКА", "AV RAT")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1297,6 +1322,9 @@ export default function App() {
                         {p.stats.toi
                           ? ((p.stats.ga * 60) / p.stats.toi).toFixed(2)
                           : "—"}
+                      </td>
+                      <td>
+                        <SeasonRating player={p} />
                       </td>
                     </tr>
                   ))}
@@ -1438,6 +1466,11 @@ export default function App() {
             ))
           )}
         </Panel>
+        {!!g.awards?.length && (
+          <Panel title={tr("НАГРАДЫ ЛИГИ", "LEAGUE AWARDS")}>
+            <AwardHistory game={g} awards={g.awards} />
+          </Panel>
+        )}
       </>
     );
   else
@@ -2404,6 +2437,8 @@ function PlayerProfile({
             ["PTS", p.stats.g + p.stats.a],
             ["PIM", p.stats.pim],
             ["TOI", p.stats.toi.toFixed(0)],
+            [tr("ОЦЕНКА", "AV RAT"), averageRating(p.stats)?.toFixed(1) ?? "—"],
+            ["★", p.stats.stars ?? 0],
           ].map(([l, v]) => (
             <div key={l}>
               <small>{l}</small>
@@ -2411,6 +2446,18 @@ function PlayerProfile({
             </div>
           ))}
         </div>
+        {!!game.awards?.some((award) => award.playerId === p.id) && (
+          <div className="profile-awards">
+            {game.awards!
+              .filter((award) => award.playerId === p.id)
+              .map((award) => (
+                <span key={`${award.year}-${award.key}`}>
+                  <Trophy size={14} /> {AWARDS[award.key].en} ·{" "}
+                  {award.year}/{String(award.year + 1).slice(2)}
+                </span>
+              ))}
+          </div>
+        )}
         <div className="profile-body">
           <div className="attribute-sections">
             {visibleCategories.map(([title, keys]) => (
@@ -2597,6 +2644,7 @@ function PlayerProfile({
                   <th>G</th>
                   <th>A</th>
                   <th>PTS</th>
+                  <th>{tr("ОЦЕНКА", "AV RAT")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -2610,6 +2658,7 @@ function PlayerProfile({
                     <td>{h.stats.g}</td>
                     <td>{h.stats.a}</td>
                     <td>{h.stats.g + h.stats.a}</td>
+                    <td>{averageRating(h.stats)?.toFixed(1) ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

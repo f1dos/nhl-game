@@ -1,0 +1,189 @@
+/* Match ratings, three stars and award race (football-manager style). */
+.match-rating {
+  display: inline-grid;
+  place-items: center;
+  min-width: 38px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #0b1117;
+  background: #8d99a6;
+}
+.match-rating.lg {
+  min-width: 54px;
+  padding: 6px 8px;
+  font-size: 20px;
+}
+.match-rating.great { background: #3ddc84; }
+.match-rating.good { background: #a7d65a; }
+.match-rating.ok { background: #e6c35c; }
+.match-rating.poor { background: #e7735f; }
+.match-rating.none {
+  background: transparent;
+  color: #6f7c89;
+}
+
+.match-ratings {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 34px 35px 0;
+}
+.match-ratings > header h2 {
+  margin: 6px 0 18px;
+  font-size: 26px;
+}
+.three-stars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.star-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "rank rating"
+    "label rating"
+    "name rating"
+    "club rating";
+  align-items: center;
+  gap: 2px 12px;
+  padding: 16px 18px;
+  border: 1px solid #2c3b49;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #132130, #0e151d);
+}
+.star-card.star-1 {
+  border-color: #b8913a;
+  background: linear-gradient(135deg, #2a2412, #10161d 70%);
+}
+.star-card .star-rank { grid-area: rank; color: #f1c958; display: flex; gap: 2px; }
+.star-card small { grid-area: label; color: #8b98a6; text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+.star-card b { grid-area: name; font-size: 18px; color: #f3f6f9; }
+.star-card .star-club { grid-area: club; display: flex; align-items: center; gap: 6px; color: #a9b5c1; font-size: 13px; }
+.star-card .match-rating { grid-area: rating; }
+
+.rating-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.rating-column {
+  border: 1px solid #243341;
+  border-radius: 8px;
+  background: #0f1720;
+  padding: 12px 14px;
+}
+.rating-column h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.rating-column ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 18px;
+}
+.rating-column li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #1b2732;
+  break-inside: avoid;
+  font-size: 13px;
+}
+.rating-column .rating-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inline-star { color: #f1c958; margin-left: 5px; vertical-align: -1px; }
+
+.award-race,
+.award-history {
+  padding: 16px;
+}
+.award-race {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.award-race article {
+  border: 1px solid #263544;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #0f1720;
+}
+.award-race header { display: grid; margin-bottom: 8px; }
+.award-race header small,
+.award-history small { color: #8b98a6; font-size: 12px; }
+.award-race ol { margin: 0; padding-left: 20px; }
+.award-race li { padding: 3px 0; }
+.award-race li::marker { color: #6f7c89; font-weight: 700; }
+.award-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.award-player span { display: grid; min-width: 0; }
+.award-player:hover b { color: #8fd0f5; }
+
+.award-history section + section { margin-top: 16px; }
+.award-history h3 { margin: 0 0 6px; font-size: 15px; color: #f1c958; }
+.award-history ul { list-style: none; margin: 0; padding: 0; }
+.award-history li {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) 1.4fr;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #1d2a36;
+}
+.award-history li.own { background: linear-gradient(90deg, #f1c95814, transparent); }
+.award-history .award-name,
+.award-history .award-winner { display: grid; gap: 1px; min-width: 0; }
+.award-history .award-winner { grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+.award-history .award-winner small { grid-column: 2; }
+
+@media (max-width: 760px) {
+  .match-ratings { padding: 24px 16px 0; }
+  .three-stars,
+  .rating-columns { grid-template-columns: 1fr; }
+  .rating-column ol { columns: 1; }
+  .award-history li { grid-template-columns: 1fr; }
+}
+
+.profile-awards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+.profile-awards span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #b8913a;
+  border-radius: 999px;
+  color: #f1c958;
+  background: #f1c95812;
+  font-size: 12px;
+  font-weight: 700;
+}

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import type { Team, Player } from "../engine/types";
 import { effectiveOverall } from "../engine/franchiseWorld";
+import { averageRating, ratingTone } from "../engine/matchRatings";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -58,6 +59,24 @@ export function Rating({ value }: { value: number }) {
     </span>
   );
 }
+/** FM-style match rating chip: 7.4 on green / amber / red. */
+export function RatingBadge({
+  value,
+  size = "md",
+}: {
+  value?: number;
+  size?: "md" | "lg";
+}) {
+  if (value === undefined) return <span className="match-rating none">—</span>;
+  return (
+    <span className={`match-rating ${ratingTone(value)} ${size}`}>
+      {value.toFixed(1)}
+    </span>
+  );
+}
+export function SeasonRating({ player }: { player: Player }) {
+  return <RatingBadge value={averageRating(player.stats)} />;
+}
 export function PlayerTable({
   players,
   onSelect,
@@ -80,6 +99,8 @@ export function PlayerTable({
         ? b.ovr - a.ovr
         : sort === "points"
           ? b.stats.g + b.stats.a - a.stats.g - a.stats.a
+          : sort === "form"
+            ? (averageRating(b.stats) ?? 0) - (averageRating(a.stats) ?? 0)
           : sort === "age"
             ? a.age - b.age
             : sort === "salary"
@@ -102,6 +123,7 @@ export function PlayerTable({
               ["default", ru ? "Исходный порядок" : "Default"],
               ["rating", "OVR ↓"],
               ["points", "PTS ↓"],
+              ["form", ru ? "Оценка ↓" : "Av rating ↓"],
               ["age", ru ? "Возраст ↑" : "Age ↑"],
               ["salary", "AAV ↓"],
               ["condition", ru ? "Готовность ↓" : "Condition ↓"],
@@ -137,6 +159,9 @@ export function PlayerTable({
             <th>A</th>
             <th>PTS</th>
             <th>+/−</th>
+            <th title={ru ? "Средняя оценка за матч" : "Average match rating"}>
+              {ru ? "ОЦЕНКА" : "AV RAT"}
+            </th>
             <th>{ru ? "ГОТОВНОСТЬ" : "CONDITION"}</th>
             <th>{ru ? "ЗАРПЛАТА" : "SALARY"}</th>
             {onAssign && <th>{ru ? "ДЕЙСТВИЕ" : "ACTION"}</th>}
@@ -173,6 +198,9 @@ export function PlayerTable({
               <td>{p.stats.a}</td>
               <td className="bright">{p.stats.g + p.stats.a}</td>
               <td>{p.stats.plus}</td>
+              <td>
+                <SeasonRating player={p} />
+              </td>
               <td>
                 <span className="condition">
                   <i style={{ width: `${100 - p.fatigue}%` }} />

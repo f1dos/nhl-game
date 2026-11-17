@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Pause, Play, Shield, SlidersHorizontal, Users } from "lucide-react";
 import type { Game, Player, SpecialTeamsSituation } from "../engine/types";
 import { Crest, Panel, Rink } from "./components";
+import { MatchRatingsPanel } from "./MatchRatings";
 import { swapLineupPlayer } from "../engine/roster";
 import {
   ensureSpecialTeams,
@@ -405,6 +406,7 @@ export default function MatchCenter({
           )}
         </aside>
       </div>
+      {complete && <MatchRatingsPanel game={game} result={result} />}
     </div>
   );
 }
