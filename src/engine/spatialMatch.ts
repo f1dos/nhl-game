@@ -33,13 +33,15 @@ export interface SpatialFrame {
   bodies: SkaterBody[];
   puck: { x: number; y: number; z: number };
   cues: SpatialCue[];
+  /** Incremented on every simulation step; lets the renderer detect new frames. */
+  tick: number;
 }
 /** Fixed-step, seeded simulation. Rendering never advances the simulation. */
 export class SpatialMatch {
   readonly teams: Team[];
   readonly result: Result;
   readonly rng: RNG;
-  frame: SpatialFrame = { bodies: [], puck: { x: 0, y: 0.12, z: 0 }, cues: [] };
+  frame: SpatialFrame = { bodies: [], puck: { x: 0, y: 0.12, z: 0 }, cues: [], tick: 0 };
   private cueSeq = 0;
   time = 0;
   done = false;
@@ -213,6 +215,7 @@ export class SpatialMatch {
   }
   step() {
     if (this.done || this.intermission) return;
+    this.frame.tick++;
     const dt = 0.1;
     this.time = Math.round((this.time + dt) * 10) / 10;
     this.result.duration = this.time;

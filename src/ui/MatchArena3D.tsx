@@ -3,6 +3,7 @@ import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SpatialFrame } from "../engine/spatialMatch";
 import { RigFactory, type HockeyRig, type TeamKit } from "./hockeyRig";
+import { TrackSmoother } from "./motionSmoothing";
 
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
 /** Home plays in its colour, away in a light kit trimmed in its own colour. */
@@ -130,6 +131,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     // change direction instantly, which would otherwise shake the view.
     const focus = new THREE.Vector3(), lookSmooth = new THREE.Vector3(0, 0, 0);
     let cameraReady = false;
+    const tracks = new Map<string, TrackSmoother>(), puckTrack = new TrackSmoother();
+    let lastTick = -1;
     const animate = (now: number) => {
       const dt = Math.min(0.05, (now - previous) / 1000); previous = now;
       const data = current.current;
@@ -140,12 +143,20 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       byBody.clear();
       if (data.spatial) {
         const frameData = data.spatial;
-        // Ease the puck between 10 Hz simulation frames; snap on faceoff resets.
-        if (Math.hypot(frameData.puck.x - puck.position.x, frameData.puck.z - puck.position.z) > 8) puck.position.set(frameData.puck.x, frameData.puck.y, frameData.puck.z);
-        else {
-          const kp = 1 - Math.exp(-dt * 16);
-          puck.position.set(puck.position.x + (frameData.puck.x - puck.position.x) * kp, frameData.puck.y, puck.position.z + (frameData.puck.z - puck.position.z) * kp);
+        // The simulation publishes a new frame every 100 ms; glide between frames
+        // so motion is continuous at any display refresh rate and playback speed.
+        const stamp = now;
+        if (frameData.tick !== lastTick) {
+          lastTick = frameData.tick;
+          puckTrack.push(frameData.tick, frameData.puck.x, frameData.puck.z, stamp);
+          frameData.bodies.forEach(b => {
+            let track = tracks.get(b.id);
+            if (!track) { track = new TrackSmoother(); tracks.set(b.id, track); }
+            track.push(frameData.tick, b.x, b.z, stamp);
+          });
         }
+        puckTrack.sample(stamp);
+        puck.position.set(puckTrack.x, frameData.puck.y, puckTrack.z);
         actors.forEach(({ rig, side, slot }) => {
           const bodies = frameData.bodies.filter(b => b.side === side);
           const body = slot === 6 ? bodies.find(b => b.goalie) : bodies.filter(b => !b.goalie)[slot];
@@ -154,7 +165,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           const player = playerOf(side, body.id);
           if (player) rig.setIdentity({ id: player.id, name: player.name, number: player.number }, player.pos);
           byBody.set(body.id, rig);
-          rig.update(dt, animDt, { x: body.x, z: body.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id });
+          const track = tracks.get(body.id)?.sample(stamp);
+          rig.update(dt, animDt, { x: track?.x ?? body.x, z: track?.z ?? body.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id });
         });
         // One-shot animations raised by the simulation (each cue plays once).
         for (const cue of frameData.cues) {
