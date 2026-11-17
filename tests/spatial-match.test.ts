@@ -23,8 +23,11 @@ test("loose puck is recovered instead of players parking outside pickup radius",
   const state = m as unknown as { owner: string; flight: unknown };
   state.owner = ""; state.flight = undefined;
   m.frame.puck.x = 18; m.frame.puck.z = 8;
-  for (let i=0; i<150; i++) m.step();
-  assert(Math.hypot(m.frame.puck.x-18,m.frame.puck.z-8)>2, "play must continue after the loose puck");
+  // Track how far play moves the puck: with end-zone faceoffs it can come back
+  // near its starting spot by step 150, so check the whole sequence.
+  let furthest = 0;
+  for (let i=0; i<150; i++) { m.step(); furthest = Math.max(furthest, Math.hypot(m.frame.puck.x-18,m.frame.puck.z-8)); }
+  assert(furthest>2, "play must continue after the loose puck");
 });
 
 test("spatial simulation is incremental, deterministic and stays inside the rink", () => {
@@ -122,4 +125,65 @@ test("presentation cues describe on-ice actions without affecting the result", (
   const plain = new SpatialMatch(g.teams[0], g.teams[1], 9);
   while (!plain.done) { plain.resume(); plain.step(); }
   assert.deepEqual(plain.result, cued.result);
+});
+
+test("broadcast stoppages show celebrations and faceoffs without changing the match", () => {
+  const g = newGame();
+  for (const seed of [3, 17, 29]) {
+    const plain = new SpatialMatch(g.teams[seed % 32], g.teams[(seed + 5) % 32], seed);
+    const shown = new SpatialMatch(g.teams[seed % 32], g.teams[(seed + 5) % 32], seed, false, { presentation: true });
+    const phases = new Map<string, Set<string>>();
+    let frozen = 0;
+    while (!plain.done) { plain.resume(); plain.step(); }
+    for (let i = 0; i < 200000 && !shown.done; i++) {
+      shown.resume();
+      const before = shown.time;
+      shown.step();
+      const s = shown.frame.stoppage;
+      if (s) {
+        if (!phases.has(s.kind)) phases.set(s.kind, new Set());
+        phases.get(s.kind)!.add(s.phase);
+        if (shown.time === before) frozen++;
+        assert(shown.frame.bodies.every((b) => Math.abs(b.x) <= 29 && Math.abs(b.z) <= 12));
+        assert.equal(shown.frame.carrierId, undefined, "nobody carries the puck while play is stopped");
+      }
+    }
+    assert(shown.done);
+    assert.deepEqual(shown.result, plain.result, `seed ${seed}: result and events are identical`);
+    assert.deepEqual(
+      shown.teams.map((t) => t.players.map((p) => p.stats)),
+      plain.teams.map((t) => t.players.map((p) => p.stats)),
+    );
+    assert(frozen > 0, "the clock stands still during stoppages");
+    if (shown.result.goals[0] + shown.result.goals[1] > 0)
+      assert.deepEqual([...phases.get("goal")!], ["celebrate", "lineup", "drop"]);
+    assert.deepEqual([...(phases.get("save") ?? new Set())].sort(), ["drop", "lineup", "whistle"]);
+  }
+});
+
+test("faceoffs line both teams up on the dot, and saves restart in that zone", () => {
+  const g = newGame();
+  const m = new SpatialMatch(g.teams[0], g.teams[1], 4, false, { presentation: true });
+  let checked = 0;
+  for (let i = 0; i < 60000 && !m.done && checked < 6; i++) {
+    m.resume();
+    const stopped = m.frame.stoppage;
+    m.step();
+    if (stopped?.phase === "drop" && !m.frame.stoppage) {
+      const dot = m.frame.dot;
+      const faceoff = m.frame.cues.at(-1)!;
+      assert.equal(faceoff.kind, "faceoff");
+      const taker = m.frame.bodies.find((b) => b.id === faceoff.id)!;
+      const rival = m.frame.bodies.find((b) => b.id === faceoff.target)!;
+      assert.deepEqual([taker.x, taker.z], [dot.x, dot.z], "winner takes the puck on the dot");
+      assert(Math.hypot(rival.x - dot.x, rival.z - dot.z) < 1, "opposing centre faces off on the dot");
+      if (stopped.kind === "save") {
+        assert.equal(Math.abs(dot.x), 20.5, "save restarts at an end-zone dot");
+        const goalie = m.frame.bodies.find((b) => b.goalie && b.side === stopped.side)!;
+        assert.equal(Math.sign(dot.x), Math.sign(goalie.x), "in the goalie's own end");
+      }
+      checked++;
+    }
+  }
+  assert(checked >= 3);
 });
