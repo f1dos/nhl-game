@@ -112,7 +112,21 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert.equal(useGame.getState().game?.round, 0);
   assert(screen.getByText("Последние решения перед вбрасыванием"));
   fireEvent.click(screen.getByText("Перейти к пресс-конференции"));
-  fireEvent.click(screen.getByText("Снять давление"));
+  // Multi-question press conference: every reporter gets an answer.
+  let asked = 0;
+  while (document.querySelector(".presser-answers button")) {
+    assert(document.querySelector(".press-avatar"));
+    fireEvent.click(document.querySelector(".presser-answers button")!);
+    asked++;
+  }
+  assert.equal(asked, 3);
+  assert(screen.getByText("Медиа-обязательства выполнены", { selector: "b" }));
+  assert.equal(
+    useGame
+      .getState()
+      .game!.pressHistory!.filter((entry) => entry.type === "pre-match").length,
+    3,
+  );
   fireEvent.click(screen.getByText("Начать матч"));
   assert(screen.getByText(/^МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ/));
   // The live match opens as a full-screen broadcast with its own controls.
@@ -126,7 +140,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Пресс-центр"));
   assert(
     screen.getByText(
-      "Предматчевые и послематчевые ответы влияют на ожидания фанатов, раздевалку и руководство.",
+      "Журналисты задают вопросы по ситуации в команде. Ответы влияют на ожидания фанатов, раздевалку, руководство и отдельных игроков.",
     ),
   );
   fireEvent.click(screen.getByText("Статистика"));
@@ -197,5 +211,62 @@ test("an unattached player never receives own-team conversation topics", () => {
   assert(screen.getByText("Внутренние темы недоступны"));
   assert.equal(screen.queryByText("Игровое время"), null);
   assert(screen.getByText(/Организация и статус прав/));
+  cleanup();
+});
+
+test("English player meeting runs as a multi-turn chat and records history once", () => {
+  const game = newGame("TOR", 9902);
+  game.language = "en";
+  const playerId = game.teams.find((team) => team.id === "TOR")!.players[2].id;
+  // Old Russian-only history entry from an earlier save still renders.
+  game.teams.find((team) => team.id === "TOR")!.players[2].conversationHistory = [
+    {
+      year: 2025,
+      round: 3,
+      topic: "form",
+      tone: "supportive",
+      managerLine: "Я вижу твою работу.",
+      response: "Спасибо, тренер.",
+      moraleDelta: 2,
+      relationshipDelta: 1,
+    },
+  ];
+  useGame.setState({ game });
+  const Harness = () => {
+    const current = useGame((state) => state.game)!;
+    const player = current.teams
+      .find((team) => team.id === "TOR")!
+      .players.find((item) => item.id === playerId)!;
+    return React.createElement(PlayerConversation, {
+      player,
+      game: current,
+      edit: useGame.getState().edit,
+      onClose: () => undefined,
+    });
+  };
+  render(React.createElement(Harness));
+  assert(screen.getByText("Player conversation"));
+  assert(screen.getByText("Спасибо, тренер.", { exact: false }));
+  fireEvent.click(document.querySelector(".dialogue-choices > button")!);
+  assert.equal(document.querySelectorAll(".dialogue-thread .speech").length, 2);
+  let rounds = 0;
+  while (document.querySelector(".conversation-follow-up > button")) {
+    fireEvent.click(document.querySelector(".conversation-follow-up > button")!);
+    rounds++;
+  }
+  assert.ok(rounds >= 1 && rounds <= 3);
+  assert.equal(
+    document.querySelectorAll(".dialogue-thread .speech").length,
+    (rounds + 1) * 2,
+  );
+  assert(screen.getByText(/MEETING OUTCOME/));
+  const thread = document.querySelector(".dialogue-thread")!.textContent!;
+  assert.doesNotMatch(thread, /[А-Яа-яЁё]/);
+  const stored = useGame
+    .getState()
+    .game!.teams.find((team) => team.id === "TOR")!
+    .players.find((item) => item.id === playerId)!;
+  assert.equal(stored.conversationHistory!.length, 2);
+  assert.equal(stored.lastConversationRound, game.round);
   cleanup();
 });

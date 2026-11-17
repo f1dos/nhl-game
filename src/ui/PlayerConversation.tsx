@@ -1,15 +1,84 @@
 import { useState } from "react";
-import { ArrowLeft, CheckCircle2, MessageCircle, X } from "lucide-react";
 import {
-  CONVERSATION_TONES,
+  ArrowLeft,
+  CheckCircle2,
+  MessageCircle,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import {
   CONVERSATION_TOPICS,
+  MAX_EXCHANGES,
+  concludeConversation,
+  continueConversation,
+  conversationEffects,
+  conversationEntryText,
+  conversationFollowUps,
+  conversationMoodLabel,
   conversationOptions,
-  playerConcerns,
-  talkToPlayer,
   externalContactEligibility,
+  openConversation,
+  playerConcerns,
+  suggestedTopic,
+  type ConversationMood,
+  type ConversationResult,
+  type ConversationState,
   type ConversationTopic,
+  type FollowUpKind,
 } from "../engine/conversations";
+import { dialogueLang, quote } from "../engine/dialogueText";
 import type { Game, Player } from "../engine/types";
+
+const signed = (value: number) => `${value > 0 ? "+" : ""}${value}`;
+
+function Delta({ value }: { value?: number }) {
+  if (!value) return null;
+  return (
+    <em className={`vital-delta ${value > 0 ? "up" : "down"}`}>
+      {value > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+      {signed(value)}
+    </em>
+  );
+}
+
+function Thread({
+  turns,
+  playerName,
+  ru,
+}: {
+  turns: {
+    speaker: "manager" | "player";
+    text: string;
+    mood?: ConversationMood;
+    label?: string;
+  }[];
+  playerName: string;
+  ru: boolean;
+}) {
+  return (
+    <div className="dialogue-thread">
+      {turns.map((turn, index) => (
+        <div
+          key={index}
+          className={`speech ${turn.speaker} ${turn.mood ?? ""}`}
+        >
+          <small>
+            {turn.speaker === "manager"
+              ? `${ru ? "ВЫ" : "YOU"}${turn.label ? ` · ${turn.label.toUpperCase()}` : ""}`
+              : playerName.toUpperCase()}
+            {turn.mood && (
+              <span className={`mood-dot ${turn.mood}`}>
+                {conversationMoodLabel(turn.mood, ru ? "ru" : "en")}
+              </span>
+            )}
+          </small>
+          <p>{turn.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function PlayerConversation({
   player,
@@ -23,6 +92,7 @@ export default function PlayerConversation({
   onClose: () => void;
 }) {
   const ru = game.language === "ru";
+  const lang = dialogueLang(game.language);
   const owner = game.teams.find((team) =>
     [...team.players, ...(team.farm ?? [])].some(
       (item) => item.id === player.id,
@@ -37,19 +107,9 @@ export default function PlayerConversation({
   const external = unattached || owner.id !== game.user;
   const eligibility = externalContactEligibility(game, player.id);
   const [externalReply, setExternalReply] = useState("");
-  const [followUp, setFollowUp] = useState("");
-  const [topic, setTopic] = useState<ConversationTopic>(
-    player.injury > 0
-      ? "injury"
-      : player.years <= 1
-        ? "contract"
-        : (player.performanceForm ?? 0) < 0
-          ? "form"
-          : "role",
-  );
-  const [result, setResult] = useState<ReturnType<typeof talkToPlayer> | null>(
-    null,
-  );
+  const [topic, setTopic] = useState<ConversationTopic>(suggestedTopic(player));
+  const [session, setSession] = useState<ConversationState | null>(null);
+  const [result, setResult] = useState<ConversationResult | null>(null);
   const [error, setError] = useState("");
   const completed = player.lastConversationRound === game.round || !!result;
   const history = player.conversationHistory ?? [];
@@ -128,11 +188,11 @@ export default function PlayerConversation({
             </p>
             <div className="conversation-vitals">
               <div>
-                <span>Контракт</span>
+                <span>{ru ? "Контракт" : "Contract"}</span>
                 <b>{player.years}Y</b>
               </div>
               <div>
-                <span>Мораль</span>
+                <span>{ru ? "Мораль" : "Morale"}</span>
                 <b>{player.morale}%</b>
               </div>
             </div>
@@ -250,7 +310,9 @@ export default function PlayerConversation({
             {externalReply && (
               <section className="dialogue-result neutral">
                 <div className="speech player">
-                  <small>ОТВЕТ АГЕНТА / КЛУБА</small>
+                  <small>
+                    {ru ? "ОТВЕТ АГЕНТА / КЛУБА" : "AGENT / CLUB REPLY"}
+                  </small>
                   <p>{externalReply}</p>
                 </div>
               </section>
@@ -259,10 +321,52 @@ export default function PlayerConversation({
         </div>
       </div>
     );
+  const conclude = (state: ConversationState, abrupt = false) => {
+    let outcome: ConversationResult | null = null;
+    edit((current) => {
+      outcome = concludeConversation(current, state, { abrupt });
+    });
+    if (outcome) setResult(outcome);
+    return outcome;
+  };
+  const close = () => {
+    if (session && !result) conclude(session, true);
+    onClose();
+  };
+  const start = (tone: Parameters<typeof openConversation>[3]) => {
+    try {
+      setSession(openConversation(game, player.id, topic, tone));
+      setError("");
+    } catch {
+      setError(
+        ru
+          ? "С этим игроком уже говорили в текущем туре."
+          : "You've already met this player this round.",
+      );
+    }
+  };
+  const followUp = (kind: FollowUpKind) => {
+    if (!session) return;
+    const next = continueConversation(game, session, kind);
+    setSession(next);
+    if (next.finished) conclude(next);
+  };
+  const projected = session && !result ? conversationEffects(session) : null;
+  const shown = result ?? projected;
+  const options =
+    session && !result ? conversationFollowUps(game, session) : [];
+  const lastEntry = history[0] ? conversationEntryText(history[0], lang) : null;
+  const mood = session?.mood ?? (completed ? history[0]?.outcome : undefined);
+  const turns = (session?.turns ?? []).map((turn) => ({
+    speaker: turn.speaker,
+    text: turn.text[lang],
+    mood: turn.mood,
+    label: turn.label?.[lang],
+  }));
   return (
     <div className="conversation-window" role="dialog" aria-modal="true">
       <header>
-        <button className="icon-button" aria-label="Back" onClick={onClose}>
+        <button className="icon-button" aria-label="Back" onClick={close}>
           <ArrowLeft size={20} />
         </button>
         <div>
@@ -274,7 +378,7 @@ export default function PlayerConversation({
         <button
           className="icon-button"
           aria-label="Close conversation"
-          onClick={onClose}
+          onClick={close}
         >
           <X size={20} />
         </button>
@@ -295,23 +399,49 @@ export default function PlayerConversation({
             {player.pos} · {player.age} {ru ? "лет" : "years"} · {player.ovr}{" "}
             OVR
           </p>
+          {mood && (
+            <div className={`conversation-mood ${mood}`}>
+              <span>{ru ? "Настрой в разговоре" : "Mood in the room"}</span>
+              <b>{conversationMoodLabel(mood, lang)}</b>
+            </div>
+          )}
           <div className="conversation-vitals">
-            <div>
-              <span>{ru ? "Мораль" : "Morale"}</span>
-              <b>{player.morale}%</b>
-            </div>
-            <div>
-              <span>{ru ? "Отношения" : "Relationship"}</span>
-              <b>{player.relationship ?? 50}%</b>
-            </div>
-            <div>
-              <span>{ru ? "Мотивация" : "Motivation"}</span>
-              <b>{player.motivation ?? 50}%</b>
-            </div>
+            {(
+              [
+                [ru ? "Мораль" : "Morale", player.morale, shown?.moraleDelta],
+                [
+                  ru ? "Отношения" : "Relationship",
+                  player.relationship ?? 50,
+                  shown?.relationshipDelta,
+                ],
+                [
+                  ru ? "Мотивация" : "Motivation",
+                  player.motivation ?? 50,
+                  shown?.motivationDelta,
+                ],
+              ] as const
+            ).map(([label, value, delta]) => (
+              <div key={label}>
+                <span>{label}</span>
+                <i className="vital-bar">
+                  <i style={{ width: `${value}%` }} />
+                </i>
+                <b>
+                  {value}% <Delta value={delta} />
+                </b>
+              </div>
+            ))}
           </div>
+          {projected && (
+            <small className="vital-note">
+              {ru
+                ? "Прогноз, если закончить разговор сейчас"
+                : "Projected if the meeting ended now"}
+            </small>
+          )}
           <h3>{ru ? "ЧТО БЕСПОКОИТ ИГРОКА" : "PLAYER CONCERNS"}</h3>
           <div className="concern-tags">
-            {playerConcerns(player).map((concern) => (
+            {playerConcerns(player, game.language).map((concern) => (
               <span key={concern}>{concern}</span>
             ))}
           </div>
@@ -326,7 +456,13 @@ export default function PlayerConversation({
             <div>
               <MessageCircle size={20} />
               <span>
-                {ru ? "Выберите тему встречи" : "Choose the meeting topic"}
+                {session
+                  ? `${CONVERSATION_TOPICS[session.topic][lang]} · ${
+                      ru ? "обмен" : "exchange"
+                    } ${Math.min(session.exchanges, MAX_EXCHANGES)}/${MAX_EXCHANGES}`
+                  : ru
+                    ? "Выберите тему встречи"
+                    : "Choose the meeting topic"}
               </span>
             </div>
             <small>
@@ -334,142 +470,107 @@ export default function PlayerConversation({
               {ru ? `тур ${game.round + 1}` : `round ${game.round + 1}`}
             </small>
           </div>
-          <div className="topic-grid">
-            {(Object.keys(CONVERSATION_TOPICS) as ConversationTopic[]).map(
-              (key) => (
-                <button
-                  key={key}
-                  className={topic === key ? "active" : ""}
-                  disabled={completed}
-                  onClick={() => {
-                    setTopic(key);
-                    setError("");
-                  }}
-                >
-                  {ru
-                    ? CONVERSATION_TOPICS[key].ru
-                    : CONVERSATION_TOPICS[key].en}
-                </button>
-              ),
-            )}
-          </div>
-          {!result && !completed && (
+          {!session && (
+            <div className="topic-grid">
+              {(Object.keys(CONVERSATION_TOPICS) as ConversationTopic[]).map(
+                (key) => (
+                  <button
+                    key={key}
+                    className={topic === key ? "active" : ""}
+                    disabled={completed}
+                    onClick={() => {
+                      setTopic(key);
+                      setError("");
+                    }}
+                  >
+                    {CONVERSATION_TOPICS[key][lang]}
+                  </button>
+                ),
+              )}
+            </div>
+          )}
+          {!session && !completed && (
             <section className="dialogue-choices">
               <span className="eyebrow">
-                {ru ? "ВАША РЕПЛИКА" : "YOUR RESPONSE"}
+                {ru ? "ВАША ПЕРВАЯ РЕПЛИКА" : "YOUR OPENING LINE"}
               </span>
               <h2>
                 {ru
                   ? "Как вы хотите провести разговор?"
                   : "How do you want to handle the conversation?"}
               </h2>
-              {conversationOptions(topic).map((option) => (
-                <button
-                  key={option.tone}
-                  onClick={() => {
-                    try {
-                      let response: ReturnType<typeof talkToPlayer> | null =
-                        null;
-                      edit((current) => {
-                        response = talkToPlayer(
-                          current,
-                          player.id,
-                          topic,
-                          option.tone,
-                        );
-                      });
-                      setResult(response);
-                      setError("");
-                    } catch (caught) {
-                      setError((caught as Error).message);
-                    }
-                  }}
-                >
-                  <span>
-                    {ru
-                      ? CONVERSATION_TONES[option.tone].ru
-                      : CONVERSATION_TONES[option.tone].en}
-                  </span>
-                  <p>«{option.line}»</p>
+              {conversationOptions(topic, player, game).map((option) => (
+                <button key={option.tone} onClick={() => start(option.tone)}>
+                  <span>{option.label[lang]}</span>
+                  <p>{quote(option.text[lang], lang)}</p>
                 </button>
               ))}
             </section>
           )}
-          {result && (
-            <section className={`dialogue-result ${result.outcome}`}>
-              <div className="speech manager">
-                <small>{ru ? "ВЫ" : "YOU"}</small>
-                <p>{result.managerLine}</p>
-              </div>
-              <div className="speech player">
-                <small>{player.name.toUpperCase()}</small>
-                <p>{result.response}</p>
-              </div>
-              <div className="conversation-impact">
-                <CheckCircle2 size={18} />
-                <span>{ru ? "Итог разговора" : "Conversation impact"}</span>
-                <b>
-                  {result.moraleDelta >= 0 ? "+" : ""}
-                  {result.moraleDelta} MOR
-                </b>
-                <b>
-                  {result.relationshipDelta >= 0 ? "+" : ""}
-                  {result.relationshipDelta} REL
-                </b>
-                <b>
-                  {result.motivationDelta >= 0 ? "+" : ""}
-                  {result.motivationDelta} MOT
-                </b>
-              </div>
-              {!followUp && (
+          {session && (
+            <section
+              className={`dialogue-result ${result?.outcome ?? session.mood}`}
+            >
+              <Thread turns={turns} playerName={player.name} ru={ru} />
+              {!result && options.length > 0 && (
                 <div className="dialogue-choices conversation-follow-up">
-                  <button
-                    onClick={() =>
-                      setFollowUp(
-                        ru
-                          ? "Хорошо, теперь я понимаю конкретно, чего вы от меня ждёте."
-                          : "Good. I understand exactly what you expect from me now.",
-                      )
-                    }
-                  >
-                    <span>
-                      {ru ? "Уточнить ожидания" : "Clarify expectations"}
-                    </span>
-                    <p>
-                      {ru
-                        ? "Закрепить разговор конкретной ролью и ближайшей задачей."
-                        : "Finish with a specific role and a near-term target."}
-                    </p>
-                  </button>
-                  <button
-                    onClick={() =>
-                      setFollowUp(
-                        ru
-                          ? "Спасибо, что выслушали. Для меня было важно сказать это напрямую."
-                          : "Thanks for listening. It mattered that I could say that directly.",
-                      )
-                    }
-                  >
-                    <span>
-                      {ru ? "Выслушать игрока" : "Hear the player out"}
-                    </span>
-                    <p>
-                      {ru
-                        ? "Дать игроку последнее слово без нового обещания."
-                        : "Give the player the final word without making another promise."}
-                    </p>
-                  </button>
+                  <span className="eyebrow">
+                    {ru ? "ВАШ ОТВЕТ" : "YOUR REPLY"}
+                  </span>
+                  {options.map((option) => (
+                    <button
+                      key={option.kind}
+                      onClick={() => followUp(option.kind)}
+                    >
+                      <span>
+                        {option.label[lang]}
+                        {option.closes && (
+                          <em className="closes-tag">
+                            {ru ? "завершает" : "closes"}
+                          </em>
+                        )}
+                      </span>
+                      <p>
+                        {quote(option.line[lang], lang)}
+                        <small>{option.hint[lang]}</small>
+                      </p>
+                    </button>
+                  ))}
                 </div>
               )}
-              {followUp && (
-                <div className="speech player">
-                  <small>{player.name.toUpperCase()}</small>
-                  <p>{followUp}</p>
+              {result && (
+                <div className={`conversation-outcome ${result.outcome}`}>
+                  <CheckCircle2 size={22} />
+                  <div>
+                    <span className="eyebrow">
+                      {ru ? "ИТОГ РАЗГОВОРА" : "MEETING OUTCOME"} ·{" "}
+                      {conversationMoodLabel(result.outcome, lang)}
+                    </span>
+                    <p>{result.summary[lang]}</p>
+                  </div>
+                  <div className="conversation-impact">
+                    <b className={result.moraleDelta >= 0 ? "up" : "down"}>
+                      {signed(result.moraleDelta)} {ru ? "мораль" : "morale"}
+                    </b>
+                    <b
+                      className={result.relationshipDelta >= 0 ? "up" : "down"}
+                    >
+                      {signed(result.relationshipDelta)}{" "}
+                      {ru ? "отношения" : "relationship"}
+                    </b>
+                    <b className={result.motivationDelta >= 0 ? "up" : "down"}>
+                      {signed(result.motivationDelta)}{" "}
+                      {ru ? "мотивация" : "motivation"}
+                    </b>
+                  </div>
+                  <button className="primary" onClick={onClose}>
+                    {ru ? "Закончить встречу" : "End meeting"}
+                  </button>
                 </div>
               )}
             </section>
           )}
-          {!result && completed && (
+          {!session && completed && (
             <section className="dialogue-completed">
               <CheckCircle2 size={34} />
               <h2>
@@ -477,29 +578,54 @@ export default function PlayerConversation({
                   ? "Встреча в этом туре уже состоялась"
                   : "This round's meeting is complete"}
               </h2>
-              <p>{history[0]?.response}</p>
+              {lastEntry && lastEntry.transcript.length > 0 ? (
+                <Thread
+                  turns={lastEntry.transcript}
+                  playerName={player.name}
+                  ru={ru}
+                />
+              ) : (
+                <p>{lastEntry?.response}</p>
+              )}
+              {lastEntry?.summary && (
+                <p className="completed-summary">{lastEntry.summary}</p>
+              )}
             </section>
           )}
           {error && <p className="conversation-error">{error}</p>}
           {history.length > 0 && (
             <section className="conversation-history">
               <h3>{ru ? "ИСТОРИЯ ВСТРЕЧ" : "MEETING HISTORY"}</h3>
-              {history.slice(0, 5).map((entry, index) => (
-                <div key={`${entry.year}-${entry.round}-${index}`}>
-                  <small>
-                    {entry.year} · {ru ? "тур" : "round"} {entry.round + 1} ·{" "}
-                    {entry.topic}
-                  </small>
-                  {entry.managerLine && (
+              {history.slice(0, 5).map((entry, index) => {
+                const text = conversationEntryText(entry, lang);
+                return (
+                  <div
+                    key={`${entry.year}-${entry.round}-${index}`}
+                    className={entry.outcome ?? ""}
+                  >
+                    <small>
+                      {entry.year} · {ru ? "тур" : "round"} {entry.round + 1} ·{" "}
+                      {text.topic}
+                      {entry.exchanges
+                        ? ` · ${entry.exchanges} ${ru ? "обм." : "exch."}`
+                        : ""}{" "}
+                      · {signed(entry.moraleDelta)} MOR ·{" "}
+                      {signed(entry.relationshipDelta)} REL
+                    </small>
+                    {text.managerLine && (
+                      <p>
+                        <b>GM:</b> {text.managerLine}
+                      </p>
+                    )}
                     <p>
-                      <b>GM:</b> {entry.managerLine}
+                      <b>{player.name}:</b> {text.response}
                     </p>
-                  )}
-                  <p>
-                    <b>{player.name}:</b> {entry.response}
-                  </p>
-                </div>
-              ))}
+                    {text.summary && (
+                      <p className="history-summary">{text.summary}</p>
+                    )}
+                  </div>
+                );
+              })}
             </section>
           )}
         </main>

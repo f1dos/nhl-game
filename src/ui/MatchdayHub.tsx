@@ -8,12 +8,12 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import type {
-  Game,
-  Player,
-  PressAppearance,
-  SpecialTeamsSituation,
-} from "../engine/types";
+import type { Game, Player, SpecialTeamsSituation } from "../engine/types";
+import {
+  buildPressConference,
+  pressConferenceComplete,
+} from "../engine/press";
+import PressConference from "./PressConference";
 import { advanceDay } from "../engine/management";
 import { MatchRatingsPanel } from "./MatchRatings";
 import { clamp } from "../engine/random";
@@ -30,138 +30,6 @@ import { ClubLink } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
-type PressChoice = {
-  title: string;
-  line: string;
-  response: string;
-  tone: PressAppearance["tone"];
-  fan: number;
-  board: number;
-  morale: number;
-};
-
-const prePress: PressChoice[] = [
-  {
-    title: "Снять давление",
-    line: "Результат важен, но команда должна играть свободно и доверять своей подготовке.",
-    response:
-      "Лидеры оценили защиту команды, но руководство ожидало более жёсткого сигнала.",
-    tone: "protective",
-    fan: 0,
-    board: -1,
-    morale: 2,
-  },
-  {
-    title: "Подчеркнуть план",
-    line: "Мы детально разобрали соперника. Решат дисциплина, смены и качество спецбригад.",
-    response:
-      "Руководство одобрило план, но игроки почувствовали дополнительную ответственность.",
-    tone: "balanced",
-    fan: 1,
-    board: 1,
-    morale: -1,
-  },
-  {
-    title: "Потребовать победу",
-    line: "Сегодня нам нужны два очка. У этой команды нет права прятаться от ожиданий.",
-    response:
-      "Фанаты воодушевлены, но часть раздевалки почувствовала дополнительное давление.",
-    tone: "ambitious",
-    fan: 2,
-    board: 2,
-    morale: -1,
-  },
-  {
-    title: "Похвалить лидеров",
-    line: "Наши ключевые игроки готовы вести команду. Я полностью доверяю им в решающие минуты.",
-    response:
-      "Первое звено получило заряд уверенности, игроки глубины ждут своего шанса.",
-    tone: "protective",
-    fan: 1,
-    board: -1,
-    morale: 2,
-  },
-  {
-    title: "Уважить соперника",
-    line: "Это сильная команда. Если потеряем структуру хотя бы на смену, нас накажут.",
-    response:
-      "Ответ сочли взвешенным; тактическая дисциплина стала главным посылом.",
-    tone: "balanced",
-    fan: -1,
-    board: 1,
-    morale: 1,
-  },
-  {
-    title: "Разогреть противостояние",
-    line: "В таких матчах таблица отходит на второй план. Мы обязаны выиграть борьбу за каждый метр льда.",
-    response: "Цитата разошлась по медиа и резко подняла ожидания фанатов.",
-    tone: "ambitious",
-    fan: 3,
-    board: 1,
-    morale: -1,
-  },
-];
-const postPress: PressChoice[] = [
-  {
-    title: "Взять ответственность",
-    line: "Все ключевые решения были моими. Игроков критиковать не собираюсь.",
-    response: "Раздевалка оценила защиту менеджера.",
-    tone: "protective",
-    fan: 0,
-    board: -1,
-    morale: 2,
-  },
-  {
-    title: "Разобрать детали",
-    line: "Нам нужно улучшить смены, контроль центра и качество первого паса. Сделаем выводы завтра.",
-    response:
-      "Руководство оценило анализ, но публичная критика деталей задела игроков.",
-    tone: "balanced",
-    fan: 1,
-    board: 1,
-    morale: -1,
-  },
-  {
-    title: "Потребовать большего",
-    line: "Стандарт клуба выше. Независимо от счёта мы должны быть требовательнее к себе.",
-    response:
-      "Руководству понравилась амбиция, но уставшие игроки восприняли её тяжело.",
-    tone: "ambitious",
-    fan: 2,
-    board: 2,
-    morale: -1,
-  },
-  {
-    title: "Отметить спецбригады",
-    line: "Сегодня ключевым фактором стали наши решения в неравных составах.",
-    response:
-      "Штаб получил признание, но игроки вне спецбригад почувствовали, что их вклад недооценён.",
-    tone: "balanced",
-    fan: 1,
-    board: 1,
-    morale: -1,
-  },
-  {
-    title: "Похвалить характер",
-    line: "Команда не развалилась в сложный момент и продолжала играть друг за друга.",
-    response: "Командная мораль заметно выросла.",
-    tone: "protective",
-    fan: 1,
-    board: -1,
-    morale: 2,
-  },
-  {
-    title: "Ответить жёстко",
-    line: "Некоторые хоккеисты не выполнили свою работу. Места в составе никому не гарантированы.",
-    response:
-      "Заявление понравилось требовательным фанатам, но ухудшило атмосферу.",
-    tone: "ambitious",
-    fan: 2,
-    board: 1,
-    morale: -2,
-  },
-];
-
 export default function MatchdayHub({
   game,
   edit,
@@ -175,9 +43,8 @@ export default function MatchdayHub({
 }) {
   const [stage, setStage] = useState<"pre" | "live" | "post">("pre");
   const [tab, setTab] = useState<MatchdayTab>("briefing");
-  const [preAnswer, setPreAnswer] = useState<PressChoice>();
   const [prePressSkipped, setPrePressSkipped] = useState(false);
-  const [postAnswer, setPostAnswer] = useState<PressChoice>();
+  const ru = game.language === "ru";
   const [matchDate] = useState(game.calendar?.date ?? "");
   const team = game.teams.find((club) => club.id === game.user)!;
   ensureSpecialTeams(team);
@@ -211,17 +78,15 @@ export default function MatchdayHub({
           : game.last.home
         : "";
   const opponent = game.teams.find((club) => club.id === opponentId);
-  const preDone =
-    !!preAnswer ||
-    !!game.pressHistory?.some(
-      (appearance) =>
-        appearance.date === matchDate && appearance.type === "pre-match",
-    );
+  const preDone = pressConferenceComplete(
+    game,
+    buildPressConference(game, "pre-match", matchDate),
+  );
   const postDone =
-    !!postAnswer ||
-    !!game.pressHistory?.some(
-      (appearance) =>
-        appearance.date === matchDate && appearance.type === "post-match",
+    stage === "post" &&
+    pressConferenceComplete(
+      game,
+      buildPressConference(game, "post-match", matchDate),
     );
   const skipPrePress = () => {
     edit((current) => {
@@ -238,50 +103,6 @@ export default function MatchdayHub({
         );
     });
     setPrePressSkipped(true);
-  };
-  const press = (choice: PressChoice, type: PressAppearance["type"]) => {
-    edit((current) => {
-      current.pressHistory ??= [];
-      if (
-        current.pressHistory.some(
-          (appearance) =>
-            appearance.date === matchDate && appearance.type === type,
-        )
-      )
-        return;
-      current.pressHistory.unshift({
-        date: matchDate,
-        type,
-        tone: choice.tone,
-        headline: choice.line,
-        fanDelta: choice.fan,
-        boardDelta: choice.board,
-        moraleDelta: choice.morale,
-      });
-      const fans = current.fans?.[current.user];
-      if (fans) {
-        fans.happiness = clamp(fans.happiness + choice.fan, 0, 100);
-        fans.engagement = clamp(
-          fans.engagement + Math.sign(choice.fan),
-          0,
-          100,
-        );
-        fans.lastChange =
-          type === "pre-match" ? "Предматчевая пресса" : "Послематчевая пресса";
-      }
-      if (current.managerEmployment)
-        current.managerEmployment.confidence = clamp(
-          current.managerEmployment.confidence + choice.board,
-          0,
-          100,
-        );
-      current.teams
-        .find((club) => club.id === current.user)!
-        .players.forEach((player) => {
-          player.morale = clamp(player.morale + choice.morale, 0, 100);
-        });
-    });
-    type === "pre-match" ? setPreAnswer(choice) : setPostAnswer(choice);
   };
   const playerSelect = (
     value: string,
@@ -342,7 +163,8 @@ export default function MatchdayHub({
       <div className="matchday-window">
         <header className="matchday-top">
           <button onClick={onExit}>
-            <ArrowLeft size={17} /> Завершить матч-день
+            <ArrowLeft size={17} />{" "}
+            {ru ? "Завершить матч-день" : "End matchday"}
           </button>
           <div>
             <span>POST-MATCH MEDIA</span>
@@ -354,44 +176,20 @@ export default function MatchdayHub({
         </header>
         {game.last && <MatchRatingsPanel game={game} result={game.last} />}
         <div className="matchday-press-stage">
-          <span className="eyebrow">ПОСЛЕМАТЧЕВАЯ ПРЕСС-КОНФЕРЕНЦИЯ</span>
-          <h1>Последнее слово после игры</h1>
-          <p className="press-prompt">
-            Журналист: «Как вы оцениваете результат, решения штаба и реакцию
-            команды сегодня?»
-          </p>
-          {!postDone ? (
-            <div className="matchday-answer-grid">
-              {postPress.map((choice) => (
-                <button
-                  key={choice.title}
-                  onClick={() => press(choice, "post-match")}
-                >
-                  <b>{choice.title}</b>
-                  <span>«{choice.line}»</span>
-                  <small>
-                    Фанаты {choice.fan >= 0 ? "+" : ""}
-                    {choice.fan} · руководство {choice.board >= 0 ? "+" : ""}
-                    {choice.board} · команда {choice.morale >= 0 ? "+" : ""}
-                    {choice.morale}
-                  </small>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="press-consequence">
-              <CheckCircle2 size={28} />
-              <div>
-                <b>Ответ опубликован</b>
-                <p>
-                  {postAnswer?.response ??
-                    "Медиа-обязательства после матча уже выполнены."}
-                </p>
-              </div>
-              <button className="primary" onClick={onExit}>
-                Вернуться в кабинет
-              </button>
-            </div>
+          <span className="eyebrow">
+            {ru ? "ПОСЛЕМАТЧЕВАЯ ПРЕСС-КОНФЕРЕНЦИЯ" : "POST-MATCH PRESS CONFERENCE"}
+          </span>
+          <h1>{ru ? "Последнее слово после игры" : "The last word after the game"}</h1>
+          <PressConference
+            game={game}
+            edit={edit}
+            type="post-match"
+            date={matchDate}
+          />
+          {postDone && (
+            <button className="primary presser-exit" onClick={onExit}>
+              {ru ? "Вернуться в кабинет" : "Back to the office"}
+            </button>
           )}
         </div>
       </div>
@@ -400,7 +198,8 @@ export default function MatchdayHub({
     <div className="matchday-window">
       <header className="matchday-top">
         <button onClick={onExit}>
-          <ArrowLeft size={17} /> Покинуть матч-день
+          <ArrowLeft size={17} />{" "}
+          {ru ? "Покинуть матч-день" : "Leave matchday"}
         </button>
         <div>
           <span>
@@ -499,8 +298,14 @@ export default function MatchdayHub({
                 <Shield /> Спецбригады: 9 ситуаций настроено
               </p>
               <p>
-                <MessageCircle /> Пресса:{" "}
-                {preDone ? "ответ дан" : "ожидает решения"}
+                <MessageCircle /> {ru ? "Пресса" : "Press"}:{" "}
+                {preDone
+                  ? ru
+                    ? "ответы даны"
+                    : "answered"
+                  : ru
+                    ? "ожидает решения"
+                    : "awaiting your decision"}
               </p>
             </div>
           </section>
@@ -601,40 +406,30 @@ export default function MatchdayHub({
         {tab === "press" && (
           <section className="matchday-press">
             <span className="eyebrow">PRE-MATCH PRESS CONFERENCE</span>
-            <h2>Установите ожидания перед игрой</h2>
-            <p className="press-prompt">
-              Журналист: «Какой сигнал вы хотите отправить игрокам и болельщикам
-              перед сегодняшним матчем?»
-            </p>
-            {!preDone ? (
-              <div className="matchday-answer-grid">
-                {prePress.map((choice) => (
-                  <button
-                    key={choice.title}
-                    onClick={() => press(choice, "pre-match")}
-                  >
-                    <b>{choice.title}</b>
-                    <span>«{choice.line}»</span>
-                    <small>
-                      Фанаты {choice.fan >= 0 ? "+" : ""}
-                      {choice.fan} · руководство {choice.board >= 0 ? "+" : ""}
-                      {choice.board} · команда {choice.morale >= 0 ? "+" : ""}
-                      {choice.morale}
-                    </small>
-                  </button>
-                ))}
-              </div>
-            ) : (
+            <h2>
+              {ru
+                ? "Установите ожидания перед игрой"
+                : "Set expectations before the game"}
+            </h2>
+            {prePressSkipped && !preDone ? (
               <div className="press-consequence">
                 <CheckCircle2 />
                 <div>
-                  <b>Ответ опубликован</b>
+                  <b>{ru ? "Пресс-конференция пропущена" : "Press conference skipped"}</b>
                   <p>
-                    {preAnswer?.response ??
-                      "Предматчевая пресс-конференция уже проведена."}
+                    {ru
+                      ? "СМИ отметили отказ общаться перед матчем."
+                      : "The media noted that you declined to talk before the game."}
                   </p>
                 </div>
               </div>
+            ) : (
+              <PressConference
+                game={game}
+                edit={edit}
+                type="pre-match"
+                date={matchDate}
+              />
             )}
           </section>
         )}
@@ -642,14 +437,22 @@ export default function MatchdayHub({
       <footer className="matchday-footer">
         <span>
           {preDone
-            ? "Медиа-обязательства выполнены"
+            ? ru
+              ? "Медиа-обязательства выполнены"
+              : "Media obligations complete"
             : prePressSkipped
-              ? "Вы сознательно пропустили пресс-конференцию — СМИ это отметят"
-              : "До матча нужно ответить СМИ или явно отказаться от пресс-конференции"}
+              ? ru
+                ? "Вы сознательно пропустили пресс-конференцию — СМИ это отметят"
+                : "You chose to skip the press conference — the media will notice"
+              : ru
+                ? "До матча нужно ответить СМИ или явно отказаться от пресс-конференции"
+                : "Before the game, answer the media or explicitly decline the press conference"}
         </span>
         {!preDone && !prePressSkipped && (
           <button className="press-skip" onClick={skipPrePress}>
-            Пропустить СМИ и принять последствия
+            {ru
+              ? "Пропустить СМИ и принять последствия"
+              : "Skip the media and accept the consequences"}
           </button>
         )}
         <button
@@ -664,8 +467,12 @@ export default function MatchdayHub({
         >
           <Play size={16} />
           {!preDone && !prePressSkipped
-            ? "Перейти к пресс-конференции"
-            : "Начать матч"}
+            ? ru
+              ? "Перейти к пресс-конференции"
+              : "Go to the press conference"
+            : ru
+              ? "Начать матч"
+              : "Start the match"}
         </button>
       </footer>
     </div>
