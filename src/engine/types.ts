@@ -105,6 +105,18 @@ export interface Tactics {
   width?: number;
   passingRisk?: number;
   shiftSeconds?: number;
+  /** Even-strength ice-time distribution; missing in older saves. */
+  iceTime?: IceTimePlan;
+}
+export type IceTimePreset = "balanced" | "top" | "roll" | "short" | "custom";
+export interface IceTimePlan {
+  preset?: IceTimePreset;
+  /** Relative even-strength weights for forward lines L1–L4. */
+  forwards: number[];
+  /** Relative even-strength weights for defence pairs P1–P3. */
+  defense: number[];
+  /** Forward who also takes the 4th line's shifts. */
+  doubleShift?: string;
 }
 export type SpecialTeamsSituation =
   "5v4" | "5v3" | "4v3" | "4v5" | "3v5" | "3v4" | "3v3" | "6v5" | "5v6";

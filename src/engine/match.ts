@@ -16,6 +16,15 @@ import type {
   SpecialTeamUnit,
 } from "./types";
 import { ensureSpecialTeams, lineChemistry } from "./tactics";
+import {
+  inGameWear,
+  lineWithDoubleShift,
+  normalizeShares,
+  overloadFatigue,
+  pickNextUnit,
+  resolveIceTime,
+  shiftLength,
+} from "./iceTime";
 import { snapshotStats, updateMatchPerformance } from "./performance";
 import { rateMatch } from "./matchRatings";
 export function simulateMatch(
@@ -93,15 +102,46 @@ export function simulateMatch(
       score: [...res.goals],
       xg,
     });
+  // Even-strength rotation: the line/pair furthest behind its configured
+  // share takes each new shift. Credit is even-strength seconds played.
+  const rotation = teams.map((t) => {
+    const plan = resolveIceTime(t);
+    return {
+      plan,
+      shift: shiftLength(t),
+      forwards: normalizeShares(plan.forwards),
+      defense: normalizeShares(plan.defense),
+      fCredit: [0, 0, 0, 0],
+      dCredit: [0, 0, 0],
+      line: -1,
+      pair: -1,
+      index: -1,
+      special: true,
+    };
+  });
+  const shiftOf = new Map<string, number>();
+  teams.forEach((t, i) =>
+    t.players.forEach((p) => shiftOf.set(p.id, rotation[i].shift)),
+  );
+  function rotate(i: number, time: number, even: boolean) {
+    const rot = rotation[i];
+    const index = Math.floor((time - 1) / rot.shift);
+    if (even && (index !== rot.index || rot.special || rot.line < 0)) {
+      const unit = (credit: number[]) => credit.map((c) => c / rot.shift);
+      rot.line = pickNextUnit(rot.forwards, unit(rot.fCredit), rot.line);
+      rot.pair = pickNextUnit(rot.defense, unit(rot.dCredit), rot.pair);
+      rot.index = index;
+    }
+    rot.special = !even;
+    return rot;
+  }
   function onIce(
     i: number,
     time: number,
     count: number,
     opponentCount: number,
   ) {
-    const t = teams[i],
-      line = Math.floor(time / 45) % 10;
-    const li = [0, 1, 0, 2, 1, 3, 0, 1, 2, 3][line];
+    const t = teams[i];
     const situation =
       count === 6 && opponentCount === 5
         ? "6v5"
@@ -123,9 +163,10 @@ export function simulateMatch(
                         ? "3v3"
                         : undefined;
     const special = situation ? ensureSpecialTeams(t)[situation] : undefined;
+    const rot = rotate(i, time, !special);
     const plannedIds = special?.players ?? [
-      ...t.lines[li],
-      ...t.defense[Math.floor(time / 45) % 3],
+      ...lineWithDoubleShift(t, Math.max(0, rot.line), rot.plan),
+      ...t.defense[Math.max(0, rot.pair)],
     ];
     const planned = plannedIds
       .map((id) => t.players.find((p) => p.id === id)!)
@@ -155,9 +196,14 @@ export function simulateMatch(
     ].slice(0, count);
   }
   function effective(p: Player, a: string) {
+    // Heavy usage wears a skater down as the game goes on.
+    const wear =
+      p.pos === "G"
+        ? 0
+        : inGameWear(minutes.get(p.id) || 0, p.pos, shiftOf.get(p.id));
     return (
       p.attributes[a] *
-      (1 - p.fatigue * 0.002) *
+      (1 - Math.min(100, p.fatigue + wear) * 0.002) *
       (p.injury ? 0.8 : 1) *
       (0.92 + p.morale * 0.001) *
       (0.97 + (p.motivation ?? 50) * 0.0006)
@@ -243,7 +289,14 @@ export function simulateMatch(
       if (next && !advantage[i]) res.ppo[i]++;
       advantage[i] = next;
     }
-    ice.forEach((ps) => ps.forEach((p) => participate(p, dt)));
+    ice.forEach((ps, i) => {
+      ps.forEach((p) => participate(p, dt));
+      const rot = rotation[i];
+      if (!rot.special) {
+        rot.fCredit[rot.line] += dt;
+        rot.dCredit[rot.pair] += dt;
+      }
+    });
     goalies.forEach((p, i) => {
       if (!emptyNet[i]) participate(p, dt);
     });
@@ -407,7 +460,10 @@ export function simulateMatch(
       .filter((p) => appeared.has(p.id))
       .forEach((p) => {
         p.fatigue = clamp(
-          p.fatigue + 7 + (minutes.get(p.id) || 0) * 0.1,
+          p.fatigue +
+            7 +
+            (minutes.get(p.id) || 0) * 0.1 +
+            (p.pos === "G" ? 0 : overloadFatigue(minutes.get(p.id) || 0, p.pos)),
           0,
           100,
         );

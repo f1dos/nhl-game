@@ -1,3 +1,9 @@
+import {
+  lineWithDoubleShift,
+  resolveIceTime,
+  shiftLength,
+  unitForShift,
+} from "./iceTime";
 import { RNG, clamp } from "./random";
 import type { Team, Player, Result, SpecialTeamsSituation } from "./types";
 import { ensureSpecialTeams } from "./tactics";
@@ -204,9 +210,13 @@ export class SpatialMatch {
       const other = counts[1 - side] + Number(this.pullGoalie[1 - side]);
       const situation = `${n}v${other}` as SpecialTeamsSituation;
       const unit = ensureSpecialTeams(team)[situation];
+      // Even strength: lines and pairs rotate by the configured ice-time
+      // shares, a pure function of the shift index (no RNG draws).
+      const plan = resolveIceTime(team);
+      const shiftIndex = Math.floor(this.time / shiftLength(team));
       const planned = unit?.players ?? [
-        ...team.lines[Math.floor(this.time / (team.tactics.shiftSeconds ?? 40)) % 4],
-        ...team.defense[Math.floor(this.time / (team.tactics.shiftSeconds ?? 40)) % 3],
+        ...lineWithDoubleShift(team, unitForShift(plan.forwards, shiftIndex), plan),
+        ...team.defense[unitForShift(plan.defense, shiftIndex)],
       ];
       const available = team.players.filter(
         (p) =>
