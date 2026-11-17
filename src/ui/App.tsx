@@ -1015,7 +1015,7 @@ export default function App() {
           }
         />
         <details className="legacy-tactics">
-          <summary>Табличный редактор звеньев</summary>{" "}
+          <summary>{tr("Табличный редактор звеньев", "Table line editor")}</summary>{" "}
           <TacticsView
             game={g}
             team={team}

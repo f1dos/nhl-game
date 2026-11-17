@@ -1,4 +1,7 @@
+import { englishLegacy, englishLegacyPatterns } from "./englishLegacy";
+
 export const englishMatch: Record<string, string> = {
+  ...englishLegacy,
   "Полный отдых": "Full rest",
   Восстановление: "Recovery",
   "Командная игра": "Teamwork",
@@ -323,6 +326,13 @@ export const englishMatch: Record<string, string> = {
 
 export function englishDynamic(value: string): string {
   if (englishMatch[value]) return englishMatch[value];
+  for (const [pattern, english] of englishLegacyPatterns)
+    if (pattern.test(value)) return value.replace(pattern, english);
+  // "сильный сезон; травмы -2" — lists of translatable fragments.
+  if (value.includes("; ")) {
+    const parts = value.split("; ").map((part) => englishDynamic(part));
+    if (parts.every((part) => !/[А-Яа-яЁё]/.test(part))) return parts.join("; ");
+  }
   return value
     .replace(/ПЕРИОД (\d+)/g, "PERIOD $1")
     .replace(/^Звено (\d+)/, "Line $1")
