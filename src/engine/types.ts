@@ -343,11 +343,29 @@ export interface ManagementEvent {
     | "trades"
     | "draft"
     | "strategy"
-    | "leadership";
+    | "leadership"
+    | "tactics"
+    | "press"
+    | "finances";
   responseDue?: string;
   requiresResponse?: boolean;
   read: boolean;
   resolved: boolean;
+}
+/** Bookkeeping for generated inbox messages (rate limits and baselines). */
+export interface InboxState {
+  /** Cooldown key → ISO date the message last fired. */
+  cooldowns: Record<string, string>;
+  /** User players that were injured at the previous check. */
+  injured?: string[];
+  /** User games (regular season + playoffs) seen at the previous check. */
+  userGames?: number;
+  /** Cumulative goalie shots against / goals against after recent user games. */
+  goalieLog?: Record<string, [number, number]>[];
+  /** Current result streak of the user club. */
+  streak?: { kind: "W" | "L"; n: number };
+  /** User payroll at the previous check, in $M. */
+  payroll?: number;
 }
 export interface DraftAsset {
   id: string;
@@ -432,6 +450,7 @@ export interface Game {
   preseasonFixtures?: PreseasonFixture[];
   pressHistory?: PressAppearance[];
   events?: ManagementEvent[];
+  inboxState?: InboxState;
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;
   leadershipSeason?: number;
