@@ -34,6 +34,7 @@ import { autoLines } from "../engine/database";
 import { Panel } from "./components";
 import { refreshObjectives, STRATEGY_POLICIES } from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
+import { ClubLink, EventLinks } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
 
@@ -248,6 +249,11 @@ function AgendaRow({
         </small>
         <strong>{event.title}</strong>
         <p>{event.body}</p>
+        <EventLinks
+          playerId={event.playerId}
+          teamId={event.teamId}
+          text={`${event.title} ${event.body}`}
+        />
       </div>
       <div className="agenda-actions">
         {event.responseDue && (
@@ -502,9 +508,7 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
               return (
                 <p key={rivalry.id}>
                   <b>
-                    {opponent
-                      ? `${opponent.city} ${opponent.name}`
-                      : opponentId}
+                    <ClubLink id={opponentId} crest={20} />
                   </b>
                   <br />
                   {rivalry.label} · {ru ? "накал" : "heat"} {rivalry.heat}
@@ -718,16 +722,25 @@ export function DailyCalendar({ game }: { game: Game }) {
                 <p className="calendar-game preseason">
                   <Activity size={13} /> PRE ·{" "}
                   {preseason.home === game.user ? "vs" : "@"}{" "}
-                  {preseason.home === game.user
-                    ? preseason.away
-                    : preseason.home}
+                  <ClubLink
+                    id={
+                      preseason.home === game.user
+                        ? preseason.away
+                        : preseason.home
+                    }
+                    label="id"
+                  />
                 </p>
               )}
               {fixture && (
                 <p className="calendar-game">
                   <CalendarDays size={13} />{" "}
                   {fixture.home === game.user ? "vs" : "@"}{" "}
-                  {fixture.home === game.user ? fixture.away : fixture.home}
+                  <ClubLink
+                    id={fixture.home === game.user ? fixture.away : fixture.home}
+                    crest={16}
+                    label="id"
+                  />
                 </p>
               )}
               <div

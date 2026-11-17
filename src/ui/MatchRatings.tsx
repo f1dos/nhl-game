@@ -1,7 +1,8 @@
 import { Star } from "lucide-react";
 import type { Game, Player, Result, Team } from "../engine/types";
 import { AWARDS, awardRace, REGULAR_AWARDS, type SeasonAward } from "../engine/awards";
-import { Crest, RatingBadge } from "./components";
+import { RatingBadge } from "./components";
+import { ClubLink, PlayerLink } from "./links";
 
 const STAR_LABELS = [
   ["Первая звезда", "First star"],
@@ -44,9 +45,11 @@ export function MatchRatingsPanel({ game, result }: { game: Game; result: Result
               ))}
             </span>
             <small>{STAR_LABELS[index][ru ? 0 : 1]}</small>
-            <b>{player.name}</b>
+            <b>
+              <PlayerLink player={player} />
+            </b>
             <span className="star-club">
-              <Crest team={team} size={20} /> {team.id} · {player.pos} {matchLine(player, result)}
+              <ClubLink team={team} crest={20} label="id" /> · {player.pos} {matchLine(player, result)}
             </span>
             <RatingBadge value={ratings[player.id]} size="lg" />
           </article>
@@ -57,7 +60,7 @@ export function MatchRatingsPanel({ game, result }: { game: Game; result: Result
           team ? (
             <div key={team.id} className="rating-column">
               <h3>
-                <Crest team={team} size={22} /> {team.city} {team.name}
+                <ClubLink team={team} crest={22} />
               </h3>
               <ol>
                 {team.players
@@ -67,7 +70,7 @@ export function MatchRatingsPanel({ game, result }: { game: Game; result: Result
                     <li key={p.id}>
                       <span className="position">{p.pos}</span>
                       <span className="rating-name">
-                        {p.name}
+                        <PlayerLink player={p} />
                         {result.stars?.includes(p.id) && (
                           <Star size={12} fill="currentColor" className="inline-star" aria-label="star" />
                         )}
@@ -102,7 +105,9 @@ export function AwardRace({ game, onPlayer }: { game: Game; onPlayer: (p: Player
                 {leaders.map((entry) => (
                   <li key={entry.player.id}>
                     <button className="award-player" onClick={() => onPlayer(entry.player)}>
-                      <Crest team={entry.team} size={20} />
+                      <ClubLink team={entry.team} crest={20}>
+                        {""}
+                      </ClubLink>
                       <span>
                         <b>{entry.player.name}</b>
                         <small>{entry.line}</small>
@@ -144,8 +149,14 @@ export function AwardHistory({ game, awards }: { game: Game; awards: SeasonAward
                       <small>{ru ? AWARDS[a.key].aboutRu : AWARDS[a.key].aboutEn}</small>
                     </span>
                     <span className="award-winner">
-                      {team && <Crest team={team} size={20} />}
-                      <b>{a.player}</b>
+                      {team && (
+                        <ClubLink team={team} crest={20}>
+                          {""}
+                        </ClubLink>
+                      )}
+                      <b>
+                        <PlayerLink id={a.playerId} name={a.player} />
+                      </b>
                       <small>{a.line}</small>
                     </span>
                   </li>

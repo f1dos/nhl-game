@@ -10,6 +10,7 @@ import {
 } from "../engine/draft";
 import type { DraftProspect, Game, ScoutingReport } from "../engine/types";
 import { Panel } from "./components";
+import { ClubLink, PlayerLink } from "./links";
 
 type Translate = (ru: string, en: string) => string;
 
@@ -179,7 +180,9 @@ export default function DraftCenter({
         <section className="on-clock">
           <div>
             <span>{tr("СЕЙЧАС ВЫБИРАЕТ", "ON THE CLOCK")}</span>
-            <b>{current.team}</b>
+            <b>
+              <ClubLink id={current.team} crest={24} />
+            </b>
             <small>
               {tr("Раунд", "Round")} {current.round} · #{current.overall}
             </small>
@@ -273,7 +276,9 @@ export default function DraftCenter({
               return (
                 <div key={pick.overall}>
                   <b>#{pick.overall}</b>
-                  <span>{prospect.player.name}</span>
+                  <span>
+                    <PlayerLink player={prospect.player} />
+                  </span>
                   <small>
                     {prospect.player.pos} · {prospect.player.nation} ·{" "}
                     {tr("раунд", "round")} {pick.round}
@@ -418,7 +423,9 @@ function Pipeline({
               <small>
                 {player.nation} · {player.age}
               </small>
-              <h3>{player.name}</h3>
+              <h3>
+                <PlayerLink player={player} />
+              </h3>
               <p>{player.archetype}</p>
               <div>
                 <b>
