@@ -199,7 +199,7 @@ export default function SpatialMatchCenter({
         current.calendar?.date !== game.calendar?.date ||
         current.round !== game.round
       )
-        throw Error("Календарь изменился во время матча");
+        throw Error(tr("Календарь изменился во время матча", "The calendar changed during the match"));
       const preseason = current.preseasonFixtures?.some(
         (f) => f.date === current.calendar?.date && !f.result,
       );

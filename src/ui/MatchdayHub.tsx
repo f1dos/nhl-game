@@ -88,12 +88,17 @@ export default function MatchdayHub({
       game,
       buildPressConference(game, "post-match", matchDate),
     );
+  const specialCount =
+    Object.keys(team.specialTeams ?? {}).length ||
+    Object.keys(SPECIAL_TEAM_LABELS).length;
   const skipPrePress = () => {
     edit((current) => {
       const fans = current.fans?.[current.user];
       if (fans) {
         fans.happiness = clamp(fans.happiness - 1, 0, 100);
-        fans.lastChange = "GM пропустил предматчевые медиа-обязательства";
+        fans.lastChange = ru
+          ? "GM пропустил предматчевые медиа-обязательства"
+          : "The GM skipped the pre-game media obligations";
       }
       if (current.managerEmployment)
         current.managerEmployment.confidence = clamp(
@@ -167,7 +172,7 @@ export default function MatchdayHub({
             {ru ? "Завершить матч-день" : "End matchday"}
           </button>
           <div>
-            <span>POST-MATCH MEDIA</span>
+            <span>{ru ? "ПОСЛЕМАТЧЕВЫЕ МЕДИА" : "POST-MATCH MEDIA"}</span>
             <b>
               {game.last?.away} {game.last?.goals[1]} : {game.last?.goals[0]}{" "}
               {game.last?.home}
@@ -203,7 +208,14 @@ export default function MatchdayHub({
         </button>
         <div>
           <span>
-            {preseason ? "PRESEASON" : "NHL MATCHDAY"} · {game.calendar?.date}
+            {preseason
+              ? ru
+                ? "ПРЕДСЕЗОНКА"
+                : "PRESEASON"
+              : ru
+                ? "МАТЧ-ДЕНЬ NHL"
+                : "NHL MATCHDAY"}{" "}
+            · {game.calendar?.date}
           </span>
           <b>
             <ClubLink team={team} /> —{" "}
@@ -232,14 +244,24 @@ export default function MatchdayHub({
             onClick={() => setTab(value)}
           >
             {value === "briefing"
-              ? "Брифинг"
+              ? ru
+                ? "Брифинг"
+                : "Briefing"
               : value === "lineup"
-                ? "Состав"
+                ? ru
+                  ? "Состав"
+                  : "Lineup"
                 : value === "special"
-                  ? "Спецбригады"
+                  ? ru
+                    ? "Спецбригады"
+                    : "Special teams"
                   : value === "tactics"
-                    ? "Тактика"
-                    : "Пресса"}
+                    ? ru
+                      ? "Тактика"
+                      : "Tactics"
+                    : ru
+                      ? "Пресса"
+                      : "Press"}
           </button>
         ))}
       </nav>
@@ -258,12 +280,22 @@ export default function MatchdayHub({
         {tab === "briefing" && (
           <section className="matchday-brief">
             <div>
-              <span className="eyebrow">MATCH PREPARATION</span>
-              <h1>Последние решения перед вбрасыванием</h1>
+              <span className="eyebrow">
+                {ru ? "ПОДГОТОВКА К МАТЧУ" : "MATCH PREPARATION"}
+              </span>
+              <h1>
+                {ru
+                  ? "Последние решения перед вбрасыванием"
+                  : "Final decisions before puck drop"}
+              </h1>
               <p>
                 {preseason
-                  ? "Предсезонный матч не влияет на таблицу: проверьте сочетания и специальные бригады."
-                  : "Состав, тактика и публичные ожидания фиксируются до начала игры."}
+                  ? ru
+                    ? "Предсезонный матч не влияет на таблицу: проверьте сочетания и специальные бригады."
+                    : "A preseason game does not count in the standings: test your combinations and special teams."
+                  : ru
+                    ? "Состав, тактика и публичные ожидания фиксируются до начала игры."
+                    : "Lineup, tactics and public expectations are locked in before the game."}
               </p>
             </div>
             <div className="matchup-card">
@@ -273,7 +305,7 @@ export default function MatchdayHub({
               <b>
                 {team.record.w}-{team.record.l}-{team.record.otl}
               </b>
-              <span>против</span>
+              <span>{ru ? "против" : "versus"}</span>
               <b>
                 {opponent?.record.w}-{opponent?.record.l}-{opponent?.record.otl}
               </b>
@@ -285,17 +317,24 @@ export default function MatchdayHub({
             </div>
             <div className="brief-checklist">
               <p>
-                <CheckCircle2 /> Состав:{" "}
+                <CheckCircle2 /> {ru ? "Состав" : "Lineup"}:{" "}
                 {new Set([
                   ...team.lines.flat(),
                   ...team.defense.flat(),
                   team.goalie,
                 ]).size === 19
-                  ? "легален"
-                  : "требует исправления"}
+                  ? ru
+                    ? "легален"
+                    : "valid"
+                  : ru
+                    ? "требует исправления"
+                    : "needs fixing"}
               </p>
               <p>
-                <Shield /> Спецбригады: 9 ситуаций настроено
+                <Shield />{" "}
+                {ru
+                  ? `Спецбригады: ${specialCount} ситуаций настроено`
+                  : `Special teams: ${specialCount} situations configured`}
               </p>
               <p>
                 <MessageCircle /> {ru ? "Пресса" : "Press"}:{" "}
@@ -405,7 +444,9 @@ export default function MatchdayHub({
         )}
         {tab === "press" && (
           <section className="matchday-press">
-            <span className="eyebrow">PRE-MATCH PRESS CONFERENCE</span>
+            <span className="eyebrow">
+              {ru ? "ПРЕДМАТЧЕВАЯ ПРЕСС-КОНФЕРЕНЦИЯ" : "PRE-MATCH PRESS CONFERENCE"}
+            </span>
             <h2>
               {ru
                 ? "Установите ожидания перед игрой"

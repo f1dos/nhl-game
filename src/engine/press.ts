@@ -1,3 +1,4 @@
+import { tx } from "./text";
 /**
  * Press conferences: several context-aware questions from fictional
  * journalists before and after a match. Every string is bilingual; answers
@@ -2080,8 +2081,8 @@ export function answerPressQuestion(
     fans.engagement = clamp(fans.engagement + Math.sign(answer.fan), 0, 100);
     fans.lastChange =
       conference.type === "pre-match"
-        ? "Предматчевая пресса"
-        : "Послематчевая пресса";
+        ? tx(game, "Предматчевая пресса", "Pre-game media")
+        : tx(game, "Послематчевая пресса", "Post-game media");
   }
   if (game.managerEmployment)
     game.managerEmployment.confidence = clamp(
