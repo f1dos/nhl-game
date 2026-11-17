@@ -30,3 +30,4 @@ import "./ui/matchday.css";
 import "./ui/tactics-board.css";
 import "./ui/leadership.css";
 import "./ui/broadcast.css";
+import "./ui/cards.css";

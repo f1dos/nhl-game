@@ -7,6 +7,7 @@ import {
   submitInternationalOffer,
 } from "../engine/international";
 import { Panel, Rating } from "./components";
+import { PlayerLink } from "./links";
 
 export default function InternationalMarket({
   game,
@@ -113,7 +114,9 @@ export default function InternationalMarket({
         </div>
         {candidate && (
           <aside className="international-offer">
-            <h3>{candidate.player.name}</h3>
+            <h3>
+              <PlayerLink player={candidate.player} />
+            </h3>
             <p>
               {candidate.league} · {candidate.club}
               <br />

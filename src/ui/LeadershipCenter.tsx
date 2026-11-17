@@ -10,6 +10,7 @@ import type { FranchiseStrategy, Game, Player } from "../engine/types";
 import { reconsiderSeasonStrategy } from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
 import { clamp } from "../engine/random";
+import { PlayerLink } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MeetingTone = "supportive" | "calm" | "demanding";
@@ -417,7 +418,7 @@ export default function LeadershipCenter({
             <div>
               <b>
                 {tr("Рекомендация штаба", "Staff recommendation")}:{" "}
-                {team.players.find((p) => p.id === recommended)?.name}
+                {recommended && <PlayerLink id={recommended} name={team.players.find((p) => p.id === recommended)?.name} />}
               </b>
               <span>
                 {tr(

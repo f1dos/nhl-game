@@ -24,9 +24,9 @@ import {
   SPECIAL_TEAM_LABELS,
   SPECIAL_TEAM_STYLES,
 } from "../engine/tactics";
-import { Crest } from "./components";
 import SpatialMatchCenter from "./SpatialMatchCenter";
 import TacticsBoard from "./TacticsBoard";
+import { ClubLink } from "./links";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
@@ -407,13 +407,20 @@ export default function MatchdayHub({
             {preseason ? "PRESEASON" : "NHL MATCHDAY"} · {game.calendar?.date}
           </span>
           <b>
-            {team.city} {team.name} — {opponent?.city} {opponent?.name}
+            <ClubLink team={team} /> —{" "}
+            {opponent && <ClubLink team={opponent} />}
           </b>
         </div>
         <div className="matchday-clubs">
-          <Crest team={team} size={38} />
+          <ClubLink team={team} crest={38}>
+            {""}
+          </ClubLink>
           <span>VS</span>
-          {opponent && <Crest team={opponent} size={38} />}
+          {opponent && (
+            <ClubLink team={opponent} crest={38}>
+              {""}
+            </ClubLink>
+          )}
         </div>
       </header>
       <nav className="matchday-nav">
@@ -461,7 +468,9 @@ export default function MatchdayHub({
               </p>
             </div>
             <div className="matchup-card">
-              <Crest team={team} size={72} />
+              <ClubLink team={team} crest={72}>
+                {""}
+              </ClubLink>
               <b>
                 {team.record.w}-{team.record.l}-{team.record.otl}
               </b>
@@ -469,7 +478,11 @@ export default function MatchdayHub({
               <b>
                 {opponent?.record.w}-{opponent?.record.l}-{opponent?.record.otl}
               </b>
-              {opponent && <Crest team={opponent} size={72} />}
+              {opponent && (
+                <ClubLink team={opponent} crest={72}>
+                  {""}
+                </ClubLink>
+              )}
             </div>
             <div className="brief-checklist">
               <p>

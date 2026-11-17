@@ -337,10 +337,10 @@
 /* Interaction drawer */
 .bw-drawer {
   position: absolute;
-  top: 70px;
+  top: 64px;
   right: 18px;
-  bottom: 84px;
-  width: min(460px, calc(100% - 36px));
+  bottom: 80px;
+  width: min(680px, calc(100% - 36px));
   display: flex;
   flex-direction: column;
   border-radius: 10px;
@@ -537,4 +537,61 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Panels inside the drawer stack to its width instead of scrolling sideways. */
+.bw-drawer-body {
+  overflow-x: hidden;
+}
+.bw-drawer .board-workspace {
+  grid-template-columns: 1fr;
+}
+.bw-drawer .tactics-ice {
+  min-height: 460px;
+}
+.bw-drawer .tactical-center,
+.bw-drawer .tactical-center * {
+  min-width: 0;
+  max-width: 100%;
+}
+.bw-drawer .tactical-heading,
+.bw-drawer .forecheck-cards,
+.bw-drawer .instruction-grid {
+  flex-wrap: wrap;
+}
+.bw-bug-man {
+  grid-area: sog;
+  justify-self: end;
+  padding: 3px 12px;
+  color: var(--bw-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+.bw-box {
+  position: absolute;
+  top: 104px;
+  left: 18px;
+  display: grid;
+  gap: 4px;
+}
+.bw-box div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-left: 4px solid var(--team);
+  border-radius: 4px;
+  background: var(--bw-panel-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+.bw-box small {
+  color: var(--bw-gold);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 860px) {
+  .bw-box {
+    top: 92px;
+    left: 10px;
+  }
 }
