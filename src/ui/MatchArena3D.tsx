@@ -6,20 +6,14 @@ import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
 import { RigFactory, type HockeyRig, type RigState, type TeamKit } from "./hockeyRig";
 import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards } from "./arenaScene";
+import { CAMERA_MODES, type CameraMode } from "./cameraModes";
+export { CAMERA_MODES, type CameraMode };
 
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
 /** Home plays in its colour, away in a light kit trimmed in its own colour. */
 export const kitFor = (team: Team, away: boolean): TeamKit => away
   ? { jersey: "#e8edf3", trim: team.color, pants: shade(team.color, 0.55), helmet: shade(team.color, 0.7), socks: team.color }
   : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color };
-
-export type CameraMode = "broadcast" | "overhead" | "follow" | "close";
-export const CAMERA_MODES: { value: CameraMode; ru: string; en: string }[] = [
-  { value: "broadcast", ru: "Трансляция", en: "Broadcast" },
-  { value: "overhead", ru: "Тактическая", en: "Tactical" },
-  { value: "follow", ru: "За шайбой", en: "Follow puck" },
-  { value: "close", ru: "Крупный план", en: "Close-up" },
-];
 
 const _focusTarget = new THREE.Vector3();
 const _v = new THREE.Vector3();
