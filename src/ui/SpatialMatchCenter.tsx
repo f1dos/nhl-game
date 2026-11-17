@@ -28,7 +28,10 @@ export default function SpatialMatchCenter({
   onComplete: () => void;
 }) {
   const [match] = useState(
-    () => new SpatialMatch(home, away, game.seed, game.phase === "playoffs"),
+    () =>
+      new SpatialMatch(home, away, game.seed, game.phase === "playoffs", {
+        presentation: true,
+      }),
   );
   const [running, setRunning] = useState(false);
   const [tab, setTab] = useState<"match" | "tactics">("match");

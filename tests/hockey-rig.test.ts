@@ -73,3 +73,53 @@ test("skating cycle moves the legs and one-shot actions play out and release", (
   assert(moved > 0.3, "a shot should swing the stick");
   factory.dispose();
 });
+
+test("every pose state is grounded: skates, knees or pads on the ice, or seated on the bench", () => {
+  const factory = new RigFactory();
+  const states = ["play", "faceoff-ready", "faceoff-stance", "celebrate", "hug", "fist-bump", "dejected", "bench-stand", "bench-cheer", "bench-reach"] as const;
+  const people = [
+    ["skater", factory.skater(kit)],
+    ["goalie", factory.goalie(kit)],
+    ["referee", factory.official("referee")],
+    ["coach", factory.coach("#c8102e")],
+  ] as const;
+  for (const [role, rig] of people) {
+    rig.setIdentity({ id: `${role}-1`, name: "Pose Test", number: 4 }, role === "goalie" ? "G" : "C");
+    const list = role === "coach" ? (["coach-idle", "coach-clap", "coach-point", "coach-despair"] as const)
+      : role === "referee" ? (["play", "official-drop", "official-point", "official-arm"] as const)
+      : role === "goalie" ? (["play", "goalie-hold", "goalie-beaten", "faceoff-ready"] as const)
+      : states;
+    for (const state of list)
+      for (const variant of [0.1, 0.4, 0.7, 0.9]) {
+        rig.setState(state, variant, 1);
+        for (let i = 0; i < 40; i++) rig.update(1 / 60, 1 / 60, { x: 0, z: 0, vx: 0, vz: 0, puckX: 5, puckZ: 5, hasPuck: false });
+        const y = lowestPoint(rig.root);
+        assert(y > -0.04 && y < 0.07, `${role} ${state} ${variant}: lowest point ${y.toFixed(3)}`);
+      }
+  }
+  // Seated players rest on the bench: hips at seat height, feet near the floor.
+  const sitter = factory.skater(kit);
+  sitter.setIdentity({ id: "sitter", name: "Bench", number: 33 }, "D");
+  sitter.setState("seated");
+  for (let i = 0; i < 60; i++) sitter.update(1 / 60, 1 / 60, { x: 0, z: 0, vx: 0, vz: 0, puckX: 5, puckZ: 5, hasPuck: false, face: 0 });
+  const pelvis = (sitter as unknown as { pelvis: Group }).pelvis;
+  sitter.root.updateMatrixWorld(true);
+  const hip = pelvis.getWorldPosition(new THREE.Vector3()).y;
+  assert(hip > 0.5 && hip < 0.75, `seated hip height ${hip.toFixed(2)}`);
+  assert(lowestPoint(sitter.root) < 0.25, "feet reach toward the floor");
+  // Goalie saves move the glove or blocker well away from the ready position.
+  const keeper = factory.goalie(kit);
+  keeper.setIdentity({ id: "keeper", name: "Keeper", number: 31 }, "G");
+  const step = () => keeper.update(1 / 60, 1 / 60, { x: 25, z: 0, vx: 0, vz: 0, puckX: 10, puckZ: 0, hasPuck: false, face: -Math.PI / 2 });
+  for (let i = 0; i < 30; i++) step();
+  const hands = (keeper as unknown as { armMeshes: { hand: Object3D }[] }).armMeshes.map((a) => a.hand.position.clone());
+  keeper.trigger("save", { x: -1, z: 0.9 }, 0.9);
+  let moved = 0;
+  for (let i = 0; i < 12; i++) {
+    step();
+    const now = (keeper as unknown as { armMeshes: { hand: Object3D }[] }).armMeshes.map((a) => a.hand.position);
+    moved = Math.max(moved, ...now.map((p, k) => p.distanceTo(hands[k])));
+  }
+  assert(moved > 0.2, `a high save reaches out with a hand (${moved.toFixed(2)} m)`);
+  factory.dispose();
+});

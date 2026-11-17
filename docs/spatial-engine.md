@@ -44,3 +44,23 @@ Motion is driven by the simulation but never feeds back into it:
 
 The camera menu has a new close-up mode that follows the puck. The earlier
 Blender studies in `public/models/hockey` are no longer loaded by the match.
+
+## Broadcast presentation: stoppages, faceoffs and celebrations
+
+`new SpatialMatch(home, away, seed, playoffs, { presentation: true })` turns on
+broadcast stoppages. After a goal the clock stops while the scorer celebrates
+(arms up, fist pump, knee slide or pointing to the crowd), his line joins a group
+hug and skates down the bench for the fist-bump line; the other team skates off
+dejected. After a save the goalie freezes the puck at the whistle, and after a
+penalty the player heads for the box. Both teams then line up in a real faceoff
+formation (centres on the dot, wingers on the hash marks, defence at the points)
+and the linesman drops the puck. Saves and penalties restart at the end-zone dot
+of the defending team, goals and periods at centre ice.
+
+Stoppages only insert extra presentation steps in which the clock does not run
+and no random numbers are drawn. Line changes and the restart are deferred to the
+end of the stoppage, so the result, events and statistics are identical with and
+without presentation (covered by tests). `SpatialFrame.stoppage` describes the
+current phase (`celebrate`, `whistle`, `lineup`, `drop`), `penaltyBox` lists the
+players serving penalties and cues carry the shot location and height so the
+renderer can pick glove, blocker, pad, butterfly or chest saves.
