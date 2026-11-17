@@ -237,6 +237,7 @@ export default function SpatialMatchCenter({
         return `${tr("БОЛ.", "PP")} ${teams[1 - p.side].id} ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
       })()
     : "";
+  const manpower = [0, 1].map((s) => frame.bodies.filter((b) => b.side === s && !b.goalie).length);
   const stat = (type: string, s: number) => result.events.filter((e) => e.type === type && e.team === teams[s].id).length;
   const effective = match.stopped && speed <= 8 ? 1 : speed;
   const period = Math.min(3, Math.floor(match.time / 1200) + 1);
@@ -285,7 +286,29 @@ export default function SpatialMatchCenter({
         <div className="bw-bug-sog">
           {tr("БРОСКИ", "SOG")} {result.shots[1]} — {result.shots[0]}
         </div>
+        <div className="bw-bug-man" title={tr("Составы на льду", "Skaters on the ice")}>
+          {manpower[1]}×{manpower[0]}
+        </div>
       </div>
+      {/* Penalty box: who is serving and how long is left */}
+      {!!frame.penaltyBox.length && (
+        <div className="bw-box" aria-label={tr("Штрафной бокс", "Penalty box")}>
+          {frame.penaltyBox.map((p) => {
+            const player = teams[p.side].players.find((x) => x.id === p.id);
+            const left = Math.max(0, Math.round(p.until - match.time));
+            return (
+              <div key={p.id} style={{ ["--team" as string]: teams[p.side].color }}>
+                <span>
+                  {tr("Бокс", "Box")} · {teams[p.side].id} #{player?.number} {player?.name}
+                </span>
+                <small>
+                  {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
+                </small>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Top right: camera and window controls */}
       <div className="bw-top">

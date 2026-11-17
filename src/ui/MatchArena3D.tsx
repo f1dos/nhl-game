@@ -338,8 +338,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           m.path = [boxDoor(side), { x: m.x, z: 11.5 }, benchDoor(m), seat];
           m.mode = "moving";
         } else if (m.mode === "seat" && inBox) {
-          m.path = [boxSeat];
-          m.mode = "moving";
+          // Already serving when the view opened: sit him straight in the box.
+          m.x = boxSeat.x; m.z = boxSeat.z; m.path = [];
+          m.mode = "box";
+          rig.place(m.x, m.z, Math.PI);
         }
         if (m.mode === "moving") {
           const target = m.path[0];
@@ -424,6 +426,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           tight = 1;
         } else if (stoppage.phase === "lineup" || stoppage.phase === "drop") {
           fx = stoppage.dot.x; fz = stoppage.dot.z; tight = stoppage.phase === "drop" ? 1 : 0.6;
+        } else if (stoppage.kind === "penalty") {
+          // Follow the penalised player to the box.
+          const culprit = frameData?.bodies.find(b => b.id === stoppage.actor);
+          if (culprit) { const t2 = tracks.get(culprit.id); fx = t2?.x ?? culprit.x; fz = t2?.z ?? culprit.z; }
+          tight = 0.75;
         } else if (stoppage.kind === "save") {
           const keeper = frameData?.bodies.find(b => b.id === stoppage.actor);
           if (keeper) { fx = keeper.x * 0.9; fz = keeper.z; }

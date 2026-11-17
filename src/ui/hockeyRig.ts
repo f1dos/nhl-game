@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 /**
  * Procedural, jointed people for the 3D match view: skaters, goalies, referees,
@@ -456,7 +457,7 @@ export class RigFactory {
   readonly white = this.own(new THREE.MeshStandardMaterial({ color: "#f2f4f6", roughness: 0.7 }));
   readonly orange = this.own(new THREE.MeshStandardMaterial({ color: "#ff6a13", roughness: 0.6 }));
   readonly visor = this.own(
-    new THREE.MeshStandardMaterial({ color: "#a9d7ee", roughness: 0.1, transparent: true, opacity: 0.35 }),
+    new THREE.MeshStandardMaterial({ color: "#d8eef8", roughness: 0.05, transparent: true, opacity: 0.18, depthWrite: false }),
   );
   readonly shadow: THREE.MeshBasicMaterial;
   readonly stripes: THREE.MeshStandardMaterial;
@@ -514,6 +515,50 @@ export class RigFactory {
   cyl(rt: number, rb: number, h: number, seg = 14) {
     return this.geo(`cyl${rt},${rb},${h},${seg}`, () => new THREE.CylinderGeometry(rt, rb, h, seg));
   }
+  /** Merged facial features, so a face costs a few draw calls at most. */
+  face() {
+    const tint = (g: THREE.BufferGeometry, color: string) => {
+      const c = new THREE.Color(color);
+      const n = g.attributes.position.count;
+      const arr = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) arr.set([c.r, c.g, c.b], i * 3);
+      g.setAttribute("color", new THREE.BufferAttribute(arr, 3));
+      return g;
+    };
+    const at = (g: THREE.BufferGeometry, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1, rz = 0) => {
+      g.scale(sx, sy, sz);
+      if (rz) g.rotateZ(rz);
+      g.translate(x, y, z);
+      return g;
+    };
+    const eyes = this.geo("faceEyes", () =>
+      mergeGeometries(
+        [-1, 1].flatMap((s) => [
+          tint(at(new THREE.SphereGeometry(0.016, 10, 8), s * 0.037, 0.022, 0.097, 1.25, 0.8, 0.55), "#f4f1ea"),
+          tint(at(new THREE.SphereGeometry(0.0085, 8, 6), s * 0.036, 0.021, 0.105), "#2a1a12"),
+          tint(at(new THREE.SphereGeometry(0.003, 6, 4), s * 0.034, 0.024, 0.113), "#ffffff"),
+        ]).concat([tint(at(new THREE.BoxGeometry(0.042, 0.007, 0.012), 0, -0.05, 0.1), "#8a3b36")]),
+      )!,
+    );
+    const nose = (ears: boolean) =>
+      this.geo(ears ? "faceNoseEars" : "faceNose", () =>
+        mergeGeometries([
+          at(new THREE.ConeGeometry(0.014, 0.034, 8).rotateX(Math.PI / 2.4), 0, -0.012, 0.107),
+          ...(ears ? [-1, 1].map((s) => at(new THREE.SphereGeometry(0.022, 8, 6), s * 0.096, 0.002, 0.0, 0.5, 1, 0.8)) : []),
+        ])!,
+      );
+    const brows = this.geo("faceBrows", () =>
+      mergeGeometries([-1, 1].map((s) => at(new THREE.BoxGeometry(0.034, 0.008, 0.012), s * 0.037, 0.045, 0.101, 1, 1, 1, -s * 0.12)))!,
+    );
+    const beard = this.geo("faceBeard", () => {
+      const g = new THREE.SphereGeometry(0.103, 16, 8, Math.PI / 2 - 1.15, 2.3, Math.PI * 0.58, Math.PI * 0.3);
+      g.scale(0.96, 1.12, 1.02);
+      g.translate(0, 0, 0.012);
+      return g;
+    });
+    return { eyes, nose, brows, beard };
+  }
+  readonly features = this.own(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }));
   material(color: string, roughness = 0.75) {
     const key = `mat${color}${roughness}`;
     let found = this.materials.get(key);
@@ -619,6 +664,8 @@ export class HockeyRig {
   private numberCanvas?: HTMLCanvasElement;
   private skinMesh: THREE.Mesh[] = [];
   private hairMesh?: THREE.Mesh;
+  private brows?: THREE.Mesh;
+  private beard?: THREE.Mesh;
   private identity = "";
   readonly goalie: boolean;
   readonly hasStick: boolean;
@@ -764,19 +811,34 @@ export class HockeyRig {
     const face = add(this.head, f.sphere(0.1), f.skin[2], 0, 0, 0.01);
     face.scale.set(0.95, 1.12, 1);
     this.skinMesh.push(face);
-    for (const s of [-1, 1]) add(this.head, f.sphere(0.014, 6, 5), f.dark, s * 0.04, 0.025, 0.093);
+    const faceParts = f.face();
+    add(this.head, faceParts.eyes, f.features);
+    const nose = add(this.head, faceParts.nose(!coach), f.skin[2]);
+    this.skinMesh.push(nose);
+    this.brows = add(this.head, faceParts.brows, f.hair[0]);
+    this.beard = add(this.head, faceParts.beard, f.hair[0]);
+    this.beard.visible = false;
     if (coach) {
       const hair = add(this.head, f.geo("hairCap", () => new THREE.SphereGeometry(0.106, 16, 10, 0, TAU, 0, Math.PI * 0.5)), f.hair[0], 0, 0.02, -0.006);
       hair.scale.set(1, 1.02, 1.05);
       this.hairMesh = hair;
       for (const s of [-1, 1]) add(this.head, f.sphere(0.022, 6, 5), f.skin[2], s * 0.098, 0.0, 0.0);
     } else {
+      // Goalies wear a full mask; skaters and officials an open helmet whose
+      // rim sits on the brow so the face stays visible under the visor.
       const helmet = add(
         this.head,
-        f.geo("helmetCap", () => new THREE.SphereGeometry(0.128, 18, 12, 0, TAU, 0, Math.PI * 0.62)),
+        g
+          ? f.geo("helmetCap", () => new THREE.SphereGeometry(0.128, 18, 12, 0, TAU, 0, Math.PI * 0.62))
+          : f.geo("helmetOpen", () => {
+              const cap = new THREE.SphereGeometry(0.128, 20, 10, 0, TAU, 0, Math.PI * 0.47);
+              // Lower shell over the ears and back of the head only.
+              const back = new THREE.SphereGeometry(0.128, 20, 6, Math.PI * 1.05, Math.PI * 0.9, Math.PI * 0.47, Math.PI * 0.2);
+              return mergeGeometries([cap, back])!;
+            }),
         mats.helmet,
         0,
-        0.012,
+        g ? 0.012 : 0.04,
         -0.012,
       );
       helmet.scale.set(1.02, 1.0, 1.12);
@@ -788,7 +850,7 @@ export class HockeyRig {
         }
         for (const x of [-0.04, 0, 0.04]) add(this.head, f.box(0.008, 0.16, 0.008), f.steel, x, -0.025, 0.125);
       } else if (role === "skater") {
-        add(this.head, f.box(0.17, 0.07, 0.025), f.visor, 0, -0.005, 0.112).rotation.x = 0.15;
+        add(this.head, f.box(0.16, 0.05, 0.012), f.visor, 0, 0.022, 0.124).rotation.x = 0.12;
       }
     }
     // Arms (positioned in spine space every frame by IK)
@@ -849,7 +911,14 @@ export class HockeyRig {
     const tone = hash01(id.id, 11);
     const skin = this.factory.skin[tone < 0.5 ? 0 : tone < 0.75 ? 1 : tone < 0.9 ? 2 : tone < 0.97 ? 3 : 4];
     this.skinMesh.forEach((m) => (m.material = skin));
-    if (this.hairMesh) this.hairMesh.material = this.factory.hair[Math.floor(hash01(id.id, 17) * HAIR.length)];
+    const hair = this.factory.hair[Math.floor(hash01(id.id, 17) * HAIR.length)];
+    if (this.hairMesh) this.hairMesh.material = hair;
+    if (this.brows) this.brows.material = hair;
+    if (this.beard) {
+      this.beard.material = hair;
+      // Some players and staff wear a beard (playoff beards are a tradition).
+      this.beard.visible = hash01(id.id, 23) < (this.role === "skater" || this.role === "goalie" ? 0.32 : 0.2);
+    }
     const ctx = this.numberCanvas?.getContext("2d");
     if (ctx && this.numberTex) {
       ctx.clearRect(0, 0, 256, 256);
