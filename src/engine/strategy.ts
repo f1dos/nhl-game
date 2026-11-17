@@ -162,7 +162,11 @@ const OBJECTIVE_RU = Object.fromEntries(
 
 /** Translate one stored objective text (works for saves in either language). */
 export function objectiveText(text: string, language?: string) {
-  if (isRussian({ language })) return OBJECTIVE_RU[text] ?? text;
+  if (isRussian({ language })) {
+    const rivalry = text.match(/^Win at least two games against: (.+)\.$/);
+    if (rivalry) return `Добиться победы минимум в двух матчах: ${rivalry[1]}.`;
+    return OBJECTIVE_RU[text] ?? text;
+  }
   const exact = OBJECTIVE_EN[text];
   if (exact) return exact;
   const rivalry = text.match(/^Добиться победы минимум в двух матчах: (.+)\.$/);

@@ -89,7 +89,8 @@ export const englishInboxLegacyPatterns: [RegExp, Replacement][] = [
   [/^Победная серия: (\d+) подряд$/, "Winning streak: $1 in a row"],
   [
     /^(.+?) в шаге от (\d+) (побед|очков|голов)$/,
-    (_, name, mark, kind) => `${name} closing in on ${mark} ${milestoneKinds[kind]}`,
+    (_, name, mark, kind) =>
+      `${name} closing in on ${mark} ${milestoneKinds[kind]}`,
   ],
   [
     /^(.+?) осталось (\d+) до отметки (\d+) (побед|очков|голов)\. Отдел по связям с прессой готовит материалы\.$/,
