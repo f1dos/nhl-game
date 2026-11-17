@@ -1126,6 +1126,19 @@ b.down {
 .cc-roster .tabs {
   margin-bottom: 4px;
 }
+.cc-roster .table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.cc-roster th,
+.cc-roster td {
+  padding-left: 7px;
+  padding-right: 7px;
+}
+.cc-roster td.cc-contract {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
 .cc-morale {
   font-weight: 700;
 }
@@ -2163,5 +2176,20 @@ b.down {
 @media (max-width: 760px) {
   .tc-presets-label {
     width: 100%;
+  }
+}
+
+/* Phone: keep the top bar inside the viewport (no horizontal page scroll). */
+@media (max-width: 520px) {
+  .topbar .breadcrumb,
+  .top-actions .top-club-record {
+    display: none;
+  }
+  .topbar {
+    justify-content: flex-end;
+  }
+  .top-actions {
+    min-width: 0;
+    flex-wrap: nowrap;
   }
 }

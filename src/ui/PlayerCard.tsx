@@ -439,9 +439,19 @@ export default function PlayerCard({
           />
           <Meter
             label={tr("ФОРМА", "FORM")}
-            value={50 + form * 10}
-            detail={`${signed(form, 1)} · OVR ${signed(p.formAdjustment ?? 0)}`}
-            tone={form > 0.3 ? "good" : form < -0.3 ? "poor" : "fair"}
+            value={Math.round(50 + (form / 60) * 50)}
+            detail={`${
+              form >= 30
+                ? tr("Отличная", "Hot")
+                : form >= 10
+                  ? tr("Хорошая", "Good")
+                  : form > -10
+                    ? tr("Ровная", "Steady")
+                    : form > -30
+                      ? tr("Спад", "Slump")
+                      : tr("Кризис", "Cold")
+            } · OVR ${signed(p.formAdjustment ?? 0)}`}
+            tone={form >= 10 ? "good" : form <= -10 ? "poor" : "fair"}
           />
           <div className="pc-vital">
             <small>{tr("КОНТРАКТ", "CONTRACT")}</small>

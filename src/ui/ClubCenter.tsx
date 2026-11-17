@@ -77,7 +77,7 @@ export default function ClubCenter({
   );
   const stars = [...team.players]
     .sort((a, b) => effectiveOverall(b) - effectiveOverall(a))
-    .slice(0, 5);
+    .slice(0, 6);
   const scorers = [...team.players]
     .filter((p) => p.pos !== "G")
     .sort(
@@ -404,7 +404,7 @@ export default function ClubCenter({
                         <td>
                           <RatingBadge value={averageRating(player.stats)} />
                         </td>
-                        <td>
+                        <td className="cc-contract">
                           ${player.salary.toFixed(2)}M · {player.years}
                           {tr("г", "y")}
                         </td>
@@ -531,7 +531,7 @@ export default function ClubCenter({
                     <b>{PRIORITY[need.priority]?.[ru ? 0 : 1] ?? need.priority}</b>
                     <small>{need.reason}</small>
                   </span>
-                  <em>${need.budget.toFixed(1)}M</em>
+                  {need.budget > 0 && <em>${need.budget.toFixed(1)}M</em>}
                 </p>
               ))
             ) : (
@@ -553,7 +553,7 @@ export default function ClubCenter({
               </div>
               <div>
                 <b className={capSpace >= 0 ? "up" : "down"}>
-                  ${capSpace.toFixed(1)}M
+                  {capSpace < 0 ? "-" : ""}${Math.abs(capSpace).toFixed(1)}M
                 </b>
                 <small>{tr("свободно", "cap space")}</small>
               </div>

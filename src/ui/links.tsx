@@ -208,11 +208,27 @@ export function EventLinks({
 }) {
   const links = useEntityLinks();
   if (!links) return null;
-  const player = playerId ? findPlayer(links.game, playerId) : undefined;
+  const players: Player[] = [];
+  const explicit = playerId ? findPlayer(links.game, playerId) : undefined;
+  if (explicit) players.push(explicit);
+  // Names mentioned in the text (e.g. a medical report listing the injured).
+  if (text)
+    for (const team of links.game.teams) {
+      if (players.length >= 4) break;
+      for (const candidate of [...team.players, ...(team.farm ?? [])]) {
+        if (players.length >= 4) break;
+        if (
+          candidate.name.length > 4 &&
+          !players.some((known) => known.id === candidate.id) &&
+          text.includes(candidate.name)
+        )
+          players.push(candidate);
+      }
+    }
   const clubs = new Set<string>();
   if (teamId && findClub(links.game, teamId)) clubs.add(teamId);
-  if (player) {
-    const owner = playerClub(links.game, player.id);
+  if (explicit) {
+    const owner = playerClub(links.game, explicit.id);
     if (owner) clubs.add(owner.id);
   }
   for (const team of links.game.teams) {
@@ -223,14 +239,14 @@ export function EventLinks({
     )
       clubs.add(team.id);
   }
-  if (!player && !clubs.size) return null;
+  if (!players.length && !clubs.size) return null;
   return (
     <span className="event-links">
-      {player && (
-        <PlayerLink player={player} className="entity-chip">
+      {players.map((player) => (
+        <PlayerLink key={player.id} player={player} className="entity-chip">
           {player.name}
         </PlayerLink>
-      )}
+      ))}
       {[...clubs].map((id) => (
         <ClubLink key={id} id={id} crest={16} label="id" className="entity-chip" />
       ))}
