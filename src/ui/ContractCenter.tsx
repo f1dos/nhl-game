@@ -9,6 +9,7 @@ import {
 } from "../engine/freeAgency";
 import { Panel } from "./components";
 import InternationalMarket from "./InternationalMarket";
+import { ClubLink, PlayerLink } from "./links";
 
 export default function ContractCenter({
   game,
@@ -196,10 +197,12 @@ export default function ContractCenter({
         <div className="free-agent-history">
           {offers.length ? offers.slice(0,35).map(offer=><div key={offer.id} className="free-agent-history-row">
             <div>
-              <strong>{offerName(offer)}</strong>
+              <strong>
+                <PlayerLink id={offer.playerId} name={offerName(offer)} />
+              </strong>
               <small>{offer.submittedDate} · ${offer.salary.toFixed(2)}M / {offer.years} {ru?"г.":"yrs"} · {offer.role}</small>
               <p>{agentExplanation(offer)}</p>
-              {offer.competingTeamId && <small>{ru?"Выбрал клуб":"Joined"}: {offer.competingTeamId}</small>}
+              {offer.competingTeamId && <small>{ru?"Выбрал клуб":"Joined"}: <ClubLink id={offer.competingTeamId} label="id" /></small>}
             </div>
             <div className="free-agent-history-controls">
               <span className={`agent-status ${offer.status}`}>{ruStatus[offer.status][ru?0:1]}</span>
@@ -235,7 +238,9 @@ export default function ContractCenter({
                 .sort((a, b) => b.salary - a.salary)
                 .map((p) => (
                   <tr key={p.id}>
-                    <td>{p.name}</td>
+                    <td>
+                      <PlayerLink player={p} />
+                    </td>
                     <td>{p.pos}</td>
                     <td>${p.salary.toFixed(2)}M</td>
                     <td>{p.years}</td>
@@ -278,7 +283,8 @@ export default function ContractCenter({
           .reverse()
           .map((h, i) => (
             <p key={i}>
-              {h.year} · {h.team} · {h.player} · {h.years} yr / ${h.salary}M AAV
+              {h.year} · <ClubLink id={h.team} label="id" /> · {h.player} ·{" "}
+              {h.years} yr / ${h.salary}M AAV
             </p>
           ))}
       </Panel>

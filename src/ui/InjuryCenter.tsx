@@ -1,6 +1,7 @@
 import type { Game, Player } from "../engine/types";
 import { dateForRound } from "../engine/season";
 import { Panel } from "./components";
+import { PlayerLink } from "./links";
 
 export default function InjuryCenter({
   game,
@@ -67,12 +68,9 @@ export default function InjuryCenter({
                 {injured.map((p) => (
                   <tr key={p.id} onClick={() => onPlayer(p)}>
                     <td>
-                      <button
-                        className="text-button"
-                        onClick={() => onPlayer(p)}
-                      >
-                        {p.name}
-                      </button>
+                      <PlayerLink player={p}>
+                        <strong>{p.name}</strong>
+                      </PlayerLink>
                     </td>
                     <td>{p.injuryStatus ?? "OUT"}</td>
                     <td>{p.injuryReason ?? "Undisclosed"}</td>
