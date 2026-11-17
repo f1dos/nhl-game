@@ -12,6 +12,7 @@ import {
   applyWeeklyMood,
   ensureFranchiseWorld,
 } from "./franchiseWorld";
+import { generateInboxEvents, newImportantEvents } from "./inbox";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -470,6 +471,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
               ? `The player signed with ${offer.competingTeamId ?? "another team"}.`
               : "The agent declined the proposal. Review the contract negotiations.",
       action: "contracts",
+      teamId: g.user,
       playerId: offer.playerId,
       requiresResponse: offer.status === "countered",
       responseDue: offer.status === "countered" ? addDays(date, 7) : undefined,
@@ -479,6 +481,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   if (g.calendar!.day % 7 === 0) applyWeeklyMood(g);
   aiContractDay(g);
   aiTradeDay(g);
+  generateInboxEvents(g);
   g.calendar!.lastProcessedDate = date;
 }
 
@@ -530,14 +533,9 @@ export function continueGame(g: Game, mode: ContinueMode) {
     if (mode === "next-game" && isUserMatchday(g)) break;
     advanceDay(g);
     days++;
-    const urgent = g.events!.find(
-      (event) =>
-        !existing.has(event.id) &&
-        !event.resolved &&
-        event.requiresResponse &&
-        (event.priority === "critical" || event.priority === "high"),
-    );
-    if (urgent) break;
+    // Important messages (critical, or high-priority for the user's club /
+    // needing a response) interrupt the simulation; normal ones never do.
+    if (newImportantEvents(g, existing).length) break;
     if (isUserMatchday(g)) break;
     if (
       mode === "next-game" &&
@@ -552,6 +550,13 @@ export function continueGame(g: Game, mode: ContinueMode) {
   }
   return days;
 }
+
+export {
+  isImportantEvent,
+  markEventsRead,
+  newImportantEvents,
+  unreadImportantCount,
+} from "./inbox";
 
 export function resolveEvent(g: Game, id: string) {
   ensureManagementState(g);

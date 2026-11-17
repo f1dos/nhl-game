@@ -323,6 +323,20 @@ export function validateSave(value: unknown): Game {
     )
       throw Error("Invalid management events");
   }
+  if (g.inboxState !== undefined) {
+    const state = g.inboxState as unknown;
+    if (
+      !state ||
+      typeof state !== "object" ||
+      Array.isArray(state) ||
+      typeof g.inboxState.cooldowns !== "object" ||
+      g.inboxState.cooldowns === null ||
+      Object.values(g.inboxState.cooldowns).some(
+        (date) => typeof date !== "string",
+      )
+    )
+      throw Error("Invalid inbox state");
+  }
   if (g.draftAssets) {
     if (
       !Array.isArray(g.draftAssets) ||

@@ -17,6 +17,8 @@ import {
   advisorRecommendations,
   ensureManagementState,
   fixtureDate,
+  isImportantEvent,
+  markEventsRead,
   resolveEvent,
   selectFranchiseStrategy,
 } from "../engine/management";
@@ -217,14 +219,20 @@ function AgendaRow({
   ru,
   go,
   edit,
+  focused = false,
 }: {
   event: ManagementEvent;
   ru: boolean;
   go: (page: string) => void;
   edit: Edit;
+  focused?: boolean;
 }) {
+  const unread = !event.read && !event.resolved;
   return (
-    <div className={`agenda-row ${event.priority}`}>
+    <div
+      className={`agenda-row ${event.priority}${focused ? " focused" : ""}${unread ? " unread" : ""}`}
+      data-event-id={event.id}
+    >
       <span className="agenda-priority">
         {event.priority === "critical" || event.priority === "high" ? (
           <AlertTriangle size={17} />
@@ -234,6 +242,9 @@ function AgendaRow({
       </span>
       <div>
         <small>
+          {focused && (
+            <b className="agenda-new">{ru ? "НОВОЕ" : "NEW"}</b>
+          )}
           {categoryNames[event.category]?.[ru ? 0 : 1]} · {event.date}
         </small>
         <strong>{event.title}</strong>
@@ -251,7 +262,12 @@ function AgendaRow({
           </small>
         )}
         {event.action && (
-          <button onClick={() => go(event.action!)}>
+          <button
+            onClick={() => {
+              if (unread) edit((g) => markEventsRead(g, [event.id]));
+              go(event.action!);
+            }}
+          >
             {ru ? "Открыть" : "Open"}
             <ArrowUpRight size={14} />
           </button>
@@ -772,33 +788,68 @@ export function DailyCalendar({ game }: { game: Game }) {
   );
 }
 
+/** Why Continue stopped and which messages caused it. */
+export interface InboxFocus {
+  ids: string[];
+  from: string;
+  to: string;
+  days: number;
+  matchday: boolean;
+}
+
 export function DecisionInbox({
   game,
   edit,
   go,
+  focus,
+  onDismissFocus,
 }: {
   game: Game;
   edit: Edit;
   go: (page: string) => void;
+  focus?: InboxFocus | null;
+  onDismissFocus?: () => void;
 }) {
   ensureManagementState(game);
   const ru = game.language === "ru";
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-  const events = useMemo(
-    () =>
-      game.events!.filter(
-        (event) =>
-          (filter === "all" ||
-            (filter === "important" &&
-              ["high", "critical"].includes(event.priority)) ||
-            (filter === "open" && !event.resolved) ||
-            event.category === filter) &&
-          `${event.title} ${event.body}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-      ),
-    [game.events, filter, query],
+  const [filter, setFilter] = useState(focus ? "important" : "all");
+  const focused = useMemo(() => new Set(focus?.ids ?? []), [focus]);
+  const counts = useMemo(() => {
+    const open = game.events!.filter((event) => !event.resolved);
+    return {
+      important: open.filter(
+        (event) => !event.read && isImportantEvent(game, event),
+      ).length,
+      open: open.length,
+    };
+  }, [game]);
+  const events = useMemo(() => {
+    const list = game.events!.filter(
+      (event) =>
+        (filter === "all" ||
+          (filter === "important" && isImportantEvent(game, event)) ||
+          (filter === "open" && !event.resolved) ||
+          event.category === filter) &&
+        `${event.title} ${event.body}`
+          .toLowerCase()
+          .includes(query.toLowerCase()),
+    );
+    // Messages that stopped the simulation first, then unread important ones;
+    // otherwise keep the inbox's newest-first order.
+    const rank = (event: ManagementEvent) =>
+      focused.has(event.id)
+        ? 0
+        : filter === "important" && !event.read && !event.resolved
+          ? 1
+          : 2;
+    return list
+      .map((event, index) => ({ event, index }))
+      .sort((a, b) => rank(a.event) - rank(b.event) || a.index - b.index)
+      .map(({ event }) => event);
+  }, [game, filter, query, focused]);
+  const unreadVisible = events.filter(
+    (event) => !event.read && !event.resolved,
   );
   return (
     <>
@@ -815,6 +866,38 @@ export function DecisionInbox({
           </p>
         </div>
       </div>
+      {focus && focus.ids.length > 0 && (
+        <div className="inbox-stop-banner" role="alert">
+          <AlertTriangle size={22} />
+          <div>
+            <strong>
+              {ru
+                ? `Игра остановлена ${focus.to}: ${focus.ids.length === 1 ? "получено важное сообщение" : `важных сообщений — ${focus.ids.length}`}`
+                : `Game paused on ${focus.to}: ${focus.ids.length === 1 ? "an important message arrived" : `${focus.ids.length} important messages arrived`}`}
+            </strong>
+            <p>
+              {ru
+                ? `Прошло дней: ${focus.days} (${focus.from} → ${focus.to}). Обычные сообщения не прерывают продолжение — эти требуют вашего внимания. Новые сообщения отмечены сверху.`
+                : `${focus.days} ${focus.days === 1 ? "day" : "days"} simulated (${focus.from} → ${focus.to}). Routine messages never interrupt Continue — these need your attention. New items are highlighted at the top.`}
+            </p>
+          </div>
+          <div className="inbox-stop-actions">
+            {focus.matchday && (
+              <button className="primary" onClick={() => go("match")}>
+                {ru ? "К матчу" : "To matchday"}
+              </button>
+            )}
+            <button
+              onClick={() => {
+                edit((g) => markEventsRead(g, focus.ids));
+                onDismissFocus?.();
+              }}
+            >
+              {ru ? "Понятно" : "Got it"}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="inbox-toolbar">
         <div className="tabs">
           {["all", "important", "open", "trade", "contract", "medical"].map(
@@ -822,6 +905,7 @@ export function DecisionInbox({
               <button
                 key={item}
                 className={filter === item ? "active" : ""}
+                aria-pressed={filter === item}
                 onClick={() => setFilter(item)}
               >
                 {item === "all"
@@ -837,18 +921,47 @@ export function DecisionInbox({
                         ? "Требуют решения"
                         : "Needs action"
                       : categoryNames[item]?.[ru ? 0 : 1]}
+                {item === "important" && counts.important > 0 && (
+                  <em
+                    className="tab-count important"
+                    aria-label={ru ? "Непрочитанные важные" : "Unread important"}
+                  >
+                    {counts.important}
+                  </em>
+                )}
+                {item === "open" && counts.open > 0 && (
+                  <em className="tab-count">{counts.open}</em>
+                )}
               </button>
             ),
           )}
         </div>
-        <label>
-          <Search size={15} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={ru ? "Поиск сообщений…" : "Search messages…"}
-          />
-        </label>
+        <div className="inbox-toolbar-actions">
+          {unreadVisible.length > 0 && (
+            <button
+              className="text-button"
+              onClick={() =>
+                edit((g) =>
+                  markEventsRead(
+                    g,
+                    unreadVisible.map((event) => event.id),
+                  ),
+                )
+              }
+            >
+              <Check size={14} />
+              {ru ? "Прочитать все" : "Mark all read"}
+            </button>
+          )}
+          <label>
+            <Search size={15} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={ru ? "Поиск сообщений…" : "Search messages…"}
+            />
+          </label>
+        </div>
       </div>
       <Panel title={`${ru ? "СООБЩЕНИЯ" : "MESSAGES"} · ${events.length}`}>
         <div className="decision-inbox">
@@ -859,6 +972,7 @@ export function DecisionInbox({
               ru={ru}
               go={go}
               edit={edit}
+              focused={focused.has(event.id)}
             />
           ))}
           {!events.length && (

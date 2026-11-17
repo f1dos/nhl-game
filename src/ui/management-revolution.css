@@ -605,3 +605,111 @@
     border-bottom: 1px solid #29343f;
   }
 }
+
+/* Important-inbox: stop banner, highlighted messages and unread counts */
+.inbox-stop-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border: 1px solid #7a4a2c;
+  border-left: 4px solid #f0a56f;
+  background: linear-gradient(90deg, rgba(222, 133, 72, 0.16), #121820 70%);
+  color: #f0a56f;
+}
+.inbox-stop-banner strong {
+  display: block;
+  color: #f6dcc8;
+  font-size: 14px;
+}
+.inbox-stop-banner p {
+  margin: 4px 0 0;
+  color: #b4a497;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.inbox-stop-actions {
+  display: flex;
+  gap: 8px;
+}
+.inbox-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tabs .tab-count {
+  display: inline-block;
+  margin-left: 6px;
+  min-width: 16px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: #263342;
+  color: #b6c4d2;
+  font-size: 9px;
+  font-style: normal;
+  text-align: center;
+}
+.tabs .tab-count.important,
+nav button em.important-count,
+.inbox-quick em {
+  background: #c8693a;
+  color: #fff;
+}
+.agenda-row.unread strong::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: #48a9df;
+  vertical-align: middle;
+}
+.agenda-row.focused {
+  background: linear-gradient(
+    90deg,
+    rgba(240, 165, 111, 0.2),
+    rgba(240, 165, 111, 0.04) 70%
+  );
+  box-shadow: inset 3px 0 #f0a56f;
+}
+.agenda-new {
+  margin-right: 6px;
+  padding: 1px 5px;
+  background: #f0a56f;
+  color: #1a1009;
+  font-size: 8px;
+}
+nav button em.important-count {
+  margin-left: 4px;
+}
+nav button em + em.important-count {
+  margin-left: 4px;
+}
+.inbox-quick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-color: #7a4a2c;
+  color: #f0a56f;
+}
+.inbox-quick em {
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-style: normal;
+}
+@media (max-width: 760px) {
+  .inbox-stop-banner {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .inbox-stop-actions {
+    grid-column: 1 / -1;
+  }
+  .inbox-toolbar-actions {
+    flex-wrap: wrap;
+  }
+}
