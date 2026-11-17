@@ -7,6 +7,18 @@
 import { SPECIAL_TEAM_LABELS, SPECIAL_TEAM_LABELS_EN } from "../engine/tactics";
 import type { SpecialTeamsSituation } from "../engine/types";
 import { AWARDS } from "../engine/awards";
+import { STRATEGY_POLICIES, strategyPolicy } from "../engine/strategy";
+import type { FranchiseStrategy } from "../engine/types";
+
+const policyEntries = (
+  Object.keys(STRATEGY_POLICIES) as FranchiseStrategy[]
+).flatMap((strategy) => {
+  const ru = strategyPolicy(strategy, "ru");
+  const en = strategyPolicy(strategy, "en");
+  return (["roster", "youth", "finance", "picks"] as const).map(
+    (key) => [ru[key], en[key]] as const,
+  );
+});
 
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 const awardPatterns: [RegExp, string][] = Object.values(AWARDS).flatMap(
@@ -27,6 +39,7 @@ const awardPatterns: [RegExp, string][] = Object.values(AWARDS).flatMap(
 );
 
 export const englishLegacy: Record<string, string> = {
+  ...Object.fromEntries(policyEntries),
   ...Object.fromEntries(
     (Object.keys(SPECIAL_TEAM_LABELS) as SpecialTeamsSituation[]).map((key) => [
       SPECIAL_TEAM_LABELS[key],

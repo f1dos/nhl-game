@@ -1,7 +1,8 @@
 /**
  * Static localization audit: lists Cyrillic string literals / JSX text in
  * src/ that are neither paired with an English alternative (tr(ru, en),
- * t(ru, en), `ru ? "…" : "…"`) nor covered by the English runtime catalog.
+ * t(ru, en), tx(g, ru, en), `ru ? "…" : "…"`, { ru, en } objects,
+ * [ru, en] tuples) nor covered by the English runtime catalog.
  *
  *   npx tsx scripts/i18n-audit.ts [files...]
  */
@@ -10,6 +11,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { translateEnglish } from "../src/i18n/englishMatch";
 import { buildCoreCatalog } from "../src/i18n/coreCatalog";
+import { objectiveText } from "../src/engine/strategy";
+
+// Legacy 2D match centre, no longer imported by the app.
+const IGNORED_FILES = new Set(["src/ui/MatchCenter.tsx"]);
 
 const core = buildCoreCatalog("en");
 const cyr = /[А-Яа-яЁё]/;
@@ -19,7 +24,7 @@ function covered(text: string) {
   const key = text.replace(/\s+/g, " ").trim();
   if (!key) return true;
   const out = core[key] ?? translateEnglish(key);
-  return !cyr.test(out);
+  return !cyr.test(out) || !cyr.test(objectiveText(key, "en"));
 }
 
 function isPaired(node: ts.Node): boolean {
@@ -32,7 +37,10 @@ function isPaired(node: ts.Node): boolean {
         ? callee.text
         : ts.isPropertyAccessExpression(callee)
           ? callee.name.text
-          : "";
+          : ts.isCallExpression(callee) && ts.isIdentifier(callee.expression)
+            ? callee.expression.text // textFor(g)(ru, en)
+            : "";
+      if (name === "textFor" && parent.arguments.length >= 2) return true;
       if (PAIR_FNS.has(name) && parent.arguments.length >= 2) return true;
       return false;
     }
@@ -41,17 +49,30 @@ function isPaired(node: ts.Node): boolean {
       if (/\bru\b|language|isRu|russian/i.test(cond)) return true;
     }
     if (ts.isPropertyAssignment(parent)) {
+      // { "русский": "English" } dictionaries
+      if (parent.name === cur && !cyr.test(parent.initializer.getText()))
+        return true;
+      if (parent.initializer === cur && cyr.test(parent.name.getText()))
+        return true;
       // { ru: "…", en: "…" } objects
       const name = parent.name.getText().replace(/["']/g, "");
-      if (/^(ru|labelRu|groupRu|titleRu|textRu|bodyRu|nameRu)$/.test(name)) return true;
+      if (/(^ru$|Ru$|^ru[A-Z])/.test(name)) return true;
       return false;
     }
     if (ts.isArrayLiteralExpression(parent)) {
       // [ru, en] tuples
+      // [ru, en, …] tuples: a Cyrillic element followed by a Latin one
       const els = parent.elements;
-      if (els.length === 2 && els[0] === cur && !cyr.test(els[1].getText())) return true;
+      const index = els.indexOf(cur as ts.Expression);
+      if (index >= 0 && els[index + 1] && !cyr.test(els[index + 1].getText()))
+        return true;
     }
-    if (ts.isJsxAttribute(parent) || ts.isJsxElement(parent) || ts.isBlock(parent)) return false;
+    if (
+      ts.isJsxAttribute(parent) ||
+      ts.isJsxElement(parent) ||
+      ts.isBlock(parent)
+    )
+      return false;
     cur = parent;
   }
   return false;
@@ -68,12 +89,22 @@ export function auditFile(file: string) {
   const issues: { line: number; text: string }[] = [];
   const visit = (node: ts.Node) => {
     let text: string | undefined;
-    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) text = node.text;
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
+      text = node.text;
     else if (ts.isJsxText(node)) text = node.text;
     else if (ts.isTemplateExpression(node))
-      text = [node.head.text, ...node.templateSpans.map((s) => s.literal.text)].join("…");
+      text = [
+        node.head.text,
+        ...node.templateSpans.map((s) => s.literal.text),
+      ].join("…");
     if (text !== undefined && cyr.test(text)) {
-      if (!isPaired(node) && !(!file.includes("engine") && (ts.isJsxText(node) || ts.isStringLiteral(node)) ? covered(text) : false))
+      // "Русский / English" pairs (match events) are split by the UI.
+      const inlinePair = / \/ [^А-Яа-яЁё]+$/.test(text);
+      if (
+        !inlinePair &&
+        !isPaired(node) &&
+        !((ts.isJsxText(node) || ts.isStringLiteral(node)) && covered(text))
+      )
         issues.push({
           line: source.getLineAndCharacterOfPosition(node.getStart()).line + 1,
           text: text.replace(/\s+/g, " ").trim().slice(0, 140),
@@ -91,7 +122,8 @@ const files = process.argv.slice(2).length
   : ["src/engine", "src/ui"].flatMap((dir) =>
       readdirSync(dir)
         .filter((f) => /\.tsx?$/.test(f))
-        .map((f) => join(dir, f)),
+        .map((f) => join(dir, f))
+        .filter((f) => !IGNORED_FILES.has(f)),
     );
 let total = 0;
 for (const file of files) {
