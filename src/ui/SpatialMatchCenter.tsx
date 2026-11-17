@@ -144,6 +144,12 @@ export default function SpatialMatchCenter({
               running={running}
               playback={speed}
               spatial={match.frame}
+              scoreboard={{
+                home: match.result.goals[0],
+                away: match.result.goals[1],
+                clock: `${String(Math.floor((1200 - seconds) / 60) % 21).padStart(2, "0")}:${String((1200 - seconds) % 60).padStart(2, "0")}`,
+                period: match.time >= 3600 ? "OT" : `P${Math.floor(match.time / 1200) + 1}`,
+              }}
             />
           </Suspense>
           <p style={{ padding: 12 }}>
