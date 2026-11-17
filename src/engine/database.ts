@@ -2,6 +2,7 @@ import type { Locale } from "../i18n/locales";
 import { tx } from "./text";
 import { RULES } from "./rules";
 import { archetypes, rolesFor, overall } from "./ratings";
+import { assignPotential, ensurePotentialModel } from "./potential";
 import { RNG, clamp } from "./random";
 import {
   emptyRecord,
@@ -164,7 +165,7 @@ export function createPlayer(
   for (const key of archetypes[archetype])
     attrs[key] = clamp(attrs[key] + 8, 35, 98);
   const ovr = overall(pos, attrs, archetype);
-  return {
+  const player: Player = {
     archetype,
     id,
     name: `${r.pick(first)} ${r.pick(last)}`,
@@ -174,7 +175,8 @@ export function createPlayer(
     nation: r.pick(["CAN", "USA", "SWE", "FIN", "CZE", "RUS"]),
     attributes: attrs,
     ovr,
-    potential: clamp(ovr + r.int(0, 15), ovr, 98),
+    // Draw kept so seeded careers keep the same rosters; set by the model below.
+    potential: (r.int(0, 15), ovr),
     salary:
       Math.round((0.8 + Math.pow(Math.max(0, ovr - 58) / 13, 2)) * 100) / 100,
     years: r.int(1, 5),
@@ -184,6 +186,8 @@ export function createPlayer(
     stats: emptyStats(),
     history: [],
   };
+  assignPotential(player);
+  return player;
 }
 export function autoLines(t: Team) {
   const pick = (p: Position, n: number) =>
@@ -336,6 +340,7 @@ export function newGame(
   };
   game.internationalMarket = createInternationalMarket(r);
   game.internationalOffers = [];
+  ensurePotentialModel(game);
   return game;
 }
 
@@ -421,10 +426,7 @@ function createMinorPlayer(
       ? 59 + (hash(identity.id) % 15)
       : 48 + (hash(identity.id) % 18);
   setPlayerOverall(player, target);
-  player.potential =
-    league === "OHL"
-      ? clamp(target + 14 + (hash(identity.name) % 18), target + 10, 95)
-      : clamp(target + (player.age <= 22 ? 8 : 3), target, 86);
+  assignPotential(player, { league });
   player.salary = league === "AHL" ? 0.15 : 0;
   player.years = 1;
   player.contractRemainingValue = player.salary;
@@ -500,6 +502,7 @@ function createInternationalMarket(
     player.nation = template[0];
     player.age = 18 + (hash(player.id) % 10);
     player.league = template[1];
+    assignPotential(player);
     player.currentClub = template[2];
     player.leagueSource = "generated";
     player.contractType = "international";
@@ -584,9 +587,8 @@ function applyPlayerRating(player: Player) {
   }
   player.ovr = overall(player.pos, player.attributes, player.archetype);
   if (player.ovr !== target) player.ovr = target;
-  const youthBonus = player.age <= 21 ? (22 - player.age) * 2 : 0;
-  player.potential = clamp(target + youthBonus, target, 98);
   player.ratingRank = rating.rank;
+  assignPotential(player, { league: "NHL" });
   player.ratingSource = "nhl-stats-model";
 }
 

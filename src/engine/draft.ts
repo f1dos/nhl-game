@@ -1,6 +1,7 @@
 import { tx } from "./text";
 import { createPlayer } from "./database";
 import { RNG, clamp } from "./random";
+import { assignPotential, rankDraftClass } from "./potential";
 import type {
   DraftProspect,
   DraftState,
@@ -67,7 +68,8 @@ export function createDraftState(
 ): DraftState {
   const positions: Position[] = ["LW", "C", "RW", "D", "D", "G"];
   const prospects: DraftProspect[] = Array.from({ length: count }, (_, i) => {
-    const level = i < 12 ? 77 : i < 64 ? 71 : i < 160 ? 65 : 59;
+    // Draft-eligible teenagers: a few near NHL-ready, most years away.
+    const level = i < 12 ? 66 : i < 64 ? 61 : i < 160 ? 57 : 53;
     const player = createPlayer(
       r,
       `draft-${year}-${i}-${r.int(1000, 9999)}`,
@@ -78,16 +80,10 @@ export function createDraftState(
     player.salary = 0;
     player.years = 0;
     player.number = 0;
+    assignPotential(player, { league: "draft" });
     return { player, region: regionFor(player.nation), trueRank: 0 };
   });
-  prospects.sort(
-    (a, b) =>
-      b.player.potential * 0.68 +
-        b.player.ovr * 0.32 -
-        (a.player.potential * 0.68 + a.player.ovr * 0.32) ||
-      a.player.id.localeCompare(b.player.id),
-  );
-  prospects.forEach((p, i) => (p.trueRank = i + 1));
+  rankDraftClass(prospects);
   return {
     year,
     status: "scouting",
@@ -255,7 +251,9 @@ function assignPick(g: Game, prospectId: string) {
   pick.prospectId = prospectId;
   const team = g.teams.find((t) => t.id === pick.team)!;
   team.prospects ??= [];
-  team.prospects.push(structuredClone(prospect.player));
+  const drafted = structuredClone(prospect.player);
+  drafted.draftOverall = pick.overall;
+  team.prospects.push(drafted);
   draft.currentPick++;
   if (draft.currentPick >= draft.picks.length) {
     draft.status = "complete";
