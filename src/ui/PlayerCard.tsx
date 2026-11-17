@@ -17,6 +17,7 @@ import { effectiveOverall } from "../engine/franchiseWorld";
 import {
   externalContactEligibility,
   playerConcerns,
+  conversationEntryText,
 } from "../engine/conversations";
 import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
@@ -828,7 +829,7 @@ export default function PlayerCard({
                 {tr("РАЗГОВОРЫ С ИГРОКОМ", "PLAYER TALKS")}
               </h3>
               <p className="pc-concerns">
-                {tr("Темы", "Concerns")}: {playerConcerns(p).join(", ")}
+                {tr("Темы", "Concerns")}: {playerConcerns(p, game.language).join(", ")}
               </p>
               <button
                 className="primary"
@@ -848,23 +849,26 @@ export default function PlayerCard({
                 <ArrowUpRight size={16} />
               </button>
               {external && <small>{contact.reason}</small>}
-              {(p.conversationHistory ?? []).slice(0, 4).map((entry, index) => (
-                <blockquote
-                  key={`${entry.year}-${entry.round}-${index}`}
-                  className={entry.outcome ?? "neutral"}
-                >
-                  <small>
-                    {entry.year} · {tr("тур", "round")} {entry.round} ·{" "}
-                    {entry.topic}
-                  </small>
-                  {entry.response}
-                  <em>
-                    {tr("мораль", "morale")} {signed(entry.moraleDelta)} ·{" "}
-                    {tr("отношения", "relationship")}{" "}
-                    {signed(entry.relationshipDelta)}
-                  </em>
-                </blockquote>
-              ))}
+              {(p.conversationHistory ?? []).slice(0, 4).map((entry, index) => {
+                const text = conversationEntryText(entry, game.language);
+                return (
+                  <blockquote
+                    key={`${entry.year}-${entry.round}-${index}`}
+                    className={entry.outcome ?? "neutral"}
+                  >
+                    <small>
+                      {entry.year} · {tr("тур", "round")} {entry.round + 1} ·{" "}
+                      {text.topic}
+                    </small>
+                    {text.response}
+                    <em>
+                      {tr("мораль", "morale")} {signed(entry.moraleDelta)} ·{" "}
+                      {tr("отношения", "relationship")}{" "}
+                      {signed(entry.relationshipDelta)}
+                    </em>
+                  </blockquote>
+                );
+              })}
             </section>
           </aside>
         </div>

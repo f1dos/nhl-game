@@ -1,45 +1,17 @@
 import { useState } from "react";
-import { Mic2, Radio, Users } from "lucide-react";
+import { Mic2, Radio } from "lucide-react";
 import type { Game, PressAppearance } from "../engine/types";
-import { clamp } from "../engine/random";
+import { pressAppearanceText, pressOpponentId } from "../engine/press";
 import { Crest } from "./components";
+import { quote } from "../engine/dialogueText";
+import PressConference from "./PressConference";
 
 type Edit = (fn: (game: Game) => void) => void;
 
-const answers: {
-  tone: PressAppearance["tone"];
-  title: string;
-  line: string;
-  fan: number;
-  board: number;
-  morale: number;
-}[] = [
-  {
-    tone: "protective",
-    title: "Защитить команду",
-    line: "Ответственность на мне. Игроки получают от штаба полную поддержку.",
-    fan: 0,
-    board: -1,
-    morale: 2,
-  },
-  {
-    tone: "balanced",
-    title: "Спокойный анализ",
-    line: "Мы понимаем сильные стороны соперника и готовы придерживаться нашего плана.",
-    fan: 1,
-    board: 1,
-    morale: -1,
-  },
-  {
-    tone: "ambitious",
-    title: "Поднять ставки",
-    line: "От этой команды ждут победы. Мы выходим за результатом и не ищем оправданий.",
-    fan: 2,
-    board: 1,
-    morale: -1,
-  },
-];
-
+/**
+ * Media room: the same multi-question conference as on matchday, reachable
+ * from the office, plus the recent press history in the current language.
+ */
 export default function PressCenter({
   game,
   edit,
@@ -47,61 +19,28 @@ export default function PressCenter({
   game: Game;
   edit: Edit;
 }) {
+  const ru = game.language === "ru";
   const [type, setType] = useState<PressAppearance["type"]>(
     game.last ? "post-match" : "pre-match",
   );
-  const [result, setResult] = useState<PressAppearance>();
   const team = game.teams.find((club) => club.id === game.user)!;
-  const used = game.pressHistory?.some(
-    (item) => item.date === game.calendar?.date && item.type === type,
-  );
-  const submit = (answer: (typeof answers)[number]) => {
-    const appearance: PressAppearance = {
-      date: game.calendar!.date,
-      type,
-      tone: answer.tone,
-      headline: answer.line,
-      fanDelta: answer.fan,
-      boardDelta: answer.board,
-      moraleDelta: answer.morale,
-    };
-    edit((current) => {
-      current.pressHistory ??= [];
-      current.pressHistory.unshift(appearance);
-      const fans = current.fans?.[current.user];
-      if (fans) {
-        fans.happiness = clamp(fans.happiness + answer.fan, 0, 100);
-        fans.engagement = clamp(
-          fans.engagement + Math.sign(answer.fan),
-          0,
-          100,
-        );
-        fans.lastChange = "Пресс-конференция GM";
-      }
-      if (current.managerEmployment)
-        current.managerEmployment.confidence = clamp(
-          current.managerEmployment.confidence + answer.board,
-          0,
-          100,
-        );
-      current.teams
-        .find((club) => club.id === current.user)!
-        .players.slice(0, 8)
-        .forEach((player) => {
-          player.morale = clamp(player.morale + answer.morale, 0, 100);
-        });
-    });
-    setResult(appearance);
-  };
+  const date = game.calendar?.date ?? "";
+  const opponentId =
+    type === "post-match" && !game.last
+      ? undefined
+      : pressOpponentId(game, type);
+  const opponent = game.teams.find((club) => club.id === opponentId);
+  const available = !!opponent;
   return (
     <div className="press-center">
       <div className="page-intro">
         <div>
           <span className="eyebrow">MEDIA ROOM</span>
-          <h1>Пресс-центр</h1>
+          <h1>{ru ? "Пресс-центр" : "Press room"}</h1>
           <p>
-            Предматчевые и послематчевые ответы влияют на ожидания фанатов,
-            раздевалку и руководство.
+            {ru
+              ? "Журналисты задают вопросы по ситуации в команде. Ответы влияют на ожидания фанатов, раздевалку, руководство и отдельных игроков."
+              : "Reporters ask about what is actually happening around the team. Your answers move fan expectations, the dressing room, the board and individual players."}
           </p>
         </div>
         <Radio size={34} />
@@ -109,88 +48,77 @@ export default function PressCenter({
       <div className="tabs">
         <button
           className={type === "pre-match" ? "active" : ""}
-          onClick={() => {
-            setType("pre-match");
-            setResult(undefined);
-          }}
+          onClick={() => setType("pre-match")}
         >
-          Перед матчем
+          {ru ? "Перед матчем" : "Pre-match"}
         </button>
         <button
           className={type === "post-match" ? "active" : ""}
-          onClick={() => {
-            setType("post-match");
-            setResult(undefined);
-          }}
+          onClick={() => setType("post-match")}
         >
-          После матча
+          {ru ? "После матча" : "Post-match"}
         </button>
       </div>
       <section className="press-room">
         <header>
           <Crest team={team} size={58} />
           <div>
-            <small>{game.calendar?.date} · NHL MEDIA AVAILABILITY</small>
+            <small>
+              {date} · {ru ? "МЕДИА-ДОСТУП" : "MEDIA AVAILABILITY"}
+              {opponent ? ` · vs ${opponent.city} ${opponent.name}` : ""}
+            </small>
             <h2>
               {type === "pre-match"
-                ? "Последний вопрос перед игрой"
-                : "Итоги матча"}
+                ? ru
+                  ? "Вопросы перед игрой"
+                  : "Questions before the game"
+                : ru
+                  ? "Итоги матча"
+                  : "After the game"}
             </h2>
           </div>
           <span>
             <Mic2 size={16} /> LIVE
           </span>
         </header>
-        <div className="press-question">
-          <Users size={22} />
-          <p>
-            {type === "pre-match"
-              ? "Какой сигнал вы хотите отправить команде и болельщикам перед сегодняшним матчем?"
-              : "Как вы оцениваете выступление команды и что скажете раздевалке после матча?"}
-          </p>
+        <div className="press-room-body">
+          {available ? (
+            <PressConference game={game} edit={edit} type={type} date={date} />
+          ) : (
+            <p className="press-question">
+              {type === "post-match"
+                ? ru
+                  ? "Сыгранных матчей пока нет — журналистам нечего обсуждать."
+                  : "No game has been played yet, so there is nothing to discuss."
+                : ru
+                  ? "Ближайший соперник пока не определён."
+                  : "There is no upcoming opponent yet."}
+            </p>
+          )}
         </div>
-        {!used && !result ? (
-          <div className="press-answers">
-            {answers.map((answer) => (
-              <button key={answer.tone} onClick={() => submit(answer)}>
-                <b>{answer.title}</b>
-                <span>«{answer.line}»</span>
-                <small>
-                  Фанаты {answer.fan >= 0 ? "+" : ""}
-                  {answer.fan} · руководство {answer.board >= 0 ? "+" : ""}
-                  {answer.board} · мораль {answer.morale >= 0 ? "+" : ""}
-                  {answer.morale}
-                </small>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="press-result">
-            <Mic2 size={26} />
-            <div>
-              <b>Комментарий опубликован</b>
-              <p>
-                «
-                {result?.headline ??
-                  game.pressHistory?.find(
-                    (item) =>
-                      item.date === game.calendar?.date && item.type === type,
-                  )?.headline}
-                »
-              </p>
-            </div>
-          </div>
-        )}
       </section>
       <section className="press-history">
-        <h3>Последние выступления</h3>
-        {(game.pressHistory ?? []).slice(0, 8).map((item, index) => (
-          <p key={`${item.date}-${index}`}>
-            <time>{item.date}</time>
-            <b>{item.type === "pre-match" ? "До матча" : "После матча"}</b>
-            <span>{item.headline}</span>
-          </p>
-        ))}
+        <h3>{ru ? "Последние выступления" : "Recent appearances"}</h3>
+        {(game.pressHistory ?? []).slice(0, 10).map((item, index) => {
+          const text = pressAppearanceText(item, game.language);
+          return (
+            <p key={`${item.date}-${index}`}>
+              <time>{item.date}</time>
+              <b>
+                {item.type === "pre-match"
+                  ? ru
+                    ? "До матча"
+                    : "Pre-match"
+                  : ru
+                    ? "После матча"
+                    : "Post-match"}
+              </b>
+              <span>
+                {text.outlet ? <em>{text.outlet}: </em> : null}{quote(text.headline, game.language)}
+              </span>
+            </p>
+          );
+        })}
       </section>
     </div>
   );

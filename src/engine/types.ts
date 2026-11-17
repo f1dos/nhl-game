@@ -19,6 +19,12 @@ export interface Stats {
   /** Times named one of the three stars of a game. */
   stars?: number;
 }
+export interface ConversationLine {
+  speaker: "manager" | "player";
+  ru: string;
+  en: string;
+  mood?: "positive" | "neutral" | "negative";
+}
 export interface Player {
   league?:
     "NHL" | "AHL" | "OHL" | "SHL" | "Liiga" | "NL" | "DEL" | "KHL" | "Czech";
@@ -55,6 +61,12 @@ export interface Player {
     tone: string;
     managerLine?: string;
     response: string;
+    /** Bilingual copies; absent on saves made before multi-turn meetings. */
+    managerLineI18n?: { ru: string; en: string };
+    responseI18n?: { ru: string; en: string };
+    summary?: { ru: string; en: string };
+    transcript?: ConversationLine[];
+    exchanges?: number;
     outcome?: "positive" | "neutral" | "negative";
     moraleDelta: number;
     relationshipDelta: number;
@@ -318,6 +330,16 @@ export interface PressAppearance {
   fanDelta: number;
   boardDelta: number;
   moraleDelta: number;
+  /** Multi-question conferences (absent on older saves). */
+  questionId?: string;
+  journalist?: { ru: string; en: string };
+  outlet?: { ru: string; en: string };
+  question?: { ru: string; en: string };
+  style?: { ru: string; en: string };
+  headlineI18n?: { ru: string; en: string };
+  reaction?: { ru: string; en: string };
+  playerId?: string;
+  playerMoraleDelta?: number;
 }
 export type ManagementEventCategory =
   | "game"

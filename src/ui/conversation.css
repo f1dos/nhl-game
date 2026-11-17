@@ -253,3 +253,415 @@
     flex-wrap: wrap;
   }
 }
+
+/* Multi-turn meeting: chat thread, live mood and outcome. */
+.conversation-vitals > div {
+  display: grid;
+  grid-template-columns: 82px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.vital-bar {
+  height: 4px;
+  background: #22303c;
+  overflow: hidden;
+}
+.vital-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #3c88b4, #6cc2ee);
+  transition: width 0.4s ease;
+}
+.conversation-vitals b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.vital-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-style: normal;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.vital-delta.up {
+  color: #8fe0b7;
+  background: #173528;
+}
+.vital-delta.down {
+  color: #f0a08e;
+  background: #3a201b;
+}
+.vital-note {
+  display: block;
+  margin-top: 6px;
+  color: #71889b;
+  font-size: 10px;
+}
+.conversation-mood {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #2c3b48;
+  background: #121c25;
+}
+.conversation-mood span {
+  font-size: 11px;
+  color: #8b9cad;
+}
+.conversation-mood.positive b {
+  color: #7fd4a8;
+}
+.conversation-mood.neutral b {
+  color: #e2c27a;
+}
+.conversation-mood.negative b {
+  color: #ef8f7b;
+}
+.dialogue-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dialogue-thread .speech {
+  position: relative;
+  max-width: 78%;
+  border-radius: 12px;
+  line-height: 1.5;
+  animation: speech-in 0.25s ease-out;
+}
+.dialogue-thread .speech.manager {
+  align-self: flex-end;
+  border-bottom-right-radius: 3px;
+}
+.dialogue-thread .speech.player {
+  align-self: flex-start;
+  border-bottom-left-radius: 3px;
+}
+.dialogue-thread .speech small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8ea3b6;
+}
+.speech.player.positive {
+  border-left-color: #5fbd93;
+}
+.speech.player.neutral {
+  border-left-color: #d6b46a;
+}
+.speech.player.negative {
+  border-left-color: #d67b68;
+}
+.mood-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.mood-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.mood-dot.positive {
+  color: #7fd4a8;
+}
+.mood-dot.neutral {
+  color: #e2c27a;
+}
+.mood-dot.negative {
+  color: #ef8f7b;
+}
+@keyframes speech-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.conversation-follow-up {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed #2d3c49;
+}
+.conversation-follow-up > .eyebrow {
+  display: block;
+  margin-bottom: 10px;
+}
+.conversation-follow-up > button p small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  color: #7b90a3;
+}
+.closes-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 8px;
+  padding: 1px 4px;
+  color: #a9b8c5;
+  border: 1px solid #3a4a58;
+  text-transform: uppercase;
+}
+.conversation-outcome {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px 14px;
+  align-items: start;
+  margin-top: 20px;
+  padding: 18px;
+  background: #142330;
+  border: 1px solid #2f4a5e;
+  border-left: 4px solid #54b4e3;
+}
+.conversation-outcome.positive {
+  border-left-color: #5fbd93;
+}
+.conversation-outcome.neutral {
+  border-left-color: #d6b46a;
+}
+.conversation-outcome.negative {
+  border-left-color: #d67b68;
+}
+.conversation-outcome p {
+  margin-top: 6px;
+  color: #c8d4de;
+  line-height: 1.5;
+}
+.conversation-outcome .conversation-impact {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 12px;
+}
+.conversation-outcome .conversation-impact b {
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 1px solid #2c3b48;
+}
+.conversation-outcome .conversation-impact b.up {
+  color: #8fe0b7;
+  background: #15291f;
+}
+.conversation-outcome .conversation-impact b.down {
+  color: #f0a08e;
+  background: #2c1a17;
+}
+.conversation-outcome > button {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+.dialogue-completed .dialogue-thread {
+  margin-top: 22px;
+  text-align: left;
+}
+.completed-summary {
+  margin-top: 14px;
+  font-style: italic;
+}
+.conversation-history > div {
+  padding-left: 10px;
+  border-left: 2px solid #2c3b48;
+}
+.conversation-history > div.positive {
+  border-left-color: #3f8a66;
+}
+.conversation-history > div.negative {
+  border-left-color: #9a5446;
+}
+.history-summary {
+  color: #7f95a8 !important;
+  font-style: italic;
+}
+@media (max-width: 850px) {
+  .dialogue-thread .speech {
+    max-width: 94%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Press conferences (matchday hub + press centre)
+ * ------------------------------------------------------------------------- */
+.presser {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+.presser-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #111820;
+  border: 1px solid #29343f;
+}
+.presser-progress > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #eb836f;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-right: 6px;
+}
+.presser-progress i {
+  width: 26px;
+  height: 4px;
+  background: #2a3744;
+}
+.presser-progress i.done {
+  background: #4fae86;
+}
+.presser-progress i.current {
+  background: #59addd;
+  box-shadow: 0 0 8px #59addd88;
+}
+.presser-progress small {
+  margin-left: auto;
+  color: #8ea2b3;
+  font-size: 11px;
+}
+.presser-exchange {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: #0f161d;
+  border: 1px solid #26323d;
+}
+.presser-exchange.done {
+  opacity: 0.86;
+}
+.presser-exchange.current {
+  border-color: #3b647d;
+  background: linear-gradient(180deg, #121d26, #0f161d);
+}
+.presser-question {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.presser-question small {
+  color: #6eb8e0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.presser-question p {
+  margin: 4px 0 0;
+  line-height: 1.5;
+  color: #dbe4ec;
+}
+.presser-question .press-prompt {
+  margin-top: 6px;
+  padding: 14px 16px;
+  font-size: 16px;
+}
+.press-avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #1c2c39;
+  border: 1px solid #3a5568;
+  color: #9fd0ee;
+  font:
+    700 14px "Barlow Condensed",
+    sans-serif;
+}
+.presser-answer {
+  justify-self: end;
+  max-width: 78%;
+  padding: 10px 14px;
+  background: #173044;
+  border: 1px solid #2f5670;
+}
+.presser-answer small {
+  color: #8fc3e3;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.presser-answer p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+.presser-reaction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 12px;
+  color: #8ea2b3;
+  font-size: 12px;
+}
+.presser-answers button {
+  align-content: start;
+}
+.press-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.press-chip {
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #9fb0bf;
+  background: #1a242d;
+  border: 1px solid #2d3a46;
+}
+.press-chip.up {
+  color: #7fd6ac;
+  border-color: #2f5f4a;
+  background: #13261f;
+}
+.press-chip.down {
+  color: #f09a88;
+  border-color: #6a3a31;
+  background: #2a1714;
+}
+.presser-summary {
+  align-items: flex-start;
+}
+.presser-summary .press-chips {
+  margin-top: 8px;
+}
+.presser-players {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.presser-exit {
+  margin-top: 16px;
+}
+.press-center .presser {
+  max-width: 1050px;
+}
+@media (max-width: 760px) {
+  .presser-answer {
+    max-width: 100%;
+  }
+  .matchday-answer-grid.presser-answers {
+    grid-template-columns: 1fr;
+  }
+}
+.press-room-body {
+  padding: 4px 18px 18px;
+}
+.press-history em {
+  color: #6eb8e0;
+  font-style: normal;
+}
+.press-center .presser-progress > span {
+  display: none;
+}
