@@ -410,6 +410,7 @@
 }
 .pc-vital .match-rating {
   justify-self: start;
+  color: #0b1117;
 }
 .pc-body {
   display: grid;
@@ -2076,6 +2077,13 @@ b.down {
   .pc-vitals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 0;
+  }
+  .pc-vitals > :last-child {
+    grid-column: 1 / -1;
+  }
+  .cc-star .player-portrait {
+    width: 56px !important;
+    height: 56px !important;
   }
   .player-card .attribute-sections.pc-attributes,
   .pc-dev {
