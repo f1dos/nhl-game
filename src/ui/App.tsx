@@ -570,7 +570,7 @@ export default function App() {
             <button
               className="primary"
               onClick={() => {
-                const career = newGame(selected, seed);
+                const career = newGame(selected, seed, language);
                 career.language = language;
                 ensureDraft(career);
                 ensureManagementState(career);

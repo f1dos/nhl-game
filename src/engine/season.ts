@@ -1,3 +1,4 @@
+import { tx } from "./text";
 import { RNG, clamp } from "./random";
 import { overall } from "./ratings";
 import { expireContracts } from "./contracts";
@@ -125,7 +126,13 @@ export function advance(g: Game, completed?: Result) {
           ...seedConference(g.teams.filter((t) => t.conference === "West")),
         ],
       ];
-      g.news.unshift("Регулярный сезон завершён. Начинается плей-офф.");
+      g.news.unshift(
+        tx(
+          g,
+          "Регулярный сезон завершён. Начинается плей-офф.",
+          "The regular season is over. The playoffs begin.",
+        ),
+      );
       decideRegularSeasonAwards(g);
       g.teams.forEach((t) =>
         t.players.forEach((p) => {
@@ -158,7 +165,11 @@ export function advance(g: Game, completed?: Result) {
         });
         reviewSeasonStrategy(g);
         g.news.unshift(
-          `${series[0].winner} — обладатель Кубка Стэнли ${g.year + 1}.`,
+          tx(
+            g,
+            `${series[0].winner} — обладатель Кубка Стэнли ${g.year + 1}.`,
+            `${series[0].winner} win the ${g.year + 1} Stanley Cup.`,
+          ),
         );
         decideConnSmythe(
           g,
@@ -247,7 +258,11 @@ function rollover(g: Game) {
   prepareNextDraft(g, r);
   g.seed = r.seed;
   g.news.unshift(
-    `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Истёкшие контракты завершены; минимальные составы укомплектованы автоматически.`,
+    tx(
+      g,
+      `Начинается сезон ${g.year}/${String(g.year + 1).slice(2)}. Истёкшие контракты завершены; минимальные составы укомплектованы автоматически.`,
+      `The ${g.year}/${String(g.year + 1).slice(2)} season begins. Expired contracts have ended; minimum rosters were filled automatically.`,
+    ),
   );
 }
 

@@ -1,3 +1,4 @@
+import { textFor } from "./text";
 import { overall } from "./ratings";
 import { clamp } from "./random";
 import type { Player, Stats, Team } from "./types";
@@ -69,7 +70,8 @@ export function updateMatchPerformance(
 }
 
 /** Removes short-term form, then returns the season-long development modifier. */
-export function prepareAnnualDevelopment(player: Player) {
+export function prepareAnnualDevelopment(player: Player, language?: string) {
+  const t = textFor({ language });
   shiftOverall(player, -(player.formAdjustment ?? 0));
   player.formAdjustment = 0;
   const form = player.performanceForm ?? 0;
@@ -80,11 +82,13 @@ export function prepareAnnualDevelopment(player: Player) {
     modifier: performance + injuries,
     reason: [
       performance > 0
-        ? "сильный сезон"
+        ? t("сильный сезон", "strong season")
         : performance < 0
-          ? "слабый сезон"
-          : "стабильный сезон",
-      injuries ? `травмы ${injuries}` : "без серьёзного влияния травм",
+          ? t("слабый сезон", "weak season")
+          : t("стабильный сезон", "steady season"),
+      injuries
+        ? t(`травмы ${injuries}`, `injuries ${injuries}`)
+        : t("без серьёзного влияния травм", "no significant injury impact"),
     ].join("; "),
   };
 }

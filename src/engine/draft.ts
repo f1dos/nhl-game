@@ -1,3 +1,4 @@
+import { tx } from "./text";
 import { createPlayer } from "./database";
 import { RNG, clamp } from "./random";
 import type {
@@ -114,7 +115,7 @@ export function setScoutingRegion(g: Game, region: ScoutingRegion) {
   if (!SCOUTING_REGIONS.includes(region))
     throw Error("Unknown scouting region");
   draft.assignment = region;
-  g.news.unshift(`Скаутское задание: ${region}.`);
+  g.news.unshift(tx(g, `Скаутское задание: ${region}.`, `Scouting assignment: ${region}.`));
 }
 
 export function toggleShortlist(g: Game, prospectId: string) {
@@ -209,7 +210,11 @@ export function openDraft(g: Game, r = new RNG(g.seed)) {
   draft.currentPick = 0;
   draft.status = "draft";
   g.news.unshift(
-    `Драфт ${draft.year} открыт. Лотерея: ${lottery.map((t) => t.id).join(", ")}.`,
+    tx(
+      g,
+      `Драфт ${draft.year} открыт. Лотерея: ${lottery.map((t) => t.id).join(", ")}.`,
+      `The ${draft.year} draft is open. Lottery: ${lottery.map((t) => t.id).join(", ")}.`,
+    ),
   );
   advanceDraftToUser(g);
 }
@@ -254,7 +259,7 @@ function assignPick(g: Game, prospectId: string) {
   draft.currentPick++;
   if (draft.currentPick >= draft.picks.length) {
     draft.status = "complete";
-    g.news.unshift(`Драфт ${draft.year} завершён.`);
+    g.news.unshift(tx(g, `Драфт ${draft.year} завершён.`, `The ${draft.year} draft is complete.`));
   }
 }
 

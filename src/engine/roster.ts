@@ -1,3 +1,4 @@
+import { tx } from "./text";
 import { autoLines } from "./database";
 import { salaryTotal } from "./contracts";
 import type { Game, Player, Team } from "./types";
@@ -36,7 +37,11 @@ export function callUpFromFarm(g: Game, playerId: string) {
   if (!player) throw Error("Player is not in organizational reserve");
   if (player.contractType === "AHL")
     throw Error(
-      "Игрок имеет только контракт AHL — сначала подпишите NHL/ELC соглашение",
+      tx(
+        g,
+        "Игрок имеет только контракт AHL — сначала подпишите NHL/ELC соглашение",
+        "The player only has an AHL contract — sign an NHL/ELC deal first",
+      ),
     );
   if (team.players.length >= 30) throw Error("Active roster is full");
   if (salaryTotal(team) + player.salary > g.rules.cap + 1e-8)

@@ -18,6 +18,27 @@ export const SPECIAL_TEAM_LABELS: Record<SpecialTeamsSituation, string> = {
   "5v6": "Защита против пустых ворот",
 };
 
+export const SPECIAL_TEAM_LABELS_EN: Record<SpecialTeamsSituation, string> = {
+  "5v4": "Power play 5-on-4",
+  "5v3": "Two-man advantage 5-on-3",
+  "4v3": "Power play 4-on-3",
+  "4v5": "Penalty kill 4-on-5",
+  "3v5": "Two-man penalty kill 3-on-5",
+  "3v4": "Penalty kill 3-on-4",
+  "3v3": "Overtime 3-on-3",
+  "6v5": "Empty net: 6-on-5 attack",
+  "5v6": "Defending the empty net",
+};
+
+/** Special-teams situation label for the given UI language. */
+export const specialTeamLabel = (
+  situation: SpecialTeamsSituation,
+  language?: string,
+) =>
+  !language || language === "ru"
+    ? SPECIAL_TEAM_LABELS[situation]
+    : SPECIAL_TEAM_LABELS_EN[situation];
+
 export const SPECIAL_TEAM_STYLES: Record<
   SpecialTeamsSituation,
   SpecialTeamUnit["style"][]

@@ -1,3 +1,4 @@
+import { tx } from "./text";
 import type { Game, Player, Team } from "./types";
 import { autoLines } from "./database";
 import { rivalryBetween } from "./franchiseWorld";
@@ -43,13 +44,13 @@ export function evaluateTrade(
     rivalry: undefined as string | undefined,
   });
   if (!b || a === b)
-    return reject("Выберите другой клуб / Select another club");
+    return reject(tx(g, "Выберите другой клуб", "Select another club"));
   if (
     (!give.length && !assets.givePicks?.length) ||
     (!take.length && !assets.takePicks?.length) ||
     new Set([...give, ...take]).size !== give.length + take.length
   )
-    return reject("Некорректные активы / Invalid assets");
+    return reject(tx(g, "Некорректные активы", "Invalid assets"));
   const givePicks =
     g.draftAssets?.filter((pick) => assets.givePicks?.includes(pick.id)) ?? [];
   const takePicks =
@@ -61,7 +62,7 @@ export function evaluateTrade(
     takePicks.some((pick) => pick.currentTeam !== other)
   )
     return reject(
-      "Права на драфт-пик изменились / Draft-pick ownership changed",
+      tx(g, "Права на драфт-пик изменились", "Draft-pick ownership changed"),
     );
   if (
     give.some(
@@ -72,7 +73,7 @@ export function evaluateTrade(
     )
   )
     return reject(
-      "Игрок больше не принадлежит клубу / Player ownership changed",
+      tx(g, "Игрок больше не принадлежит клубу", "Player ownership changed"),
     );
   const outgoing = [...a.players, ...(a.farm ?? [])].filter((p) =>
       give.includes(p.id),
@@ -88,9 +89,11 @@ export function evaluateTrade(
     ],
     nextB = [...b.players.filter((p) => !take.includes(p.id)), ...outgoingNhl];
   if (!legal(nextA) || !legal(nextB))
-    return reject("Недостаточно игроков по позициям / Invalid roster balance");
+    return reject(
+      tx(g, "Недостаточно игроков по позициям", "Invalid roster balance"),
+    );
   if (payroll(nextA) > g.rules.cap || payroll(nextB) > g.rules.cap)
-    return reject("Превышен потолок зарплат / Salary cap exceeded");
+    return reject(tx(g, "Превышен потолок зарплат", "Salary cap exceeded"));
   const value = (ps: Player[], t: Team) =>
     ps.reduce(
       (n, p) =>
@@ -109,10 +112,14 @@ export function evaluateTrade(
     accepted: ratio >= threshold,
     reason:
       ratio >= threshold
-        ? "Клуб согласен / Club accepts"
+        ? tx(g, "Клуб согласен", "Club accepts")
         : rivalry
-          ? `Из-за принципиального соперничества ${rivalry.label} клуб требует серьёзную переплату / Rival club demands a premium`
-          : "Клуб требует больше ценности / Club wants more value",
+          ? tx(
+              g,
+              `Из-за принципиального соперничества ${rivalry.label} клуб требует серьёзную переплату`,
+              `Because of the ${rivalry.label} rivalry, the club demands a significant premium`,
+            )
+          : tx(g, "Клуб требует больше ценности", "Club wants more value"),
     ratio,
     threshold,
     rivalry: rivalry?.label,

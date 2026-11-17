@@ -1,5 +1,6 @@
 import { averageRating } from "./matchRatings";
 import type { Game, Player, Stats, Team } from "./types";
+import { isRussian } from "./text";
 
 /**
  * Individual NHL-style season awards, decided by the game's own numbers.
@@ -190,9 +191,15 @@ function toAward(g: Game, key: AwardKey, e: Entry & { line: string }): SeasonAwa
 
 function announce(g: Game, awards: SeasonAward[]) {
   g.awards = [...(g.awards ?? []).filter((a) => !awards.some((n) => n.year === a.year && n.key === a.key)), ...awards];
+  const ru = isRussian(g);
   for (const award of awards) {
     const name = AWARDS[award.key];
-    g.news.unshift(`${name.ru}: ${award.player} (${award.team}) — ${name.aboutRu.toLowerCase()}.`);
+    const season = `${award.year}/${String(award.year + 1).slice(2)}`;
+    g.news.unshift(
+      ru
+        ? `${name.ru}: ${award.player} (${award.team}) — ${name.aboutRu.toLowerCase()}.`
+        : `${name.en}: ${award.player} (${award.team}) — ${name.aboutEn.toLowerCase()}.`,
+    );
     if (award.team === g.user && g.calendar) {
       g.events ??= [];
       const id = `${g.calendar.date}-league-award-${award.key}-${award.year}`;
@@ -202,8 +209,12 @@ function announce(g: Game, awards: SeasonAward[]) {
           date: g.calendar.date,
           category: "league",
           priority: "high",
-          title: `${award.player} получает ${name.ru}`,
-          body: `${name.aboutRu} сезона ${award.year}/${String(award.year + 1).slice(2)}: ${award.line}. Признание поднимает настроение раздевалки.`,
+          title: ru
+            ? `${award.player} получает ${name.ru}`
+            : `${award.player} wins the ${name.en}`,
+          body: ru
+            ? `${name.aboutRu} сезона ${season}: ${award.line}. Признание поднимает настроение раздевалки.`
+            : `${name.aboutEn} of the ${season} season: ${award.line}. The recognition lifts the mood in the room.`,
           teamId: award.team,
           playerId: award.playerId,
           read: false,

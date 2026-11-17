@@ -2,6 +2,7 @@ import { autoLines } from "./database";
 import { salaryTotal } from "./contracts";
 import { clamp } from "./random";
 import type { Game, InternationalOffer, InternationalRole } from "./types";
+import { tx } from "./text";
 
 export interface InternationalTerms {
   salary: number;
@@ -24,11 +25,15 @@ export function scoutInternationalPlayer(g: Game, playerId: string) {
   );
   if (!candidate) throw Error("International player unavailable");
   const points = g.draft?.scoutingPoints ?? 0;
-  if (points < 4) throw Error("Нужно 4 очка международного скаутинга");
+  if (points < 4) throw Error(tx(g, "Нужно 4 очка международного скаутинга", "You need 4 international scouting points"));
   g.draft!.scoutingPoints -= 4;
   candidate.scouted = clamp(candidate.scouted + 25, 0, 100);
   g.news.unshift(
-    `Международный отчёт обновлён: ${candidate.player.name}, уверенность ${candidate.scouted}%.`,
+    tx(
+      g,
+      `Международный отчёт обновлён: ${candidate.player.name}, уверенность ${candidate.scouted}%.`,
+      `International report updated: ${candidate.player.name}, confidence ${candidate.scouted}%.`,
+    ),
   );
 }
 
@@ -39,13 +44,27 @@ export function contactInternationalPlayer(g: Game, playerId: string) {
   if (!candidate) throw Error("International player unavailable");
   if (candidate.transferStatus === "rights-restricted")
     throw Error(
-      "Права NHL принадлежат другой организации — прямые переговоры запрещены",
+      tx(
+        g,
+        "Права NHL принадлежат другой организации — прямые переговоры запрещены",
+        "Another organization holds his NHL rights — direct negotiations are not allowed",
+      ),
     );
   if (candidate.scouted < 40)
-    throw Error("Сначала доведите международный скаутинг минимум до 40%");
+    throw Error(
+      tx(
+        g,
+        "Сначала доведите международный скаутинг минимум до 40%",
+        "Raise international scouting to at least 40% first",
+      ),
+    );
   candidate.contactedBy = g.user;
   g.news.unshift(
-    `${g.user} получил разрешение агента на переговоры с ${candidate.player.name}.`,
+    tx(
+      g,
+      `${g.user} получил разрешение агента на переговоры с ${candidate.player.name}.`,
+      `${g.user} received the agent's permission to negotiate with ${candidate.player.name}.`,
+    ),
   );
 }
 
@@ -60,19 +79,35 @@ export function evaluateInternationalOffer(
   const team = g.teams.find((x) => x.id === g.user)!;
   if (!candidate) throw Error("International player unavailable");
   if (candidate.contactedBy !== g.user)
-    throw Error("Сначала установите контакт с агентом");
+    throw Error(
+      tx(g, "Сначала установите контакт с агентом", "Contact the agent first"),
+    );
   if (
     !Number.isFinite(terms.salary) ||
     terms.salary < 0.8 ||
     terms.salary > g.rules.cap * 0.2
   )
-    throw Error("Некорректный AAV");
+    throw Error(tx(g, "Некорректный AAV", "Invalid AAV"));
   if (!Number.isInteger(terms.years) || terms.years < 1 || terms.years > 3)
-    throw Error("Первый контракт иностранного новичка ограничен 1–3 годами");
+    throw Error(
+      tx(
+        g,
+        "Первый контракт иностранного новичка ограничен 1–3 годами",
+        "A foreign rookie's first contract is limited to 1–3 years",
+      ),
+    );
   if (terms.signingBonus < 0 || terms.signingBonus > terms.salary)
-    throw Error("Подписной бонус должен быть от 0 до одного AAV");
+    throw Error(
+      tx(
+        g,
+        "Подписной бонус должен быть от 0 до одного AAV",
+        "The signing bonus must be between 0 and one AAV",
+      ),
+    );
   if (salaryTotal(team) + terms.salary > g.rules.cap + 1e-8)
-    throw Error("Предложение превышает потолок зарплат");
+    throw Error(
+      tx(g, "Предложение превышает потолок зарплат", "The offer exceeds the salary cap"),
+    );
   const requiredFee =
     candidate.transferStatus === "release-required"
       ? Math.round(
@@ -135,12 +170,20 @@ export function submitInternationalOffer(
     decisionRound: g.round + 2,
     status: "pending",
     score: evaluation.score,
-    message: `Агент изучает предложение. Решение после тура ${g.round + 2}.`,
+    message: tx(
+      g,
+      `Агент изучает предложение. Решение после тура ${g.round + 2}.`,
+      `The agent is reviewing the offer. Decision after round ${g.round + 2}.`,
+    ),
   };
   if (existing) Object.assign(existing, offer);
   else g.internationalOffers.push(offer);
   g.news.unshift(
-    `${g.user} направил официальное предложение ${candidate.player.name}.`,
+    tx(
+      g,
+      `${g.user} направил официальное предложение ${candidate.player.name}.`,
+      `${g.user} sent an official offer to ${candidate.player.name}.`,
+    ),
   );
   return offer;
 }
@@ -155,7 +198,11 @@ export function resolveInternationalOffers(g: Game) {
     if (!candidate || !team) continue;
     if (offer.score >= 65) {
       offer.status = "accepted";
-      offer.message = "Контракт принят после проверки трансферных документов.";
+      offer.message = tx(
+        g,
+        "Контракт принят после проверки трансферных документов.",
+        "Contract accepted after the transfer documents were checked.",
+      );
       const player = candidate.player;
       player.salary = offer.salary;
       player.years = offer.years;
@@ -178,20 +225,39 @@ export function resolveInternationalOffers(g: Game) {
         (x) => x.player.id !== player.id,
       );
       g.news.unshift(
-        `${team.id}: международный контракт подписан — ${player.name}, ${offer.years} г. / $${offer.salary}M AAV.`,
+        tx(
+          g,
+          `${team.id}: международный контракт подписан — ${player.name}, ${offer.years} г. / $${offer.salary}M AAV.`,
+          `${team.id}: international contract signed — ${player.name}, ${offer.years} yr / $${offer.salary}M AAV.`,
+        ),
       );
     } else if (offer.score >= 52) {
       offer.status = "countered";
-      offer.message = `Контрпредложение агента: минимум $${candidate.desiredSalary.toFixed(2)}M, роль ${candidate.desiredRole}, бонус и план адаптации.`;
+      offer.message = tx(
+        g,
+        `Контрпредложение агента: минимум $${candidate.desiredSalary.toFixed(2)}M, роль ${candidate.desiredRole}, бонус и план адаптации.`,
+        `Agent's counteroffer: at least $${candidate.desiredSalary.toFixed(2)}M, a ${candidate.desiredRole} role, a bonus and an adaptation plan.`,
+      );
       g.news.unshift(
-        `${candidate.player.name}: агент вернулся с контрпредложением.`,
+        tx(
+          g,
+          `${candidate.player.name}: агент вернулся с контрпредложением.`,
+          `${candidate.player.name}: the agent came back with a counteroffer.`,
+        ),
       );
     } else {
       offer.status = "rejected";
-      offer.message =
-        "Игрок выбрал другой вариант: предложение не компенсировало роль, риск адаптации и конкуренцию.";
+      offer.message = tx(
+        g,
+        "Игрок выбрал другой вариант: предложение не компенсировало роль, риск адаптации и конкуренцию.",
+        "The player chose another option: the offer did not make up for the role, adaptation risk and competition.",
+      );
       g.news.unshift(
-        `${candidate.player.name} отклонил предложение ${team.id}.`,
+        tx(
+          g,
+          `${candidate.player.name} отклонил предложение ${team.id}.`,
+          `${candidate.player.name} rejected the ${team.id} offer.`,
+        ),
       );
     }
   }

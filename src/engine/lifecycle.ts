@@ -4,12 +4,13 @@ import { overall } from "./ratings";
 import { createPlayer } from "./database";
 import { emptyStats } from "./types";
 import { prepareAnnualDevelopment } from "./performance";
+import { tx } from "./text";
 export function ageWorld(g: Game, r: RNG) {
   g.freeAgents ??= [];
   g.retired ??= [];
   const age = (p: Player) => {
     const before = p.ovr;
-    const season = prepareAnnualDevelopment(p);
+    const season = prepareAnnualDevelopment(p, g.language);
     p.age++;
     const curve =
       p.age < 26
@@ -102,6 +103,10 @@ export function ageWorld(g: Game, r: RNG) {
     g.freeAgents.push(p);
   }
   g.news.unshift(
-    `${g.year}: 240 новых игроков; ${g.retired.filter((x) => x.year === g.year).length} завершили карьеру.`,
+    tx(
+      g,
+      `${g.year}: 240 новых игроков; ${g.retired.filter((x) => x.year === g.year).length} завершили карьеру.`,
+      `${g.year}: 240 new players; ${g.retired.filter((x) => x.year === g.year).length} retired.`,
+    ),
   );
 }
