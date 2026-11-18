@@ -219,11 +219,8 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
                         <th>#</th>
                         <th>{tr("СБОРНАЯ", "NATION")}</th>
                         <th>GP</th>
-                        <th>W</th>
-                        <th>OTW</th>
-                        <th>OTL</th>
-                        <th>L</th>
-                        <th>{tr("Ш", "GD")}</th>
+                        <th title="W-OTW-OTL-L">{tr("В-ВО-ПО-П", "W-OW-OL-L")}</th>
+                        <th>{tr("Ш", "GF-GA")}</th>
                         <th>{tr("О", "PTS")}</th>
                       </tr>
                     </thead>
@@ -239,10 +236,9 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
                             <NationBadge code={row.code} ru={ru} />
                           </td>
                           <td>{row.gp}</td>
-                          <td>{row.w}</td>
-                          <td>{row.otw}</td>
-                          <td>{row.otl}</td>
-                          <td>{row.l}</td>
+                          <td>
+                            {row.w}-{row.otw}-{row.otl}-{row.l}
+                          </td>
                           <td>
                             {row.gf}-{row.ga}
                           </td>
@@ -291,7 +287,7 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
                       {selected.roster.map((e) => {
                         const line = t.stats[e.id];
                         return (
-                          <tr key={e.id} className={ownIds.has(e.id) ? "you" : ""}>
+                          <tr key={e.id} className={ownIds.has(e.id) ? "own-row" : ""}>
                             <td>
                               {e.generated ? (
                                 <strong>{e.name}</strong>
@@ -386,7 +382,7 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
                 </thead>
                 <tbody>
                   {leaders.map((line) => (
-                    <tr key={line.id} className={ownIds.has(line.id) ? "you" : ""}>
+                    <tr key={line.id} className={ownIds.has(line.id) ? "own-row" : ""}>
                       <td>
                         <PlayerLink id={line.id}>
                           <strong>{line.name}</strong>
@@ -460,8 +456,20 @@ export default function InternationalCenter({ game }: { game: Game }) {
   const tr = (a: string, b: string) => (ru ? a : b);
   const season = game.internationalSeason?.year === game.year ? game.internationalSeason : undefined;
   const tournaments = season?.tournaments ?? [];
-  const live = tournaments.find((t) => t.status === "live" || t.status === "announced");
-  const [tab, setTab] = useState<string>(live?.id ?? tournaments.find((t) => t.status !== "complete")?.id ?? tournaments[0]?.id ?? "history");
+  const today = game.calendar?.date ?? "";
+  const recent = [...tournaments]
+    .reverse()
+    .find(
+      (t) =>
+        t.status === "complete" &&
+        Date.parse(`${today}T00:00:00Z`) - Date.parse(`${t.end}T00:00:00Z`) <= 45 * 86_400_000,
+    );
+  const initial =
+    tournaments.find((t) => t.status === "live" || t.status === "announced") ??
+    recent ??
+    tournaments.find((t) => t.status !== "complete") ??
+    tournaments[0];
+  const [tab, setTab] = useState<string>(initial?.id ?? "history");
   const current = tournaments.find((t) => t.id === tab);
   const history = [...(game.internationalHistory ?? [])].reverse();
   const table = medalTable(game.internationalHistory ?? []);

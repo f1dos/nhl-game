@@ -301,17 +301,17 @@ export default function PreseasonCenter({
           </div>
         </div>
       </div>
+      <div className="battle-grid">
+        {battle("F")}
+        {battle("D")}
+      </div>
+      <p className="note">
+        {tr(
+          "Оценка лагеря = OVR + потенциал молодых + опыт NHL + тренировки + игра в матчах. Штаб не отправляет в AHL игроков с крупными контрактами и ветеранов 32+, а за один лагерь меняет не больше двух мест в каждой линии. «Оставить» и «Отчислить» действуют на финальных сокращениях.",
+          "Camp score = OVR + upside for young players + NHL experience + practice + game performance. The staff will not send big contracts or 32+ veterans to the AHL, and changes at most two jobs per position group. Keep / Cut apply at the final cuts.",
+        )}
+      </p>
       <div className="competition-grid">
-        <div>
-          {battle("F")}
-          {battle("D")}
-          <p className="note">
-            {tr(
-              "Оценка лагеря = OVR + потенциал молодых + опыт NHL + тренировки + игра в матчах. Штаб не отправляет в AHL игроков с крупными контрактами и ветеранов 32+, а за один лагерь меняет не больше двух мест в каждой линии. «Оставить» и «Отчислить» действуют на финальных сокращениях.",
-              "Camp score = OVR + upside for young players + NHL experience + practice + game performance. The staff will not send big contracts or 32+ veterans to the AHL, and changes at most two jobs per position group. Keep / Cut apply at the final cuts.",
-            )}
-          </p>
-        </div>
         <div>
           <Panel
             title={cupName.toUpperCase()}
@@ -337,13 +337,13 @@ export default function PreseasonCenter({
                   <th>OTW</th>
                   <th>OTL</th>
                   <th>L</th>
-                  <th>{tr("Ш", "GD")}</th>
+                  <th>{tr("Ш", "GF-GA")}</th>
                   <th>{tr("О", "PTS")}</th>
                 </tr>
               </thead>
               <tbody>
                 {table.map((row, index) => (
-                  <tr key={row.team} className={row.team === game.user ? "you" : ""}>
+                  <tr key={row.team} className={row.team === game.user ? "own-row" : ""}>
                     <td>{index + 1}</td>
                     <td>
                       <ClubLink id={row.team} crest={18} label="id" />
@@ -373,6 +373,8 @@ export default function PreseasonCenter({
               </p>
             )}
           </Panel>
+        </div>
+        <div>
           <Panel title={tr("ТОВАРИЩЕСКИЕ МАТЧИ", "EXHIBITION GAMES")}>
             <div className="cup-fixtures">
               {exhibitions.map((f) => (
@@ -404,10 +406,15 @@ export default function PreseasonCenter({
               </ul>
             ) : (
               <p className="empty-state">
-                {tr(
-                  `Первые сокращения — ${fmtDate(dates.firstCuts, ru)}, финальные — ${fmtDate(dates.finalCuts, ru)}.`,
-                  `First cuts on ${fmtDate(dates.firstCuts, ru)}, final cuts on ${fmtDate(dates.finalCuts, ru)}.`,
-                )}
+                {state.firstCutsDone
+                  ? tr(
+                      `Первая волна сокращений: все приглашённые остались в лагере. Финальные — ${fmtDate(dates.finalCuts, ru)}.`,
+                      `First cuts: every invitee stayed in camp. Final cuts on ${fmtDate(dates.finalCuts, ru)}.`,
+                    )
+                  : tr(
+                      `Первые сокращения — ${fmtDate(dates.firstCuts, ru)}, финальные — ${fmtDate(dates.finalCuts, ru)}.`,
+                      `First cuts on ${fmtDate(dates.firstCuts, ru)}, final cuts on ${fmtDate(dates.finalCuts, ru)}.`,
+                    )}
               </p>
             )}
           </Panel>
@@ -433,7 +440,7 @@ function CupHistory({ game }: { game: Game }) {
         </thead>
         <tbody>
           {[...(game.preseasonCupHistory ?? [])].reverse().map((h) => (
-            <tr key={h.year} className={h.winner === game.user ? "you" : ""}>
+            <tr key={h.year} className={h.winner === game.user ? "own-row" : ""}>
               <td>{h.year}</td>
               <td>
                 <ClubLink id={h.winner} crest={16} label="id" />
