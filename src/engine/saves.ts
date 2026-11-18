@@ -1,3 +1,4 @@
+import { isIceTimePlan } from "./iceTime";
 import type { Game } from "./types";
 import { isLocale } from "../i18n/locales";
 export function validateSave(value: unknown): Game {
@@ -59,6 +60,14 @@ export function validateSave(value: unknown): Game {
       )
         throw Error("Invalid tactical instruction");
     }
+    if (t.tactics.iceTime !== undefined && !isIceTimePlan(t.tactics.iceTime))
+      throw Error("Invalid ice-time plan");
+    // A double-shift pick who has left the club is simply dropped.
+    if (
+      t.tactics.iceTime?.doubleShift &&
+      !t.players.some((p) => p.id === t.tactics.iceTime!.doubleShift)
+    )
+      delete t.tactics.iceTime.doubleShift;
     for (const p of t.players) {
       if (
         players.has(p.id) ||

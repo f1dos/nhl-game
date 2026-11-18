@@ -272,6 +272,7 @@ export const englishMatch: Record<string, string> = {
   ФОРЧЕК: "FORECHECK",
   "Разделы тактического центра": "Tactical center sections",
   "Командный план": "Team plan",
+  "Игровое время": "Ice time",
   "Командные инструкции": "Team instructions",
   "Изменения используются при следующем расчёте; в live-матче — по ходу игры и при сменах.":
     "Changes apply to the next simulation step, during live play and at line changes.",
