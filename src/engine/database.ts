@@ -14,6 +14,7 @@ import {
 } from "./types";
 import { makeSchedule } from "./season";
 import { ensureSpecialTeams } from "./tactics";
+import { ensureUserIceTime } from "./iceTime";
 import {
   NHL_DATA_META,
   NHL_PLAYER_RATINGS,
@@ -341,6 +342,7 @@ export function newGame(
   game.internationalMarket = createInternationalMarket(r);
   game.internationalOffers = [];
   ensurePotentialModel(game);
+  ensureUserIceTime(game);
   return game;
 }
 

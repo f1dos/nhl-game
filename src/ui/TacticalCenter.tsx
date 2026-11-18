@@ -1,17 +1,20 @@
 import { useState } from "react";
 import type { Player, Team } from "../engine/types";
 import TacticsBoard from "./TacticsBoard";
+import IceTimePanel from "./IceTimePanel";
 
 export default function TacticalCenter({
   team,
   change,
   initial = "lines",
   onPlayer,
+  language,
 }: {
   team: Team;
   change: (fn: (team: Team) => void) => void;
-  initial?: "lines" | "special" | "plan";
+  initial?: "lines" | "special" | "icetime" | "plan";
   onPlayer?: (player: Player) => void;
+  language?: string;
 }) {
   const [tab, setTab] = useState(initial);
   const controls = [
@@ -55,14 +58,6 @@ export default function TacticalCenter({
       50,
       "Больше передач ускоряет розыгрыш, но оставляет шайбу свободной чаще.",
     ],
-    [
-      "shiftSeconds",
-      "Длина смены",
-      25,
-      60,
-      40,
-      "Короткие смены чаще вводят свежие сочетания.",
-    ],
   ] as const;
   return (
     <div className="tactical-center">
@@ -78,7 +73,7 @@ export default function TacticalCenter({
         </div>
       </header>
       <nav className="spatial-tabs" aria-label="Разделы тактического центра">
-        {(["lines", "special", "plan"] as const).map((value) => (
+        {(["lines", "special", "icetime", "plan"] as const).map((value) => (
           <button
             key={value}
             aria-pressed={tab === value}
@@ -88,11 +83,21 @@ export default function TacticalCenter({
               ? "Тактика и звенья"
               : value === "special"
                 ? "Спецбригады"
-                : "Командный план"}
+                : value === "icetime"
+                  ? "Игровое время"
+                  : "Командный план"}
           </button>
         ))}
       </nav>
-      {tab !== "plan" && (
+      {tab === "icetime" && (
+        <IceTimePanel
+          team={team}
+          change={change}
+          language={language}
+          onPlayer={onPlayer}
+        />
+      )}
+      {(tab === "lines" || tab === "special") && (
         <TacticsBoard
           key={tab}
           team={team}
@@ -149,7 +154,6 @@ export default function TacticalCenter({
                 <b>{label}</b>
                 <output>
                   {team.tactics[key] ?? fallback}
-                  {key === "shiftSeconds" ? " сек" : ""}
                 </output>
               </div>
               <input

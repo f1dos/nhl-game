@@ -7,6 +7,7 @@ import { payroll, tradeValue } from "./trades";
 import { processFreeAgentOffers } from "./freeAgency";
 import { ensureTrainingSchedule, trainTeam } from "./training";
 import { ensureSpecialTeams } from "./tactics";
+import { ensureUserIceTime } from "./iceTime";
 import {
   chooseSeasonStrategy,
   defaultEmployment,
@@ -19,6 +20,7 @@ import {
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
 import { textFor } from "./text";
+import { syncClubTenure } from "./leadership";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -255,6 +257,7 @@ export function ensureManagementState(g: Game) {
   ensurePotentialModel(g);
   ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
+  ensureUserIceTime(g);
   for (const team of g.teams) {
     team.aiProfile ??= createProfile(team);
     ensureSpecialTeams(team);
@@ -274,6 +277,7 @@ export function ensureManagementState(g: Game) {
     });
   if (!g.events.length) seedOpeningEvents(g);
   ensureStrategyEvent(g);
+  syncClubTenure(g);
   return g;
 }
 
