@@ -2,6 +2,7 @@ import { textFor } from "./text";
 import { overall } from "./ratings";
 import { clamp } from "./random";
 import type { Player, Stats, Team } from "./types";
+import { enforcePotentialFloor } from "./potential";
 
 export type StatSnapshot = Record<string, Stats>;
 
@@ -18,6 +19,7 @@ function shiftOverall(player: Player, delta: number) {
   for (const key of Object.keys(player.attributes))
     player.attributes[key] = clamp(player.attributes[key] + delta, 30, 99);
   player.ovr = overall(player.pos, player.attributes, player.archetype);
+  enforcePotentialFloor(player);
 }
 
 export function recordPlayerPerformance(player: Player, score: number) {

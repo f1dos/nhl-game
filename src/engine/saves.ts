@@ -136,6 +136,7 @@ function validatePreseasonAndInternational(g: Game, ids: Set<string>) {
       )
         throw Error("Invalid international career");
 }
+import { ensurePotentialModel } from "./potential";
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -468,6 +469,91 @@ export function validateSave(value: unknown): Game {
     )
       throw Error("Invalid management events");
   }
+  if (g.events) {
+    const replyIds = (event: (typeof g.events)[number]) =>
+      event.replies?.map((reply) => reply.id) ?? [];
+    if (
+      g.events.some(
+        (event) =>
+          (event.replies !== undefined &&
+            (!Array.isArray(event.replies) ||
+              event.replies.some(
+                (reply) =>
+                  typeof reply?.id !== "string" ||
+                  typeof reply.label !== "string",
+              ))) ||
+          (event.replyId !== undefined &&
+            !replyIds(event).includes(event.replyId)) ||
+          (event.approval !== undefined && !Number.isFinite(event.approval)),
+      )
+    )
+      throw Error("Invalid management event replies");
+  }
+  if (
+    g.teamMeetings !== undefined &&
+    (!Array.isArray(g.teamMeetings) ||
+      g.teamMeetings.some(
+        (meeting) =>
+          !meeting ||
+          typeof meeting.date !== "string" ||
+          ![
+            "preseason",
+            "losing-streak",
+            "playoffs",
+            "morale",
+            "praise",
+            "demand-more",
+            "big-game",
+            "discipline",
+            "back-player",
+            "expectations",
+          ].includes(meeting.reason) ||
+          !["supportive", "calm", "demanding", "furious"].includes(
+            meeting.tone,
+          ) ||
+          !["positive", "neutral", "negative"].includes(meeting.outcome) ||
+          (meeting.reactions !== undefined &&
+            (!Array.isArray(meeting.reactions) ||
+              meeting.reactions.some(
+                (reaction) =>
+                  !["leaders", "veterans", "young", "unhappy"].includes(
+                    reaction?.group,
+                  ) ||
+                  ![
+                    "inspired",
+                    "positive",
+                    "indifferent",
+                    "unconvinced",
+                    "angry",
+                  ].includes(reaction.reaction),
+              ))),
+      ))
+  )
+    throw Error("Invalid team meetings");
+  if (
+    g.leadershipLog !== undefined &&
+    (!Array.isArray(g.leadershipLog) ||
+      g.leadershipLog.some(
+        (entry) =>
+          !entry ||
+          typeof entry.captainId !== "string" ||
+          !Array.isArray(entry.alternateIds) ||
+          !Number.isInteger(entry.year) ||
+          !Number.isFinite(entry.approval) ||
+          !["united", "approved", "doubts", "upset", "revolt"].includes(
+            entry.verdict,
+          ),
+      ))
+  )
+    throw Error("Invalid leadership log");
+  if (
+    g.clubTenure !== undefined &&
+    (!g.clubTenure ||
+      typeof g.clubTenure !== "object" ||
+      Array.isArray(g.clubTenure) ||
+      Object.values(g.clubTenure).some((year) => !Number.isInteger(year)))
+  )
+    throw Error("Invalid club tenure");
   if (g.inboxState !== undefined) {
     const state = g.inboxState as unknown;
     if (
@@ -561,6 +647,14 @@ export function validateSave(value: unknown): Game {
       ))
   )
     throw Error("Invalid season awards");
+  if (
+    g.potentialModel !== undefined &&
+    (!Number.isInteger(g.potentialModel) || g.potentialModel < 1)
+  )
+    throw Error("Invalid potential model");
+  // Older careers stored POT with a flat youth bonus (often POT == OVR);
+  // recompute with the current model and repair POT < OVR.
+  ensurePotentialModel(g);
   return g;
 }
 // NHL Manager 27 uses a new database name, but legacy 26 careers are

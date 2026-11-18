@@ -342,3 +342,7 @@
     display: none;
   }
 }
+.pipeline-grid article > div b.pipeline-pot .pot-view b {
+  font-size: 18px;
+  color: #e8d3a0;
+}

@@ -11,6 +11,8 @@ import {
 import type { DraftProspect, Game, ScoutingReport } from "../engine/types";
 import { Panel } from "./components";
 import { ClubLink, PlayerLink } from "./links";
+import { PotentialCell, PotentialLegend, PotentialView } from "./Potential";
+import { reportPotential } from "../engine/potential";
 
 type Translate = (ru: string, en: string) => string;
 
@@ -22,10 +24,6 @@ const regionLabel = (region: string, tr: Translate) =>
     Russia: tr("Россия", "Russia"),
   })[region] ?? region;
 
-function range(report: ScoutingReport) {
-  const spread = Math.max(1, Math.ceil((100 - report.confidence) / 12));
-  return `${Math.max(40, report.estimatedPotential - spread)}–${Math.min(99, report.estimatedPotential + spread)}`;
-}
 
 export default function DraftCenter({
   game,
@@ -219,7 +217,7 @@ export default function DraftCenter({
       </div>
 
       {board === "pipeline" ? (
-        <Pipeline players={pipeline} tr={tr} />
+        <Pipeline players={pipeline} game={game} tr={tr} />
       ) : (
         <Panel
           title={tr("РЕЙТИНГ ПЕРСПЕКТИВНЫХ ИГРОКОВ", "PROSPECT RANKING")}
@@ -358,7 +356,9 @@ function ProspectTable({
                 </td>
                 <td>{regionLabel(prospect.region, tr)}</td>
                 <td className="scouted-value">{report.estimatedOvr}</td>
-                <td className="potential-range">{range(report)}</td>
+                <td className="potential-range">
+                  <PotentialView value={reportPotential(report)} />
+                </td>
                 <td>
                   <div className="confidence">
                     <i>
@@ -389,15 +389,18 @@ function ProspectTable({
           })}
         </tbody>
       </table>
+      <PotentialLegend ru={tr("ru", "en") === "ru"} />
     </div>
   );
 }
 
 function Pipeline({
   players,
+  game,
   tr,
 }: {
   players: Game["teams"][number]["players"];
+  game: Game;
   tr: Translate;
 }) {
   if (!players.length)
@@ -416,7 +419,7 @@ function Pipeline({
     <Panel title={tr("ПРОСПЕКТЫ С ПРАВАМИ КЛУБА", "CLUB-OWNED PROSPECTS")}>
       <div className="pipeline-grid">
         {[...players]
-          .sort((a, b) => b.potential - a.potential)
+          .sort((a, b) => b.potential - a.potential || b.ovr - a.ovr)
           .map((player) => (
             <article key={player.id}>
               <span className="position-pill">{player.pos}</span>
@@ -432,8 +435,8 @@ function Pipeline({
                   {player.ovr}
                   <small>OVR</small>
                 </b>
-                <b>
-                  {player.potential}
+                <b className="pipeline-pot">
+                  <PotentialCell player={player} game={game} compact />
                   <small>POT</small>
                 </b>
               </div>

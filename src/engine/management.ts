@@ -1,3 +1,4 @@
+import { ensurePotentialModel } from "./potential";
 import { autoLines } from "./database";
 import { advance, dateForRound } from "./season";
 import { simulateMatch } from "./match";
@@ -25,6 +26,7 @@ import {
   finishInternationalSeason,
   processInternationalDay,
 } from "./tournaments";
+import { syncClubTenure } from "./leadership";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -244,6 +246,7 @@ export function ensureManagementState(g: Game) {
     g.franchiseObjectives = [];
   }
   g.managerEmployment ??= defaultEmployment();
+  ensurePotentialModel(g);
   ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
   ensureUserIceTime(g);
@@ -266,6 +269,7 @@ export function ensureManagementState(g: Game) {
     });
   if (!g.events.length) seedOpeningEvents(g);
   ensureStrategyEvent(g);
+  syncClubTenure(g);
   return g;
 }
 

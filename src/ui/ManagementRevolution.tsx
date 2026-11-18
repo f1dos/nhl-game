@@ -41,6 +41,7 @@ import {
 } from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
 import { ClubLink, EventLinks } from "./links";
+import { answerEvent } from "../engine/leadership";
 
 type Edit = (fn: (game: Game) => void) => void;
 
@@ -260,6 +261,30 @@ function AgendaRow({
           teamId={event.teamId}
           text={`${event.title} ${event.body}`}
         />
+        {event.replies && !event.replyId && (
+          <div className="agenda-replies">
+            {event.replies.map((reply) => (
+              <button
+                key={reply.id}
+                data-reply={reply.id}
+                onClick={() => edit((g) => answerEvent(g, event.id, reply.id))}
+              >
+                <b>{reply.label}</b>
+                {reply.detail && <span>{reply.detail}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        {event.replyId && (
+          <div className="agenda-reply-result">
+            <b>
+              {ru ? "Ваш ответ" : "Your reply"}:{" "}
+              {event.replies?.find((reply) => reply.id === event.replyId)
+                ?.label ?? event.replyId}
+            </b>
+            {event.replyOutcome && <span>{event.replyOutcome}</span>}
+          </div>
+        )}
       </div>
       <div className="agenda-actions">
         {event.responseDue && (
@@ -278,13 +303,15 @@ function AgendaRow({
             <ArrowUpRight size={14} />
           </button>
         )}
-        <button
-          className="icon-button"
-          aria-label="Resolve"
-          onClick={() => edit((g) => resolveEvent(g, event.id))}
-        >
-          <Check size={16} />
-        </button>
+        {!(event.replies && !event.replyId) && (
+          <button
+            className="icon-button"
+            aria-label="Resolve"
+            onClick={() => edit((g) => resolveEvent(g, event.id))}
+          >
+            <Check size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import {
 } from "../engine/training";
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
+import { PotentialCell } from "./Potential";
 
 const sessions: TrainingSession[] = [
   "rest",
@@ -231,7 +232,7 @@ export function TrainingCenter({
                   {player.pos} · {player.age}
                 </span>
                 <span>
-                  {player.ovr} / {player.potential} OVR
+                  {player.ovr} OVR · <PotentialCell player={player} game={game} />
                 </span>
                 <span>
                   {Math.round(100 - player.fatigue)}%{" "}

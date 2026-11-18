@@ -40,6 +40,9 @@ import { addDays, fixtureDate, gameDate } from "../engine/management";
 import { Panel, Rating } from "./components";
 import { ClubLink, PlayerLink } from "./links";
 import { ATTRIBUTE_NAMES } from "./PlayerCard";
+import { PotentialLegend, PotentialView } from "./Potential";
+import { scoutedPotentialFor } from "../engine/potential";
+import { developmentEvery } from "../engine/training";
 
 type Period = "morning" | "afternoon";
 type Intensity = TrainingSchedule["intensity"];
@@ -876,8 +879,8 @@ export function TrainingCenter({
           </ul>
           <p className="tc-footnote">
             {tr(
-              "Молодые игроки (до 31 года, ниже потенциала) прибавляют в атрибутах в день прогресса — от профильных занятий этого дня. Высокая интенсивность и мотивация 70+ удваивают прибавку.",
-              "Players under 31 below their potential gain attributes on development days from that day's focused sessions. High intensity plus motivation 70+ doubles the gain.",
+              "Игроки до 31 года ниже потолка прибавляют в день прогресса — от профильных занятий этого дня. До 23 лет — каждый такой день, 24–27 — через раз, старше — реже; без места в составе и при морали ниже 35 рост медленнее или стоит. Высокая интенсивность и мотивация 70+ удваивают прибавку.",
+              "Players under 31 below their ceiling gain on development days from that day's focused sessions. Up to 23: every such day; 24–27: every other; older: less often. Scratches grow slower, morale under 35 stops growth. High intensity plus motivation 70+ doubles the gain.",
             )}
           </p>
         </Panel>
@@ -921,12 +924,15 @@ export function TrainingCenter({
           )}
         </Panel>
         <Panel title={tr("ИНДИВИДУАЛЬНЫЙ ПРОГРЕСС", "DEVELOPMENT WATCH")}>
-          <ul className="tc-players">
+          <ul className="tc-players tc-dev-list">
             {developing.map((p) => {
               const growing = p.age < 31 && p.ovr < p.potential;
               const keys = growing ? devFocus(p) : [];
               const doubled =
                 schedule.intensity === "high" && (p.motivation ?? 50) >= 70;
+              const pot = scoutedPotentialFor(game, p);
+              const every = developmentEvery(p, lineup.has(p.id));
+              const lowMorale = (p.morale ?? 50) < 35;
               return (
                 <li key={p.id}>
                   <span className="position">{p.pos}</span>
@@ -937,9 +943,13 @@ export function TrainingCenter({
                   <span className="tc-growth">
                     <Rating value={p.ovr} />
                     <i>
-                      <em style={{ width: `${(p.ovr / p.potential) * 100}%` }} />
+                      <em
+                        style={{
+                          width: `${Math.min(100, ((p.ovr - 40) / Math.max(1, pot.mid - 40)) * 100)}%`,
+                        }}
+                      />
                     </i>
-                    <b>{p.potential}</b>
+                    <PotentialView value={pot} compact />
                   </span>
                   <small className="tc-keys">
                     {!growing
@@ -948,11 +958,20 @@ export function TrainingCenter({
                       ? keys.map((k) => ATTRIBUTE_NAMES[k]?.[ru ? 0 : 1] ?? k).join(" · ")
                       : tr("нет фокуса в день прогресса", "no focus on development day")}
                     {doubled && keys.length ? " · ×2" : ""}
+                    {growing && lowMorale
+                      ? tr(" · мораль < 35: рост стоит", " · morale < 35: no growth")
+                      : growing && every > 1
+                        ? tr(
+                            ` · раз в ${every} дня прогресса`,
+                            ` · every ${every} dev days`,
+                          )
+                        : ""}
                   </small>
                 </li>
               );
             })}
           </ul>
+          <PotentialLegend ru={ru} />
         </Panel>
       </div>
     </div>
