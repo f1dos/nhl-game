@@ -3,13 +3,22 @@ import {
   englishInboxLegacy,
   englishInboxLegacyPatterns,
 } from "./englishInboxLegacy";
+import {
+  englishCompetitionLegacy,
+  englishCompetitionLegacyPatterns,
+} from "./englishCompetitionLegacy";
 
 const cyrillic = /[А-Яа-яЁё]/;
-const legacyPatterns = [...englishInboxLegacyPatterns, ...englishLegacyPatterns];
+const legacyPatterns = [
+  ...englishCompetitionLegacyPatterns,
+  ...englishInboxLegacyPatterns,
+  ...englishLegacyPatterns,
+];
 
 export const englishMatch: Record<string, string> = {
   ...englishLegacy,
   ...englishInboxLegacy,
+  ...englishCompetitionLegacy,
   "Полный отдых": "Full rest",
   Восстановление: "Recovery",
   "Командная игра": "Teamwork",
