@@ -941,8 +941,8 @@ export function DecisionInbox({
           <h1>{ru ? "Входящие" : "Inbox"}</h1>
           <p>
             {ru
-              ? "Сообщения со сроками, контекстом и прямыми действиями."
-              : "Messages with deadlines, context and direct actions."}
+              ? "Письма от игроков, агентов, руководства и лиги."
+              : "Letters from players, agents, the board and the league."}
           </p>
         </div>
       </div>

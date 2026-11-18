@@ -798,8 +798,8 @@ export default function App() {
             </h1>
             <p>
               {tr(
-                "Всё, что нужно знать о вашей команде сегодня.",
-                "Everything you need to know about your club today.",
+                "Сводка на сегодня.",
+                "Today's briefing.",
               )}
             </p>
           </div>
@@ -1470,8 +1470,8 @@ export default function App() {
         </Panel>
         <p className="note">
           {tr(
-            "Продлевайте соглашения и подписывайте свободных агентов в разделе «Контракты и рынок». Удержание зарплаты и полная CBA-модель пока не реализованы.",
-            "Renew deals and sign free agents in Contracts & market. Salary retention and a full CBA model are not implemented yet.",
+            "Продления и свободные агенты — в разделе «Контракты и рынок».",
+            "Extensions and free agents are in Contracts & market.",
           )}
         </p>
       </>
@@ -1542,8 +1542,8 @@ export default function App() {
         <PageTitle
           title={tr("Сохранения и настройки", "Saves & settings")}
           sub={tr(
-            "Автосохранение после каждого действия · IndexedDB",
-            "Autosave after each action · IndexedDB",
+            "Автосохранение после каждого действия",
+            "Autosave after every action",
           )}
         />
         <Panel title={tr("ТЕКУЩАЯ КАРЬЕРА", "CURRENT CAREER")}>

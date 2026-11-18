@@ -76,8 +76,8 @@ export default function DraftCenter({
         <h1>{tr("Создать драфт-класс", "Create draft class")}</h1>
         <p>
           {tr(
-            "Это сохранение создано до появления системы драфта. Мир можно безопасно обновить.",
-            "This save predates the draft system. The world can be upgraded safely.",
+            "В этом сохранении ещё нет драфт-класса. Создайте его, чтобы продолжить.",
+            "This save has no draft class yet. Create one to continue.",
           )}
         </p>
         <button className="primary" onClick={() => edit(ensureDraft)}>

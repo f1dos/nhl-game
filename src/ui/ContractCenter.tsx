@@ -100,8 +100,8 @@ export default function ContractCenter({
       </div>
       <Panel title={ru ? "КОНТРАКТНЫЕ ПЕРЕГОВОРЫ" : "CONTRACT NEGOTIATIONS"}>
         <p className="free-agent-intro">{ru
-          ? "Продления контрактов текущих игроков сохраняют прежнюю модель. Предложения свободным агентам теперь проходят через реальный игровой календарь: они могут отказать, выдвинуть встречные условия или выбрать другой клуб."
-          : "Current-player extensions retain the existing rules. Free-agent offers now progress through the game calendar: players can decline, counter, or choose another club."}</p>
+          ? "Свободный агент отвечает через несколько дней. Он может отказать, выдвинуть встречные условия или выбрать другой клуб."
+          : "A free agent answers within a few days. He can decline, counter, or pick another club."}</p>
         <div className="free-agent-form">
           <label>
             <span>{ru ? "ХОККЕИСТ" : "PLAYER"}</span>
@@ -290,8 +290,8 @@ export default function ContractCenter({
       </Panel>
       <p className="note">
         {ru
-          ? "Источник проверенных значений: публичные таблицы PuckPedia. Покрытие стартовых составов лиги — 766 из 794 (96,5%). Несовпавшие и будущие сделки помечены как игровые. Удержание зарплаты и полная CBA-модель пока не реализованы."
-          : "Verified values use public PuckPedia tables. Opening-roster coverage is 766 of 794 (96.5%). Unmatched and future deals are marked as game-generated. Salary retention and full CBA rules are not modeled yet."}
+          ? "Источник проверенных значений: публичные таблицы PuckPedia. Покрытие стартовых составов лиги — 766 из 794 (96,5%). Несовпавшие и будущие сделки помечены как игровые."
+          : "Verified values use public PuckPedia tables. Opening-roster coverage is 766 of 794 (96.5%). Unmatched and future deals are marked as game-generated."}
       </p>
     </>
   );
