@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RequestBadge } from "./PlayerRequests";
 import { Check, IdCard, MessageSquare, Plus, Send, X } from "lucide-react";
 import type { Game, Player, Team } from "../engine/types";
 import {
@@ -147,6 +148,7 @@ export default function TradeCenter({
                     <small>
                       {player.pos} · {player.age} {tr("лет", "yrs")} · $
                       {player.salary}M
+                      <RequestBadge game={game} playerId={player.id} />
                     </small>
                   </span>
                   <Rating value={player.ovr} />

@@ -21,6 +21,7 @@ import {
 } from "../engine/conversations";
 import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
+import { PlayerRequestsBox } from "./PlayerRequests";
 
 type Tr = (ru: string, en: string) => string;
 
@@ -821,6 +822,8 @@ export default function PlayerCard({
                 </p>
               )}
             </section>
+
+            {!external && <PlayerRequestsBox game={game} player={p} />}
 
             {/* ---------------- Conversation ---------------- */}
             <section className="pc-box pc-talks">

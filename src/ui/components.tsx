@@ -4,6 +4,7 @@ import type { Team, Player } from "../engine/types";
 import { effectiveOverall } from "../engine/franchiseWorld";
 import { averageRating, ratingTone } from "../engine/matchRatings";
 import { ClubLink, playerClub, useEntityLinks } from "./links";
+import { RequestBadge } from "./PlayerRequests";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -188,6 +189,7 @@ export function PlayerTable({
                   <img className="player-mini-photo" src={p.headshot} alt="" />
                 )}
                 <strong>{p.name}</strong>
+                {links && <RequestBadge game={links.game} playerId={p.id} />}
                 <small>
                   {showClub && links && playerClub(links.game, p.id) && (
                     <>
