@@ -7,6 +7,7 @@ import {
   submitInternationalOffer,
 } from "../engine/international";
 import { Panel, Rating } from "./components";
+import { PotentialCell } from "./Potential";
 import { PlayerLink } from "./links";
 
 export default function InternationalMarket({
@@ -100,7 +101,9 @@ export default function InternationalMarket({
                   <td>
                     <Rating value={x.player.ovr} />
                   </td>
-                  <td>{x.player.potential}</td>
+                  <td>
+                    <PotentialCell player={x.player} game={game} compact />
+                  </td>
                   <td>
                     {x.transferStatus}
                     <br />
