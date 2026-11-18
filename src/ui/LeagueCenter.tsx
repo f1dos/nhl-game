@@ -297,8 +297,8 @@ export default function LeagueCenter({
             </h3>
             <p>
               {ru
-                ? "Вымышленные имена не подставляются. Синхронизируйте официальные данные через npm run sync:scouting."
-                : "No fictional names are substituted. Sync official data using npm run sync:scouting."}
+                ? "Данные скаутинга по этой лиге не загружены."
+                : "No scouting data for this league yet."}
             </p>
           </div>
         )}
@@ -355,7 +355,7 @@ export default function LeagueCenter({
             )}
             <p className="note">
               {ru
-                ? "Источник личности: реальная база лиги. Игровые рейтинги расчётные. Игрок пока доступен для просмотра и аналитики, не для прямого вызова в NHL."
+                ? "Реальный игрок, рейтинги расчётные. Напрямую вызвать его в NHL нельзя."
                 : "Identity from a real league database. Ratings are modeled. View-only, not directly callable to NHL."}
             </p>
           </section>

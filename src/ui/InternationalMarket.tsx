@@ -62,8 +62,8 @@ export default function InternationalMarket({
     <Panel title={ru ? "МЕЖДУНАРОДНЫЙ РЫНОК" : "INTERNATIONAL MARKET"}>
       <p>
         {ru
-          ? "Реалистичный процесс: скаутинг → разрешение агента → предложение → ожидание решения. Учитываются действующий контракт, трансферная компенсация, зарплата, срок, бонус, обещанная роль, конкуренция в составе, сила клуба, адаптация и другие предложения."
-          : "Realistic flow: scout → agent permission → formal offer → wait for a decision. Current contract, transfer fee, AAV, term, bonus, promised role, roster competition, club strength, adaptation and competing offers all matter."}
+          ? "Скаутинг → разрешение агента → предложение → ответ. Игрок смотрит на действующий контракт, компенсацию, зарплату, срок, бонус, обещанную роль, конкуренцию в составе, силу клуба, адаптацию и другие предложения."
+          : "Scout → agent permission → formal offer → answer. Current contract, transfer fee, AAV, term, bonus, promised role, roster competition, club strength, adaptation and competing offers all matter."}
       </p>
       <div className="international-layout">
         <div className="table-scroll">
