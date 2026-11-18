@@ -18,6 +18,12 @@ import {
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
 import { textFor } from "./text";
+import { processPreseasonDay, seedPreseasonCamp } from "./preseason";
+import {
+  ensureInternationalSeason,
+  finishInternationalSeason,
+  processInternationalDay,
+} from "./tournaments";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -206,21 +212,6 @@ function ensureStrategyEvent(g: Game) {
   });
 }
 
-function seedPreseason(g: Game) {
-  if (g.preseasonFixtures) return;
-  const team = g.teams.find((club) => club.id === g.user)!;
-  const opponents = g.teams.filter(
-    (club) => club.id !== g.user && club.conference === team.conference,
-  );
-  const dates = ["09-20", "09-24", "09-28", "10-02"];
-  g.preseasonFixtures = dates.map((suffix, index) => ({
-    id: `pre-${g.year}-${index}`,
-    date: `${g.year}-${suffix}`,
-    home: index % 2 ? opponents[index].id : g.user,
-    away: index % 2 ? g.user : opponents[index].id,
-  }));
-}
-
 export function ensureManagementState(g: Game) {
   const start = `${g.year}-10-07`;
   g.calendar ??= {
@@ -234,7 +225,8 @@ export function ensureManagementState(g: Game) {
         : addDays(iso(dateForRound(g, g.round)), -1),
   };
   g.calendar.preseasonStart ??= `${g.year}-09-15`;
-  seedPreseason(g);
+  ensureInternationalSeason(g);
+  seedPreseasonCamp(g);
   g.events ??= [];
   const legacyStrategy = g.franchiseStrategy as string | undefined;
   if (
@@ -474,35 +466,8 @@ function aiTradeDay(g: Game) {
 function processCurrentDay(g: Game, completed?: import("./types").Result) {
   const date = g.calendar!.date;
   processDeadlines(g, date);
-  const preseason = g.preseasonFixtures?.find(
-    (fixture) => fixture.date === date && !fixture.result,
-  );
-  if (preseason) {
-    const rng = new RNG(g.seed);
-    preseason.result =
-      completed ??
-      simulateMatch(
-        structuredClone(g.teams.find((team) => team.id === preseason.home)!),
-        structuredClone(g.teams.find((team) => team.id === preseason.away)!),
-        rng,
-        false,
-      );
-    g.seed = rng.seed;
-    g.last = preseason.result;
-    pushEvent(g, {
-      date,
-      category: "game",
-      priority: "normal",
-      title: textFor(g)(
-        `Предсезонный матч: ${preseason.away} @ ${preseason.home}`,
-        `Preseason game: ${preseason.away} @ ${preseason.home}`,
-      ),
-      body: textFor(g)(
-        "Результат не влияет на таблицу. Используйте матч для проверки сочетаний и тактики.",
-        "The result does not count in the standings. Use the game to test combinations and tactics.",
-      ),
-    });
-  }
+  const preseason = processPreseasonDay(g, date, completed);
+  processInternationalDay(g, date);
   const hasGames =
     g.phase === "playoffs"
       ? g.calendar!.day % 2 === 0
@@ -523,6 +488,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
         "Results, statistics, form and player condition have been updated.",
       ),
     });
+    if (g.phase === "offseason") finishInternationalSeason(g);
   } else if (g.phase === "regular" && !preseason) {
     for (const team of g.teams) trainTeam(team);
   }

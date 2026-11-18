@@ -1,5 +1,140 @@
 import type { Game } from "./types";
 import { isLocale } from "../i18n/locales";
+
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+const isInt = (n: unknown) => Number.isInteger(n);
+
+/** Optional preseason camp / international tournament state (newer saves). */
+function validatePreseasonAndInternational(g: Game, ids: Set<string>) {
+  for (const f of g.preseasonFixtures ?? []) {
+    if (f.kind !== undefined && !["exhibition", "cup"].includes(f.kind))
+      throw Error("Invalid preseason fixture");
+    if (f.stage !== undefined && !["group", "final", "third"].includes(f.stage))
+      throw Error("Invalid preseason fixture");
+  }
+  const camp = g.preseason;
+  if (camp !== undefined) {
+    if (
+      !camp ||
+      !isInt(camp.year) ||
+      !Array.isArray(camp.candidates) ||
+      !Array.isArray(camp.decisions) ||
+      !camp.cup ||
+      !Array.isArray(camp.cup.teams) ||
+      !Array.isArray(camp.cup.fixtures) ||
+      camp.cup.teams.some((id) => !ids.has(id)) ||
+      camp.candidates.some(
+        (c) =>
+          typeof c.playerId !== "string" ||
+          !["F", "D"].includes(c.group) ||
+          !["nhl", "farm", "prospect"].includes(c.source) ||
+          !["competing", "made", "farm", "junior"].includes(c.status) ||
+          (c.override !== undefined && !["keep", "cut"].includes(c.override)) ||
+          ![c.ovr, c.practice, c.games, c.ratingSum, c.score].every(Number.isFinite),
+      ) ||
+      camp.cup.fixtures.some(
+        (f) =>
+          !ISO.test(f.date) ||
+          !ids.has(f.home) ||
+          !ids.has(f.away) ||
+          f.home === f.away ||
+          !["group", "final", "third"].includes(f.stage) ||
+          (f.goals !== undefined &&
+            (!Array.isArray(f.goals) || f.goals.length !== 2 || !f.goals.every(isInt))),
+      ) ||
+      camp.decisions.some(
+        (d) => !ISO.test(d.date) || !["nhl", "farm", "junior"].includes(d.to) || !d.reason,
+      )
+    )
+      throw Error("Invalid preseason camp");
+  }
+  if (
+    g.preseasonCupHistory !== undefined &&
+    (!Array.isArray(g.preseasonCupHistory) ||
+      g.preseasonCupHistory.some((h) => !isInt(h.year) || typeof h.winner !== "string"))
+  )
+    throw Error("Invalid preseason cup history");
+  const season = g.internationalSeason;
+  if (season !== undefined) {
+    if (
+      !season ||
+      !isInt(season.year) ||
+      !isInt(season.breakDays) ||
+      season.breakDays < 0 ||
+      season.breakDays > 21 ||
+      (season.breakStart !== undefined && !ISO.test(season.breakStart)) ||
+      !Array.isArray(season.tournaments)
+    )
+      throw Error("Invalid international calendar");
+    for (const t of season.tournaments) {
+      if (
+        !t ||
+        !["best-on-best", "worlds"].includes(t.kind) ||
+        !["scheduled", "announced", "live", "complete"].includes(t.status) ||
+        ![t.announce, t.start, t.end, t.sfDay, t.medalDay, ...(t.groupDays ?? [])].every(
+          (d) => typeof d === "string" && ISO.test(d),
+        ) ||
+        !Array.isArray(t.teams) ||
+        !Array.isArray(t.games) ||
+        !Array.isArray(t.injuries) ||
+        !t.stats ||
+        typeof t.stats !== "object" ||
+        !isInt(t.seed)
+      )
+        throw Error("Invalid international tournament");
+      const codes = new Set(t.teams.map((team) => team.code));
+      if (
+        t.teams.some(
+          (team) =>
+            !["A", "B"].includes(team.group) ||
+            !Array.isArray(team.roster) ||
+            team.roster.some(
+              (e) =>
+                typeof e.id !== "string" ||
+                !["LW", "C", "RW", "D", "G"].includes(e.pos) ||
+                !Number.isFinite(e.ovr),
+            ),
+        ) ||
+        t.games.some(
+          (game) =>
+            !codes.has(game.home) ||
+            !codes.has(game.away) ||
+            game.home === game.away ||
+            !ISO.test(game.date) ||
+            !["group", "qf", "sf", "bronze", "final"].includes(game.stage) ||
+            (game.goals !== undefined &&
+              (!Array.isArray(game.goals) || game.goals.length !== 2 || !game.goals.every(isInt))),
+        )
+      )
+        throw Error("Invalid international tournament");
+    }
+  }
+  if (
+    g.internationalHistory !== undefined &&
+    (!Array.isArray(g.internationalHistory) ||
+      g.internationalHistory.some(
+        (h) =>
+          !isInt(h.year) ||
+          !["best-on-best", "worlds"].includes(h.kind) ||
+          ![h.gold, h.silver, h.bronze].every((c) => typeof c === "string"),
+      ))
+  )
+    throw Error("Invalid international history");
+  for (const team of g.teams)
+    for (const p of [...team.players, ...(team.farm ?? []), ...(team.prospects ?? [])])
+      if (
+        p.international !== undefined &&
+        (!Array.isArray(p.international) ||
+          p.international.some(
+            (line) =>
+              !isInt(line.year) ||
+              !["best-on-best", "worlds"].includes(line.kind) ||
+              ![line.gp, line.g, line.a].every(isInt) ||
+              (line.medal !== undefined && !["gold", "silver", "bronze"].includes(line.medal)),
+          ))
+      )
+        throw Error("Invalid international career");
+}
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -269,6 +404,7 @@ export function validateSave(value: unknown): Game {
       ))
   )
     throw Error("Invalid preseason calendar");
+  validatePreseasonAndInternational(g, ids);
   if (
     g.pressHistory &&
     (!Array.isArray(g.pressHistory) ||

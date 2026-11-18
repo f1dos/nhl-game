@@ -237,7 +237,9 @@ function campScore(c: CampCandidate) {
         7,
       )
     : 0;
-  return Math.round((c.ovr + upside + c.practice + perf) * 10) / 10;
+  // Incumbents get the benefit of the doubt from the staff.
+  const experience = c.source === "nhl" ? 2 : 0;
+  return Math.round((c.ovr + upside + experience + c.practice + perf) * 10) / 10;
 }
 
 export function rankCandidates(state: PreseasonState) {
@@ -609,15 +611,25 @@ function finalCuts(g: Game, state: PreseasonState, date: string) {
         const weight = (c: CampCandidate) => {
           const p = findOrgPlayer(team, c.playerId);
           // Staff will not bury a big contract in the minors.
-          const protectedDeal = c.source === "nhl" && (p?.salary ?? 0) >= 3.5;
+          const protectedDeal =
+            c.source === "nhl" && ((p?.salary ?? 0) >= 2.5 || (p?.age ?? 0) >= 32);
           return c.override === "keep" || protectedDeal ? 0 : c.override === "cut" ? 2 : 1;
         };
         return weight(a) - weight(b) || a.rank - b.rank;
       });
     const made = list.slice(0, spots);
     const out = list.slice(spots);
-    const risers = made.filter((c) => c.source !== "nhl");
+    // At most two jobs per position group change hands in one camp.
+    const risers = made.filter((c) => c.source !== "nhl").slice(0, 2);
+    for (const c of made.filter((c) => c.source !== "nhl").slice(2)) {
+      out.push(c);
+      made.splice(made.indexOf(c), 1);
+    }
     const fallers = out.filter((c) => c.source === "nhl").reverse();
+    for (const c of fallers.slice(risers.length)) {
+      made.push(c);
+      out.splice(out.indexOf(c), 1);
+    }
     for (const c of out.filter((c) => c.source !== "nhl")) {
       c.status = c.source === "prospect" ? "junior" : "farm";
       state.decisions.push({
@@ -704,7 +716,6 @@ function finalCuts(g: Game, state: PreseasonState, date: string) {
         },
       );
     });
-    for (const c of fallers.slice(risers.length)) c.status = "made";
   }
   if (promoted.length) {
     ensureSpecialTeams(team);
