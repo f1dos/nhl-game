@@ -1,5 +1,6 @@
 import type { Team, TrainingSchedule, TrainingSession } from "./types";
 import { overall } from "./ratings";
+import { developmentAge, enforcePotentialFloor } from "./potential";
 export type TrainingPlan = "balanced" | "recovery" | "shooting" | "defense";
 
 export const balancedWeek: TrainingSchedule = {
@@ -71,6 +72,12 @@ export function trainTeam(team: Team) {
   const recovery =
     sessions.reduce((sum, session) => sum + recoveryValue[session], 0) +
     intensityAdjustment;
+  const lineup = new Set([
+    ...team.lines.flat(),
+    ...team.defense.flat(),
+    team.goalie,
+  ]);
+  const developmentTick = Math.floor(team.trainingTicks / 6);
   for (const player of team.players) {
     player.fatigue = Math.max(0, Math.min(100, player.fatigue - recovery));
     const unavailable = player.injury > 0;
@@ -87,7 +94,9 @@ export function trainTeam(team: Team) {
       unavailable ||
       team.trainingTicks % 6 !== 0 ||
       player.age >= 31 ||
-      player.ovr >= player.potential
+      player.ovr >= player.potential ||
+      (player.morale ?? 50) < 35 ||
+      developmentTick % developmentEvery(player, lineup.has(player.id)) !== 0
     )
       continue;
     const focuses = sessions.flatMap((session) => skillFocus[session] ?? []);
@@ -111,7 +120,21 @@ export function trainTeam(team: Team) {
     for (const key of [...new Set(keys)].slice(0, 3))
       player.attributes[key] = Math.min(99, player.attributes[key] + gain);
     player.ovr = overall(player.pos, player.attributes, player.archetype);
+    enforcePotentialFloor(player);
   }
+}
+
+/**
+ * Development days between attribute gains: teenagers and young regulars
+ * grow on every one, scratches and players near their peak less often.
+ */
+export function developmentEvery(
+  player: { age: number; pos: import("./types").Position },
+  playing: boolean,
+) {
+  const a = developmentAge(player.age, player.pos);
+  const base = a <= 23 ? 1 : a <= 27 ? 2 : 3;
+  return playing || a > 23 ? base : base + 1;
 }
 
 export function readiness(team: Team) {

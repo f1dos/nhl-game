@@ -1,3 +1,4 @@
+import { ensurePotentialModel } from "./potential";
 import { autoLines } from "./database";
 import { advance, dateForRound } from "./season";
 import { simulateMatch } from "./match";
@@ -254,6 +255,7 @@ export function ensureManagementState(g: Game) {
     g.franchiseObjectives = [];
   }
   g.managerEmployment ??= defaultEmployment();
+  ensurePotentialModel(g);
   ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
   ensureUserIceTime(g);

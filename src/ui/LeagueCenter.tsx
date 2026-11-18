@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import type { Game, Player } from "../engine/types";
 import { Panel, Rating } from "./components";
 import { normalizeExternalRating } from "../engine/franchiseWorld";
+import { formatPotential, scoutedPotential } from "../engine/potential";
+import { PotentialLegend, PotentialView } from "./Potential";
 import {
   SCOUT_LEAGUE_PLAYERS,
   SCOUT_LEAGUE_META,
@@ -18,6 +20,12 @@ const leagueCountry: Record<ScoutLeague, string> = {
   Liiga: "Finland",
 };
 type ViewPlayer = ScoutEntry & { gamePlayer?: Player };
+/** Outside players are only lightly scouted: wide ranges for teenagers. */
+const scouted = (p: ViewPlayer) =>
+  scoutedPotential(
+    (p.gamePlayer ?? { ...p, attributes: {} }) as Player,
+    35,
+  );
 const normalize = (v: string) =>
   v
     .toLocaleLowerCase()
@@ -62,15 +70,20 @@ export default function LeagueCenter({
               gamePlayer: p,
             }))
         : SCOUT_LEAGUE_PLAYERS[league]
-      ).map((entry) => ({
-        ...entry,
-        ...normalizeExternalRating(
-          league,
-          entry.age,
-          entry.ovr,
-          entry.potential,
-        ),
-      })),
+      ).map((entry) =>
+        "gamePlayer" in entry
+          ? entry
+          : {
+              ...entry,
+              ...normalizeExternalRating(
+                league,
+                entry.age,
+                entry.ovr,
+                entry.potential,
+                { id: entry.id, pos: entry.pos },
+              ),
+            },
+      ),
     [game.juniorPlayers, league],
   );
   const clubs = [...new Set(entries.map((p) => p.club))].sort();
@@ -86,7 +99,7 @@ export default function LeagueCenter({
       sort === "ovr"
         ? b.ovr - a.ovr
         : sort === "potential"
-          ? b.potential - a.potential || b.ovr - a.ovr
+          ? scouted(b).mid - scouted(a).mid || b.ovr - a.ovr
           : sort === "age"
             ? a.age - b.age
             : a.name.localeCompare(b.name),
@@ -252,7 +265,9 @@ export default function LeagueCenter({
                     <td>
                       <Rating value={p.ovr} />
                     </td>
-                    <td>{p.potential}</td>
+                    <td>
+                      <PotentialView value={scouted(p)} compact />
+                    </td>
                     <td>
                       <small>
                         {p.model === "stats"
@@ -287,6 +302,7 @@ export default function LeagueCenter({
             </p>
           </div>
         )}
+        <PotentialLegend ru={ru} />
         <p className="note">
           {ru
             ? "* OVR и потенциал рассчитаны для игры и не являются официальными оценками. При отсутствии индивидуальной статистики используется предварительная оценка с учётом уровня лиги, возраста и позиции."
@@ -328,7 +344,7 @@ export default function LeagueCenter({
               </div>
               <div>
                 <small>POT*</small>
-                <b>{selected.potential}</b>
+                <b>{formatPotential(scouted(selected))}</b>
               </div>
             </div>
             {selected.games !== undefined && (

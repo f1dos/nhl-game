@@ -70,6 +70,7 @@ function validatePlayerRequests(value: unknown) {
   )
     fail();
 }
+import { ensurePotentialModel } from "./potential";
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -580,6 +581,14 @@ export function validateSave(value: unknown): Game {
       ))
   )
     throw Error("Invalid season awards");
+  if (
+    g.potentialModel !== undefined &&
+    (!Number.isInteger(g.potentialModel) || g.potentialModel < 1)
+  )
+    throw Error("Invalid potential model");
+  // Older careers stored POT with a flat youth bonus (often POT == OVR);
+  // recompute with the current model and repair POT < OVR.
+  ensurePotentialModel(g);
   return g;
 }
 // NHL Manager 27 uses a new database name, but legacy 26 careers are

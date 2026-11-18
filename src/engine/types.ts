@@ -43,6 +43,8 @@ export interface Player {
   birthDate?: string;
   identitySource?: "nhl-api" | "hockeytech" | "generated";
   ratingRank?: number;
+  /** Overall pick number when drafted in this career. */
+  draftOverall?: number;
   ratingSource?: "nhl-stats-model" | "generated";
   contractSource?: "puckpedia" | "generated";
   contractExpiryYear?: number;
@@ -80,6 +82,8 @@ export interface Player {
     reason: string;
     ovrBefore: number;
     ovrAfter: number;
+    /** Change of the hidden potential that season (late bloomer / bust). */
+    potentialDelta?: number;
   }[];
   id: string;
   name: string;
@@ -597,6 +601,8 @@ export interface Game {
     minorsFetchedAt?: string;
   };
   version: 1;
+  /** Potential model the player ceilings were computed with. */
+  potentialModel?: number;
   id: string;
   seed: number;
   year: number;

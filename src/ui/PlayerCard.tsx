@@ -22,6 +22,12 @@ import {
 import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
 import { PlayerRequestsBox } from "./PlayerRequests";
+import { PotentialStars } from "./Potential";
+import {
+  developmentAge,
+  formatPotential,
+  scoutedPotentialFor,
+} from "../engine/potential";
 
 type Tr = (ru: string, en: string) => string;
 
@@ -305,6 +311,19 @@ export default function PlayerCard({
   const form = p.performanceForm ?? 0;
   const awards = (game.awards ?? []).filter((award) => award.playerId === p.id);
   const lastGames = recentForm(game, p);
+  const pot = scoutedPotentialFor(game, p);
+  const devAge = developmentAge(p.age, p.pos);
+  const headroom = Math.max(0, pot.mid - effectiveOverall(p));
+  const growthNote =
+    headroom <= 1
+      ? devAge >= 30
+        ? tr("Пик пройден: рейтинг будет снижаться.", "Past peak: rating will decline.")
+        : tr("У своего потолка.", "At ceiling.")
+      : devAge <= 21
+        ? tr("Быстрый рост при игровом времени.", "Fast growth with ice time.")
+        : devAge <= 24
+          ? tr("Рост замедляется.", "Growth is slowing.")
+          : tr("Небольшой запас роста.", "Little growth left.");
   const avg = averageRating(p.stats);
   const careerPoints =
     p.history.reduce((n, h) => n + h.stats.g + h.stats.a, 0) +
@@ -411,9 +430,13 @@ export default function PlayerCard({
               <b>{effectiveOverall(p)}</b>
               <small>OVR</small>
             </div>
-            <div className="pc-dial pot">
-              <b>{p.potential}</b>
+            <div
+              className={`pc-dial pot ${pot.exact ? "" : "range"}`}
+              title={tr("Потолок по оценке штаба", "Staff estimate of ceiling")}
+            >
+              <b>{formatPotential(pot)}</b>
               <small>POT</small>
+              <PotentialStars stars={pot.stars} />
             </div>
             <span className={`pc-trend ${trend >= 0 ? "up" : "down"}`}>
               {trend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -614,6 +637,19 @@ export default function PlayerCard({
             {/* ---------------- Development ---------------- */}
             <section className="pc-section">
               <h2>{tr("Развитие", "Development")}</h2>
+              <p className="pc-pot-note">
+                <PotentialStars stars={pot.stars} />
+                <b>POT {formatPotential(pot)}</b>
+                <span>{growthNote}</span>
+                {!pot.exact && (
+                  <small>
+                    {tr(
+                      "Диапазон — оценка штаба; точнее для своих игроков и изученных скаутами.",
+                      "Range is the staff's estimate; tighter for your own and well-scouted players.",
+                    )}
+                  </small>
+                )}
+              </p>
               <div className="pc-dev">
                 <div className="pc-dev-chart" aria-hidden="true">
                   {[...p.history, { year: game.year, ovr: p.ovr }].map(
@@ -637,10 +673,10 @@ export default function PlayerCard({
                     ),
                   )}
                   <div className="pot-line">
-                    <span>POT {p.potential}</span>
+                    <span>POT {formatPotential(pot)}</span>
                     <i
                       style={{
-                        height: `${Math.max(6, (p.potential - 40) * 1.6)}px`,
+                        height: `${Math.max(6, (pot.mid - 40) * 1.6)}px`,
                       }}
                     />
                     <small>{tr("Потолок", "Ceiling")}</small>
@@ -655,16 +691,29 @@ export default function PlayerCard({
                         </b>
                         <span>
                           {entry.year}: {entry.ovrBefore} → {entry.ovrAfter}
-                          <small>{entry.reason}</small>
+                          <small>
+                            {entry.reason}
+                            {entry.potentialDelta
+                              ? entry.potentialDelta > 0
+                                ? tr(
+                                    `; потолок вырос (+${entry.potentialDelta})`,
+                                    `; ceiling up (+${entry.potentialDelta})`,
+                                  )
+                                : tr(
+                                    `; потолок снизился (${entry.potentialDelta})`,
+                                    `; ceiling down (${entry.potentialDelta})`,
+                                  )
+                              : ""}
+                          </small>
                         </span>
                       </p>
                     ))
                   ) : (
                     <p className="muted">
-                      {p.age < 24 && p.ovr < p.potential
+                      {headroom > 1 && devAge < 27
                         ? tr(
-                            `Запас роста ${p.potential - p.ovr} OVR. Профильные тренировки и игровое время ускоряют развитие.`,
-                            `${p.potential - p.ovr} OVR of headroom. Focused training and ice time speed up growth.`,
+                            `Запас роста ~${headroom} OVR. Профильные тренировки и игровое время ускоряют развитие.`,
+                            `~${headroom} OVR of headroom. Focused training and ice time speed up growth.`,
                           )
                         : tr(
                             "Изменения рейтинга появятся после завершения сезона.",

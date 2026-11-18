@@ -12,6 +12,7 @@ import type {
   TeamNeed,
 } from "./types";
 import { textFor, tx, type Tx } from "./text";
+import { computePotential } from "./potential";
 
 const rivalrySeeds: [string, string, string, number][] = [
   ["MTL", "BOS", "Original Six: Montréal — Boston", 96],
@@ -282,12 +283,26 @@ export function normalizeExternalRating(
   age: number,
   ovr: number,
   potential: number,
+  identity?: { id: string; pos: Position },
 ) {
   const junior = ["OHL", "WHL", "USHL"].includes(league);
   const normalizedOvr = junior ? clamp(ovr, 45, 68) : clamp(ovr, 58, 79);
   const floor = age <= 20 ? normalizedOvr + 10 : normalizedOvr + 2;
+  const feed = clamp(Math.max(potential, floor), normalizedOvr, 95);
+  if (!identity) return { ovr: normalizedOvr, potential: feed };
+  // Blend the feed's production-based figure with the game's age model.
+  const model = computePotential(
+    {
+      id: identity.id,
+      pos: identity.pos,
+      age,
+      ovr: normalizedOvr,
+      potential: normalizedOvr,
+    } as Player,
+    { league },
+  );
   return {
     ovr: normalizedOvr,
-    potential: clamp(Math.max(potential, floor), normalizedOvr, 95),
+    potential: clamp(Math.round((feed + model) / 2), normalizedOvr, 95),
   };
 }

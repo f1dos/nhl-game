@@ -42,6 +42,7 @@ import {
 } from "../engine/database";
 import { nextSeason, standings, dateForRound } from "../engine/season";
 import { listGames, exportGame, validateSave, saveGame } from "../engine/saves";
+import { PotentialCell } from "./Potential";
 import type { Game, Team, Player } from "../engine/types";
 import {
   Crest,
@@ -1290,7 +1291,9 @@ export default function App() {
                     <td>
                       <Rating value={player.ovr} />
                     </td>
-                    <td>{player.potential}</td>
+                    <td>
+                      <PotentialCell player={player} game={g} compact />
+                    </td>
                   </tr>
                 ))}
               </tbody>
