@@ -73,8 +73,10 @@ test("an English career generates news, inbox, objectives and AI moves in Englis
   assert(
     g.events!.some((event) => event.title === "Approve the franchise strategy"),
   );
+  // pushEvent mirrors titles into the 80-item news feed; the busier
+  // preseason (camp, cup) can push this early item out of it.
   assert(
-    g.news.some((item) =>
+    [...g.news, ...g.events!.map((event) => event.title)].some((item) =>
       item.startsWith("Club strategy approved: Draft Lottery Team"),
     ),
   );

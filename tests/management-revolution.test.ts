@@ -19,7 +19,7 @@ import { captainAppointmentRisk } from "../src/ui/LeadershipCenter";
 test("management state creates a daily calendar, AI identities and unique draft assets", () => {
   const game = ensureManagementState(newGame("SJS", 606));
   assert.equal(game.calendar?.date, "2026-09-15");
-  assert.equal(game.preseasonFixtures?.length, 4);
+  assert.equal(game.preseasonFixtures?.length, 6);
   assert.equal(
     game.events?.some((event) => event.requiresResponse),
     true,

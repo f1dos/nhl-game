@@ -21,6 +21,8 @@ import {
 } from "../engine/conversations";
 import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
+import { MedalChip, NationBadge } from "./InternationalCenter";
+import { TOURNAMENT_NAMES } from "../engine/tournaments";
 import { PlayerRequestsBox } from "./PlayerRequests";
 import { PotentialStars } from "./Potential";
 import {
@@ -633,6 +635,53 @@ export default function PlayerCard({
                 {careerPoints} PTS
               </p>
             </section>
+
+            {(p.international ?? []).length > 0 && (
+              <section className="pc-section">
+                <h2>{tr("Сборная", "National team")}</h2>
+                <div className="table-scroll">
+                  <table className="pc-table">
+                    <thead>
+                      <tr>
+                        <th>{tr("ГОД", "YEAR")}</th>
+                        <th>{tr("ТУРНИР", "EVENT")}</th>
+                        <th>{tr("СБОРНАЯ", "NATION")}</th>
+                        <th>GP</th>
+                        <th>G</th>
+                        <th>A</th>
+                        <th>{tr("МЕДАЛЬ", "MEDAL")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...p.international!].reverse().map((line) => (
+                        <tr key={`${line.year}-${line.kind}`}>
+                          <td>{line.year}</td>
+                          <td>
+                            {tr(
+                              TOURNAMENT_NAMES[line.kind].ru,
+                              TOURNAMENT_NAMES[line.kind].en,
+                            )}
+                          </td>
+                          <td>
+                            <NationBadge code={line.nation} ru={game.language === "ru"} short />
+                          </td>
+                          <td>{line.gp}</td>
+                          <td>{line.g}</td>
+                          <td>{line.a}</td>
+                          <td>
+                            {line.medal ? (
+                              <MedalChip medal={line.medal} ru={game.language === "ru"} />
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
 
             {/* ---------------- Development ---------------- */}
             <section className="pc-section">

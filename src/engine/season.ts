@@ -11,6 +11,7 @@ import {
   progressScouting,
 } from "./draft";
 import { simulateMatch } from "./match";
+import { finishInternationalSeason } from "./tournaments";
 import { resolveInternationalOffers } from "./international";
 import { refreshInternationalMarket } from "./database";
 import { reviewSeasonStrategy } from "./strategy";
@@ -207,6 +208,7 @@ export function nextSeason(g: Game) {
 }
 function rollover(g: Game) {
   if (g.phase !== "offseason") throw Error("Finish playoffs first");
+  finishInternationalSeason(g);
   const r = new RNG(g.seed);
   const completedRecords = new Map(
     g.teams.map((team) => [team.id, { ...team.record }]),
@@ -225,6 +227,7 @@ function rollover(g: Game) {
     g.calendar.lastProcessedDate = `${g.year}-09-14`;
   }
   g.preseasonFixtures = undefined;
+  g.preseason = undefined;
   g.bracket = [];
   g.playoffRound = 0;
   g.last = undefined;
@@ -295,5 +298,15 @@ function updateCareerStrengthRatings(
 export function dateForRound(g: Game, round = g.round) {
   const d = new Date(Date.UTC(g.year, 9, 7));
   d.setUTCDate(d.getUTCDate() + round * 2);
+  // The mid-season international break pushes every later round back.
+  const b = g.internationalSeason;
+  if (
+    b &&
+    b.year === g.year &&
+    b.breakStart &&
+    b.breakDays &&
+    d.toISOString().slice(0, 10) >= b.breakStart
+  )
+    d.setUTCDate(d.getUTCDate() + b.breakDays);
   return d;
 }

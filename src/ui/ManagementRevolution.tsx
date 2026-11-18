@@ -1,3 +1,4 @@
+import { isBreakDay, tournamentOnDate } from "../engine/tournaments";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -11,6 +12,7 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  Globe,
 } from "lucide-react";
 import {
   addDays,
@@ -776,9 +778,26 @@ export function DailyCalendar({ game }: { game: Game }) {
                 </span>
                 <strong>{date.slice(8)}</strong>
               </header>
+              {(() => {
+                const tournament = tournamentOnDate(game, date);
+                const games = tournament?.games.filter((g) => g.date === date) ?? [];
+                if (!tournament) return null;
+                const short = tournament.kind === "best-on-best" ? "WNC" : "WC";
+                return (
+                  <p className="calendar-game international">
+                    <Globe size={13} /> {short}
+                    {games.length ? ` · ${games.length}` : ""}
+                  </p>
+                );
+              })()}
+              {isBreakDay(game, date) && (
+                <p className="calendar-break">
+                  {ru ? "ПАУЗА NHL" : "NHL BREAK"}
+                </p>
+              )}
               {preseason && (
                 <p className="calendar-game preseason">
-                  <Activity size={13} /> PRE ·{" "}
+                  <Activity size={13} /> {preseason.kind === "cup" ? "CUP" : "PRE"} ·{" "}
                   {preseason.home === game.user ? "vs" : "@"}{" "}
                   <ClubLink
                     id={

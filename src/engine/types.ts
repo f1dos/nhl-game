@@ -102,6 +102,8 @@ export interface Player {
   injury: number;
   stats: Stats;
   history: { year: number; ovr: number; stats: Stats }[];
+  /** National-team appearances (absent on older saves). */
+  international?: import("./tournaments").InternationalCareerLine[];
 }
 export interface Tactics {
   forecheck: "1-2-2" | "2-1-2" | "1-3-1";
@@ -339,6 +341,10 @@ export interface PreseasonFixture {
   home: string;
   away: string;
   result?: Result;
+  /** Absent on older saves (plain exhibition games). */
+  kind?: "exhibition" | "cup";
+  stage?: "group" | "final" | "third";
+  neutral?: boolean;
 }
 export interface PressAppearance {
   date: string;
@@ -386,7 +392,9 @@ export interface ManagementEvent {
     | "leadership"
     | "tactics"
     | "press"
-    | "finances";
+    | "finances"
+    | "preseason"
+    | "international";
   responseDue?: string;
   requiresResponse?: boolean;
   /** Bilingual copy of title/body (newer generators); UI prefers it. */
@@ -548,6 +556,11 @@ export interface Game {
   freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
   preseasonFixtures?: PreseasonFixture[];
+  preseason?: import("./preseason").PreseasonState;
+  preseasonCupHistory?: import("./preseason").CupHistoryEntry[];
+  /** Mid-season break and international tournaments of the current season. */
+  internationalSeason?: import("./tournaments").InternationalSeason;
+  internationalHistory?: import("./tournaments").TournamentHistoryEntry[];
   pressHistory?: PressAppearance[];
   events?: ManagementEvent[];
   inboxState?: InboxState;
