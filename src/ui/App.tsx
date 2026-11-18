@@ -1007,6 +1007,7 @@ export default function App() {
       <>
         <TacticalCenter
           team={team}
+          language={g.language}
           onPlayer={setProfile}
           change={(fn) =>
             edit((current) =>
