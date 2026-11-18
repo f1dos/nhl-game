@@ -2208,7 +2208,7 @@ b.down {
 .pc-dial.pot .pot-stars {
   margin-top: -10px;
 }
-.pc-dial.pot .pot-stars i {
+.pc-dial.pot .pot-stars .pot-star {
   font-size: 9px;
 }
 .pc-pot-note {
@@ -2234,4 +2234,13 @@ b.down {
   .pc-dial.pot.range b {
     font-size: 18px;
   }
+}
+.tc-dev-list li {
+  grid-template-columns: 26px minmax(0, 1fr) auto minmax(150px, 210px);
+}
+.tc-dev-list .tc-growth {
+  grid-template-columns: auto minmax(30px, 1fr) auto;
+}
+.tc-grid .pot-legend {
+  padding: 0 16px 14px;
 }

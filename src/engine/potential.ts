@@ -216,18 +216,30 @@ export function ensurePotentialModel(g: Game) {
     for (const prospect of g.draft.prospects) {
       const report = g.draft.reports[prospect.player.id];
       if (!report) continue;
-      const spread = Math.max(1, Math.round((100 - report.confidence) / 8));
-      const error =
-        (stableHash(`${prospect.player.id}-2`) % (spread * 2 + 1)) - spread;
-      report.estimatedPotential = clamp(
-        prospect.player.potential + error,
-        40,
-        99,
+      report.estimatedPotential = estimatePotential(
+        prospect.player.potential,
+        prospect.player.id,
+        report.confidence,
       );
     }
   }
   g.potentialModel = POTENTIAL_MODEL;
   return true;
+}
+
+/**
+ * A scout's POT estimate: noisy, and pulled toward an average prospect
+ * (72) when little is known, so a thin report never promises a superstar.
+ */
+export function estimatePotential(
+  truth: number,
+  id: string,
+  confidence: number,
+) {
+  const spread = Math.max(1, Math.round((100 - confidence) / 12));
+  const error = (stableHash(`${id}-2`) % (spread * 2 + 1)) - spread;
+  const trust = 0.5 + clamp(confidence, 0, 100) / 200;
+  return clamp(Math.round(truth * trust + 72 * (1 - trust)) + error, 40, 99);
 }
 
 export function rankDraftClass(
@@ -296,7 +308,7 @@ export function scoutedPotential(
   const truth = Math.max(player.potential, player.ovr);
   const a = developmentAge(player.age, player.pos);
   const ageFactor = a <= 21 ? 1 : a <= 24 ? 0.7 : a <= 26 ? 0.4 : 0.1;
-  const half = Math.round(((100 - clamp(knowledge, 0, 100)) / 10) * ageFactor);
+  const half = Math.round(((100 - clamp(knowledge, 0, 100)) / 12) * ageFactor);
   const offset = half
     ? Math.round(hashBell(`scout:${player.id}:${salt}`) * half * 0.7)
     : 0;

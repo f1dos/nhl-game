@@ -924,7 +924,7 @@ export function TrainingCenter({
           )}
         </Panel>
         <Panel title={tr("ИНДИВИДУАЛЬНЫЙ ПРОГРЕСС", "DEVELOPMENT WATCH")}>
-          <ul className="tc-players">
+          <ul className="tc-players tc-dev-list">
             {developing.map((p) => {
               const growing = p.age < 31 && p.ovr < p.potential;
               const keys = growing ? devFocus(p) : [];
@@ -945,7 +945,7 @@ export function TrainingCenter({
                     <i>
                       <em
                         style={{
-                          width: `${Math.min(100, (p.ovr / Math.max(1, pot.mid)) * 100)}%`,
+                          width: `${Math.min(100, ((p.ovr - 40) / Math.max(1, pot.mid - 40)) * 100)}%`,
                         }}
                       />
                     </i>

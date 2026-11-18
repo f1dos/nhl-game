@@ -1,7 +1,7 @@
 import { tx } from "./text";
 import { createPlayer } from "./database";
 import { RNG, clamp } from "./random";
-import { assignPotential, rankDraftClass } from "./potential";
+import { assignPotential, estimatePotential, rankDraftClass } from "./potential";
 import type {
   DraftProspect,
   DraftState,
@@ -56,7 +56,7 @@ function reportFor(p: Player, confidence: number, round = 0) {
   return {
     confidence,
     estimatedOvr: estimate(p.ovr, p.id, confidence, 1),
-    estimatedPotential: estimate(p.potential, p.id, confidence, 2),
+    estimatedPotential: estimatePotential(p.potential, p.id, confidence),
     lastUpdatedRound: round,
   };
 }

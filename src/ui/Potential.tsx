@@ -23,9 +23,9 @@ export function PotentialStars({
       {[0, 1, 2, 3, 4].map((i) => {
         const fill = Math.max(0, Math.min(1, stars - i));
         return (
-          <i
+          <span
             key={i}
-            className={fill >= 1 ? "full" : fill > 0 ? "half" : "empty"}
+            className={`pot-star ${fill >= 1 ? "full" : fill > 0 ? "half" : "empty"}`}
           />
         );
       })}
