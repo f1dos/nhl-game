@@ -242,6 +242,8 @@
   border-bottom: 1px solid #2d3c49;
 }
 .leadership-tabs button {
+  flex: none;
+  width: auto;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -389,7 +391,7 @@
 }
 .captaincy-table td.who {
   text-align: left;
-  min-width: 220px;
+  min-width: 200px;
 }
 .captaincy-table td.who > div {
   display: flex;
@@ -431,7 +433,7 @@
 }
 .factor-value {
   display: inline-block;
-  min-width: 30px;
+  min-width: 24px;
   padding: 2px 4px;
   color: #c5d2dc;
 }
@@ -442,10 +444,16 @@
   color: #e48c7d;
 }
 .captaincy-table td.standing {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 110px;
+  min-width: 96px;
+}
+.captaincy-table td.standing > div,
+.captaincy-table td.standing > b {
+  display: inline-block;
+  vertical-align: middle;
+}
+.captaincy-table td.standing .standing-bar {
+  width: 56px;
+  margin-right: 8px;
 }
 .standing-bar,
 .approval-meter {

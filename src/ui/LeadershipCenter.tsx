@@ -74,6 +74,16 @@ const FACTOR_COLUMNS: CandidateFactorKey[] = [
   "popularity",
 ];
 
+/** Short column headers: the raw value shown, coloured by how the room rates it. */
+const COLUMN_LABELS: Partial<Record<CandidateFactorKey, { ru: string; en: string }>> = {
+  leadership: { ru: "Лидер", en: "Lead" },
+  experience: { ru: "Возраст", en: "Age" },
+  tenure: { ru: "В клубе", en: "Tenure" },
+  status: { ru: "OVR", en: "OVR" },
+  morale: { ru: "Мораль", en: "Morale" },
+  popularity: { ru: "Автор.", en: "Pop." },
+};
+
 export default function LeadershipCenter({
   game,
   edit,
@@ -297,7 +307,9 @@ export default function LeadershipCenter({
                     <th>#</th>
                     <th>{tr("Игрок", "Player")}</th>
                     {FACTOR_COLUMNS.map((key) => (
-                      <th key={key}>{FACTOR_LABELS[key][lang]}</th>
+                      <th key={key} title={FACTOR_LABELS[key][lang]}>
+                        {COLUMN_LABELS[key]?.[lang]}
+                      </th>
                     ))}
                     <th>{tr("Авторитет", "Standing")}</th>
                   </tr>

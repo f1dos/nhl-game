@@ -529,11 +529,16 @@ export function playerMeetingGroup(
   player: Player,
 ): MeetingGroup | undefined {
   const team = userTeam(g);
-  if (player.morale < 45) return "unhappy";
+  const average =
+    team.players.reduce((sum, item) => sum + item.morale, 0) /
+    Math.max(1, team.players.length);
+  // Unhappy means unhappy compared with the room, not just a low number.
+  if (player.morale < 45 && (player.morale < 35 || player.morale < average - 4))
+    return "unhappy";
   if (
     team.captainId === player.id ||
     team.alternateCaptainIds?.includes(player.id) ||
-    (leadershipScore(player) >= 76 && player.age >= 26)
+    (leadershipScore(player) >= 82 && player.age >= 26)
   )
     return "leaders";
   if (player.age >= 30) return "veterans";
@@ -874,8 +879,10 @@ export function holdTeamMeeting(g: Game, choice: MeetingChoice): MeetingResult {
     return score;
   };
   const members = new Map<MeetingGroup, Player[]>();
+  const groupOf = new Map<string, MeetingGroup | undefined>();
   for (const player of team.players) {
     const group = playerMeetingGroup(g, player);
+    groupOf.set(player.id, group);
     if (group) members.set(group, [...(members.get(group) ?? []), player]);
   }
   const reactions: NonNullable<TeamMeetingRecord["reactions"]> = [];
@@ -896,9 +903,9 @@ export function holdTeamMeeting(g: Game, choice: MeetingChoice): MeetingResult {
   let moraleTotal = 0;
   let motivationTotal = 0;
   for (const player of team.players) {
-    const group = playerMeetingGroup(g, player);
+    const group = groupOf.get(player.id);
     const score = group ? groupScore(group) : base;
-    let morale = clamp(Math.round(score * 0.7), -6, 5);
+    let morale = clamp(Math.round(score * 0.55), -6, 4);
     let motivation = clamp(Math.round(score * 1.1), -8, 8);
     if (target && player.id === target.id) {
       const backing = { supportive: 5, calm: 3, demanding: -3, furious: -6 }[
