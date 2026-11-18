@@ -21,6 +21,7 @@ import {
 } from "../engine/conversations";
 import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
+import { PlayerRequestsBox } from "./PlayerRequests";
 import { PotentialStars } from "./Potential";
 import {
   developmentAge,
@@ -870,6 +871,8 @@ export default function PlayerCard({
                 </p>
               )}
             </section>
+
+            {!external && <PlayerRequestsBox game={game} player={p} />}
 
             {/* ---------------- Conversation ---------------- */}
             <section className="pc-box pc-talks">

@@ -85,11 +85,14 @@ export default function PlayerConversation({
   game,
   edit,
   onClose,
+  initialTopic,
 }: {
   player: Player;
   game: Game;
   edit: (fn: (game: Game) => void) => void;
   onClose: () => void;
+  /** Opens on this topic (e.g. from a player's request letter). */
+  initialTopic?: ConversationTopic;
 }) {
   const ru = game.language === "ru";
   const lang = dialogueLang(game.language);
@@ -107,7 +110,9 @@ export default function PlayerConversation({
   const external = unattached || owner.id !== game.user;
   const eligibility = externalContactEligibility(game, player.id);
   const [externalReply, setExternalReply] = useState("");
-  const [topic, setTopic] = useState<ConversationTopic>(suggestedTopic(player));
+  const [topic, setTopic] = useState<ConversationTopic>(
+    initialTopic ?? suggestedTopic(player),
+  );
   const [session, setSession] = useState<ConversationState | null>(null);
   const [result, setResult] = useState<ConversationResult | null>(null);
   const [error, setError] = useState("");

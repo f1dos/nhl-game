@@ -39,6 +39,8 @@ import {
 } from "../engine/strategy";
 import { likelyStrategy } from "../engine/franchiseWorld";
 import { ClubLink, EventLinks } from "./links";
+import { requestForEvent } from "../engine/playerRequests";
+import { PromisesPanel, RequestLetter, type TalkHandler } from "./PlayerRequests";
 import { answerEvent } from "../engine/leadership";
 
 type Edit = (fn: (game: Game) => void) => void;
@@ -93,11 +95,13 @@ export function DailyHeadquarters({
   edit,
   go,
   onPlayer,
+  onTalk,
 }: {
   game: Game;
   edit: Edit;
   go: (page: string) => void;
   onPlayer: (player: Player) => void;
+  onTalk?: TalkHandler;
 }) {
   ensureManagementState(game);
   const team = game.teams.find((club) => club.id === game.user)!;
@@ -143,6 +147,8 @@ export function DailyHeadquarters({
                 ru={ru}
                 go={go}
                 edit={edit}
+                game={game}
+                onTalk={onTalk}
               />
             ))
           ) : (
@@ -225,14 +231,21 @@ function AgendaRow({
   go,
   edit,
   focused = false,
+  game,
+  onTalk,
 }: {
   event: ManagementEvent;
   ru: boolean;
   go: (page: string) => void;
   edit: Edit;
   focused?: boolean;
+  game?: Game;
+  onTalk?: TalkHandler;
 }) {
   const unread = !event.read && !event.resolved;
+  const request = game ? requestForEvent(game, event.id) : undefined;
+  const title = event.i18n ? event.i18n.title[ru ? "ru" : "en"] : event.title;
+  const body = event.i18n ? event.i18n.body[ru ? "ru" : "en"] : event.body;
   return (
     <div
       className={`agenda-row ${event.priority}${focused ? " focused" : ""}${unread ? " unread" : ""}`}
@@ -252,13 +265,25 @@ function AgendaRow({
           )}
           {categoryNames[event.category]?.[ru ? 0 : 1]} · {event.date}
         </small>
-        <strong>{event.title}</strong>
-        <p>{event.body}</p>
-        <EventLinks
+        <strong>{title}</strong>
+        {request && game ? (
+          <RequestLetter
+            game={game}
+            request={request}
+            edit={(fn) => {
+              if (unread) edit((g) => markEventsRead(g, [event.id]));
+              edit(fn);
+            }}
+            onTalk={onTalk}
+          />
+        ) : (
+          <p>{body}</p>
+        )}
+        {!request && <EventLinks
           playerId={event.playerId}
           teamId={event.teamId}
-          text={`${event.title} ${event.body}`}
-        />
+          text={`${title} ${body}`}
+        />}
         {event.replies && !event.replyId && (
           <div className="agenda-replies">
             {event.replies.map((reply) => (
@@ -285,7 +310,7 @@ function AgendaRow({
         )}
       </div>
       <div className="agenda-actions">
-        {event.responseDue && (
+        {event.responseDue && (!request || request.status === "open") && (
           <small>
             <Clock3 size={12} /> {event.responseDue}
           </small>
@@ -301,7 +326,7 @@ function AgendaRow({
             <ArrowUpRight size={14} />
           </button>
         )}
-        {!(event.replies && !event.replyId) && (
+        {request?.status !== "open" && !(event.replies && !event.replyId) && (
           <button
             className="icon-button"
             aria-label="Resolve"
@@ -836,12 +861,14 @@ export function DecisionInbox({
   go,
   focus,
   onDismissFocus,
+  onTalk,
 }: {
   game: Game;
   edit: Edit;
   go: (page: string) => void;
   focus?: InboxFocus | null;
   onDismissFocus?: () => void;
+  onTalk?: TalkHandler;
 }) {
   ensureManagementState(game);
   const ru = game.language === "ru";
@@ -863,6 +890,7 @@ export function DecisionInbox({
         (filter === "all" ||
           (filter === "important" && isImportantEvent(game, event)) ||
           (filter === "open" && !event.resolved) ||
+          (filter === "players" && !!requestForEvent(game, event.id)) ||
           event.category === filter) &&
         `${event.title} ${event.body}`
           .toLowerCase()
@@ -933,7 +961,7 @@ export function DecisionInbox({
       )}
       <div className="inbox-toolbar">
         <div className="tabs">
-          {["all", "important", "open", "trade", "contract", "medical"].map(
+          {["all", "important", "open", "players", "trade", "contract", "medical"].map(
             (item) => (
               <button
                 key={item}
@@ -953,7 +981,11 @@ export function DecisionInbox({
                       ? ru
                         ? "Требуют решения"
                         : "Needs action"
-                      : categoryNames[item]?.[ru ? 0 : 1]}
+                      : item === "players"
+                        ? ru
+                          ? "Игроки"
+                          : "Players"
+                        : categoryNames[item]?.[ru ? 0 : 1]}
                 {item === "important" && counts.important > 0 && (
                   <em
                     className="tab-count important"
@@ -996,6 +1028,9 @@ export function DecisionInbox({
           </label>
         </div>
       </div>
+      {(filter === "players" || filter === "all" || filter === "open") && (
+        <PromisesPanel game={game} />
+      )}
       <Panel title={`${ru ? "СООБЩЕНИЯ" : "MESSAGES"} · ${events.length}`}>
         <div className="decision-inbox">
           {events.map((event) => (
@@ -1006,6 +1041,8 @@ export function DecisionInbox({
               go={go}
               edit={edit}
               focused={focused.has(event.id)}
+              game={game}
+              onTalk={onTalk}
             />
           ))}
           {!events.length && (
