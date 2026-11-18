@@ -475,7 +475,7 @@ export default function App() {
         <div className="splash-mark">
           <Snowflake size={46} />
         </div>
-        <span className="eyebrow">BUILD YOUR LEGACY</span>
+        <span className="eyebrow">SEASON 2026/27</span>
         <h2>
           NHL MANAGER <b>27</b>
         </h2>
@@ -505,17 +505,17 @@ export default function App() {
         </div>
         <div className="start-heading">
           <div>
-            <div className="eyebrow">YOUR CLUB. YOUR LEGACY.</div>
+            <div className="eyebrow">{tr("НОВАЯ КАРЬЕРА", "NEW CAREER")}</div>
             <h1>
               {tr(
-                "Большая игра начинается с вас.",
-                "Greatness starts with you.",
+                "Выберите клуб",
+                "Pick a club",
               )}
             </h1>
             <p>
               {tr(
-                "32 клуба. 82 матча. Одна мечта. Выберите свою команду.",
-                "32 clubs. 82 games. One dream. Choose your team.",
+                "Вы станете генеральным менеджером. Рейтинг — сила состава на старте сезона.",
+                "You take over as general manager. The rating is the roster's strength on opening day.",
               )}
             </p>
           </div>
@@ -2131,7 +2131,7 @@ function Brand() {
         <span>
           NHL MANAGER <b>27</b>
         </span>
-        <small>BUILD YOUR LEGACY</small>
+        <small>GENERAL MANAGER</small>
       </div>
     </div>
   );
