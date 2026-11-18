@@ -20,6 +20,7 @@ import { standings } from "../engine/season";
 import { teamOverall } from "../engine/database";
 import { averageRating } from "../engine/matchRatings";
 import { Crest, Rating, RatingBadge } from "./components";
+import { PotentialCell, potentialSortValue } from "./Potential";
 import { ClubLink, PlayerLink } from "./links";
 import { PlayerPortrait } from "./PlayerCard";
 
@@ -103,7 +104,7 @@ export default function ClubCenter({
     .sort((a, b) => b.salary - a.salary)
     .slice(0, 4);
   const farmProspects = [...(team.farm ?? [])]
-    .sort((a, b) => b.potential - a.potential)
+    .sort((a, b) => potentialSortValue(game, b) - potentialSortValue(game, a))
     .slice(0, 4);
   const captain = team.captainId ? byId.get(team.captainId) : undefined;
   const record = team.record;
@@ -398,7 +399,9 @@ export default function ClubCenter({
                         <td>
                           <Rating value={effectiveOverall(player)} />
                         </td>
-                        <td>{player.potential}</td>
+                        <td>
+                          <PotentialCell player={player} game={game} compact />
+                        </td>
                         <td>{player.stats.gp}</td>
                         <td>{player.stats.g + player.stats.a}</td>
                         <td>
@@ -610,7 +613,8 @@ export default function ClubCenter({
                 <li key={p.id}>
                   <PlayerLink player={p} />
                   <span>
-                    {p.pos} · {p.age} · {p.ovr}/{p.potential}
+                    {p.pos} · {p.age} · {p.ovr} ·{" "}
+                    <PotentialCell player={p} game={game} />
                   </span>
                 </li>
               ))}

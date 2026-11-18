@@ -3,6 +3,7 @@ import { callUpFromFarm, sendToFarm } from "../engine/roster";
 import { salaryTotal } from "../engine/contracts";
 import type { Game, Player } from "../engine/types";
 import { Panel, Rating } from "./components";
+import { PotentialCell, PotentialLegend, potentialSortValue } from "./Potential";
 
 export default function FarmCenter({
   game, edit, onPlayer,
@@ -16,7 +17,7 @@ export default function FarmCenter({
   const visible = farm.filter((p) =>
     (position === "ALL" || p.pos === position) &&
     (p.name + " " + (p.currentClub || "")).toLowerCase().includes(query.toLowerCase()),
-  ).sort((a, b) => sort === "potential" ? b.potential - a.potential :
+  ).sort((a, b) => sort === "potential" ? potentialSortValue(game, b) - potentialSortValue(game, a) :
     sort === "age" ? a.age - b.age : b.ovr - a.ovr);
 
   return <section className="farm-below-roster">
@@ -46,14 +47,14 @@ export default function FarmCenter({
             {p.headshot && <img src={p.headshot} alt="" />}
             <span><b>{p.name}</b><small>{p.nation} · {p.archetype || p.league || ""}</small></span>
           </button></td><td><span className="position-pill">{p.pos}</span></td>
-          <td>{p.age}</td><td><Rating value={p.ovr}/></td><td>{p.potential}</td>
+          <td>{p.age}</td><td><Rating value={p.ovr}/></td><td><PotentialCell player={p} game={game} compact /></td>
           <td>{p.currentClub || team.ahlAffiliate || "—"}<small>{p.contractType || "NHL"}</small></td>
           <td><button disabled={p.contractType === "AHL"} title={p.contractType === "AHL"
               ? (ru ? "Требуется контракт NHL/ELC" : "Requires an NHL/ELC deal") : ""}
               onClick={() => edit((g) => callUpFromFarm(g, p.id))}>
               {p.contractType === "AHL" ? (ru ? "Нужен контракт" : "NHL contract") : (ru ? "Вызвать" : "Recall")}
           </button></td></tr>)}</tbody>
-      </table></div> : <div className="empty compact-empty">{ru ? "Нет хоккеистов в резерве" : "No farm players"}</div>}
+      </table><PotentialLegend ru={ru} /></div> : <div className="empty compact-empty">{ru ? "Нет хоккеистов в резерве" : "No farm players"}</div>}
     </Panel>
     <p className="note">{ru
       ? "Вызов игрока с контрактом только AHL ограничен. Юниорские OHL/WHL/USHL и европейские SHL/Liiga находятся в отдельной вкладке «Юниоры и лиги»."
