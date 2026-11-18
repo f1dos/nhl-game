@@ -17,6 +17,7 @@ import {
   ensureFranchiseWorld,
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
+import { processPlayerRequests } from "./playerRequests";
 import { textFor } from "./text";
 import type {
   AiGeneralManagerProfile,
@@ -558,6 +559,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   aiContractDay(g);
   aiTradeDay(g);
   generateInboxEvents(g);
+  processPlayerRequests(g);
   g.calendar!.lastProcessedDate = date;
 }
 

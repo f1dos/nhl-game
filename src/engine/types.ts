@@ -473,6 +473,8 @@ export interface Game {
   pressHistory?: PressAppearance[];
   events?: ManagementEvent[];
   inboxState?: InboxState;
+  /** Player requests, promises and trade-list requests (playerRequests.ts). */
+  playerRequests?: import("./playerRequests").PlayerRequestState;
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;
   leadershipSeason?: number;

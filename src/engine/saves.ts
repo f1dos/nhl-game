@@ -1,5 +1,74 @@
 import type { Game } from "./types";
 import { isLocale } from "../i18n/locales";
+import {
+  PROMISE_KINDS,
+  REQUEST_TYPES,
+  type PlayerRequestState,
+} from "./playerRequests";
+
+const isDate = (value: unknown) =>
+  typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+/** Optional player-request state (absent on older saves). */
+function validatePlayerRequests(value: unknown) {
+  const fail = () => {
+    throw Error("Invalid player requests");
+  };
+  const s = value as PlayerRequestState;
+  if (!s || typeof s !== "object" || Array.isArray(s)) fail();
+  for (const key of ["requests", "promises", "listed", "mentors"] as const)
+    if (s[key] !== undefined && !Array.isArray(s[key])) fail();
+  if (
+    s.cooldowns !== undefined &&
+    (typeof s.cooldowns !== "object" ||
+      s.cooldowns === null ||
+      Object.values(s.cooldowns).some((date) => !isDate(date)))
+  )
+    fail();
+  const statuses = ["open", "accepted", "explained", "refused", "expired"];
+  if (
+    (s.requests ?? []).some(
+      (r) =>
+        typeof r?.id !== "string" ||
+        typeof r.playerId !== "string" ||
+        !(REQUEST_TYPES as readonly string[]).includes(r.type) ||
+        !statuses.includes(r.status) ||
+        !isDate(r.date) ||
+        !isDate(r.due) ||
+        typeof r.letter?.ru !== "string" ||
+        typeof r.letter?.en !== "string" ||
+        !r.context ||
+        !["F", "D", "G"].includes(r.context.group),
+    )
+  )
+    fail();
+  if (
+    (s.promises ?? []).some(
+      (p) =>
+        typeof p?.id !== "string" ||
+        typeof p.playerId !== "string" ||
+        !(PROMISE_KINDS as readonly string[]).includes(p.kind) ||
+        !["active", "kept", "broken", "void"].includes(p.status) ||
+        !Number.isFinite(p.target) ||
+        !isDate(p.made) ||
+        !isDate(p.deadline) ||
+        !p.baseline ||
+        !Number.isFinite(p.baseline.gp) ||
+        !Number.isFinite(p.baseline.toi) ||
+        !Number.isFinite(p.baseline.userGames),
+    )
+  )
+    fail();
+  if (
+    (s.listed ?? []).some(
+      (l) =>
+        typeof l?.playerId !== "string" ||
+        !isDate(l.since) ||
+        typeof l.public !== "boolean",
+    )
+  )
+    fail();
+}
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -337,6 +406,7 @@ export function validateSave(value: unknown): Game {
     )
       throw Error("Invalid inbox state");
   }
+  if (g.playerRequests !== undefined) validatePlayerRequests(g.playerRequests);
   if (g.draftAssets) {
     if (
       !Array.isArray(g.draftAssets) ||
