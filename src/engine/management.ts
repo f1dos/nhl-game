@@ -6,6 +6,7 @@ import { payroll, tradeValue } from "./trades";
 import { processFreeAgentOffers } from "./freeAgency";
 import { ensureTrainingSchedule, trainTeam } from "./training";
 import { ensureSpecialTeams } from "./tactics";
+import { ensureUserIceTime } from "./iceTime";
 import {
   chooseSeasonStrategy,
   defaultEmployment,
@@ -253,6 +254,7 @@ export function ensureManagementState(g: Game) {
   g.managerEmployment ??= defaultEmployment();
   ensureFranchiseWorld(g);
   g.draftAssets ??= initialDraftAssets(g);
+  ensureUserIceTime(g);
   for (const team of g.teams) {
     team.aiProfile ??= createProfile(team);
     ensureSpecialTeams(team);

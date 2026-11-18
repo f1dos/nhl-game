@@ -203,7 +203,7 @@ export function simulateMatch(
         : inGameWear(minutes.get(p.id) || 0, p.pos, shiftOf.get(p.id));
     return (
       p.attributes[a] *
-      (1 - Math.min(100, p.fatigue + wear) * 0.002) *
+      (1 - p.fatigue * 0.002 - Math.min(40, wear) * 0.004) *
       (p.injury ? 0.8 : 1) *
       (0.92 + p.morale * 0.001) *
       (0.97 + (p.motivation ?? 50) * 0.0006)

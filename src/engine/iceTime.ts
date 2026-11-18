@@ -18,11 +18,11 @@ export const DEFAULT_SHIFT_SECONDS = 40;
 /** A unit cannot take more than every other shift. */
 export const MAX_SHARE = 50;
 
-/** Typical minutes per game by strength state, used for the TOI forecast. */
-export const STATE_MINUTES = { even: 46, powerPlay: 6, penaltyKill: 6 };
+/** Minutes per game by strength state in the event engine (TOI forecast). */
+export const STATE_MINUTES = { even: 51, powerPlay: 4, penaltyKill: 4 };
 
 /** Per-game TOI above which a skater wears down over a game. */
-export const OVERLOAD_MINUTES = { F: 21, D: 26 };
+export const OVERLOAD_MINUTES = { F: 26, D: 28 };
 
 export function isIceTimePlan(value: unknown): value is IceTimePlan {
   if (!value || typeof value !== "object") return false;
@@ -78,20 +78,19 @@ export function autoIceTimePreset(team: Team): Exclude<IceTimePreset, "custom"> 
   const byId = (id: string) => team.players.find((p) => p.id === id);
   const lines = team.lines.map((line) => average(line.map(byId)));
   const gap = lines[0] - (lines[2] + lines[3]) / 2;
-  if (gap >= 9) return "top";
-  if (gap <= 4) return "roll";
+  if (gap >= 20) return "top";
+  if (gap <= 12) return "roll";
   return "balanced";
 }
 
 /**
- * The plan the engines use. Managed clubs without a saved plan keep the
- * historical rotation; AI clubs (which have an AI profile) pick a preset
- * from their depth.
+ * The plan the engines use. The managed club always has a saved plan
+ * (ensureUserIceTime); other clubs pick a preset from their depth.
  */
 export function resolveIceTime(team: Team): IceTimePlan {
   const saved = team.tactics.iceTime;
   if (saved && isIceTimePlan(saved)) return saved;
-  const preset = team.aiProfile ? autoIceTimePreset(team) : "balanced";
+  const preset = autoIceTimePreset(team);
   return { preset, ...structuredClone(ICE_TIME_PRESETS[preset]) };
 }
 
@@ -214,7 +213,7 @@ export function forecastIceTime(team: Team, plan = resolveIceTime(team)) {
  * normal workload, growing quickly past it. Long shifts tire players more.
  */
 export function inGameWear(minutes: number, pos: string, shiftSeconds = DEFAULT_SHIFT_SECONDS) {
-  const free = pos === "D" ? 17 : 14;
+  const free = pos === "D" ? 23 : 20;
   const excess = Math.max(0, minutes - free);
   const shift = 1 + Math.max(-0.25, (shiftSeconds - DEFAULT_SHIFT_SECONDS) / 50);
   return (excess + excess * excess * 0.08) * shift;
@@ -224,4 +223,47 @@ export function inGameWear(minutes: number, pos: string, shiftSeconds = DEFAULT_
 export function overloadFatigue(minutes: number, pos: string) {
   const limit = pos === "D" ? OVERLOAD_MINUTES.D : OVERLOAD_MINUTES.F;
   return Math.max(0, minutes - limit + 2) * 0.8;
+}
+
+/** Gives the managed club an explicit plan (the historical split) once. */
+export function ensureUserIceTime(g: { user: string; teams: Team[] }) {
+  const team = g.teams.find((t) => t.id === g.user);
+  if (team && !isIceTimePlan(team.tactics.iceTime))
+    team.tactics.iceTime = {
+      preset: "balanced",
+      ...structuredClone(ICE_TIME_PRESETS.balanced),
+    };
+}
+
+export function applyIceTimePreset(
+  team: Team,
+  preset: Exclude<IceTimePreset, "custom">,
+) {
+  const doubleShift = team.tactics.iceTime?.doubleShift;
+  team.tactics.iceTime = {
+    preset,
+    ...structuredClone(ICE_TIME_PRESETS[preset]),
+    ...(doubleShift ? { doubleShift } : {}),
+  };
+}
+
+/** Sets one line's or pair's weight; the plan becomes custom. */
+export function setIceTimeWeight(
+  team: Team,
+  group: "forwards" | "defense",
+  index: number,
+  weight: number,
+) {
+  const plan = structuredClone(resolveIceTime(team));
+  plan[group][index] = Math.max(0, Math.min(MAX_SHARE, Math.round(weight)));
+  if (!plan[group].some((w) => w > 0)) plan[group][index] = 1;
+  plan.preset = "custom";
+  team.tactics.iceTime = plan;
+}
+
+export function setDoubleShift(team: Team, playerId?: string) {
+  const plan = structuredClone(resolveIceTime(team));
+  if (playerId) plan.doubleShift = playerId;
+  else delete plan.doubleShift;
+  team.tactics.iceTime = plan;
 }
