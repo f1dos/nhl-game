@@ -371,6 +371,8 @@ export interface ManagementEvent {
     | "finances";
   responseDue?: string;
   requiresResponse?: boolean;
+  /** Bilingual copy of title/body (newer generators); UI prefers it. */
+  i18n?: { title: { ru: string; en: string }; body: { ru: string; en: string } };
   read: boolean;
   resolved: boolean;
 }

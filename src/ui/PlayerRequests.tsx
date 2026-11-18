@@ -20,7 +20,6 @@ import {
 } from "../engine/playerRequests";
 import { findPlayer, PlayerLink } from "./links";
 import type { Game, Player } from "../engine/types";
-import "./player-requests.css";
 
 type Edit = (fn: (game: Game) => void) => void;
 export type TalkHandler = (player: Player, request: PlayerRequest) => void;
@@ -28,6 +27,7 @@ export type TalkHandler = (player: Player, request: PlayerRequest) => void;
 const pick = (text: { ru: string; en: string }, ru: boolean) =>
   ru ? text.ru : text.en;
 const signed = (n: number) => `${n > 0 ? "+" : ""}${n}`;
+const q = (text: string, ru: boolean) => (ru ? `«${text}»` : `“${text}”`);
 
 /** A player's letter with reply buttons, shown inside an inbox row. */
 export function RequestLetter({
@@ -85,7 +85,7 @@ export function RequestLetter({
               onClick={() => reply(option.kind)}
             >
               <b>{pick(option.label, ru)}</b>
-              <span>“{pick(option.line, ru)}”</span>
+              <span>{q(pick(option.line, ru), ru)}</span>
               <small>{pick(option.hint, ru)}</small>
             </button>
           ))}
@@ -100,7 +100,8 @@ export function RequestLetter({
         <div className="request-outcome">
           {chosen && (
             <p className="request-you">
-              <small>{ru ? "ВЫ" : "YOU"}</small>“{pick(chosen.line, ru)}”
+              <small>{ru ? "ВЫ" : "YOU"}</small>
+              {q(pick(chosen.line, ru), ru)}
             </p>
           )}
           {request.status === "expired" && (
@@ -110,7 +111,8 @@ export function RequestLetter({
           )}
           {request.reaction && (
             <p className={`request-reaction ${request.status === "refused" || request.status === "expired" || request.persuaded === false ? "negative" : "positive"}`}>
-              <small>{request.playerName.toUpperCase()}</small>“{pick(request.reaction, ru)}”
+              <small>{request.playerName.toUpperCase()}</small>
+              {q(pick(request.reaction, ru), ru)}
             </p>
           )}
           <div className="request-effects">

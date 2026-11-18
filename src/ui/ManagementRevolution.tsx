@@ -243,6 +243,8 @@ function AgendaRow({
 }) {
   const unread = !event.read && !event.resolved;
   const request = game ? requestForEvent(game, event.id) : undefined;
+  const title = event.i18n ? event.i18n.title[ru ? "ru" : "en"] : event.title;
+  const body = event.i18n ? event.i18n.body[ru ? "ru" : "en"] : event.body;
   return (
     <div
       className={`agenda-row ${event.priority}${focused ? " focused" : ""}${unread ? " unread" : ""}`}
@@ -262,7 +264,7 @@ function AgendaRow({
           )}
           {categoryNames[event.category]?.[ru ? 0 : 1]} · {event.date}
         </small>
-        <strong>{event.title}</strong>
+        <strong>{title}</strong>
         {request && game ? (
           <RequestLetter
             game={game}
@@ -274,16 +276,16 @@ function AgendaRow({
             onTalk={onTalk}
           />
         ) : (
-          <p>{event.body}</p>
+          <p>{body}</p>
         )}
         {!request && <EventLinks
           playerId={event.playerId}
           teamId={event.teamId}
-          text={`${event.title} ${event.body}`}
+          text={`${title} ${body}`}
         />}
       </div>
       <div className="agenda-actions">
-        {event.responseDue && (
+        {event.responseDue && (!request || request.status === "open") && (
           <small>
             <Clock3 size={12} /> {event.responseDue}
           </small>

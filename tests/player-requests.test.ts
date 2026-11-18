@@ -223,7 +223,7 @@ test("trade request lifecycle: listed, cheaper for buyers, resolved when traded"
     processPlayerRequests(g);
   }
   assert.ok(
-    g.events!.some((e) => e.category === "trade" && e.playerId === p.id && e.title.includes("call about")),
+    g.events!.some((e) => e.category === "trade" && e.playerId === p.id && e.title.includes("enquire about")),
   );
   // Find a deal the AI accepts and complete it.
   const cheap = other.players

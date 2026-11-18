@@ -958,8 +958,6 @@ export function replyToRequest(g: Game, requestId: string, kind: ReplyKind) {
   request.reaction = reaction;
   request.effects = delta;
   closeEvent(g, request);
-  g.news.unshift(`${player.name}: ${reaction[lang(g)]}`);
-  g.news = g.news.slice(0, 100);
   return request;
 }
 
@@ -1084,6 +1082,18 @@ function actionFor(type: RequestType): ManagementEvent["action"] {
   }
 }
 
+type NewEvent = Omit<ManagementEvent, "id" | "read" | "resolved" | "title" | "body" | "i18n">;
+/** Pushes an inbox event in the career language with a bilingual copy. */
+function pushL(g: Game, event: NewEvent & { title: L; body: L }) {
+  const l = lang(g);
+  pushEvent(g, {
+    ...event,
+    title: event.title[l],
+    body: event.body[l],
+    i18n: { title: event.title, body: event.body },
+  });
+}
+
 function createRequest(g: Game, team: Team, candidate: Candidate) {
   const s = ensureRequestState(g);
   const date = g.calendar!.date;
@@ -1108,13 +1118,13 @@ function createRequest(g: Game, team: Team, candidate: Candidate) {
     status: "open",
   };
   const l = lang(g);
-  const quoteL = l === "ru" ? `«${letter.ru}» — ${player.name}` : `“${letter.en}” — ${player.name}`;
+  const quoteL = t(`«${letter.ru}» — ${player.name}`, `“${letter.en}” — ${player.name}`);
   const before = g.events?.length ?? 0;
-  pushEvent(g, {
+  pushL(g, {
     date,
     category: type === "contract" ? "contract" : type === "trade" ? "trade" : "organization",
     priority: priorityFor(type, context),
-    title: title[l],
+    title,
     body: quoteL,
     action: actionFor(type),
     teamId: g.user,
@@ -1430,12 +1440,12 @@ function resolvePromise(g: Game, promise: PlayerPromise, status: "kept" | "broke
       ],
       `${g.seed}:${promise.id}:kept`,
     );
-    pushEvent(g, {
+    pushL(g, {
       date,
       category: "organization",
       priority: "normal",
-      title: t2(`${promise.playerName}: обещание выполнено`, `${promise.playerName}: promise kept`),
-      body: l === "ru" ? `«${line.ru}» Выполнено: ${label.ru}. Отношения +8.` : `“${line.en}” Delivered: ${label.en}. Relationship +8.`,
+      title: t(`${promise.playerName}: обещание выполнено`, `${promise.playerName}: promise kept`),
+      body: t(`«${line.ru}» Выполнено: ${label.ru}. Отношения +8.`, `“${line.en}” Delivered: ${label.en}. Relationship +8.`),
       teamId: g.user,
       playerId: promise.playerId,
     });
@@ -1463,14 +1473,15 @@ function resolvePromise(g: Game, promise: PlayerPromise, status: "kept" | "broke
     ],
     `${g.seed}:${promise.id}:broken`,
   );
-  pushEvent(g, {
+  pushL(g, {
     date,
     category: "organization",
     priority: "high",
-    title: t2(`${player.name}: обещание нарушено`, `${player.name}: promise broken`),
-    body: l === "ru"
-      ? `«${words.ru}» Мораль −15, отношения −20.${goPublic ? " Игрок готов требовать обмена публично." : ""}`
-      : `“${words.en}” Morale −15, relationship −20.${goPublic ? " He is ready to demand a trade in public." : ""}`,
+    title: t(`${player.name}: обещание нарушено`, `${player.name}: promise broken`),
+    body: t(
+      `«${words.ru}» Мораль −15, отношения −20.${goPublic ? " Игрок готов требовать обмена публично." : ""}`,
+      `“${words.en}” Morale −15, relationship −20.${goPublic ? " He is ready to demand a trade in public." : ""}`,
+    ),
     action: "roster",
     teamId: g.user,
     playerId: player.id,
@@ -1595,12 +1606,12 @@ function updateListings(g: Game, team: Team, s: PlayerRequestState, t2: Tr) {
       for (const promise of s.promises)
         if (promise.playerId === player.id && promise.kind === "trade" && promise.status === "active")
           resolvePromise(g, promise, "void", t2);
-      pushEvent(g, {
+      pushL(g, {
         date,
         category: "trade",
         priority: "normal",
-        title: t2(`${player.name} отзывает запрос на обмен`, `${player.name} withdraws his trade request`),
-        body: t2("«Мне здесь снова хорошо. Хочу остаться».", "“Things are good again. I want to stay.”"),
+        title: t(`${player.name} отзывает запрос на обмен`, `${player.name} withdraws his trade request`),
+        body: t("«Мне здесь снова хорошо. Хочу остаться».", "“Things are good again. I want to stay.”"),
         teamId: g.user,
         playerId: player.id,
       });
@@ -1619,12 +1630,12 @@ function updateListings(g: Game, team: Team, s: PlayerRequestState, t2: Tr) {
     const club = clubs[0];
     if (!club) continue;
     s.cooldowns[`listinq:${listing.playerId}`] = date;
-    pushEvent(g, {
+    pushL(g, {
       date,
       category: "trade",
       priority: "normal",
-      title: t2(`${club.id} интересуется ${player.name}`, `${club.id} call about ${player.name}`),
-      body: t2(
+      title: t(`${club.id} интересуется ${player.name}`, `${club.id} enquire about ${player.name}`),
+      body: t(
         `${club.city} ${club.name} знают, что ${player.name} просил обмен, и готовы говорить${listing.public ? " — но после публичного скандала рассчитывают на скидку" : ""}. Откройте центр обменов.`,
         `${club.city} ${club.name} know ${player.name} asked to be moved and want to talk${listing.public ? " — after the public demand they expect a discount" : ""}. Open the Trade Center.`,
       ),
