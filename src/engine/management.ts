@@ -19,6 +19,7 @@ import {
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
 import { textFor } from "./text";
+import { syncClubTenure } from "./leadership";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -274,6 +275,7 @@ export function ensureManagementState(g: Game) {
     });
   if (!g.events.length) seedOpeningEvents(g);
   ensureStrategyEvent(g);
+  syncClubTenure(g);
   return g;
 }
 
