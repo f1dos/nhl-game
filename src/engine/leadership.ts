@@ -816,10 +816,16 @@ function answerCaptaincyLetter(
     const captain = team.players.find((item) => item.id === team.captainId);
     if (captain && captain.id !== player.id)
       captain.relationship = clamp((captain.relationship ?? 50) - 3, 0, 100);
-    outcome = {
-      ru: `${player.name} оценил извинение. ${captain ? `${captain.name} узнал о разговоре и чувствует, что его авторитет подрывают.` : ""}`.trim(),
-      en: `${player.name} appreciates the apology. ${captain ? `${captain.name} heard about it and feels undermined.` : ""}`.trim(),
-    };
+    outcome =
+      captain && captain.id !== player.id
+        ? {
+            ru: `${player.name} оценил извинение. ${captain.name} узнал о разговоре и чувствует, что его авторитет подрывают.`,
+            en: `${player.name} appreciates the apology. ${captain.name} heard about it and feels undermined.`,
+          }
+        : {
+            ru: `${player.name} оценил извинение.`,
+            en: `${player.name} appreciates the apology.`,
+          };
   } else {
     morale = -5;
     relationship = -7;
