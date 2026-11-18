@@ -280,3 +280,163 @@
 .board-roster > button {
   cursor: grab;
 }
+.icetime-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 18px 0 8px;
+}
+.icetime-presets button {
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 6px;
+  padding: 14px 16px;
+}
+.icetime-presets b {
+  color: #b9e4fa;
+}
+.icetime-presets span {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #99adbd;
+}
+.icetime-presets button[aria-pressed="true"] {
+  background: #21445c;
+  border-color: #68b4dc;
+}
+.tactical-plan .icetime-custom {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #e0b56a;
+}
+.icetime-groups {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+.icetime-groups h3 {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #76bddf;
+}
+.icetime-unit,
+.icetime-option {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid #2c4050;
+  border-radius: 7px;
+  background: #15232f;
+}
+.icetime-unit-head,
+.icetime-option > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.icetime-unit output,
+.icetime-option output {
+  color: #83d0f2;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.icetime-unit input,
+.icetime-option input {
+  width: 100%;
+  margin: 10px 0;
+}
+.icetime-option select {
+  width: 100%;
+  margin: 10px 0;
+}
+.icetime-option small {
+  font-size: 12px;
+  color: #9aafbf;
+  line-height: 1.5;
+}
+.icetime-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.icetime-players button {
+  gap: 8px;
+  padding: 5px 9px;
+  font-size: 12px;
+  background: #101a23;
+  border-color: #2a3c4a;
+}
+.icetime-players small {
+  color: #83d0f2;
+  font-variant-numeric: tabular-nums;
+}
+.icetime-players button.overload {
+  border-color: #c4553f;
+}
+.icetime-players button.overload small {
+  color: #ff8f73;
+}
+.icetime-players button.tired {
+  border-color: #b48a3c;
+}
+.icetime-players button.tired small {
+  color: #e8bd6b;
+}
+.icetime-warnings {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #5a3229;
+  border-radius: 7px;
+  background: #24161380;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #d9c3bd;
+}
+.icetime-warnings li.overload b {
+  color: #ff8f73;
+}
+.icetime-warnings li.tired b {
+  color: #e8bd6b;
+}
+.icetime-table {
+  margin-top: 14px;
+}
+.icetime-table summary {
+  cursor: pointer;
+  padding: 8px 0;
+  color: #92aec3;
+}
+.icetime-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.icetime-table th,
+.icetime-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #22313d;
+  text-align: right;
+}
+.icetime-table th:first-child,
+.icetime-table td:first-child,
+.icetime-table th:nth-child(2),
+.icetime-table td:nth-child(2) {
+  text-align: left;
+}
+.icetime-table tr.overload td {
+  color: #ff8f73;
+}
+@media (max-width: 900px) {
+  .icetime-presets {
+    grid-template-columns: 1fr 1fr;
+  }
+  .icetime-groups {
+    grid-template-columns: 1fr;
+  }
+}
