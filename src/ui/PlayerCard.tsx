@@ -23,6 +23,7 @@ import { Crest, RatingBadge } from "./components";
 import { ClubLink, playerClub } from "./links";
 import { MedalChip, NationBadge } from "./InternationalCenter";
 import { TOURNAMENT_NAMES } from "../engine/tournaments";
+import { PlayerRequestsBox } from "./PlayerRequests";
 import { PotentialStars } from "./Potential";
 import {
   developmentAge,
@@ -919,6 +920,8 @@ export default function PlayerCard({
                 </p>
               )}
             </section>
+
+            {!external && <PlayerRequestsBox game={game} player={p} />}
 
             {/* ---------------- Conversation ---------------- */}
             <section className="pc-box pc-talks">

@@ -71,6 +71,8 @@ import LeagueCenter from "./LeagueCenter";
 import { AwardHistory, AwardRace } from "./MatchRatings";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
+import type { ConversationTopic } from "../engine/conversations";
+import { talkTopicFor, type PlayerRequest } from "../engine/playerRequests";
 import ClubCenter from "./ClubCenter";
 import PressCenter from "./PressCenter";
 import LeadershipCenter from "./LeadershipCenter";
@@ -289,6 +291,7 @@ export default function App() {
     [search, setSearch] = useState(""),
     [profile, setProfile] = useState<Player | null>(null),
     [conversation, setConversation] = useState<Player | null>(null),
+    [talkTopic, setTalkTopic] = useState<ConversationTopic>(),
     [saved, setSaved] = useState<Game[]>([]),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
@@ -343,6 +346,10 @@ export default function App() {
     setSearch("");
     setFilter("all");
     setInboxFocus(null);
+  };
+  const talkAbout = (player: Player, request: PlayerRequest) => {
+    setTalkTopic(talkTopicFor(request.type));
+    setConversation(player);
   };
   const play = () => {
     if (g?.managerEmployment?.status === "fired") {
@@ -807,7 +814,7 @@ export default function App() {
             </small>
           </span>
         </div>
-        <DailyHeadquarters game={g} edit={edit} go={go} onPlayer={setProfile} />
+        <DailyHeadquarters game={g} edit={edit} go={go} onPlayer={setProfile} onTalk={talkAbout} />
         <div className="metrics">
           <Metric
             label={tr("МЕСТО В КОНФЕРЕНЦИИ", "CONFERENCE POSITION")}
@@ -1478,6 +1485,7 @@ export default function App() {
         go={go}
         focus={inboxFocus}
         onDismissFocus={() => setInboxFocus(null)}
+        onTalk={talkAbout}
       />
     );
   else if (page === "history")
@@ -2086,7 +2094,11 @@ export default function App() {
           }
           game={g}
           edit={edit}
-          onClose={() => setConversation(null)}
+          initialTopic={talkTopic}
+          onClose={() => {
+            setConversation(null);
+            setTalkTopic(undefined);
+          }}
         />
       )}
       {busy && (

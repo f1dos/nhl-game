@@ -397,6 +397,8 @@ export interface ManagementEvent {
     | "international";
   responseDue?: string;
   requiresResponse?: boolean;
+  /** Bilingual copy of title/body (newer generators); UI prefers it. */
+  i18n?: { title: { ru: string; en: string }; body: { ru: string; en: string } };
   /** Message family for messages with special handling (reply options). */
   kind?: "captaincy-letter";
   /** Reply options shown in the inbox (career-language text). */
@@ -562,6 +564,8 @@ export interface Game {
   pressHistory?: PressAppearance[];
   events?: ManagementEvent[];
   inboxState?: InboxState;
+  /** Player requests, promises and trade-list requests (playerRequests.ts). */
+  playerRequests?: import("./playerRequests").PlayerRequestState;
   franchiseStrategy?: FranchiseStrategy;
   strategySeason?: number;
   leadershipSeason?: number;

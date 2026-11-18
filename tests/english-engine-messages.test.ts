@@ -38,7 +38,10 @@ function career(language: "en" | "ru", days = 70) {
 function generatedTexts(g: Game) {
   return [
     ...g.news,
-    ...g.events!.flatMap((event) => [event.title, event.body]),
+    // Events with a bilingual copy (event.i18n) are rendered from it.
+    ...g.events!.flatMap((event) =>
+      event.i18n ? [event.title] : [event.title, event.body],
+    ),
     ...(g.transactions ?? []).map((item) => item.message),
     ...(g.franchiseObjectives ?? []).flatMap((item) => [
       item.title,

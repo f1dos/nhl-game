@@ -19,6 +19,7 @@ import {
   ensureFranchiseWorld,
 } from "./franchiseWorld";
 import { generateInboxEvents, newImportantEvents } from "./inbox";
+import { processPlayerRequests } from "./playerRequests";
 import { textFor } from "./text";
 import { processPreseasonDay, seedPreseasonCamp } from "./preseason";
 import {
@@ -530,6 +531,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   aiContractDay(g);
   aiTradeDay(g);
   generateInboxEvents(g);
+  processPlayerRequests(g);
   g.calendar!.lastProcessedDate = date;
 }
 

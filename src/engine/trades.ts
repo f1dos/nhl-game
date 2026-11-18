@@ -101,8 +101,15 @@ export function evaluateTrade(
         tradeValue(p) * (t.record.pts > t.record.gp && p.ovr >= 80 ? 1.15 : 1),
       0,
     );
+  // Buyers know a player who asked out has to be moved: they pay less.
+  const listed = new Set(
+    (g.playerRequests?.listed ?? []).map((item) => item.playerId),
+  );
   const outgoingValue =
-    value(outgoing, b) + givePicks.reduce((sum, pick) => sum + pick.value, 0);
+    value(outgoing, b) -
+    outgoing
+      .filter((p) => listed.has(p.id))
+      .reduce((sum, p) => sum + tradeValue(p) * 0.1, 0) + givePicks.reduce((sum, pick) => sum + pick.value, 0);
   const incomingValue =
     value(incoming, b) + takePicks.reduce((sum, pick) => sum + pick.value, 0);
   const ratio = outgoingValue / Math.max(1, incomingValue);
