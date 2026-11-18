@@ -28,7 +28,11 @@ import {
   Newspaper,
   Target,
   X,
+  Dumbbell,
+  Globe,
 } from "lucide-react";
+import PreseasonCenter from "./PreseasonCenter";
+import InternationalCenter from "./InternationalCenter";
 import { useGame } from "../store";
 import {
   newGame,
@@ -224,6 +228,22 @@ const nav = [
     ru: "Матч-центр",
     en: "Match center",
     Icon: Activity,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "preseason",
+    ru: "Предсезонье",
+    en: "Preseason",
+    Icon: Dumbbell,
+    groupRu: "СОРЕВНОВАНИЯ",
+    groupEn: "COMPETITION",
+  },
+  {
+    key: "international",
+    ru: "Сборные",
+    en: "International",
+    Icon: Globe,
     groupRu: "СОРЕВНОВАНИЯ",
     groupEn: "COMPETITION",
   },
@@ -1036,6 +1056,10 @@ export default function App() {
       />
     );
   else if (page === "schedule") content = <DailyCalendar game={g} />;
+  else if (page === "preseason")
+    content = <PreseasonCenter game={g} edit={edit} />;
+  else if (page === "international")
+    content = <InternationalCenter game={g} />;
   else if (page === "strategy")
     content = <StrategyCenter game={g} edit={edit} />;
   else if (page === "leadership")
