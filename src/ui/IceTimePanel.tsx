@@ -169,7 +169,7 @@ export default function IceTimePanel({
           )}
         </div>
         <div>
-          <h3>{tr("Защитники", "Defence")}</h3>
+          <h3>{tr("Защитники", "Defense")}</h3>
           {team.defense.map((pair, i) =>
             unitRow("defense", i, pair, defenseShares[i]),
           )}
