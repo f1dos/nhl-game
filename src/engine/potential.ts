@@ -308,7 +308,22 @@ export function scoutedPotential(
   return { low: lo, high: hi, mid, stars: potentialStars(mid), exact: lo === hi };
 }
 
+/** Range from a draft scouting report (its estimate can still be off). */
+export function reportPotential(report: {
+  confidence: number;
+  estimatedPotential: number;
+}): ScoutedPotential {
+  const spread = Math.max(1, Math.ceil((100 - report.confidence) / 12));
+  const low = clamp(report.estimatedPotential - spread, 40, 99);
+  const high = clamp(report.estimatedPotential + spread, low, 99);
+  const mid = Math.round((low + high) / 2);
+  return { low, high, mid, stars: potentialStars(mid), exact: low === high };
+}
+
 export function scoutedPotentialFor(g: Game | undefined, player: Player) {
+  const report = g?.draft?.reports[player.id];
+  const prospect = g?.draft?.prospects.find((p) => p.player.id === player.id);
+  if (report && prospect && !prospect.draftedBy) return reportPotential(report);
   return scoutedPotential(player, potentialKnowledge(g, player), g?.user ?? "");
 }
 

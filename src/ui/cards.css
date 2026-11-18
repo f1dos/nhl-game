@@ -2201,3 +2201,37 @@ b.down {
     flex-wrap: nowrap;
   }
 }
+.pc-dial.pot.range b {
+  font-size: 24px;
+  margin-top: 14px;
+}
+.pc-dial.pot .pot-stars {
+  margin-top: -10px;
+}
+.pc-dial.pot .pot-stars i {
+  font-size: 9px;
+}
+.pc-pot-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 0 0 12px;
+  font-size: 12px;
+}
+.pc-pot-note b {
+  color: #e8d3a0;
+}
+.pc-pot-note span {
+  color: #c4ced8;
+}
+.pc-pot-note small {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 760px) {
+  .pc-dial.pot.range b {
+    font-size: 18px;
+  }
+}

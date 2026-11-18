@@ -4,6 +4,7 @@ import type { Team, Player } from "../engine/types";
 import { effectiveOverall } from "../engine/franchiseWorld";
 import { averageRating, ratingTone } from "../engine/matchRatings";
 import { ClubLink, playerClub, useEntityLinks } from "./links";
+import { PotentialCell, PotentialLegend, potentialSortValue } from "./Potential";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -104,6 +105,9 @@ export function PlayerTable({
     .sort((a, b) =>
       sort === "rating"
         ? b.ovr - a.ovr
+        : sort === "potential"
+          ? potentialSortValue(links?.game, b) -
+            potentialSortValue(links?.game, a)
         : sort === "points"
           ? b.stats.g + b.stats.a - a.stats.g - a.stats.a
           : sort === "form"
@@ -129,6 +133,7 @@ export function PlayerTable({
             {[
               ["default", ru ? "Исходный порядок" : "Default"],
               ["rating", "OVR ↓"],
+              ["potential", "POT ↓"],
               ["points", "PTS ↓"],
               ["form", ru ? "Оценка ↓" : "Av rating ↓"],
               ["age", ru ? "Возраст ↑" : "Age ↑"],
@@ -161,6 +166,9 @@ export function PlayerTable({
             <th>POS</th>
             <th>{ru ? "ВОЗР." : "AGE"}</th>
             <th>OVR</th>
+            <th title={ru ? "Потолок по оценке штаба" : "Staff estimate of ceiling"}>
+              POT
+            </th>
             <th>GP</th>
             <th>G</th>
             <th>A</th>
@@ -210,6 +218,9 @@ export function PlayerTable({
               <td>
                 <Rating value={effectiveOverall(p)} />
               </td>
+              <td>
+                <PotentialCell player={p} compact />
+              </td>
               <td>{p.stats.gp}</td>
               <td>{p.stats.g}</td>
               <td>{p.stats.a}</td>
@@ -242,6 +253,7 @@ export function PlayerTable({
           ))}
         </tbody>
       </table>
+      <PotentialLegend ru={ru} />
     </div>
   );
 }

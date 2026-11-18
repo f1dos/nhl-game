@@ -187,3 +187,64 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Potential: five stars + scouted range. */
+.pot-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pot-view b {
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: #dfe6ee;
+}
+.pot-view.compact {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+.pot-view.compact b {
+  font-size: 11px;
+  color: var(--muted);
+}
+.pot-stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+}
+.pot-stars i {
+  font-style: normal;
+  font-size: 11px;
+}
+.pot-stars.lg i {
+  font-size: 16px;
+}
+.pot-stars i::before {
+  content: "★";
+}
+.pot-stars i.full::before {
+  color: #f0c24b;
+}
+.pot-stars i.empty::before {
+  color: #3a434e;
+}
+.pot-stars i.half::before {
+  background: linear-gradient(90deg, #f0c24b 50%, #3a434e 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.pot-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.pot-legend .pot-stars {
+  flex: none;
+}
