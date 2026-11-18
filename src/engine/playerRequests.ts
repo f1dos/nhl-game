@@ -558,12 +558,13 @@ function composeLetter(
     voice.blunt && type !== "thanks" && hashText(`${seed}:bc`) % 2 === 0
       ? CLOSINGS.blunt
       : CLOSINGS[voice.persona];
+  const terse = type === "thanks" || context.reason === "public";
   const greet =
-    type === "thanks" || hashText(`${seed}:g`) % 4 === 3
+    terse || hashText(`${seed}:g`) % 4 === 3
       ? undefined
       : pickBy(greetPool, `${seed}:greet`);
   const close =
-    type === "thanks" || hashText(`${seed}:c`) % 3 === 2
+    terse || hashText(`${seed}:c`) % 3 === 2
       ? undefined
       : pickBy(closePool, `${seed}:close`);
   const body = core.text(c);
@@ -1222,7 +1223,7 @@ function collectCandidates(g: Game, team: Team, s: PlayerRequestState, gameDay: 
         const weakest = groupPlayers(team, group)
           .filter((other) => dressed(at(other.id, 1)))
           .sort((a, b) => a.ovr - b.ovr)[0];
-        if (weakest && player.ovr >= weakest.ovr - 2) {
+        if (weakest && player.ovr >= weakest.ovr - 1) {
           const young = player.age <= 21 && player.potential - player.ovr >= 8;
           out.push(young
             ? { type: "mentor", player, context: { group, devTime: true, nowUnit: 9 }, weight: 4 }
@@ -1363,8 +1364,12 @@ function collectCandidates(g: Game, team: Team, s: PlayerRequestState, gameDay: 
 function pickRequest(g: Game, team: Team, s: PlayerRequestState, candidates: Candidate[]) {
   const date = g.calendar!.date;
   const weekAgo = addDays(date, -7);
-  const today = s.requests.filter((item) => item.date === date).length;
-  if (today >= REQUESTS_PER_DAY) return;
+  // Complaints and thanks have separate daily slots.
+  const todayFor = (thanks: boolean) =>
+    s.requests.filter(
+      (item) => item.date === date && (item.type === "thanks") === thanks,
+    ).length;
+  let sent: PlayerRequest | undefined;
   const thisWeek = s.requests.filter((item) => item.date > weekAgo && item.type !== "thanks").length;
   // Respect the general inbox: no letter on a day with two important messages.
   const busy = (g.events ?? []).filter(
@@ -1380,13 +1385,14 @@ function pickRequest(g: Game, team: Team, s: PlayerRequestState, candidates: Can
   for (const candidate of sorted) {
     const { type, player } = candidate;
     const important = type !== "thanks";
+    if (todayFor(!important) >= REQUESTS_PER_DAY) continue;
     if (important && busy >= 2 && !candidate.escalation) continue;
     if (!candidate.escalation) {
       if (important && thisWeek >= REQUESTS_PER_WEEK) continue;
       if (hasOpenIssue(s, player.id)) continue;
       if (!ready(s, `player:${player.id}`, type === "thanks" ? 14 : PLAYER_COOLDOWN, date)) continue;
       if (!ready(s, `type:${type}`, type === "thanks" ? 10 : TYPE_COOLDOWN, date)) continue;
-      if (!ready(s, `${type}:${player.id}`, type === "contract" ? 60 : type === "thanks" ? 60 : 45, date)) continue;
+      if (!ready(s, `${type}:${player.id}`, ["contract", "thanks", "scratched", "mentor"].includes(type) ? 60 : 45, date)) continue;
     } else if (s.requests.some((item) => item.playerId === player.id && item.status === "open")) continue;
     // Do not double up with the assistant's own messages about the same thing.
     if (type === "ice-time" && !inboxReady(`icetime:${player.id}`, 21)) continue;
@@ -1397,9 +1403,9 @@ function pickRequest(g: Game, team: Team, s: PlayerRequestState, candidates: Can
       if (type === "ice-time") g.inboxState.cooldowns[`icetime:${player.id}`] = date;
       if (type === "contract") g.inboxState.cooldowns[`contract:${player.id}`] = date;
     }
-    return request;
+    sent ??= request;
   }
-  return undefined;
+  return sent;
 }
 
 function resolvePromise(g: Game, promise: PlayerPromise, status: "kept" | "broken" | "void", t2: Tr) {
@@ -1438,7 +1444,18 @@ function resolvePromise(g: Game, promise: PlayerPromise, status: "kept" | "broke
   // Broken.
   if (!player) return;
   applyDelta(player, { morale: -15, relationship: -20, motivation: -8 });
-  const goPublic = promise.kind === "trade" || (player.relationship ?? 50) < 35;
+  const alreadyPublic =
+    !!listingFor(g, player.id)?.public ||
+    s.requests.some(
+      (item) =>
+        item.playerId === player.id &&
+        item.type === "trade" &&
+        item.context.reason === "public" &&
+        item.season === g.year,
+    );
+  const goPublic =
+    !alreadyPublic &&
+    (promise.kind === "trade" || (player.relationship ?? 50) < 25);
   const words = pickBy(
     [
       t(`Вы обещали: ${label.ru}. Ничего не произошло. Больше я на слово не верю.`, `You promised ${label.en}. It never happened. I won't take your word again.`),
