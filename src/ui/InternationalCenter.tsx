@@ -15,6 +15,7 @@ import {
 } from "../engine/tournaments";
 import { Panel } from "./components";
 import { PlayerLink } from "./links";
+import Select from "./Select";
 
 const fmtDate = (date: string, ru: boolean) =>
   new Date(`${date}T00:00:00Z`).toLocaleDateString(ru ? "ru-RU" : "en-GB", {
@@ -256,7 +257,7 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
               <Panel
                 title={tr("СОСТАВ СБОРНОЙ", "NATIONAL TEAM ROSTER")}
                 extra={
-                  <select
+                  <Select
                     value={selected.code}
                     onChange={(event) => setNation(event.target.value)}
                     aria-label={tr("Сборная", "Nation")}
@@ -266,7 +267,7 @@ function TournamentView({ game, t }: { game: Game; t: InternationalTournament })
                         {nationName(team.code, ru)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 }
               >
                 <div className="table-scroll">

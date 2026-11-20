@@ -8,6 +8,7 @@ import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
+import Select from "./Select";
 export { CAMERA_MODES, type CameraMode };
 
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
@@ -502,9 +503,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
   const ru = language === "ru";
   return <div className="match-arena">
     {!cameraProp && <div style={{ display: "flex", gap: 8, padding: 12 }}>
-      <label>{ru ? "Камера" : "Camera"} <select value={cameraMode} onChange={e => { const v = e.target.value as CameraMode; setOwnCamera(v); onCamera?.(v); }}>
+      <label>{ru ? "Камера" : "Camera"} <Select value={cameraMode} onChange={e => { const v = e.target.value as CameraMode; setOwnCamera(v); onCamera?.(v); }}>
         {CAMERA_MODES.map(c => <option key={c.value} value={c.value}>{ru ? c.ru : c.en}</option>)}
-      </select></label>
+      </Select></label>
       <span style={{ marginLeft: "auto", color: "#8aa7bd" }}>3D · {home.id} / {away.id}</span>
     </div>}
     <div ref={host} style={{ position: "relative", overflow: "hidden", height: height ?? "clamp(320px, 45vw, 580px)", width: "100%" }} role="img" aria-label={ru ? "Трёхмерная хоккейная площадка" : "3D hockey rink"}>

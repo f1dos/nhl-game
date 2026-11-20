@@ -17,6 +17,7 @@ import { advanceDay } from "../engine/management";
 import { Crest } from "./components";
 import TacticalCenter from "./TacticalCenter";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
+import Select from "./Select";
 const Arena = lazy(() => import("./MatchArena3D"));
 
 type Drawer = "lines" | "bench" | "stats" | "events" | null;
@@ -426,11 +427,11 @@ export default function SpatialMatchCenter({
               <div className="bw-bench">
                 <label>
                   {tr("Форчек", "Forecheck")}
-                  <select value={managed.tactics.forecheck} onChange={(e) => update(() => { managed.tactics.forecheck = e.target.value as typeof managed.tactics.forecheck; })}>
+                  <Select value={managed.tactics.forecheck} onChange={(e) => update(() => { managed.tactics.forecheck = e.target.value as typeof managed.tactics.forecheck; })}>
                     {["1-2-2", "2-1-2", "1-3-1"].map((v) => (
                       <option key={v}>{v}</option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 {(["pace", "shooting", "physical"] as const).map((key) => (
                   <label key={key}>
@@ -441,7 +442,7 @@ export default function SpatialMatchCenter({
                 ))}
                 <label>
                   {tr("Вратарь", "Goalie")}
-                  <select value={managed.goalie} onChange={(e) => update(() => { managed.goalie = e.target.value; })}>
+                  <Select value={managed.goalie} onChange={(e) => update(() => { managed.goalie = e.target.value; })}>
                     {managed.players
                       .filter((p) => p.pos === "G" && !p.injury)
                       .map((p) => (
@@ -449,7 +450,7 @@ export default function SpatialMatchCenter({
                           {p.name}
                         </option>
                       ))}
-                  </select>
+                  </Select>
                 </label>
                 <button className={match.pullGoalie[side] ? "primary" : ""} onClick={() => update(() => { match.pullGoalie[side] = !match.pullGoalie[side]; })}>
                   {match.pullGoalie[side] ? tr("Вернуть вратаря", "Put the goalie back") : tr("Снять вратаря (6×5)", "Pull the goalie (6-on-5)")}

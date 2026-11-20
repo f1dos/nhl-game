@@ -6,6 +6,7 @@ import { averageRating, ratingTone } from "../engine/matchRatings";
 import { ClubLink, playerClub, useEntityLinks } from "./links";
 import { RequestBadge } from "./PlayerRequests";
 import { PotentialCell, PotentialLegend, potentialSortValue } from "./Potential";
+import Select from "./Select";
 export function Crest({ team, size = 44 }: { team: Team; size?: number }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const official = Boolean(team.logoUrl && !logoFailed);
@@ -126,7 +127,7 @@ export function PlayerTable({
       <div className="roster-tools">
         <label>
           {ru ? "Сортировка" : "Sort"}{" "}
-          <select
+          <Select
             aria-label="Player sort"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -145,7 +146,7 @@ export function PlayerTable({
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label>
           <input

@@ -10,6 +10,7 @@ import {
 import { Panel } from "./components";
 import InternationalMarket from "./InternationalMarket";
 import { ClubLink, PlayerLink } from "./links";
+import Select from "./Select";
 
 export default function ContractCenter({
   game,
@@ -105,7 +106,7 @@ export default function ContractCenter({
         <div className="free-agent-form">
           <label>
             <span>{ru ? "ХОККЕИСТ" : "PLAYER"}</span>
-            <select aria-label="Contract player" value={selected} onChange={(e) => {
+            <Select aria-label="Contract player" value={selected} onChange={(e) => {
               const p = market.find(p=>p.id===e.target.value);
               if (p) choose(p); else setSelected("");
             }}>
@@ -118,7 +119,7 @@ export default function ContractCenter({
                 {(game.freeAgents ?? []).map(p=>
                   <option key={p.id} value={p.id}>{p.name} · {p.pos} · {p.ovr} OVR</option>)}
               </optgroup>
-            </select>
+            </Select>
           </label>
           <label>
             <span>{ru ? "ЛЕТ" : "YEARS"}</span>
@@ -132,10 +133,10 @@ export default function ContractCenter({
           </label>
           {!renewing && <label>
             <span>{ru ? "ОБЕЩАННАЯ РОЛЬ" : "PROMISED ROLE"}</span>
-            <select aria-label="Promised player role" value={role}
+            <Select aria-label="Promised player role" value={role}
               onChange={e=>setRole(e.target.value as PromisedRole)}>
               {OFFER_ROLES.map(key=><option key={key} value={key}>{key.toUpperCase()}</option>)}
-            </select>
+            </Select>
           </label>}
         </div>
         {player && <div className="free-agent-expectations">

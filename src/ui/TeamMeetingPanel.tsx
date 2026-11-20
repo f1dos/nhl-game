@@ -26,6 +26,7 @@ import {
 } from "../engine/teamMeetings";
 import type { L } from "../engine/dialogueText";
 import { PlayerLink } from "./links";
+import Select from "./Select";
 
 type Edit = (fn: (game: Game) => void) => void;
 
@@ -207,7 +208,7 @@ export default function TeamMeetingPanel({
         {topic === "back-player" && (
           <label className="meeting-target">
             {tr("Кого поддержать", "Who to back")}
-            <select value={target} onChange={(e) => setTarget(e.target.value)}>
+            <Select value={target} onChange={(e) => setTarget(e.target.value)}>
               <option value="">—</option>
               {ctx.struggling.length > 0 && (
                 <optgroup label={tr("В спаде", "Struggling")}>
@@ -235,7 +236,7 @@ export default function TeamMeetingPanel({
                     </option>
                   ))}
               </optgroup>
-            </select>
+            </Select>
           </label>
         )}
         {selectedFit && (

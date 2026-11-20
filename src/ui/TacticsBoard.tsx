@@ -7,6 +7,7 @@ import {
   SPECIAL_TEAM_STYLES,
   setSpecialTeamPlayer,
 } from "../engine/tactics";
+import Select from "./Select";
 const styleNames: Record<string, string> = {
   umbrella: "Зонт",
   overload: "Перегруз фланга",
@@ -130,7 +131,7 @@ export default function TacticsBoard({
           <small>ТРЕНЕРСКАЯ ДОСКА</small>
           <h2>Сочетания на льду</h2>
         </div>
-        <select
+        <Select
           aria-label="Формат игры"
           value={situation}
           onChange={(e) => {
@@ -144,7 +145,7 @@ export default function TacticsBoard({
               {label}
             </option>
           ))}
-        </select>
+        </Select>
       </header>
       {!unit && (
         <div className="board-unit-tabs">
@@ -179,7 +180,7 @@ export default function TacticsBoard({
       {unit && (
         <label>
           Схема спецбригады{" "}
-          <select
+          <Select
             value={unit.style}
             onChange={(e) =>
               change((t) => {
@@ -196,7 +197,7 @@ export default function TacticsBoard({
                 </option>
               ),
             )}
-          </select>
+          </Select>
         </label>
       )}
       <div className="board-workspace">

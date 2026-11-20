@@ -23,6 +23,7 @@ import { Crest, Rating, RatingBadge } from "./components";
 import { PotentialCell, potentialSortValue } from "./Potential";
 import { ClubLink, PlayerLink } from "./links";
 import { PlayerPortrait } from "./PlayerCard";
+import TeamPicker from "./TeamPicker";
 
 const STRATEGY: Record<FranchiseStrategy, [string, string]> = {
   "draft-lottery": ["Перестройка через драфт", "Rebuild through the draft"],
@@ -135,19 +136,16 @@ export default function ClubCenter({
             )}
           </p>
         </div>
-        <select
-          aria-label={tr("Выбор клуба", "Select club")}
+        <TeamPicker
+          ru={tr("ru", "en") === "ru"}
+          teams={game.teams}
           value={team.id}
-          onChange={(event) => select(event.target.value)}
-        >
-          {[...game.teams]
-            .sort((a, b) => a.city.localeCompare(b.city))
-            .map((club) => (
-              <option key={club.id} value={club.id}>
-                {club.city} {club.name}
-              </option>
-            ))}
-        </select>
+          onChange={select}
+          label={tr("КЛУБ", "CLUB")}
+          extra={(club) =>
+            `${club.record.w}-${club.record.l}-${club.record.otl}${club.id === game.user ? ` · ${tr("ваш клуб", "your club")}` : ""}`
+          }
+        />
       </div>
       <nav className="cc-crest-strip" aria-label={tr("Клубы лиги", "League clubs")}>
         {[...game.teams]

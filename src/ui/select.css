@@ -1,0 +1,188 @@
+/* ==========================================================================
+   Game-styled dropdown (Select.tsx). The native <select> stays in the DOM,
+   visually hidden, for keyboard and screen readers.
+   ========================================================================== */
+.ui-select {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.ui-select .ui-select-native {
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.ui-select-native:focus-visible + .ui-select-trigger {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.ui-select .ui-select-trigger {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px 8px 12px;
+  font-size: 12px;
+  text-align: left;
+  color: #e6eef5;
+  background: linear-gradient(180deg, #152230, #101a24);
+  border: 1px solid #2d4152;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 #ffffff08;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.ui-select .ui-select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-select .ui-select-trigger svg {
+  flex: none;
+  color: #7fa9c1;
+  transition: transform 0.2s;
+}
+.ui-select .ui-select-trigger:hover {
+  background: linear-gradient(180deg, #19293a, #122030);
+  border-color: #48a9df;
+}
+.ui-select.open .ui-select-trigger {
+  border-color: #48a9df;
+  box-shadow: 0 0 0 3px #48a9df26;
+}
+.ui-select.open .ui-select-trigger svg {
+  transform: rotate(180deg);
+}
+.ui-select.disabled {
+  opacity: 0.5;
+}
+.ui-select-pop {
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  padding: 5px;
+  overflow: auto;
+  background: #0d151d;
+  border: 1px solid #2f4659;
+  border-radius: 6px;
+  box-shadow: 0 22px 60px #000c, 0 0 0 1px #00000040;
+  animation: ui-select-in 0.14s ease-out;
+}
+.ui-select-pop.up {
+  animation-name: ui-select-in-up;
+}
+@keyframes ui-select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes ui-select-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.ui-select-pop > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+  color: #d3dee8;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 3px;
+}
+.ui-select-pop > button:hover:not(:disabled) {
+  background: #17293a;
+  color: #fff;
+  border-left-color: #48a9df;
+}
+.ui-select-pop > button.selected {
+  background: #183449;
+  color: #fff;
+  border-left-color: #48a9df;
+}
+.ui-select-pop > button svg {
+  color: #5fc0f2;
+}
+.ui-select-group {
+  padding: 8px 10px 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6f8a9f;
+}
+
+/* Places where the old dropdown filled its cell. */
+:is(
+    .free-agent-form,
+    .line-player,
+    .live-line-editor,
+    .live-tactics label,
+    .live-special-teams,
+    .matchday-units,
+    .special-teams-editor,
+    .matchday-tactics label,
+    .training-week,
+    .international-offer,
+    .leadership-panel,
+    .icetime-option,
+    .tactic-controls label,
+    .bw-bench
+  )
+  .ui-select {
+  display: flex;
+  width: 100%;
+}
+.scout-league-filters .ui-select,
+.draft-filters .ui-select {
+  min-width: 140px;
+}
+.line-player .ui-select-trigger,
+.live-line-editor .ui-select-trigger,
+.matchday-units .ui-select-trigger {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+/* Tactics board: the rink card is the visible control. */
+.tc-slot .ui-select {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+}
+.tc-slot .ui-select-trigger {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Top bar continue mode. */
+.top-actions .ui-select.continue-select {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.top-actions .ui-select.continue-select .ui-select-trigger {
+  min-width: 118px;
+}

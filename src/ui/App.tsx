@@ -101,6 +101,7 @@ import {
   unreadImportantCount,
   type ContinueMode,
 } from "../engine/management";
+import Select from "./Select";
 const nav = [
   {
     key: "overview",
@@ -505,7 +506,7 @@ export default function App() {
         <div className="start-top">
           <Brand />
           <SoundControls ru={language === "ru"} />
-          <select
+          <Select
             aria-label="Language"
             value={language}
             onChange={(e) => setLanguage(e.target.value as Locale)}
@@ -515,7 +516,7 @@ export default function App() {
                 {LOCALE_NAMES[locale]}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="start-heading">
           <div>
@@ -1648,7 +1649,7 @@ export default function App() {
               <Plus size={17} />
               {tr("Новая карьера", "New career")}
             </button>
-            <select
+            <Select
               aria-label="Language"
               value={g.language}
               onChange={(e) =>
@@ -1662,7 +1663,7 @@ export default function App() {
                   {LOCALE_NAMES[locale]}
                 </option>
               ))}
-            </select>
+            </Select>
             {(!g.dataSource || g.dataSource.kind === "fictional") && (
               <button
                 onClick={() => {
@@ -1950,7 +1951,7 @@ export default function App() {
               <Save size={18} />
             </button>
             {g.phase !== "offseason" && (
-              <select
+              <Select
                 className="continue-select"
                 aria-label={tr("Режим продолжения", "Continue mode")}
                 value={continueMode}
@@ -1966,7 +1967,7 @@ export default function App() {
                   {tr("До события", "To next event")}
                 </option>
                 <option value="week">{tr("7 дней", "7 days")}</option>
-              </select>
+              </Select>
             )}
             {g.phase === "offseason" &&
               (g.freeAgentOffers ?? []).some(
@@ -2297,7 +2298,7 @@ function TacticsView({
           </button>
           <Rating value={effectiveOverall(p)} />
         </div>
-        <select
+        <Select
           aria-label={`${group} lineup`}
           value={p.id}
           onChange={(e) => replace(id, e.target.value)}
@@ -2311,7 +2312,7 @@ function TacticsView({
                 {x.name}
               </option>
             ))}
-        </select>
+        </Select>
         <small>
           {tr("Готовность", "Condition")} {Math.round(100 - p.fatigue)}%{" "}
           {p.injury ? " · ✚" : ""}
@@ -2385,7 +2386,7 @@ function TacticsView({
             <div className="tactic-controls">
               <label>
                 FORECHECK
-                <select
+                <Select
                   value={team.tactics.forecheck}
                   onChange={(e) =>
                     edit((g) => {
@@ -2397,7 +2398,7 @@ function TacticsView({
                   <option>1-2-2</option>
                   <option>2-1-2</option>
                   <option>1-3-1</option>
-                </select>
+                </Select>
               </label>
               {(["pace", "physical", "shooting"] as const).map((key, i) => (
                 <label key={key}>

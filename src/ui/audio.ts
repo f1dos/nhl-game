@@ -26,18 +26,24 @@ function loadPrefs(): Prefs {
 
 const midi = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
 
-// I–vi–IV–V style progression voiced as soft seventh chords (MIDI notes).
+// Warm, lounge-style progression in D major (bass + four voices, MIDI).
 const PROGRESSION = [
-  [48, 55, 59, 64, 67], // Cmaj7
-  [45, 52, 55, 60, 64], // Am7
-  [41, 48, 52, 57, 64], // Fmaj7
-  [43, 50, 55, 59, 62], // G6
-  [45, 52, 57, 60, 64], // Am
-  [40, 47, 52, 55, 59], // Em7
-  [41, 48, 53, 57, 60], // F
-  [43, 50, 53, 59, 62], // G7
+  [38, 57, 61, 64, 66], // Dmaj9
+  [35, 54, 57, 61, 62], // Bm9
+  [31, 54, 57, 59, 62], // Gmaj7/9
+  [33, 52, 55, 59, 61], // A6sus
+  [40, 55, 59, 62, 66], // Em9
+  [42, 57, 61, 64, 66], // F#m7
+  [31, 54, 59, 62, 64], // Gmaj6/9
+  [33, 55, 57, 61, 64], // A7sus
 ];
-const MELODY_SCALE = [72, 74, 76, 79, 81, 84, 86, 88];
+// A slow melody that answers itself every two bars (D major pentatonic).
+const MOTIFS = [
+  [[0, 78], [1.5, 76], [2.5, 73]],
+  [[0.5, 71], [2, 73]],
+  [[0, 74], [1, 76], [2.5, 78]],
+  [[1, 81], [2, 78]],
+];
 
 class GameAudio {
   private ctx?: AudioContext;
@@ -187,7 +193,7 @@ class GameAudio {
   private startMusic() {
     const ctx = this.ctx!;
     this.nextBar = ctx.currentTime + 0.2;
-    const barLength = 60 / 66 * 4; // 66 bpm, 4/4
+    const barLength = (60 / 60) * 4; // 60 bpm, 4/4
     this.musicTimer = window.setInterval(() => {
       while (this.nextBar < ctx.currentTime + 1.2) {
         this.playBar(this.nextBar, barLength);
@@ -198,22 +204,75 @@ class GameAudio {
   }
 
   private playBar(t: number, length: number) {
-    const chord = PROGRESSION[this.musicStep % PROGRESSION.length];
-    // Pad: two slightly detuned voices per note with a slow swell.
+    const step = this.musicStep;
+    const chord = PROGRESSION[step % PROGRESSION.length];
+    const beat = length / 4;
+    // Electric piano: the chord on 1, a softer, slightly late echo on the "and" of 2.
     chord.slice(1).forEach((note, i) => {
-      for (const detune of [-6, 7]) this.pad(midi(note), t, length * 1.05, 0.032 - i * 0.003, detune);
+      this.epiano(midi(note), t + i * 0.018, 0.034, beat * 2.6);
+      this.epiano(midi(note), t + beat * 1.5 + 0.03 + i * 0.012, 0.016, beat * 2);
     });
-    this.pad(midi(chord[0] - 12), t, length, 0.05, 0, "sine");
-    // Soft piano on the chord tones, gently broken.
-    const broken = this.musicStep % 2 === 0 ? [1, 2, 3, 4] : [2, 3, 4, 3];
-    broken.forEach((idx, i) => this.pluck(midi(chord[idx]), t + i * (length / 4) + 0.02, 0.05));
-    // Sparse melody: a few notes per bar, deterministic per step.
-    const seed = (this.musicStep * 7919) % 97;
-    for (let i = 0; i < 3; i++) {
-      if ((seed + i * 13) % 5 > 1) continue;
-      const note = MELODY_SCALE[(seed + i * 3) % MELODY_SCALE.length];
-      this.pluck(midi(note), t + (i + 0.5) * (length / 3), 0.028, 2.4);
+    // Round, quiet bass: root on 1, fifth on 3.
+    this.bass(midi(chord[0]), t, beat * 1.8);
+    this.bass(midi(chord[0] + 7), t + beat * 2, beat * 1.6, 0.6);
+    // A faint warm pad underneath for depth.
+    this.pad(midi(chord[2]), t, length, 0.012, 0, "sine");
+    // Melody every other phrase so the room can breathe.
+    if (Math.floor(step / 4) % 2 === 1)
+      for (const [at, note] of MOTIFS[step % MOTIFS.length]) this.pluck(midi(note), t + at * beat, 0.024, 2.8);
+  }
+
+  /** Rhodes-like voice: sine body with a bell-ish attack and slow tremolo. */
+  private epiano(freq: number, t: number, level: number, decay: number) {
+    const ctx = this.ctx!;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0, t);
+    out.gain.linearRampToValueAtTime(level, t + 0.012);
+    out.gain.exponentialRampToValueAtTime(level * 0.35, t + 0.5);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    // Tremolo as its own stage, so it scales with the note and dies with it.
+    const tremStage = ctx.createGain();
+    tremStage.gain.value = 1;
+    const trem = ctx.createOscillator();
+    trem.frequency.value = 4.2;
+    const tremDepth = ctx.createGain();
+    tremDepth.gain.value = 0.16;
+    trem.connect(tremDepth).connect(tremStage.gain);
+    const body = ctx.createOscillator();
+    body.type = "sine";
+    body.frequency.value = freq;
+    // FM tine for the characteristic bell on the attack.
+    const mod = ctx.createOscillator();
+    mod.frequency.value = freq * 14;
+    const modGain = ctx.createGain();
+    modGain.gain.setValueAtTime(freq * 0.9, t);
+    modGain.gain.exponentialRampToValueAtTime(1, t + 0.25);
+    mod.connect(modGain).connect(body.frequency);
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 2200;
+    body.connect(lp).connect(tremStage).connect(out).connect(this.musicBus!);
+    for (const osc of [body, mod, trem]) {
+      osc.start(t);
+      osc.stop(t + decay + 0.05);
     }
+  }
+
+  private bass(freq: number, t: number, length: number, level = 1) {
+    const ctx = this.ctx!;
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 320;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.09 * level, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + length);
+    osc.connect(lp).connect(g).connect(this.musicBus!);
+    osc.start(t);
+    osc.stop(t + length + 0.05);
   }
 
   private pad(freq: number, t: number, length: number, level: number, detune = 0, type: OscillatorType = "triangle") {

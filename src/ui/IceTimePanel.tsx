@@ -10,6 +10,7 @@ import {
   setDoubleShift,
   setIceTimeWeight,
 } from "../engine/iceTime";
+import Select from "./Select";
 
 const PRESETS = ["balanced", "top", "roll", "short"] as const;
 
@@ -203,7 +204,7 @@ export default function IceTimePanel({
             <div>
               <b>{tr("Двойная смена", "Double-shift")}</b>
             </div>
-            <select
+            <Select
               aria-label={tr("Двойная смена", "Double-shift")}
               value={plan.doubleShift ?? ""}
               onChange={(e) =>
@@ -216,7 +217,7 @@ export default function IceTimePanel({
                   {p.name} · {p.pos} · {p.ovr}
                 </option>
               ))}
-            </select>
+            </Select>
             <small>
               {tr(
                 "Игрок выходит и со своим звеном, и вместо партнёра по позиции в четвёртом.",
