@@ -1,6 +1,12 @@
 import type { Team, TrainingSchedule, TrainingSession } from "./types";
 import { overall } from "./ratings";
 import { developmentAge, enforcePotentialFloor } from "./potential";
+import {
+  coachBoost,
+  conditioningRelief,
+  doctorExtraHeal,
+  physioRecovery,
+} from "./staff";
 export type TrainingPlan = "balanced" | "recovery" | "shooting" | "defense";
 
 export const balancedWeek: TrainingSchedule = {
@@ -69,9 +75,17 @@ export function trainTeam(team: Team) {
   const sessions = [day.morning, day.afternoon];
   const intensityAdjustment =
     schedule.intensity === "low" ? 4 : schedule.intensity === "high" ? -4 : 0;
+  const relief = sessions.includes("conditioning") ? conditioningRelief(team) : 0;
   const recovery =
     sessions.reduce((sum, session) => sum + recoveryValue[session], 0) +
-    intensityAdjustment;
+    intensityAdjustment +
+    (team.staff ? physioRecovery(team) + relief : 0);
+  const extraHeal = !!team.staff && doctorExtraHeal(team, team.trainingTicks);
+  const boosts = sessions.map((session) =>
+    team.staff ? coachBoost(team, session) : { extraKeys: 0, extraGain: 0 },
+  );
+  const extraKeys = Math.max(...boosts.map((b) => b.extraKeys));
+  const extraGain = Math.max(...boosts.map((b) => b.extraGain));
   const lineup = new Set([
     ...team.lines.flat(),
     ...team.defense.flat(),
@@ -81,7 +95,7 @@ export function trainTeam(team: Team) {
   for (const player of team.players) {
     player.fatigue = Math.max(0, Math.min(100, player.fatigue - recovery));
     const unavailable = player.injury > 0;
-    player.injury = Math.max(0, player.injury - 1);
+    player.injury = Math.max(0, player.injury - (extraHeal ? 2 : 1));
     if (unavailable && player.injury === 0) {
       player.injuryStatus = undefined;
       player.injuryReason = undefined;
@@ -116,8 +130,10 @@ export function trainTeam(team: Team) {
               !["reflexes", "goaliePosition", "reboundControl"].includes(key),
           );
     const gain =
-      schedule.intensity === "high" && (player.motivation ?? 50) >= 70 ? 2 : 1;
-    for (const key of [...new Set(keys)].slice(0, 3))
+      (schedule.intensity === "high" && (player.motivation ?? 50) >= 70
+        ? 2
+        : 1) + extraGain;
+    for (const key of [...new Set(keys)].slice(0, 3 + extraKeys))
       player.attributes[key] = Math.min(99, player.attributes[key] + gain);
     player.ovr = overall(player.pos, player.attributes, player.archetype);
     enforcePotentialFloor(player);

@@ -4,6 +4,7 @@ import { Panel, Rating } from "./components";
 import { normalizeExternalRating } from "../engine/franchiseWorld";
 import { formatPotential, scoutedPotential } from "../engine/potential";
 import { PotentialLegend, PotentialView } from "./Potential";
+import { flagOf, normalizeNation } from "../engine/names";
 import {
   SCOUT_LEAGUE_PLAYERS,
   SCOUT_LEAGUE_META,
@@ -18,6 +19,13 @@ const leagueCountry: Record<ScoutLeague, string> = {
   USHL: "USA",
   SHL: "Sweden",
   Liiga: "Finland",
+};
+const leagueMeta: Record<ScoutLeague, { flag: string; ru: string; en: string; nation: string }> = {
+  OHL: { flag: "🇨🇦", ru: "Хоккейная лига Онтарио", en: "Ontario Hockey League", nation: "CAN" },
+  WHL: { flag: "🇨🇦", ru: "Западная хоккейная лига", en: "Western Hockey League", nation: "CAN" },
+  USHL: { flag: "🇺🇸", ru: "Хоккейная лига США", en: "United States Hockey League", nation: "USA" },
+  SHL: { flag: "🇸🇪", ru: "Шведская хоккейная лига", en: "Swedish Hockey League", nation: "SWE" },
+  Liiga: { flag: "🇫🇮", ru: "Финская Liiga", en: "Finnish Liiga", nation: "FIN" },
 };
 type ViewPlayer = ScoutEntry & { gamePlayer?: Player };
 /** Outside players are only lightly scouted: wide ranges for teenagers. */
@@ -51,6 +59,8 @@ export default function LeagueCenter({
   const draftNames = new Set(
     (game.draft?.prospects ?? []).map((p) => normalize(p.player.name)),
   );
+  // Feeds without citizenship ("INT", "—") stay unknown instead of guessed.
+  const nationOf = (p: ViewPlayer) => normalizeNation(p.nation, "—");
   const entries: ViewPlayer[] = useMemo(
     () =>
       (league === "OHL"
@@ -138,7 +148,7 @@ export default function LeagueCenter({
               key={key}
               role="tab"
               aria-selected={league === key}
-              className={league === key ? "active" : ""}
+              className={`league-${key.toLowerCase()} ${league === key ? "active" : ""}`}
               onClick={() => {
                 setLeague(key);
                 setTeam("ALL");
@@ -147,6 +157,9 @@ export default function LeagueCenter({
                 setSelected(null);
               }}
             >
+              <span className="league-flag" aria-hidden>
+                {leagueMeta[key].flag}
+              </span>
               <strong>{key}</strong>
               <small>
                 {count.toLocaleString()} {ru ? "игроков" : "players"}
@@ -158,8 +171,12 @@ export default function LeagueCenter({
       <div className="scout-league-summary">
         <div>
           <small>{ru ? "ЛИГА" : "LEAGUE"}</small>
-          <b>{league}</b>
-          <span>{leagueCountry[league]}</span>
+          <b>
+            {leagueMeta[league].flag} {league}
+          </b>
+          <span>
+            {ru ? leagueMeta[league].ru : leagueMeta[league].en} · {leagueCountry[league]}
+          </span>
         </div>
         <div>
           <small>{ru ? "ИГРОКИ" : "PLAYERS"}</small>
@@ -168,6 +185,11 @@ export default function LeagueCenter({
         <div>
           <small>{ru ? "КЛУБЫ" : "CLUBS"}</small>
           <b>{clubs.length}</b>
+        </div>
+        <div>
+          <small>{ru ? "В ДРАФТ-КЛАССЕ" : "IN DRAFT CLASS"}</small>
+          <b>{entries.filter((p) => draftNames.has(normalize(p.name))).length}</b>
+          <span>{ru ? "игроков на драфт" : "draft prospects"}</span>
         </div>
         <div>
           <small>{ru ? "СЕЗОН / ИСТОЧНИК" : "SEASON / SOURCE"}</small>
@@ -234,6 +256,7 @@ export default function LeagueCenter({
                   <th>{ru ? "КЛУБ" : "CLUB"}</th>
                   <th>POS</th>
                   <th>{ru ? "ВОЗРАСТ" : "AGE"}</th>
+                  <th>{ru ? "СТАТИСТИКА" : "STATS"}</th>
                   <th>OVR*</th>
                   <th>POT*</th>
                   <th>{ru ? "ДАННЫЕ" : "DATA"}</th>
@@ -241,7 +264,7 @@ export default function LeagueCenter({
               </thead>
               <tbody>
                 {filtered.slice(0, 650).map((p) => (
-                  <tr key={p.id}>
+                  <tr key={p.id} className={draftNames.has(normalize(p.name)) ? "draft-row" : ""}>
                     <td className="muted">{p.number || "—"}</td>
                     <td>
                       <button
@@ -250,18 +273,37 @@ export default function LeagueCenter({
                           p.gamePlayer ? onPlayer(p.gamePlayer) : setSelected(p)
                         }
                       >
-                        <strong>{p.name}</strong>
-                        <small>
-                          {p.nation}
-                          {draftNames.has(normalize(p.name)) ? " · DRAFT" : ""}
-                        </small>
+                        <span className="scout-flag" aria-hidden>
+                          {flagOf(nationOf(p))}
+                        </span>
+                        <span>
+                          <strong>{p.name}</strong>
+                          <small>
+                            {nationOf(p)}
+                            {draftNames.has(normalize(p.name)) && (
+                              <em className="draft-badge">DRAFT {game.draft?.year}</em>
+                            )}
+                          </small>
+                        </span>
                       </button>
                     </td>
-                    <td>{p.club}</td>
+                    <td className="club-col">{p.club}</td>
                     <td>
                       <span className="position-pill">{p.pos}</span>
                     </td>
                     <td>{p.age || "—"}</td>
+                    <td className="stat-col">
+                      {p.games !== undefined ? (
+                        <>
+                          <b>{(p.goals ?? 0) + (p.assists ?? 0)}</b>
+                          <small>
+                            {p.games} GP · {p.goals ?? 0}G {p.assists ?? 0}A
+                          </small>
+                        </>
+                      ) : (
+                        <small className="muted">—</small>
+                      )}
+                    </td>
                     <td>
                       <Rating value={p.ovr} />
                     </td>
@@ -334,8 +376,8 @@ export default function LeagueCenter({
             </span>
             <h2>{selected.name}</h2>
             <p>
-              {selected.pos} · {selected.nation} · {selected.age}{" "}
-              {ru ? "лет" : "years"}
+              {flagOf(nationOf(selected))} {selected.pos} · {nationOf(selected)} ·{" "}
+              {selected.age} {ru ? "лет" : "years"}
             </p>
             <div className="scout-profile-ratings">
               <div>

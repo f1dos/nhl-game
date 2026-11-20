@@ -33,3 +33,4 @@ import "./ui/leadership.css";
 import "./ui/broadcast.css";
 import "./ui/cards.css";
 import "./ui/player-requests.css";
+import "./ui/polish.css";
