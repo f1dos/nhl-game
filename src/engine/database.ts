@@ -13,6 +13,7 @@ import {
   type Game,
 } from "./types";
 import { makeSchedule } from "./season";
+import { nationalName } from "./names";
 import { ensureSpecialTeams } from "./tactics";
 import { ensureUserIceTime } from "./iceTime";
 import {
@@ -169,6 +170,8 @@ export function createPlayer(
   const player: Player = {
     archetype,
     id,
+    // The two draws stay so seeded careers keep the same random stream; the
+    // visible name is chosen below to match the player's nationality.
     name: `${r.pick(first)} ${r.pick(last)}`,
     number: r.int(2, 98),
     pos,
@@ -187,6 +190,7 @@ export function createPlayer(
     stats: emptyStats(),
     history: [],
   };
+  player.name = nationalName(player.nation, id);
   assignPotential(player);
   return player;
 }
@@ -382,7 +386,7 @@ function hash(value: string) {
   return result >>> 0;
 }
 
-function setPlayerOverall(player: Player, target: number) {
+export function setPlayerOverall(player: Player, target: number) {
   for (let pass = 0; pass < 6; pass++) {
     const delta =
       target - overall(player.pos, player.attributes, player.archetype);

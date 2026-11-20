@@ -207,6 +207,10 @@ export interface Team {
   captainId?: string;
   alternateCaptainIds?: string[];
   record: RecordStats;
+  /** Coaching, medical and scouting staff (absent on older saves). */
+  staff?: Partial<
+    Record<import("./staff").StaffRole, import("./staff").StaffMember>
+  >;
 }
 export type InternationalRole = "depth" | "rotation" | "top-six";
 export interface InternationalCandidate {
@@ -242,12 +246,46 @@ export interface InternationalOffer {
 }
 export type ScoutingRegion =
   "North America" | "Nordic" | "Central Europe" | "Russia";
+export type ProspectTrait =
+  | "contender"
+  | "big-market"
+  | "small-market"
+  | "cold-climate"
+  | "warm-climate"
+  | "close-to-home"
+  | "playing-time"
+  | "college-first"
+  | "development";
 export interface DraftProspect {
   player: Player;
   region: ScoutingRegion;
   trueRank: number;
   draftedBy?: string;
   draftedOverall?: number;
+  /** Real league identity or a game-generated prospect (absent: generated). */
+  source?: "real" | "generated";
+  league?: string;
+  club?: string;
+  hometown?: import("./names").Hometown;
+  /** True when the hometown comes from the game model, not the feed. */
+  hometownModeled?: boolean;
+  heightCm?: number;
+  weightKg?: number;
+  shoots?: "L" | "R";
+  stats?: { gp: number; g: number; a: number };
+  /** Personal convictions that shape interest in clubs. */
+  traits?: ProspectTrait[];
+}
+export interface ProspectInterview {
+  /** 0–100 interest in the user's club; ≤ 5 with a refusal. */
+  interest: number;
+  refused?: "rivalry" | "grudge";
+  dream?: boolean;
+  asked: string[];
+  transcript: ConversationLine[];
+  /** Traits revealed to the user during the talk. */
+  revealed: ProspectTrait[];
+  round: number;
 }
 export interface ScoutingReport {
   confidence: number;
@@ -447,6 +485,10 @@ export interface DraftState {
   scoutingPoints: number;
   assignment: ScoutingRegion;
   shortlist: string[];
+  /** Pre-draft interviews by prospect id (absent on older saves). */
+  interviews?: Record<string, ProspectInterview>;
+  /** Interviews the user can still hold before the draft. */
+  interviewsLeft?: number;
 }
 export interface DraftHistory {
   year: number;
@@ -597,6 +639,10 @@ export interface Game {
   transactions?: { year: number; round: number; message: string }[];
   draft?: DraftState;
   draftHistory?: DraftHistory[];
+  /** Specialists available for hire this season. */
+  staffMarket?: import("./staff").StaffMember[];
+  /** Season the staff market was last refreshed. */
+  staffYear?: number;
   dataSource?: {
     kind:
       | "official-identities-modeled-ratings"

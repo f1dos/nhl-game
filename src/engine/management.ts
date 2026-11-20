@@ -28,6 +28,7 @@ import {
   processInternationalDay,
 } from "./tournaments";
 import { syncClubTenure } from "./leadership";
+import { ensureStaff } from "./staff";
 import type {
   AiGeneralManagerProfile,
   DraftAsset,
@@ -217,6 +218,7 @@ function ensureStrategyEvent(g: Game) {
 }
 
 export function ensureManagementState(g: Game) {
+  ensureStaff(g);
   const start = `${g.year}-10-07`;
   g.calendar ??= {
     date: g.round === 0 ? `${g.year}-09-15` : iso(dateForRound(g, g.round)),

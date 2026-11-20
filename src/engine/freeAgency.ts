@@ -1,6 +1,7 @@
 import { autoLines } from "./database";
 import { askingSalary, salaryTotal, signContract, CONTRACT_RULES } from "./contracts";
 import type { Game, Player, Team } from "./types";
+import { scoutPersuasion } from "./staff";
 
 export type PromisedRole = "depth" | "middle-six" | "top-six" | "star";
 export type FreeAgentOfferStatus =
@@ -152,7 +153,8 @@ export function processFreeAgentOffers(g: Game): FreeAgentOffer[] {
     const yearsNeeded=desiredFreeAgentYears(p);
     const score = (offer.salary/Math.max(ask,.1))*76 +
       (offer.years >= yearsNeeded ? 8 : -8) -
-      Math.max(0,roleGap)*14 + (freeAgentInterest(g,p,team)-50)*.35;
+      Math.max(0,roleGap)*14 + (freeAgentInterest(g,p,team)-50)*.35 +
+      scoutPersuasion(team);
     const rival=competingTeam(g,p,team);
     const rivalPrefers = rival &&
       (rival.salary > offer.salary * 1.06) &&

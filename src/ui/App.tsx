@@ -30,6 +30,7 @@ import {
   X,
   Dumbbell,
   Globe,
+  UserCog,
 } from "lucide-react";
 import PreseasonCenter from "./PreseasonCenter";
 import InternationalCenter from "./InternationalCenter";
@@ -68,6 +69,9 @@ import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
 import LeagueCenter from "./LeagueCenter";
+import SoundControls from "./SoundControls";
+import StaffCenter from "./StaffCenter";
+import { gameAudio } from "./audio";
 import { AwardHistory, AwardRace } from "./MatchRatings";
 import InjuryCenter from "./InjuryCenter";
 import PlayerConversation from "./PlayerConversation";
@@ -183,6 +187,14 @@ const nav = [
     ru: "Лидерская группа",
     en: "Leadership group",
     Icon: Users,
+    groupRu: "УПРАВЛЕНИЕ",
+    groupEn: "MANAGEMENT",
+  },
+  {
+    key: "staff",
+    ru: "Штаб и персонал",
+    en: "Staff & hiring",
+    Icon: UserCog,
     groupRu: "УПРАВЛЕНИЕ",
     groupEn: "MANAGEMENT",
   },
@@ -318,6 +330,7 @@ export default function App() {
     const timer = setTimeout(() => setSplashDone(true), splashDelay);
     return () => clearTimeout(timer);
   }, []);
+  useEffect(() => gameAudio.installUnlock(), []);
   useEffect(() => {
     void setDocumentLocale(g?.language ?? language);
   }, [g?.language, language]);
@@ -491,6 +504,7 @@ export default function App() {
       <div className="new-career">
         <div className="start-top">
           <Brand />
+          <SoundControls ru={language === "ru"} />
           <select
             aria-label="Language"
             value={language}
@@ -543,30 +557,51 @@ export default function App() {
                 </button>
               ))}
             </div>
-            <div className="club-grid">
-              {database.teams
-                .filter((t) => filter === "all" || t.conference === filter)
-                .map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelected(t.id)}
-                    className={`club-card ${selected === t.id ? "selected" : ""}`}
-                  >
-                    <Crest team={t} />
-                    <span>
-                      <small>{t.city}</small>
-                      <strong>{t.name}</strong>
-                    </span>
-                    <Rating value={teamOverall(t)} />
-                  </button>
+            <div className="club-grid v2">
+              {["Atlantic", "Metropolitan", "Central", "Pacific"]
+                .filter((division) =>
+                  database.teams.some(
+                    (t) =>
+                      t.division === division &&
+                      (filter === "all" || t.conference === filter),
+                  ),
+                )
+                .map((division) => (
+                  <section key={division} className="club-division">
+                    <h4>{division}</h4>
+                    <div>
+                      {database.teams
+                        .filter(
+                          (t) =>
+                            t.division === division &&
+                            (filter === "all" || t.conference === filter),
+                        )
+                        .map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => setSelected(t.id)}
+                            className={`club-card ${selected === t.id ? "selected" : ""}`}
+                            style={{ "--club": t.color } as React.CSSProperties}
+                          >
+                            <Crest team={t} />
+                            <span>
+                              <small>{t.city}</small>
+                              <strong>{t.name}</strong>
+                            </span>
+                            <Rating value={teamOverall(t)} />
+                          </button>
+                        ))}
+                    </div>
+                  </section>
                 ))}
             </div>
           </div>
           <aside
-            className="club-preview"
+            className="club-preview v2"
             style={{ "--club": team.color } as React.CSSProperties}
           >
-            <Crest team={team} size={110} />
+            <div className="club-preview-glow" aria-hidden />
+            <Crest team={team} size={120} />
             <small>{team.city.toUpperCase()}</small>
             <h2>{team.name}</h2>
             <p>
@@ -582,6 +617,41 @@ export default function App() {
                 <b>#{team.strengthRank ?? "—"}</b>
                 <small>{tr("СИЛА В ЛИГЕ", "LEAGUE STRENGTH")}</small>
               </div>
+              <div>
+                <b className="difficulty">
+                  {"★".repeat(Math.min(5, Math.max(1, Math.ceil((team.strengthRank ?? 16) / 6.4))))}
+                </b>
+                <small>{tr("СЛОЖНОСТЬ", "DIFFICULTY")}</small>
+              </div>
+            </div>
+            <div className="preview-expect">
+              <small>{tr("ОЖИДАНИЯ СОВЕТА ДИРЕКТОРОВ", "BOARD EXPECTATIONS")}</small>
+              <b>
+                {(team.strengthRank ?? 16) <= 6
+                  ? tr("Борьба за Кубок Стэнли", "Stanley Cup contender")
+                  : (team.strengthRank ?? 16) <= 14
+                    ? tr("Уверенный выход в плей-офф", "Comfortable playoff spot")
+                    : (team.strengthRank ?? 16) <= 22
+                      ? tr("Борьба за wild card", "Wild-card race")
+                      : tr("Перестройка и драфт", "Rebuild through the draft")}
+              </b>
+            </div>
+            <div className="preview-stars">
+              {[...team.players]
+                .sort((a, b) => b.ovr - a.ovr)
+                .slice(0, 3)
+                .map((p) => (
+                  <div key={p.id}>
+                    {p.headshot ? <img src={p.headshot} alt="" /> : <i>{p.pos}</i>}
+                    <span>
+                      <b>{p.name}</b>
+                      <small>
+                        {p.pos} · {p.age}
+                      </small>
+                    </span>
+                    <Rating value={p.ovr} />
+                  </div>
+                ))}
             </div>
             <label>
               SEED
@@ -769,6 +839,7 @@ export default function App() {
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
+  else if (page === "staff") content = <StaffCenter game={g} edit={edit} />;
   else if (page === "clubs")
     content = (
       <ClubCenter
@@ -781,7 +852,9 @@ export default function App() {
     );
   else if (page === "press") content = <PressCenter game={g} edit={edit} />;
   else if (page === "draft")
-    content = <DraftCenter game={g} edit={edit} tr={tr} />;
+    content = (
+      <DraftCenter game={g} edit={edit} tr={tr} onStaff={() => go("staff")} />
+    );
   else if (page === "overview")
     content = (
       <>
@@ -1868,6 +1941,7 @@ export default function App() {
                 <em>{importantUnread}</em>
               </button>
             )}
+            <SoundControls ru={ru} />
             <button
               className="icon-button"
               aria-label="Save"
@@ -1960,7 +2034,7 @@ export default function App() {
                       "NHL API identities · legacy demo ratings",
                     )
                   : tr("Вымышленная база данных", "Fictional database")}{" "}
-              · v0.5.1-dev
+              · v0.9.0
             </span>
             <span>
               SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}

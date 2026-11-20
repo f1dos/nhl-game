@@ -11,6 +11,7 @@ import {
 import { rivalryBetween } from "../engine/franchiseWorld";
 import { Rating } from "./components";
 import { ClubLink, PlayerLink } from "./links";
+import TeamPicker from "./TeamPicker";
 
 type Edit = (fn: (game: Game) => void) => void;
 type RosterTab = "nhl" | "ahl" | "picks";
@@ -134,10 +135,17 @@ export default function TradeCenter({
             : players.map((player) => (
                 <button
                   key={player.id}
-                  className={`trade-player-card ${selected.includes(player.id) ? "selected" : ""}`}
+                  className={`trade-player-card pos-${player.pos} ${selected.includes(player.id) ? "selected" : ""}`}
                   onClick={() => toggle(player.id, selected, setSelected)}
                 >
-                  <span className="trade-number">{player.number}</span>
+                  <span className="trade-avatar" aria-hidden>
+                    {player.headshot ? (
+                      <img src={player.headshot} alt="" loading="lazy" />
+                    ) : (
+                      <i>{player.number || player.pos}</i>
+                    )}
+                    <em>{player.pos}</em>
+                  </span>
                   <span>
                     <b>
                       {player.name}{" "}
@@ -179,21 +187,20 @@ export default function TradeCenter({
             )}
           </p>
         </div>
-        <select
+        <TeamPicker
+          ru={ru}
+          teams={game.teams.filter((team) => team.id !== game.user)}
           value={other}
-          onChange={(event) => {
-            setOther(event.target.value);
+          onChange={(id) => {
+            setOther(id);
             clear();
           }}
-        >
-          {game.teams
-            .filter((team) => team.id !== game.user)
-            .map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.city} {team.name}
-              </option>
-            ))}
-        </select>
+          extra={(team) => {
+            const needs = (game.teamNeeds?.[team.id] ?? []).map((need) => need.position).slice(0, 3);
+            const rec = `${team.record.w}-${team.record.l}-${team.record.otl}`;
+            return needs.length ? `${rec} · ${tr("ищет", "needs")} ${needs.join("/")}` : rec;
+          }}
+        />
       </div>
       <section className="trade-gm-room">
         <div className="gm-identity">

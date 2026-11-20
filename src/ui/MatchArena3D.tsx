@@ -7,6 +7,7 @@ import { RigFactory, type HockeyRig, type RigState, type TeamKit } from "./hocke
 import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
+import { gameAudio } from "./audio";
 export { CAMERA_MODES, type CameraMode };
 
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
@@ -150,6 +151,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     };
     const observer = new ResizeObserver(resize); observer.observe(container); resize();
     let frame = 0, previous = performance.now();
+    let wasRunning: boolean | undefined;
+    let lastStop = "";
+    const leaveArena = gameAudio.enterArena();
     const lookAt = new THREE.Vector3(), desired = new THREE.Vector3();
     // Cameras follow a smoothed focus point, never the raw puck, so the view
     // stays steady while the simulation publishes coarse steps.
@@ -217,6 +221,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       byBody.clear();
       const frameData = data.spatial;
       const stoppage = frameData?.stoppage;
+      if (data.running !== wasRunning) { wasRunning = data.running; gameAudio.setRunning(data.running); }
+      const stopKey = stoppage ? `${stoppage.kind}:${stoppage.phase}:${stoppage.actor}` : "";
+      if (stopKey !== lastStop) {
+        lastStop = stopKey;
+        if (data.running && stoppage?.phase === "lineup") gameAudio.react("lineup");
+      }
       if (frameData) {
         const stamp = now;
         if (frameData.tick !== lastTick) {
@@ -267,8 +277,17 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (!data.running && cue.kind !== "faceoff") continue;
           const actor = byBody.get(cue.id), other = cue.target ? byBody.get(cue.target) : undefined;
           const at = (id?: string) => frameData.bodies.find(b => b.id === id);
+          const actorSide = at(cue.id)?.side;
+          // The building cheers for the home side (side 0).
+          const homeActs = cue.kind === "save" ? actorSide === 0 : actorSide !== 1;
+          if (data.running) {
+            const shooter = cue.kind === "shot" ? at(cue.id) : undefined;
+            const danger = shooter ? Math.max(0, 1 - Math.hypot(Math.abs(shooter.x) - 26, shooter.z) / 18) : 0;
+            gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
+          }
           if (cue.kind === "shot" || cue.kind === "pass") actor?.trigger(cue.kind);
           else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger("checked"); }
+          else if (cue.kind === "block") actor?.trigger("checked");
           else if (cue.kind === "goal") {
             const keeper = at(cue.target);
             other?.trigger("beaten", keeper && cue.x !== undefined ? { x: cue.x - keeper.x, z: (cue.z ?? 0) - keeper.z } : undefined, cue.height);
@@ -406,7 +425,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           state = "official-drop"; face = 0;
         } else if (o === refA && stoppage?.kind === "goal" && stoppage.phase === "celebrate" && stoppage.t < 2.6) {
           state = "official-point"; face = Math.atan2(goalNet - o.x, -o.z);
-        } else if (o === refB && stoppage?.kind === "penalty" && stoppage.phase === "whistle") {
+        } else if ((o === refB && stoppage?.kind === "penalty" && stoppage.phase === "whistle") || (o === lineB && stoppage?.kind === "icing" && stoppage.phase === "whistle")) {
           state = "official-arm";
         }
         o.rig.setState(state);
@@ -471,6 +490,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {
+      leaveArena(); gameAudio.setRunning(false);
       cancelAnimationFrame(frame); observer.disconnect();
       [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());
       arena.dispose();

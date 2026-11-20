@@ -3,6 +3,7 @@ import { salaryTotal } from "./contracts";
 import { clamp } from "./random";
 import type { Game, InternationalOffer, InternationalRole } from "./types";
 import { tx } from "./text";
+import { scoutPersuasion } from "./staff";
 
 export interface InternationalTerms {
   salary: number;
@@ -142,7 +143,9 @@ export function evaluateInternationalOffer(
       candidate.scouted * 0.08 -
       candidate.adaptationRisk * 0.08 -
       candidate.agentLeverage * 0.07 -
-      candidate.competingOffers * 3,
+      candidate.competingOffers * 3 +
+      // A well-connected head scout sells the club to the player's camp.
+      scoutPersuasion(team),
   );
   return { score, requiredFee, salaryFit, roleFit, opportunity, contender };
 }
