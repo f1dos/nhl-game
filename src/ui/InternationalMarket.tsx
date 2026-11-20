@@ -9,6 +9,7 @@ import {
 import { Panel, Rating } from "./components";
 import { PotentialCell } from "./Potential";
 import { PlayerLink } from "./links";
+import Select from "./Select";
 
 export default function InternationalMarket({
   game,
@@ -199,14 +200,14 @@ export default function InternationalMarket({
             </label>
             <label>
               {ru ? "Обещанная роль" : "Promised role"}{" "}
-              <select
+              <Select
                 value={role}
                 onChange={(e) => setRole(e.target.value as InternationalRole)}
               >
                 <option value="depth">Depth</option>
                 <option value="rotation">Rotation</option>
                 <option value="top-six">Top six</option>
-              </select>
+              </Select>
             </label>
             <label>
               <input

@@ -4,6 +4,7 @@ import { salaryTotal } from "../engine/contracts";
 import type { Game, Player } from "../engine/types";
 import { Panel, Rating } from "./components";
 import { PotentialCell, PotentialLegend, potentialSortValue } from "./Potential";
+import Select from "./Select";
 
 export default function FarmCenter({
   game, edit, onPlayer,
@@ -31,14 +32,14 @@ export default function FarmCenter({
     <Panel title={ru ? "ИГРОКИ AHL И ОРГАНИЗАЦИОННОГО РЕЗЕРВА" : "AHL & ORGANIZATIONAL RESERVE"}>
       <div className="scout-league-filters">
         <input aria-label="Farm player search" placeholder={ru ? "Поиск по фарму…" : "Search farm…"} value={query} onChange={(e) => setQuery(e.target.value)}/>
-        <select aria-label="Farm position" value={position} onChange={(e) => setPosition(e.target.value)}>
+        <Select aria-label="Farm position" value={position} onChange={(e) => setPosition(e.target.value)}>
           <option value="ALL">{ru ? "Все позиции" : "All positions"}</option>
           {["LW","C","RW","D","G"].map((p) => <option key={p}>{p}</option>)}
-        </select>
-        <select aria-label="Farm sort" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+        </Select>
+        <Select aria-label="Farm sort" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
           <option value="ovr">OVR ↓</option><option value="potential">POT ↓</option>
           <option value="age">{ru ? "Возраст ↑" : "Age ↑"}</option>
-        </select>
+        </Select>
       </div>
       {farm.length ? <div className="table-scroll"><table className="organization-table">
         <thead><tr><th>#</th><th>{ru ? "ИГРОК" : "PLAYER"}</th><th>POS</th><th>{ru ? "ВОЗР." : "AGE"}</th><th>OVR</th><th>POT</th><th>{ru ? "КЛУБ / КОНТРАКТ" : "CLUB / CONTRACT"}</th><th /></tr></thead>

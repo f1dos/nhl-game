@@ -27,6 +27,7 @@ import {
 import SpatialMatchCenter from "./SpatialMatchCenter";
 import TacticsBoard from "./TacticsBoard";
 import { ClubLink } from "./links";
+import Select from "./Select";
 
 type Edit = (fn: (game: Game) => void) => void;
 type MatchdayTab = "briefing" | "lineup" | "special" | "tactics" | "press";
@@ -115,7 +116,7 @@ export default function MatchdayHub({
     change: (id: string) => void,
     disabledIds: string[] = [],
   ) => (
-    <select value={value} onChange={(event) => change(event.target.value)}>
+    <Select value={value} onChange={(event) => change(event.target.value)}>
       {candidates
         .filter(
           (player) =>
@@ -127,7 +128,7 @@ export default function MatchdayHub({
             {player.name} · {player.pos} · {player.ovr}
           </option>
         ))}
-    </select>
+    </Select>
   );
   if (stage === "live")
     return (

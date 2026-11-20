@@ -35,6 +35,7 @@ import { reportPotential } from "../engine/potential";
 import { flagOf, NATION_LABEL } from "../engine/names";
 import { staffRating } from "../engine/staff";
 import { ATTRIBUTE_NAMES } from "./PlayerCard";
+import Select from "./Select";
 
 type Translate = (ru: string, en: string) => string;
 
@@ -261,20 +262,20 @@ export default function DraftCenter({
           extra={
             <div className="draft-filters">
               <input value={query} placeholder={tr("Игрок, клуб или лига…", "Player, club or league…")} onChange={(event) => setQuery(event.target.value)} />
-              <select value={position} onChange={(e) => setPosition(e.target.value)} aria-label="Position">
+              <Select value={position} onChange={(e) => setPosition(e.target.value)} aria-label="Position">
                 <option value="ALL">{tr("Все позиции", "All positions")}</option>
                 {["LW", "C", "RW", "D", "G"].map((pos) => (
                   <option key={pos}>{pos}</option>
                 ))}
-              </select>
-              <select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
+              </Select>
+              <Select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Region">
                 <option value="ALL">{tr("Все регионы", "All regions")}</option>
                 {SCOUTING_REGIONS.map((item) => (
                   <option key={item} value={item}>
                     {regionLabel(item, tr)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           }
         >

@@ -7,6 +7,7 @@ import {
 import { autoLines } from "../engine/database";
 import { Panel } from "./components";
 import { PotentialCell } from "./Potential";
+import Select from "./Select";
 
 const sessions: TrainingSession[] = [
   "rest",
@@ -98,7 +99,7 @@ export function TrainingCenter({
         </div>
         <label>
           <small>ОБЩАЯ ИНТЕНСИВНОСТЬ</small>
-          <select
+          <Select
             aria-label="Training intensity"
             value={schedule.intensity}
             onChange={(event) =>
@@ -112,7 +113,7 @@ export function TrainingCenter({
             <option value="low">Низкая</option>
             <option value="normal">Нормальная</option>
             <option value="high">Высокая</option>
-          </select>
+          </Select>
         </label>
       </section>
       <Panel title="РАСПИСАНИЕ ПЕРВОЙ КОМАНДЫ">
@@ -134,7 +135,7 @@ export function TrainingCenter({
               </header>
               <label>
                 <span>УТРО</span>
-                <select
+                <Select
                   aria-label={`Training ${index} morning`}
                   value={day.morning}
                   onChange={(event) =>
@@ -150,11 +151,11 @@ export function TrainingCenter({
                       {sessionNames[session]}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 <span>ДЕНЬ</span>
-                <select
+                <Select
                   aria-label={`Training ${index} afternoon`}
                   value={day.afternoon}
                   onChange={(event) =>
@@ -170,7 +171,7 @@ export function TrainingCenter({
                       {sessionNames[session]}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <div
                 className={`day-load ${[day.morning, day.afternoon].some((session) => ["rest", "recovery"].includes(session)) ? "recovery" : "work"}`}

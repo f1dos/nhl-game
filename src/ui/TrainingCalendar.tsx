@@ -43,6 +43,7 @@ import { ATTRIBUTE_NAMES } from "./PlayerCard";
 import { PotentialLegend, PotentialView } from "./Potential";
 import { scoutedPotentialFor } from "../engine/potential";
 import { developmentEvery } from "../engine/training";
+import Select from "./Select";
 
 type Period = "morning" | "afternoon";
 type Intensity = TrainingSchedule["intensity"];
@@ -766,7 +767,7 @@ export function TrainingCenter({
                           onClick={() => setSession(day.index, period, armed)}
                         />
                       ) : null}
-                      <select
+                      <Select
                         aria-label={`Training ${day.index} ${period}`}
                         value={session}
                         onChange={(event) =>
@@ -778,7 +779,7 @@ export function TrainingCenter({
                             {ru ? SESSIONS[option].ru : SESSIONS[option].en}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   );
                 })}

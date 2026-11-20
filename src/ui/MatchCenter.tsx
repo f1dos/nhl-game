@@ -10,6 +10,7 @@ import {
   SPECIAL_TEAM_LABELS,
   SPECIAL_TEAM_STYLES,
 } from "../engine/tactics";
+import Select from "./Select";
 
 type Edit = (fn: (game: Game) => void) => void;
 const MatchArena3D = lazy(() => import("./MatchArena3D"));
@@ -107,7 +108,7 @@ export default function MatchCenter({
     key?: string,
     disabledIds: string[] = [],
   ) => (
-    <select
+    <Select
       key={key}
       value={value}
       onChange={(change) => onChange(change.target.value)}
@@ -123,7 +124,7 @@ export default function MatchCenter({
             {player.name} · {player.pos} · {player.ovr}
           </option>
         ))}
-    </select>
+    </Select>
   );
   return (
     <div className="live-match-center">
@@ -161,14 +162,14 @@ export default function MatchCenter({
                 {running ? <Pause size={15} /> : <Play size={15} />}{" "}
                 {running ? "Пауза" : cursor ? "Продолжить" : "Начать матч"}
               </button>
-              <select
+              <Select
                 value={speed}
                 onChange={(change) => setSpeed(+change.target.value)}
               >
                 <option value={1}>×1</option>
                 <option value={2}>×2</option>
                 <option value={4}>×4</option>
-              </select>
+              </Select>
               {complete && onComplete && (
                 <button className="primary" onClick={onComplete}>
                   Пресс-конференция
@@ -310,7 +311,7 @@ export default function MatchCenter({
             <div className="live-tactics">
               <label>
                 Форчек
-                <select
+                <Select
                   value={managed.tactics.forecheck}
                   onChange={(change) =>
                     edit((current) => {
@@ -324,7 +325,7 @@ export default function MatchCenter({
                   <option>1-2-2</option>
                   <option>2-1-2</option>
                   <option>1-3-1</option>
-                </select>
+                </Select>
               </label>
               {(["pace", "physical", "shooting"] as const).map((key) => (
                 <label key={key}>
@@ -361,7 +362,7 @@ export default function MatchCenter({
                   <section key={situation}>
                     <header>
                       <b>{SPECIAL_TEAM_LABELS[situation]}</b>
-                      <select
+                      <Select
                         aria-label={`${situation} style`}
                         value={unit.style}
                         onChange={(change) =>
@@ -378,7 +379,7 @@ export default function MatchCenter({
                         {SPECIAL_TEAM_STYLES[situation].map((style) => (
                           <option key={style}>{style}</option>
                         ))}
-                      </select>
+                      </Select>
                     </header>
                     {unit.players.map((id, slot) =>
                       selector(

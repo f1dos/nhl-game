@@ -11,6 +11,7 @@ import {
   type ScoutLeague,
   type ScoutEntry,
 } from "../data/scouting-leagues-2026-27";
+import Select from "./Select";
 
 const leagues: ScoutLeague[] = ["OHL", "WHL", "USHL", "SHL", "Liiga"];
 const leagueCountry: Record<ScoutLeague, string> = {
@@ -209,7 +210,7 @@ export default function LeagueCenter({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select
+          <Select
             aria-label="League team"
             value={team}
             onChange={(e) => setTeam(e.target.value)}
@@ -220,8 +221,8 @@ export default function LeagueCenter({
                 {club}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             aria-label="League position"
             value={position}
             onChange={(e) => setPosition(e.target.value)}
@@ -232,8 +233,8 @@ export default function LeagueCenter({
                 {p}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             aria-label="League sort"
             value={sort}
             onChange={(e) => setSort(e.target.value as typeof sort)}
@@ -244,7 +245,7 @@ export default function LeagueCenter({
             <option value="ovr">OVR ↓</option>
             <option value="age">{ru ? "Возраст ↑" : "Age ↑"}</option>
             <option value="name">{ru ? "Имя A–Я" : "Name A–Z"}</option>
-          </select>
+          </Select>
         </div>
         {entries.length ? (
           <div className="table-scroll">
