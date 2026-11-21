@@ -3,9 +3,10 @@ import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
 import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
-import { RigFactory, type HockeyRig, type RigState, type TeamKit } from "./hockeyRig";
+import { RigFactory, type RigState, type TeamKit } from "./hockeyRig";
+import { SkinnedRigFactory, type RigLike } from "./skinnedRig";
 import { TrackSmoother } from "./motionSmoothing";
-import { buildArena, insideBoards } from "./arenaScene";
+import { buildArena, insideBoards, loadLogo } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
 import Select from "./Select";
@@ -14,8 +15,19 @@ export { CAMERA_MODES, type CameraMode };
 const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
 /** Home plays in its colour, away in a light kit trimmed in its own colour. */
 export const kitFor = (team: Team, away: boolean): TeamKit => away
-  ? { jersey: "#e8edf3", trim: team.color, pants: shade(team.color, 0.55), helmet: shade(team.color, 0.7), socks: team.color }
-  : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color };
+  ? { jersey: "#e8edf3", trim: team.color, pants: shade(team.color, 0.55), helmet: shade(team.color, 0.7), socks: team.color, logo: team.logoUrl, abbr: team.id }
+  : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color, logo: team.logoUrl, abbr: team.id };
+
+/** Skinned FM-style models by default; `?rig=classic` keeps the primitive figures. */
+function makeFactory() {
+  const classic = typeof location !== "undefined" && new URLSearchParams(location.search).get("rig") === "classic";
+  if (classic) return new RigFactory();
+  try {
+    return new SkinnedRigFactory((kit) => loadLogo(kit.logo));
+  } catch {
+    return new RigFactory();
+  }
+}
 
 const _focusTarget = new THREE.Vector3();
 const _v = new THREE.Vector3();
@@ -32,7 +44,7 @@ function dressed(team: Team) {
 
 /** A referee or linesman who skates after play and runs faceoffs. */
 interface Official {
-  rig: HockeyRig;
+  rig: RigLike;
   role: "referee" | "linesman";
   x: number;
   z: number;
@@ -76,7 +88,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
-    const factory = new RigFactory();
+    const factory = makeFactory();
     const arena = buildArena(scene, home, away);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 260);
     const kits = [kitFor(home, false), kitFor(away, true)];
@@ -84,7 +96,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const playerOf = (side: number, id: string) => teams[side].players.find(p => p.id === id);
 
     // --- on-ice actors: up to six skaters (6v5 with the goalie pulled) + goalie
-    const actors: { rig: HockeyRig; side: number; slot: number }[] = [];
+    const actors: { rig: RigLike; side: number; slot: number }[] = [];
     teams.forEach((_team, side) => {
       for (let slot = 0; slot < 7; slot++) {
         const rig = slot === 6 ? factory.goalie(kits[side]) : factory.skater(kits[side]);
@@ -95,7 +107,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     // --- benches: every dressed player has a seat and a full figure. Players
     // skate between the ice, their bench gate and the penalty box.
     type Spot = { x: number; z: number };
-    interface Member { rig: HockeyRig; id: string; side: number; seatX: number; mode: "seat" | "moving" | "box"; x: number; z: number; vx: number; vz: number; path: Spot[]; boxSeat?: Spot }
+    interface Member { rig: RigLike; id: string; side: number; seatX: number; mode: "seat" | "moving" | "box"; x: number; z: number; vx: number; vz: number; path: Spot[]; boxSeat?: Spot }
     const bench: Member[] = [];
     const memberOf = new Map<string, Member>();
     teams.forEach((team, side) => {
@@ -140,7 +152,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     });
     const [refA, refB, lineA, lineB] = officials;
 
-    const byBody = new Map<string, HockeyRig>();
+    const byBody = new Map<string, RigLike>();
     let seenCue = data0?.cues.at(-1)?.seq ?? 0;
     let lastSave: "glove" | "other" = "other";
     const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 16), new THREE.MeshStandardMaterial({ color: "#0b0b0b", roughness: 0.6 }));

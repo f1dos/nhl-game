@@ -25,6 +25,10 @@ export interface TeamKit {
   pants: string;
   helmet: string;
   socks: string;
+  /** Club crest image URL for the jersey front (optional). */
+  logo?: string;
+  /** Club abbreviation, used when the crest image cannot be drawn. */
+  abbr?: string;
 }
 export type RigRole = "skater" | "goalie" | "referee" | "linesman" | "coach";
 export type RigActionKind =
@@ -632,7 +636,7 @@ export class RigFactory {
   }
 }
 
-const THIGH = 0.46,
+export const THIGH = 0.46,
   SHIN = 0.46,
   HIP_X = 0.11,
   SHOULDER_X = 0.235,
@@ -640,10 +644,10 @@ const THIGH = 0.46,
   UPPER = 0.31,
   FORE = 0.3;
 /** Ankle to the bottom of the skate blade / shoe sole. */
-const BLADE_DROP = 0.115,
+export const BLADE_DROP = 0.115,
   SHOE_DROP = 0.07;
 /** Goalie leg pad shell (knee space). */
-const PAD_H = 0.68,
+export const PAD_H = 0.68,
   PAD_Y = -0.2;
 
 export class HockeyRig {
@@ -680,12 +684,12 @@ export class HockeyRig {
   private svz = 0;
   private yaw = 0;
   private spPrev = 0;
-  private phase = Math.random();
+  private phase = 0.37;
   private amp = 0;
   private bank = 0;
   private stopT = 0;
   private stopDir = 1;
-  private clock = Math.random() * 10;
+  private clock = 3.7;
   // Pose layers
   private state: RigState = "play";
   private stateT = 0;
@@ -901,6 +905,9 @@ export class HockeyRig {
     if (this.identity === id.id) return;
     this.identity = id.id;
     this.variety = hash01(id.id, 13);
+    // Deterministic per player: stride phase and idle clock from the id.
+    this.phase = hash01(id.id, 29);
+    this.clock = hash01(id.id, 31) * 10;
     this.hs = this.hasStick ? (hash01(id.id, 3) < 0.62 ? 1 : -1) : 1;
     const tall = pos === "D" ? 1.03 : pos === "G" ? 1.02 : pos === "C" ? 1.0 : 0.99;
     const h = tall * (0.955 + hash01(id.id, 5) * 0.09);
@@ -1347,6 +1354,33 @@ export class HockeyRig {
       this.catcher.position.copy(this.armMeshes[1].hand.position).add(_b.set(0, 0.03, 0.06));
       this.catcher.rotation.set(0.2 - Math.max(0, P.fy) * 0.8, 0, -hs * 0.15);
     }
+  }
+  /** Joint groups and arm/stick transforms, read by the skinned renderer. */
+  skeletonSource() {
+    return {
+      build: this.build,
+      pelvis: this.pelvis,
+      spine: this.spine,
+      head: this.head,
+      hips: this.hips,
+      knees: this.knees,
+      ankles: this.ankles,
+      arms: this.armMeshes,
+      shaft: this.shaft,
+      blade: this.blade,
+      hs: this.hs,
+      speed: Math.hypot(this.svx, this.svz),
+      stopping: this.stopT > 0,
+      yaw: this.yaw,
+    };
+  }
+  /** Hides the primitive figure (the skinned model draws instead). */
+  hidePrimitives() {
+    this.build.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) o.visible = false;
+    });
+    if (this.shaft) this.shaft.visible = false;
+    this.blade.visible = false;
   }
   dispose() {
     this.numberTex?.dispose();
