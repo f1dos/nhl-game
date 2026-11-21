@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { arenaPreset } from "./arenaFx";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Team } from "../engine/types";
 import { BENCH, PENALTY_BOX } from "../engine/rink";
@@ -11,6 +12,10 @@ import { BENCH, PENALTY_BOX } from "../engine/rink";
  * meshes so the whole bowl costs only a few draw calls.
  */
 export interface ArenaReactions {
+  /** Play is live (waves only happen during play). */
+  playing?: boolean;
+  /** A dangerous chance: the crowd rises. */
+  danger?: boolean;
   /** +1 / -1: goal light of that end is on; 0: off. */
   goalSide: number;
   /** The home crowd is on its feet. */
@@ -391,6 +396,7 @@ function buildGoals(own: <T extends { dispose(): void }>(x: T) => T) {
 }
 
 export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
+  const preset = arenaPreset(home);
   const disposables: { dispose(): void }[] = [];
   const own = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x);
   const group = new THREE.Group();
@@ -398,10 +404,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   scene.background = new THREE.Color("#0a1019");
   scene.fog = new THREE.Fog("#0a1019", 75, 150);
   // Lighting: cool fill plus the bright overhead rig of an NHL arena.
-  group.add(new THREE.HemisphereLight(0xe6f4ff, 0x1a2230, 1.8));
-  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  group.add(new THREE.HemisphereLight(0xe6f4ff, 0x1a2230, preset.hemi));
+  const key = new THREE.DirectionalLight(0xffffff, preset.key);
   key.position.set(8, 40, 14);
-  group.add(key);
+  group.add(key, key.target);
   const fill = new THREE.DirectionalLight(0xbcd6ff, 0.8);
   fill.position.set(-20, 25, -20);
   group.add(fill);
@@ -575,27 +581,36 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
       }
     }
   };
-  tier(12, 2.6, 0.9, 0.42, 0.88);
+  const L = preset.lowerRows;
+  tier(L, 2.6, 0.9, 0.42, 0.88);
   // Club-level fascia between the tiers, then the steeper upper deck.
-  for (const p of ringPath(2.6 + 12 * 0.88 + 0.6, 3)) void p;
+  const suiteGlass: THREE.BufferGeometry[] = [];
   {
-    const ring = ringPath(2.6 + 12 * 0.88 + 0.3, 2.6);
+    const ring = ringPath(2.6 + L * 0.88 + 0.3, 2.6);
     for (let i = 0; i < ring.length; i++) {
       const a = ring[i],
         b = ring[(i + 1) % ring.length];
       const len = a.distanceTo(b);
-      walls.push(placed(new THREE.BoxGeometry(len + 0.05, 2.4, 0.3), (a.x + b.x) / 2, 0.9 + 12 * 0.42 + 1.2, (a.y + b.y) / 2, -Math.atan2(b.y - a.y, b.x - a.x)));
+      const mx = (a.x + b.x) / 2, mz = (a.y + b.y) / 2, ang = -Math.atan2(b.y - a.y, b.x - a.x);
+      walls.push(placed(new THREE.BoxGeometry(len + 0.05, preset.suites ? 0.9 : 2.4, 0.3), mx, 0.9 + L * 0.42 + (preset.suites ? 0.45 : 1.2), mz, ang));
+      // Luxury suites: a lit glass band between the bowls.
+      if (preset.suites) suiteGlass.push(placed(new THREE.BoxGeometry(len - 0.1, 1.5, 0.1), mx, 0.9 + L * 0.42 + 1.65, mz, ang));
     }
   }
-  tier(10, 2.6 + 12 * 0.88 + 1.2, 0.9 + 12 * 0.42 + 2.6, 0.62, 0.9);
-  addMerged(risers, mat("#27323e", 0.85));
-  addMerged(walls, mat(home.color, 0.6));
+  tier(preset.upperRows, 2.6 + L * 0.88 + 1.2, 0.9 + L * 0.42 + 2.6, 0.62, 0.9);
+  addMerged(suiteGlass, own(new THREE.MeshStandardMaterial({ color: "#2a3542", emissive: "#ffd9a0", emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.3 })));
+  addMerged(risers, mat("#27323e", 0.85))?.layers.set(1);
+  addMerged(walls, mat(home.color, 0.6))?.layers.set(1);
   const fanBody = new THREE.InstancedMesh(own(new THREE.CapsuleGeometry(0.2, 0.42, 2, 6)), mat("#ffffff", 0.95), seats.length);
   const fanHead = new THREE.InstancedMesh(own(new THREE.SphereGeometry(0.13, 8, 6)), mat("#ffffff", 0.8), seats.length);
   const skin = ["#f2cfae", "#e6b690", "#d09a72", "#a76d48", "#6b4430"].map((c) => new THREE.Color(c));
   const homeColor = new THREE.Color(home.color),
     awayColor = new THREE.Color(away.color);
   const neutral = ["#e9eef3", "#2b3a4a", "#55697e", "#1d1d1d", "#8a98a6"].map((c) => new THREE.Color(c));
+  const dim = 0.35 + preset.stands * 0.75;
+  homeColor.multiplyScalar(dim);
+  awayColor.multiplyScalar(dim);
+  neutral.forEach((c) => c.multiplyScalar(dim));
   const homeFan: boolean[] = [];
   const dummy = new THREE.Object3D();
   const rand = (i: number) => {
@@ -619,6 +634,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     fanHead.setColorAt(i, skin[Math.floor(rand(i + 13) * skin.length)]);
   });
   group.add(fanBody, fanHead);
+  // Stands live on layer 1: drawn by the main camera only, never in the
+  // ice reflection or the shadow map.
+  fanBody.layers.set(1);
+  fanHead.layers.set(1);
   const baseBody = Array.from({ length: seats.length }, (_, i) => {
     const m = new THREE.Matrix4();
     fanBody.getMatrixAt(i, m);
@@ -637,7 +656,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   for (let x = -40; x <= 40; x += 8) truss.push(placed(new THREE.BoxGeometry(0.4, 0.6, 70), x, roofY, 0));
   for (let z = -30; z <= 30; z += 10) truss.push(placed(new THREE.BoxGeometry(84, 0.4, 0.4), 0, roofY - 0.4, z));
   const trussMesh = addMerged(truss, mat("#1c242e", 0.7, 0.4));
-  if (trussMesh) ceiling.push(trussMesh);
+  if (trussMesh) {
+    trussMesh.layers.set(1);
+    ceiling.push(trussMesh);
+  }
   const lightPanels: THREE.BufferGeometry[] = [];
   for (let x = -28; x <= 28; x += 7) for (const z of [-9, 0, 9]) lightPanels.push(placed(new THREE.BoxGeometry(2.2, 0.2, 1.2), x, roofY - 1, z));
   const panelMesh = addMerged(lightPanels, own(new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff6e0", emissiveIntensity: 1.6 })));
@@ -771,6 +793,8 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   let jumping = false;
   return {
     group,
+    ice,
+    preset,
     update(dt: number, r: ArenaReactions) {
       clock += dt;
       lights.forEach((m, i) => {
@@ -780,12 +804,20 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
         m.color.set(on ? "#ff4a3a" : "#5a1414");
       });
       if (r.score) drawScore(r.score, r.goalSide !== 0, clock);
-      // Home fans jump when their team scores; everyone else stays seated.
-      if (r.homeScored || jumping) {
-        jumping = r.homeScored;
+      // Home fans jump when their team scores, the building rises on a big
+      // chance, and now and then a wave rolls around the bowl.
+      const waveT = clock % 75;
+      const wave = !!r.playing && waveT < 9;
+      const rising = !!r.danger;
+      if (r.homeScored || jumping || wave || rising) {
+        jumping = r.homeScored || wave || rising;
+        const front = (waveT / 9) * Math.PI * 2 - Math.PI;
         const m = new THREE.Matrix4();
         for (let i = 0; i < seats.length; i++) {
-          const jump = r.homeScored && homeFan[i] ? Math.abs(Math.sin(clock * 7 + i * 0.37)) * 0.32 : 0;
+          const s = seats[i];
+          const angle = Math.atan2(s.z, s.x);
+          const inWave = wave ? Math.max(0, 1 - Math.abs(((angle - front + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * 2.2) : 0;
+          const jump = (r.homeScored && homeFan[i] ? Math.abs(Math.sin(clock * 7 + i * 0.37)) * 0.32 : 0) + inWave * 0.45 + (rising ? 0.14 : 0);
           m.copy(baseBody[i]);
           m.elements[13] += jump;
           fanBody.setMatrixAt(i, m);

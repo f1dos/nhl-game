@@ -9,6 +9,7 @@ import "./ui/draft.css";
 import "./ui/organization.css";
 import "./ui/management-revolution.css";
 import BroadcastDemo from "./ui/BroadcastDemo";
+import ModelLab from "./ui/ModelLab";
 installDomLocalization();
 // `?demo=broadcast` (or a packaged preview) opens a live match broadcast
 // without a career, for quick previews of the 3D match.
@@ -17,7 +18,7 @@ const demo =
   (globalThis as { __NHL_DEMO__?: string }).__NHL_DEMO__;
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {demo === "broadcast" ? <BroadcastDemo /> : <App />}
+    {demo === "broadcast" ? <BroadcastDemo /> : demo === "models" ? <ModelLab /> : <App />}
   </React.StrictMode>,
 );
 import "./ui/scouting.css";

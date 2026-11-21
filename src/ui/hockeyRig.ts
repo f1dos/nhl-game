@@ -25,6 +25,10 @@ export interface TeamKit {
   pants: string;
   helmet: string;
   socks: string;
+  /** Club crest image URL for the jersey front (optional). */
+  logo?: string;
+  /** Club abbreviation, used when the crest image cannot be drawn. */
+  abbr?: string;
 }
 export type RigRole = "skater" | "goalie" | "referee" | "linesman" | "coach";
 export type RigActionKind =
@@ -41,7 +45,10 @@ export type RigActionKind =
   | "tie-up"
   | "stick-tap"
   | "drop"
-  | "beaten";
+  | "beaten"
+  | "fall"
+  | "receive"
+  | "deke";
 export type RigState =
   | "play"
   | "faceoff-ready"
@@ -75,6 +82,10 @@ export interface RigInput {
   hasPuck: boolean;
   /** Desired body yaw (radians, 0 = +z). Overrides the automatic facing. */
   face?: number;
+  /** Distance to the nearest opponent (puck carrier context). */
+  pressure?: number;
+  /** Carrier is along the boards. */
+  nearBoards?: boolean;
   /** Where the head looks (defaults to the puck). */
   lookX?: number;
   lookZ?: number;
@@ -308,6 +319,39 @@ const ACTIONS: Record<string, ActionSpec> = {
       [0.42, { by: 0.25 }],
       [0.52, { by: 0.02 }],
       [0.8, {}],
+    ],
+  },
+  // Taking a pass: blade cushions back, eyes down on the puck.
+  receive: {
+    dur: 0.5,
+    keys: [
+      [0, {}],
+      [0.12, { bx: 0.35, by: 0.02, bz: 1.15, gz: 0.42, headPitch: 0.25, lean: 0.2 }],
+      [0.3, { bx: 0.3, by: 0.02, bz: 0.8, gz: 0.32, headPitch: 0.2 }],
+      [0.5, {}],
+    ],
+  },
+  // Deke: blade pulled across the body with a shoulder fake.
+  deke: {
+    dur: 0.75,
+    keys: [
+      [0, {}],
+      [0.18, { bx: 0.6, bz: 0.95, twist: 0.45, roll: 0.15, lean: 0.25, crouch: 0.15, headYaw: 0.3 }],
+      [0.4, { bx: -0.45, bz: 0.85, twist: -0.4, roll: -0.2, lean: 0.3, crouch: 0.2, headYaw: -0.25 }],
+      [0.58, { bx: 0.2, bz: 1.05, twist: 0.1 }],
+      [0.75, {}],
+    ],
+  },
+  // Knocked down by a hit: falls, slides on the knees and gets back up.
+  fall: {
+    dur: 2.3,
+    keys: [
+      [0, {}],
+      [0.16, { lean: -0.45, roll: 0.5, offF: -0.25, stickW: 0, fx: 0.45, fy: 0.4, fz: 0.1, headPitch: -0.3, bx: 0.7, by: 0.4, bz: 0.4 }],
+      [0.5, { legW: 1, sHip: 1.25, sKnee: 1.65, sAbd: 0.25, oHip: 1.4, oKnee: 1.75, oAbd: 0.2, kneel: 1, lean: 0.95, roll: 0.25, stickW: 0, fx: 0.32, fy: -0.42, fz: 0.42, bx: 0.8, by: 0.02, bz: 0.2 }],
+      [1.45, { legW: 1, sHip: 1.2, sKnee: 1.6, sAbd: 0.2, oHip: 1.35, oKnee: 1.7, oAbd: 0.2, kneel: 1, lean: 0.85, roll: 0.15, stickW: 0, fx: 0.3, fy: -0.4, fz: 0.45, headPitch: -0.1 }],
+      [1.95, { legW: 0.4, crouch: 0.55, lean: 0.65, stickW: 0.4 }],
+      [2.3, {}],
     ],
   },
   // Linesman: hand drops the puck, then he backs away.
@@ -632,7 +676,7 @@ export class RigFactory {
   }
 }
 
-const THIGH = 0.46,
+export const THIGH = 0.46,
   SHIN = 0.46,
   HIP_X = 0.11,
   SHOULDER_X = 0.235,
@@ -640,10 +684,10 @@ const THIGH = 0.46,
   UPPER = 0.31,
   FORE = 0.3;
 /** Ankle to the bottom of the skate blade / shoe sole. */
-const BLADE_DROP = 0.115,
+export const BLADE_DROP = 0.115,
   SHOE_DROP = 0.07;
 /** Goalie leg pad shell (knee space). */
-const PAD_H = 0.68,
+export const PAD_H = 0.68,
   PAD_Y = -0.2;
 
 export class HockeyRig {
@@ -680,12 +724,12 @@ export class HockeyRig {
   private svz = 0;
   private yaw = 0;
   private spPrev = 0;
-  private phase = Math.random();
+  private phase = 0.37;
   private amp = 0;
   private bank = 0;
   private stopT = 0;
   private stopDir = 1;
-  private clock = Math.random() * 10;
+  private clock = 3.7;
   // Pose layers
   private state: RigState = "play";
   private stateT = 0;
@@ -699,6 +743,8 @@ export class HockeyRig {
   private target = pose();
   private actionPose = pose();
   private readonly contactDrop: number;
+  /** Short ragdoll-style tilt after a heavy hit (pitch/roll and their rates). */
+  private tilt = { p: 0, r: 0, vp: 0, vr: 0 };
   constructor(
     private factory: RigFactory,
     private mats: Mats,
@@ -901,6 +947,9 @@ export class HockeyRig {
     if (this.identity === id.id) return;
     this.identity = id.id;
     this.variety = hash01(id.id, 13);
+    // Deterministic per player: stride phase and idle clock from the id.
+    this.phase = hash01(id.id, 29);
+    this.clock = hash01(id.id, 31) * 10;
     this.hs = this.hasStick ? (hash01(id.id, 3) < 0.62 ? 1 : -1) : 1;
     const tall = pos === "D" ? 1.03 : pos === "G" ? 1.02 : pos === "C" ? 1.0 : 0.99;
     const h = tall * (0.955 + hash01(id.id, 5) * 0.09);
@@ -975,8 +1024,14 @@ export class HockeyRig {
     } else if (kind === "shot") spec = this.variety > 0.7 ? ACTIONS.slap : ACTIONS.shot;
     else if (kind === "faceoff") spec = ACTIONS.draw;
     else spec = ACTIONS[kind];
+    if (kind === "fall") {
+      // Impulse: the body is thrown back and sideways, then gravity and
+      // the skater's recovery bring it round (see update).
+      this.tilt.vp = -3.2;
+      this.tilt.vr = (this.variety > 0.5 ? 1 : -1) * 2.4;
+    }
     if (!spec) return;
-    const urgent = kind === "checked" || kind === "save" || kind === "beaten" || kind === "drop";
+    const urgent = kind === "fall" || kind === "checked" || kind === "save" || kind === "beaten" || kind === "drop";
     if (this.action && !urgent && this.action.t < this.action.spec.dur * 0.8) return;
     this.action = { spec, t: 0, urgent };
   }
@@ -1209,8 +1264,34 @@ export class HockeyRig {
     }
     // Puck handling: gentle side-to-side sweep while carrying.
     if (inp.hasPuck && !this.action && this.state === "play" && this.role === "skater") {
-      P.bx += Math.sin(this.clock * 5.2) * 0.1;
-      P.bz += 0.06 * Math.sin(this.clock * 10.4);
+      if (inp.nearBoards) {
+        // Protect the puck along the boards: low, wide, blade away from checkers.
+        P.crouch += 0.2;
+        P.lean += 0.2;
+        P.roll += 0.18;
+        P.bx = 0.55 + Math.sin(this.clock * 3) * 0.05;
+        P.bz = 0.55;
+        P.stance += 0.12;
+      } else if ((inp.pressure ?? 9) < 2.2) {
+        // Tight space: quick, wide hands.
+        P.bx += Math.sin(this.clock * 8.5) * 0.24;
+        P.twist += Math.sin(this.clock * 8.5) * 0.12;
+        P.bz += 0.06 * Math.sin(this.clock * 17);
+      } else {
+        P.bx += Math.sin(this.clock * 5.2) * 0.1;
+        P.bz += 0.06 * Math.sin(this.clock * 10.4);
+      }
+    }
+    if (this.goalie && this.state === "play" && !this.action) {
+      // Track the puck: glove and blocker shade toward it, deeper crouch when close.
+      const dx = inp.puckX - this.px, dz = inp.puckZ - this.pz;
+      const fwd = dx * Math.sin(this.yaw) + dz * Math.cos(this.yaw);
+      const lat = (dx * Math.cos(this.yaw) - dz * Math.sin(this.yaw)) * this.hs;
+      const near = clamp(1 - Math.hypot(dx, dz) / 12, 0, 1) * (fwd > 0 ? 1 : 0.3);
+      P.fx += clamp(-lat * 0.03, -0.12, 0.12);
+      P.gx += clamp(-lat * 0.03, -0.12, 0.12);
+      P.crouch += near * 0.18;
+      P.headYaw += clamp(-lat * 0.06, -0.5, 0.5);
     }
     const posed = P.legW > 0.5 || P.seat > 0.5;
     const amp = (this.goalie ? this.amp * 0.55 : this.amp) * (1 - P.legW) * (1 - P.seat);
@@ -1260,6 +1341,13 @@ export class HockeyRig {
     const stopYaw = stop * this.stopDir * 1.2;
     this.root.rotation.y = this.yaw + stopYaw + P.yawOff;
     this.root.position.set(this.px + fx * P.offF, this.root.position.y, this.pz + fz * P.offF);
+    // --- ragdoll-style tilt from a hit (spring back with damping)
+    const tl = this.tilt;
+    tl.vp += (-tl.p * 18 - tl.vp * 5.5) * animDt;
+    tl.vr += (-tl.r * 18 - tl.vr * 5.5) * animDt;
+    tl.p = clamp(tl.p + tl.vp * animDt, -0.7, 0.7);
+    tl.r = clamp(tl.r + tl.vr * animDt, -0.6, 0.6);
+    this.build.rotation.set(tl.p, 0, tl.r);
     // --- ground contact (or the bench seat)
     this.pelvis.position.y = 0;
     this.root.updateMatrixWorld(true);
@@ -1347,6 +1435,33 @@ export class HockeyRig {
       this.catcher.position.copy(this.armMeshes[1].hand.position).add(_b.set(0, 0.03, 0.06));
       this.catcher.rotation.set(0.2 - Math.max(0, P.fy) * 0.8, 0, -hs * 0.15);
     }
+  }
+  /** Joint groups and arm/stick transforms, read by the skinned renderer. */
+  skeletonSource() {
+    return {
+      build: this.build,
+      pelvis: this.pelvis,
+      spine: this.spine,
+      head: this.head,
+      hips: this.hips,
+      knees: this.knees,
+      ankles: this.ankles,
+      arms: this.armMeshes,
+      shaft: this.shaft,
+      blade: this.blade,
+      hs: this.hs,
+      speed: Math.hypot(this.svx, this.svz),
+      stopping: this.stopT > 0,
+      yaw: this.yaw,
+    };
+  }
+  /** Hides the primitive figure (the skinned model draws instead). */
+  hidePrimitives() {
+    this.build.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) o.visible = false;
+    });
+    if (this.shaft) this.shaft.visible = false;
+    this.blade.visible = false;
   }
   dispose() {
     this.numberTex?.dispose();
