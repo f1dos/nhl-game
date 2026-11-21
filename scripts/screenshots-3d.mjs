@@ -43,8 +43,23 @@ for (const [name, query] of shots) {
 // Broadcast demo: general view, then wait for play and measure fps.
 const extra = process.env.BROADCAST_SHOTS?.split(",") ?? [];
 await page.goto(base + "/?demo=broadcast", { waitUntil: "load" });
-await page.waitForTimeout(9000);
+await page.waitForSelector(".bw-play", { timeout: 60000 });
+await page.waitForTimeout(3000);
+await page.screenshot({ path: path.join(out, "broadcast-intro.png") });
+await page.click(".bw-play");
+await page.waitForTimeout(7000);
 await page.screenshot({ path: path.join(out, "broadcast-wide.png") });
+// Wait for the first goal (the score text changes) and grab the replay/celebration.
+const goal = await page
+  .waitForFunction(() => [...document.querySelectorAll(".bw-bug-team strong")].some((e) => Number(e.textContent) > 0), null, { timeout: 150000 })
+  .then(() => true)
+  .catch(() => false);
+if (goal) {
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(out, "broadcast-goal.png") });
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: path.join(out, "broadcast-replay.png") });
+}
 const fps = await page.evaluate(
   () =>
     new Promise((resolve) => {

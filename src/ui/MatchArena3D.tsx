@@ -165,6 +165,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const observer = new ResizeObserver(resize); observer.observe(container); resize();
     let frame = 0, previous = performance.now();
     let wasRunning: boolean | undefined;
+    const benchUp = [0, 0];
+    const running = (d: { running: boolean }) => d.running;
+    const spray = new SnowSpray(scene);
     let lastStop = "";
     const leaveArena = gameAudio.enterArena();
     const lookAt = new THREE.Vector3(), desired = new THREE.Vector3();
@@ -281,7 +284,16 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           }
           const inside = insideBoards(x, z);
           lastIce.set(body.id, inside);
-          rig.update(dt, stoppage ? showDt : animDt, { x: inside.x, z: inside.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: frameData.carrierId === body.id, face: look.face });
+          const carrying = frameData.carrierId === body.id;
+          let pressure: number | undefined;
+          if (carrying) {
+            pressure = Math.min(...frameData.bodies.filter(o => o.side !== side && !o.goalie).map(o => Math.hypot(o.x - body.x, o.z - body.z)), 20);
+            // A pressured carrier dekes now and then (presentation only).
+            if (pressure < 2.4 && frameData.tick % 41 === 0 && !stoppage) rig.trigger("deke");
+          }
+          rig.update(dt, stoppage ? showDt : animDt, { x: inside.x, z: inside.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: carrying, face: look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
+          const mo = rig.motion;
+          if (mo?.stopping && running(data)) spray.emit(inside.x, inside.z, mo.yaw, dt);
         });
         // --- one-shot animations raised by the simulation (each cue plays once)
         for (const cue of frameData.cues) {
@@ -296,10 +308,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (data.running) {
             const shooter = cue.kind === "shot" ? at(cue.id) : undefined;
             const danger = shooter ? Math.max(0, 1 - Math.hypot(Math.abs(shooter.x) - 26, shooter.z) / 18) : 0;
+            if (shooter && danger > 0.45) { benchUp[0] = benchUp[1] = now + 2600; }
             gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
           }
-          if (cue.kind === "shot" || cue.kind === "pass") actor?.trigger(cue.kind);
-          else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger("checked"); }
+          if (cue.kind === "shot" || cue.kind === "pass") { actor?.trigger(cue.kind); if (cue.kind === "pass") other?.trigger("receive"); }
+          else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger(((cue.seq * 2654435761) >>> 0) % 100 < 28 ? "fall" : "checked"); }
           else if (cue.kind === "block") actor?.trigger("checked");
           else if (cue.kind === "goal") {
             const keeper = at(cue.target);
@@ -346,6 +359,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         });
       }
 
+      spray.update(dt);
       // --- benches: seated, standing and cheering, reaching out for the line;
       // players going off skate to their gate (or the box) and sit down.
       const onIce = new Set(frameData?.bodies.map(b => b.id) ?? []);
@@ -389,6 +403,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         }
         let state: RigState = m.mode === "box" ? "box" : "seated";
         if (m.mode === "moving") state = "play";
+        else if (m.mode === "seat" && !stoppage && now < benchUp[side]) state = "bench-stand";
         else if (m.mode === "seat" && stoppage?.kind === "goal" && stoppage.phase === "celebrate") {
           if (side === stoppage.side) {
             const near = scorer && stoppage.t >= 3.9 && Math.abs(scorer.x - seatX) < 3.2;
@@ -410,8 +425,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") state = own ? (c.head ? "coach-clap" : "coach-point") : c.head ? "coach-despair" : "coach-idle";
         else if (stoppage?.kind === "penalty" && stoppage.phase === "whistle" && own && c.head) state = "coach-point";
         else if (!stoppage && c.head && Math.floor((now / 1000 + c.side * 5) / 9) % 3 === 0) { variant = 0.8; }
+        else if (!stoppage && !c.head && Math.floor((now / 1000 + c.side * 3) / 11) % 4 === 1) state = "coach-point";
         c.rig.setState(state, variant);
-        c.rig.update(dt, data.running ? dt : dt * 0.5, { x: c.x, z: BENCH.seatZ - 1.35, vx: 0, vz: 0, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face: 0 });
+        // Every so often the assistant and the head coach turn to talk.
+        const talk = Math.floor((now / 1000 + c.side * 7) / 6) % 3 === 0;
+        const partner = coaches.find(o => o.side === c.side && o !== c);
+        c.rig.update(dt, data.running ? dt : dt * 0.5, { x: c.x, z: BENCH.seatZ - 1.35, vx: 0, vz: 0, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face: 0, lookX: talk && partner ? partner.x : undefined, lookZ: talk && partner ? BENCH.seatZ - 1.35 : undefined });
       });
 
       // --- officials: follow play, run faceoffs, signal goals and penalties
@@ -503,7 +522,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {
-      leaveArena(); gameAudio.setRunning(false);
+      leaveArena(); gameAudio.setRunning(false); spray.dispose();
       cancelAnimationFrame(frame); observer.disconnect();
       [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());
       arena.dispose();
@@ -529,3 +548,48 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 function smoothstep(t: number) { const u = Math.max(0, Math.min(1, t)); return u * u * (3 - 2 * u); }
 void RINK;
+
+/** Snow spray from hard stops: pooled points thrown sideways off the blades. */
+class SnowSpray {
+  private n = 360;
+  private pos = new Float32Array(this.n * 3);
+  private vel = new Float32Array(this.n * 3);
+  private life = new Float32Array(this.n);
+  private next = 0;
+  private points: THREE.Points;
+  constructor(private scene: THREE.Scene) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(this.pos, 3));
+    this.points = new THREE.Points(g, new THREE.PointsMaterial({ color: "#f4fbff", size: 0.07, transparent: true, opacity: 0.85, depthWrite: false }));
+    this.points.frustumCulled = false;
+    this.pos.fill(-100);
+    scene.add(this.points);
+  }
+  emit(x: number, z: number, yaw: number, dt: number) {
+    const count = Math.ceil(dt * 160);
+    const sx = Math.cos(yaw), sz = -Math.sin(yaw);
+    for (let k = 0; k < count; k++) {
+      const i = this.next = (this.next + 1) % this.n;
+      const side = (i % 2 ? 1 : -1) * (0.6 + ((i * 37) % 10) / 25);
+      this.pos.set([x + sx * 0.15 * side, 0.05, z + sz * 0.15 * side], i * 3);
+      this.vel.set([sx * side * 2.2 + (((i * 13) % 7) - 3) * 0.15, 1.1 + ((i * 7) % 5) * 0.2, sz * side * 2.2 + (((i * 11) % 7) - 3) * 0.15], i * 3);
+      this.life[i] = 0.55;
+    }
+  }
+  update(dt: number) {
+    for (let i = 0; i < this.n; i++) {
+      if (this.life[i] <= 0) continue;
+      this.life[i] -= dt;
+      this.vel[i * 3 + 1] -= 9.8 * dt;
+      for (let k = 0; k < 3; k++) this.pos[i * 3 + k] += this.vel[i * 3 + k] * dt;
+      if (this.pos[i * 3 + 1] < 0.02) { this.pos[i * 3 + 1] = 0.02; this.vel[i * 3] *= 0.6; this.vel[i * 3 + 2] *= 0.6; }
+      if (this.life[i] <= 0) this.pos[i * 3 + 1] = -100;
+    }
+    (this.points.geometry.getAttribute("position") as THREE.BufferAttribute).needsUpdate = true;
+  }
+  dispose() {
+    this.scene.remove(this.points);
+    this.points.geometry.dispose();
+    (this.points.material as THREE.Material).dispose();
+  }
+}
