@@ -175,7 +175,7 @@ export class BroadcastDirector {
       }
       dof = want.distanceTo(lookAt);
       smooth = 0.35;
-    } else if (this.introLeft > 0 && frame && !frame.cues.length && frame.tick < 3) {
+    } else if (this.introLeft > 0 && frame && frame.tick < 5 && mode === "broadcast") {
       // Fly-over before the opening faceoff.
       this.introLeft -= dt;
       const a = (1 - this.introLeft / 5.5) * 1.6 - 0.8;

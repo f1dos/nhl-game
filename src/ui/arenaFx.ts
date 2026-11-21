@@ -46,6 +46,9 @@ export function arenaPreset(team: Team): LightPreset {
 export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // Shadows are refreshed every other frame by the caller (see tickShadows).
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
   let key: THREE.DirectionalLight | undefined;
   scene.traverse((o) => {
     if (!key && (o as THREE.DirectionalLight).isDirectionalLight) key = o as THREE.DirectionalLight;
@@ -70,6 +73,8 @@ export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene)
 }
 
 export interface IceFx {
+  /** Turn the reflections off (automatic quality fallback). */
+  setReflections(on: boolean): void;
   /** Record skates on the ice (scratch marks) for this frame. */
   skate(points: { x: number; z: number; speed: number; stopping: boolean }[], dt: number): void;
   /** Fresh sheet: called at intermission. */
@@ -102,6 +107,12 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
     reflector.rotation.x = -Math.PI / 2;
     reflector.position.y = -0.012;
     reflector.renderOrder = -1;
+    // The reflection is soft and low-res: refresh it every other frame.
+    const render = reflector.onBeforeRender.bind(reflector);
+    let tick = 0;
+    reflector.onBeforeRender = (...args: Parameters<typeof render>) => {
+      if (tick++ % 2 === 0) render(...args);
+    };
     scene.add(reflector);
     disposables.push(reflector.geometry, reflector.getRenderTarget());
     const mat = ice.material as THREE.MeshStandardMaterial;
@@ -158,6 +169,15 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
         tex.needsUpdate = true;
       }
     },
+    setReflections(on) {
+      if (reflector) reflector.visible = on;
+      if (ice) {
+        const m = ice.material as THREE.MeshStandardMaterial;
+        m.opacity = on ? 0.86 : 1;
+        m.transparent = on;
+        m.needsUpdate = true;
+      }
+    },
     resurface() {
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
       last.clear();
@@ -211,4 +231,9 @@ export function buildPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, cam
       bokeh.dispose();
     },
   };
+}
+
+/** Refreshes the shadow map every other frame (moving players, half the cost). */
+export function tickShadows(renderer: THREE.WebGLRenderer, frame: number) {
+  if (renderer.shadowMap.enabled && frame % 2 === 0) renderer.shadowMap.needsUpdate = true;
 }

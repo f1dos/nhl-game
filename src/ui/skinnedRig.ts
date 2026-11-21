@@ -413,7 +413,7 @@ function buildBody(spec: BuildSpec) {
         ring(fore, 0.17, 0.06, 0.42, [[fore, 1]]),
         ring(fore, FORE - 0.05, 0.058, 0.48, [[fore, 0.8], [hand, 0.2]]),
       ],
-      coach ? "jersey" : "jersey",
+      "jersey",
       segL,
       { u0: 0, u1: 1 },
     );
@@ -778,11 +778,14 @@ function jerseyTexture(kit: TeamKit, name: string, number: number, role: RigRole
       });
       // Shoulder numbers on the outside of both sleeves.
       ctx.fillStyle = ink;
-      for (const x of [0, 256, 512])
-        upright(x, 0.09 * 512, () => {
-          ctx.font = "800 40px Arial, sans-serif";
-          ctx.fillText(String(number), 0, 0);
-        });
+      // Sleeves: u runs round the arm and v down it, so text needs no flip.
+      for (const x of [0, 256, 512]) {
+        ctx.save();
+        ctx.translate(x, 0.09 * 512);
+        ctx.font = "800 40px Arial, sans-serif";
+        ctx.fillText(String(number), 0, 0);
+        ctx.restore();
+      }
     }
   }
   const tex = new THREE.CanvasTexture(c);

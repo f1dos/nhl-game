@@ -9,7 +9,7 @@ import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards, loadLogo } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
-import { buildIceFx, buildPost, enableShadows } from "./arenaFx";
+import { buildIceFx, buildPost, enableShadows, tickShadows } from "./arenaFx";
 import { BroadcastDirector } from "./broadcastDirector";
 import Select from "./Select";
 export { CAMERA_MODES, type CameraMode };
@@ -97,7 +97,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     if (quality === "high") enableShadows(renderer, scene);
     const iceFx = buildIceFx(scene, arena.ice, quality);
     let lastPeriod = "";
+    let frameNo = 0, slowFor = 0, reflections = quality === "high";
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 260);
+    camera.layers.enable(1);
     const kits = [kitFor(home, false), kitFor(away, true)];
     const teams = [home, away];
     const playerOf = (side: number, id: string) => teams[side].players.find(p => p.id === id);
@@ -517,6 +519,13 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         label.textContent = `${scorer ? "🚨 " : ""}${p ? `#${p.number} ${p.name}` : ""}`;
         label.style.borderLeftColor = teams[labelled.side].color;
       }
+      // Automatic quality: drop the ice reflections if the frame rate sags.
+      frameNo++;
+      // Ignore the first seconds (shader compilation, texture uploads).
+      if (frameNo > 360) slowFor = dt > 1 / 45 ? slowFor + dt : Math.max(0, slowFor - dt * 0.5);
+      if (reflections && slowFor > 4) { reflections = false; iceFx.setReflections(false); }
+      (window as unknown as { __arena3d?: object }).__arena3d = { reflections, shot: shotOut.shot };
+      tickShadows(renderer, frameNo);
       post.render(); frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);

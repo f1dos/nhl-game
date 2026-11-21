@@ -599,8 +599,8 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   }
   tier(preset.upperRows, 2.6 + L * 0.88 + 1.2, 0.9 + L * 0.42 + 2.6, 0.62, 0.9);
   addMerged(suiteGlass, own(new THREE.MeshStandardMaterial({ color: "#2a3542", emissive: "#ffd9a0", emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.3 })));
-  addMerged(risers, mat("#27323e", 0.85));
-  addMerged(walls, mat(home.color, 0.6));
+  addMerged(risers, mat("#27323e", 0.85))?.layers.set(1);
+  addMerged(walls, mat(home.color, 0.6))?.layers.set(1);
   const fanBody = new THREE.InstancedMesh(own(new THREE.CapsuleGeometry(0.2, 0.42, 2, 6)), mat("#ffffff", 0.95), seats.length);
   const fanHead = new THREE.InstancedMesh(own(new THREE.SphereGeometry(0.13, 8, 6)), mat("#ffffff", 0.8), seats.length);
   const skin = ["#f2cfae", "#e6b690", "#d09a72", "#a76d48", "#6b4430"].map((c) => new THREE.Color(c));
@@ -634,6 +634,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     fanHead.setColorAt(i, skin[Math.floor(rand(i + 13) * skin.length)]);
   });
   group.add(fanBody, fanHead);
+  // Stands live on layer 1: drawn by the main camera only, never in the
+  // ice reflection or the shadow map.
+  fanBody.layers.set(1);
+  fanHead.layers.set(1);
   const baseBody = Array.from({ length: seats.length }, (_, i) => {
     const m = new THREE.Matrix4();
     fanBody.getMatrixAt(i, m);
@@ -652,7 +656,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   for (let x = -40; x <= 40; x += 8) truss.push(placed(new THREE.BoxGeometry(0.4, 0.6, 70), x, roofY, 0));
   for (let z = -30; z <= 30; z += 10) truss.push(placed(new THREE.BoxGeometry(84, 0.4, 0.4), 0, roofY - 0.4, z));
   const trussMesh = addMerged(truss, mat("#1c242e", 0.7, 0.4));
-  if (trussMesh) ceiling.push(trussMesh);
+  if (trussMesh) {
+    trussMesh.layers.set(1);
+    ceiling.push(trussMesh);
+  }
   const lightPanels: THREE.BufferGeometry[] = [];
   for (let x = -28; x <= 28; x += 7) for (const z of [-9, 0, 9]) lightPanels.push(placed(new THREE.BoxGeometry(2.2, 0.2, 1.2), x, roofY - 1, z));
   const panelMesh = addMerged(lightPanels, own(new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff6e0", emissiveIntensity: 1.6 })));
