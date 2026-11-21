@@ -10,6 +10,7 @@ import { buildArena, insideBoards, loadLogo } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
 import { buildIceFx, buildPost, enableShadows } from "./arenaFx";
+import { BroadcastDirector } from "./broadcastDirector";
 import Select from "./Select";
 export { CAMERA_MODES, type CameraMode };
 
@@ -177,6 +178,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const spray = new SnowSpray(scene);
     let lastStop = "";
     const leaveArena = gameAudio.enterArena();
+    const director = new BroadcastDirector();
+    const replayBadge = document.createElement("div");
+    replayBadge.textContent = language === "en" ? "REPLAY" : "ПОВТОР";
+    Object.assign(replayBadge.style, { position: "absolute", top: "86px", right: "24px", padding: "6px 14px", background: "#c8102e", color: "white", font: "800 14px Inter, Arial, sans-serif", letterSpacing: "0.14em", borderRadius: "3px", display: "none", pointerEvents: "none", boxShadow: "0 6px 18px #0008" });
+    container.appendChild(replayBadge);
     const lookAt = new THREE.Vector3(), desired = new THREE.Vector3();
     // Cameras follow a smoothed focus point, never the raw puck, so the view
     // stays steady while the simulation publishes coarse steps.
@@ -242,8 +248,13 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       // Stoppage choreography always plays at a natural speed.
       const showDt = data.running ? dt * Math.min(Math.max(1, data.playback), 1.6) : 0;
       byBody.clear();
-      const frameData = data.spatial;
+      const liveFrame = data.spatial;
+      if (liveFrame) director.record(liveFrame, now / 1000);
+      // During a goal replay the figures show recorded frames.
+      const frameData = director.frameFor(liveFrame, data.running ? dt : 0);
       const stoppage = frameData?.stoppage;
+      const liveStop = liveFrame?.stoppage;
+      replayBadge.style.display = director.replaying ? "block" : "none";
       if (data.running !== wasRunning) { wasRunning = data.running; gameAudio.setRunning(data.running); }
       const stopKey = stoppage ? `${stoppage.kind}:${stoppage.phase}:${stoppage.actor}` : "";
       if (stopKey !== lastStop) {
@@ -306,6 +317,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         for (const cue of frameData.cues) {
           if (cue.seq <= seenCue) continue;
           seenCue = cue.seq;
+          if (director.replaying) continue;
           if (!data.running && cue.kind !== "faceoff") continue;
           const actor = byBody.get(cue.id), other = cue.target ? byBody.get(cue.target) : undefined;
           const at = (id?: string) => frameData.bodies.find(b => b.id === id);
@@ -476,46 +488,22 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       if (frameData && data.running) iceFx.skate(actors.filter(a => a.rig.root.visible).map(a => { const m = a.rig.motion; return { x: m?.x ?? 0, z: m?.z ?? 0, speed: m?.speed ?? 0, stopping: !!m?.stopping }; }), dt);
       const period = scoreRef.current?.period ?? "";
       if (period !== lastPeriod) { if (lastPeriod) iceFx.resurface(); lastPeriod = period; }
-      arena.update(dt, { playing: data.running && !stoppage, danger: now < benchUp[0], goalSide: stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? Math.sign(frameData?.puck.x ?? 0) : 0, homeScored: stoppage?.kind === "goal" && stoppage.side === 0 && stoppage.phase === "celebrate", score: scoreRef.current });
+      arena.update(dt, { playing: data.running && !liveStop, danger: now < benchUp[0], goalSide: liveStop?.kind === "goal" && liveStop.phase === "celebrate" ? Math.sign(liveFrame?.puck.x ?? 0) : 0, homeScored: liveStop?.kind === "goal" && liveStop.side === 0 && liveStop.phase === "celebrate", score: scoreRef.current });
 
-      // --- camera director: goals, saves and faceoffs get tighter shots
-      let fx = Math.max(-26, Math.min(26, puck.position.x)), fz = Math.max(-10, Math.min(10, puck.position.z));
-      let tight = 0;
-      if (stoppage) {
-        if (stoppage.kind === "goal" && stoppage.phase === "celebrate") {
-          const s2 = frameData?.bodies.find(b => b.id === stoppage.actor);
-          if (s2) { const t2 = tracks.get(s2.id); fx = t2?.x ?? s2.x; fz = t2?.z ?? s2.z; }
-          tight = 1;
-        } else if (stoppage.phase === "lineup" || stoppage.phase === "drop") {
-          fx = stoppage.dot.x; fz = stoppage.dot.z; tight = stoppage.phase === "drop" ? 1 : 0.6;
-        } else if (stoppage.kind === "penalty") {
-          // Follow the penalised player to the box.
-          const culprit = frameData?.bodies.find(b => b.id === stoppage.actor);
-          if (culprit) { const t2 = tracks.get(culprit.id); fx = t2?.x ?? culprit.x; fz = t2?.z ?? culprit.z; }
-          tight = 0.75;
-        } else if (stoppage.kind === "save") {
-          const keeper = frameData?.bodies.find(b => b.id === stoppage.actor);
-          if (keeper) { fx = keeper.x * 0.9; fz = keeper.z; }
-          tight = 0.7;
-        }
-      }
-      if (!cameraReady) focus.set(fx, 0, fz);
-      else focus.lerp(_focusTarget.set(fx, 0, fz), 1 - Math.exp(-dt * (tight ? 2.2 : 1.6)));
-      zoom += (tight - zoom) * (1 - Math.exp(-dt * 1.5));
+      // --- cameras: damped springs, automatic broadcast director, replays and cut-scenes
       const m = mode.current;
-      if (m === "overhead") { desired.set(0, 62, 0.1); lookAt.set(0, 0, 0); }
-      else if (m === "follow") { desired.set(focus.x * 0.45, 26 - zoom * 10, 31 - zoom * 12); lookAt.set(focus.x * (0.35 + zoom * 0.5), 0, focus.z * zoom * 0.6); }
-      else if (m === "close") { desired.set(focus.x * 0.9, 7 - zoom * 2, focus.z * 0.5 + 10.5 - zoom * 3); lookAt.set(focus.x, 0.8, focus.z); }
-      else {
-        // TV camera high in the stands opposite the benches, panning with play.
-        desired.set(focus.x * 0.85, lerp(12, 7.5, zoom), lerp(27, focus.z + 14, zoom));
-        lookAt.set(focus.x * lerp(0.95, 1, zoom), lerp(0, 0.9, zoom), focus.z * lerp(0.3, 1, zoom));
-      }
+      const shotOut = director.update(dt, m, liveFrame, puck.position, now / 1000, (id) => {
+        const t2 = tracks.get(id);
+        if (t2) return { x: t2.x, z: t2.z };
+        const b2 = liveFrame?.bodies.find(b => b.id === id);
+        return b2 ? { x: b2.x, z: b2.z } : undefined;
+      });
       arena.setCeilingVisible(m !== "overhead");
-      if (!cameraReady) { cameraReady = true; lookSmooth.copy(lookAt); camera.position.copy(desired); }
-      const kc = 1 - Math.exp(-dt * (m === "close" ? 3 : 3.5));
-      camera.position.lerp(desired, kc); lookSmooth.lerp(lookAt, kc); camera.lookAt(lookSmooth);
-
+      camera.position.copy(shotOut.pos);
+      if (Math.abs(camera.fov - shotOut.fov) > 0.01) { camera.fov = shotOut.cut ? shotOut.fov : camera.fov + (shotOut.fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
+      camera.lookAt(shotOut.look);
+      post.setCinematic(shotOut.dof !== undefined, shotOut.dof);
+      void focus; void lookAt; void desired; void lookSmooth; void zoom; void cameraReady; void _focusTarget;
       // --- label over the puck carrier (or the scorer)
       const labelled = scorer ?? frameData?.bodies.find(b => b.id === frameData.carrierId);
       if (!labelled) label.style.display = "none";
@@ -539,7 +527,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       arena.dispose();
       scene.traverse(object => { if (object instanceof THREE.Mesh && !object.userData.shared) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       factory.dispose();
-      label.remove(); renderer.dispose(); renderer.domElement.remove();
+      label.remove(); replayBadge.remove(); renderer.dispose(); renderer.domElement.remove();
     };
   }, [home.id, away.id]);
   const ru = language === "ru";

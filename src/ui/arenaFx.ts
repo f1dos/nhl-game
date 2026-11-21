@@ -187,7 +187,7 @@ export function buildPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, cam
   // board glow — never the (bright, white) ice itself.
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), bloom * 0.7, 0.45, 2.2);
   composer.addPass(bloomPass);
-  const bokeh = new BokehPass(scene, camera, { focus: 12, aperture: 0.0016, maxblur: 0.008 });
+  const bokeh = new BokehPass(scene, camera, { focus: 12, aperture: 0.0006, maxblur: 0.005 });
   bokeh.enabled = false;
   composer.addPass(bokeh);
   composer.addPass(new OutputPass());
