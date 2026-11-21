@@ -9,6 +9,7 @@ import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards, loadLogo } from "./arenaScene";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
+import { buildIceFx, buildPost, enableShadows } from "./arenaFx";
 import Select from "./Select";
 export { CAMERA_MODES, type CameraMode };
 
@@ -90,6 +91,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const scene = new THREE.Scene();
     const factory = makeFactory();
     const arena = buildArena(scene, home, away);
+    renderer.toneMappingExposure = arena.preset.exposure;
+    const quality = new URLSearchParams(location.search).get("quality") === "low" ? "low" : "high";
+    if (quality === "high") enableShadows(renderer, scene);
+    const iceFx = buildIceFx(scene, arena.ice, quality);
+    let lastPeriod = "";
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 260);
     const kits = [kitFor(home, false), kitFor(away, true)];
     const teams = [home, away];
@@ -158,9 +164,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 16), new THREE.MeshStandardMaterial({ color: "#0b0b0b", roughness: 0.6 }));
     puck.position.y = 0.04; scene.add(puck);
     let puckY = 0.04;
+    const post = buildPost(renderer, scene, camera, arena.preset.bloom);
     const resize = () => {
       const width = Math.max(1, container.clientWidth), h = Math.max(240, container.clientHeight);
-      renderer.setSize(width, h); camera.aspect = width / h; camera.updateProjectionMatrix();
+      renderer.setSize(width, h); post.setSize(width, h); camera.aspect = width / h; camera.updateProjectionMatrix();
     };
     const observer = new ResizeObserver(resize); observer.observe(container); resize();
     let frame = 0, previous = performance.now();
@@ -465,7 +472,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       });
 
       // --- arena reactions (goal lights, crowd)
-      arena.update(dt, { goalSide: stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? Math.sign(frameData?.puck.x ?? 0) : 0, homeScored: stoppage?.kind === "goal" && stoppage.side === 0 && stoppage.phase === "celebrate", score: scoreRef.current });
+      // Ice: skate marks build up, the sheet is resurfaced between periods.
+      if (frameData && data.running) iceFx.skate(actors.filter(a => a.rig.root.visible).map(a => { const m = a.rig.motion; return { x: m?.x ?? 0, z: m?.z ?? 0, speed: m?.speed ?? 0, stopping: !!m?.stopping }; }), dt);
+      const period = scoreRef.current?.period ?? "";
+      if (period !== lastPeriod) { if (lastPeriod) iceFx.resurface(); lastPeriod = period; }
+      arena.update(dt, { playing: data.running && !stoppage, danger: now < benchUp[0], goalSide: stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? Math.sign(frameData?.puck.x ?? 0) : 0, homeScored: stoppage?.kind === "goal" && stoppage.side === 0 && stoppage.phase === "celebrate", score: scoreRef.current });
 
       // --- camera director: goals, saves and faceoffs get tighter shots
       let fx = Math.max(-26, Math.min(26, puck.position.x)), fz = Math.max(-10, Math.min(10, puck.position.z));
@@ -518,11 +529,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         label.textContent = `${scorer ? "🚨 " : ""}${p ? `#${p.number} ${p.name}` : ""}`;
         label.style.borderLeftColor = teams[labelled.side].color;
       }
-      renderer.render(scene, camera); frame = requestAnimationFrame(animate);
+      post.render(); frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {
-      leaveArena(); gameAudio.setRunning(false); spray.dispose();
+      leaveArena(); gameAudio.setRunning(false); spray.dispose(); iceFx.dispose(); post.dispose();
       cancelAnimationFrame(frame); observer.disconnect();
       [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());
       arena.dispose();
