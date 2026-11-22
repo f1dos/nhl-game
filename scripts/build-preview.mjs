@@ -14,6 +14,7 @@ await build({
   logLevel: "warn",
   build: {
     outDir: out,
+    assetsInlineLimit: file => file.endsWith("headgear.glb") || undefined,
     emptyOutDir: true,
     chunkSizeWarningLimit: 6000,
     rollupOptions: { output: { inlineDynamicImports: true } },
@@ -35,5 +36,6 @@ fs.writeFileSync(
   path.join(downloads, "NHL-Manager-27-broadcast-demo.html"),
   html.replace("<head>", '<head><script>window.__NHL_DEMO__="broadcast"</script>'),
 );
+fs.writeFileSync(path.join(downloads,"NHL-Manager-27-model-lab.html"), html.replace("<head>", '<head><script>window.__NHL_DEMO__="models"</script>'));
 fs.rmSync(out, { recursive: true, force: true });
 console.log("Built single-file previews in dist/downloads.");
