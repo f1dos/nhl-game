@@ -14,9 +14,12 @@ test("skinned models: one mesh per LOD, budgets, valid weights, every bone used"
     const model = factory.model(role, look);
     const tris = model.hi.index!.count / 3;
     const lowTris = model.lo.index!.count / 3;
-    const cap = role === "goalie" ? 10000 : 8000;
+    const cap = role === "goalie" ? 30000 : 25000;
     assert(tris <= cap, `${role}: ${tris} triangles`);
     assert(tris >= 2500, `${role}: ${tris} triangles is too coarse`);
+    const mediumTris = model.mid.index!.count / 3;
+    assert(mediumTris < tris && mediumTris < 13500);
+    assert(lowTris <= 4100);
     assert(lowTris < tris * 0.7, `${role}: LOD1 ${lowTris} vs ${tris}`);
     const w = model.hi.getAttribute("skinWeight");
     const idx = model.hi.getAttribute("skinIndex");
@@ -56,8 +59,42 @@ test("a rig follows the pose solver without NaNs and keeps the solver's motion",
   for (const b of bones) for (const e of b.matrix.elements) assert(Number.isFinite(e), `${b.name} NaN`);
   const meshes: THREE.SkinnedMesh[] = [];
   rig.root.traverse((o) => (o as THREE.SkinnedMesh).isSkinnedMesh && meshes.push(o as THREE.SkinnedMesh));
-  assert.equal(meshes.length, 2, "two LOD levels");
+  assert.equal(meshes.length, 3, "three LOD levels");
   // Feet stay on the ice: the lowest foot bone sits about a blade above it.
   const feet = bones.filter((b) => b.name.startsWith("foot")).map((b) => new THREE.Vector3().setFromMatrixPosition(b.matrixWorld).y);
   assert(Math.min(...feet) > 0.05 && Math.min(...feet) < 0.25, `foot height ${feet}`);
+});
+
+test("exported match characters have animated joints, embedded kit textures and valid skinning", async () => {
+  const {readFile} = await import("node:fs/promises");
+  for (const role of ["skater","goalie"]) {
+    const bytes = await readFile(new URL(`../public/models/hockey/${role}-match.glb`,import.meta.url));
+    assert.equal(bytes.toString("ascii",0,4),"glTF");
+    assert.equal(bytes.readUInt32LE(8),bytes.length);
+    const model=JSON.parse(bytes.toString("utf8",20,20+bytes.readUInt32LE(12)));
+    assert.equal(model.skins[0].joints.length,BONES.length);
+    assert(model.images.every((image: {bufferView?:number}) => image.bufferView !== undefined));
+    assert(model.materials.some((material: {normalTexture?:unknown}) => material.normalTexture));
+    assert(model.meshes[0].primitives.every((part: {attributes:Record<string,number>}) => part.attributes.WEIGHTS_0 !== undefined && part.attributes.JOINTS_0 !== undefined));
+    const clips = model.animations.map((clip: {name:string})=>clip.name);
+    for (const clip of role === "skater" ? ["Forward stride","Snap shot","Pass","Shot block"] : ["Glove save","Butterfly"]) assert(clips.includes(clip));
+  }
+});
+
+test("distant characters use one shaded draw and release per-identity GPU resources on substitutions", () => {
+  const factory=new SkinnedRigFactory();
+  const rig=factory.skater({jersey:"#126abc",pants:"#151515",socks:"#145699",helmet:"#102030",trim:"#eeeeee"});
+  rig.setIdentity({id:"first",name:"First Skater",number:11},"C");
+  const lod=rig.root.children.find(node => node instanceof THREE.LOD) as THREE.LOD;
+  const far=lod.levels[2].object as THREE.SkinnedMesh;
+  assert(!Array.isArray(far.material));
+  assert(far.geometry.hasAttribute("pigment"));
+  let materialsFreed=0, skeletonsFreed=0;
+  (far.material as THREE.Material).addEventListener("dispose",()=>materialsFreed++);
+  const previous=far.skeleton.dispose.bind(far.skeleton);
+  far.skeleton.dispose=()=>{skeletonsFreed++;previous();};
+  rig.setIdentity({id:"second",name:"Second Skater",number:12},"LW");
+  assert.equal(materialsFreed,1);
+  assert.equal(skeletonsFreed,1);
+  rig.dispose();factory.dispose();
 });
