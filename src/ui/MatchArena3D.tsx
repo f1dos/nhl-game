@@ -211,7 +211,17 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       .sort((a, b) => Math.hypot(a.x - dot.x, a.z - dot.z) - Math.hypot(b.x - dot.x, b.z - dot.z))[0]?.id);
 
     const skaterState = (body: SkaterBody, s: SpatialStoppage | undefined, frameData: SpatialFrame): { state: RigState; variant?: number; side?: number; face?: number } => {
-      if (!s) return { state: "play" };
+      if (!s) {
+        // A defender giving ground inside the rush stays square to the carrier.
+        const carrier = frameData.bodies.find(p => p.id === frameData.carrierId);
+        if (carrier && carrier.side !== body.side && !body.goalie) {
+          const dx = carrier.x - body.x, dz = carrier.z - body.z;
+          if (dx * attack(frameData, body.side) > 0 && Math.hypot(dx, dz) < 7 &&
+              body.vx * dx + body.vz * dz < 0)
+            return { state: "play", face: Math.atan2(dx, dz) };
+        }
+        return { state: "play" };
+      }
       if (s.phase === "lineup" || s.phase === "drop") {
         const takers = drawTakers(frameData, s.dot);
         const dirX = attack(frameData, body.side);

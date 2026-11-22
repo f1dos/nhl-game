@@ -1297,6 +1297,8 @@ export class HockeyRig {
     const amp = (this.goalie ? this.amp * 0.55 : this.amp) * (1 - P.legW) * (1 - P.seat);
     const idleSway = Math.sin(this.clock * 1.7 + this.phase * 6) * 0.025 * (1 - this.amp);
     const gk = this.goalie;
+    const backward = this.role === "skater" ? smooth(clamp(-vf / 3, 0, 1)) * amp * (1 - stop) : 0;
+    const shuffle = gk ? smooth(clamp(Math.abs(vl) / 2, 0, 1)) * (1 - P.bf) * (1 - P.legW) : 0;
     const crouch = (gk ? 0 : 0.12 + (1 - this.amp) * 0.06) * (1 - P.legW) + P.crouch + stop * 0.3;
     // --- legs: skating legs blended with posed legs
     for (let i = 0; i < 2; i++) {
@@ -1312,6 +1314,15 @@ export class HockeyRig {
       }
       h += crouch * 0.55;
       k += crouch * 1.05;
+      // Backward C-cuts keep both blades low, with alternating outward edges.
+      const push = 0.5 + 0.5 * s * Math.sin(this.phase * TAU);
+      h = lerp(h, 0.38 - 0.15 * push, backward);
+      k = lerp(k, 0.94 - 0.32 * push, backward);
+      a = lerp(a, 0.16 + 0.28 * push, backward);
+      // A goalie tracking a lateral pass pushes sideways in a compact stance.
+      h = lerp(h, 0.48, shuffle);
+      k = lerp(k, 1.02 - 0.16 * push, shuffle);
+      a += shuffle * (0.12 + 0.18 * push);
       a += clamp(s * vl * 0.04, -0.25, 0.25) + (gk ? 0.1 : 0) + P.stance;
       h = lerp(h, 0.45, stop);
       k = lerp(k, 1.1, stop);

@@ -529,6 +529,16 @@ function buildBody(spec: BuildSpec) {
       b.geometry(new THREE.BoxGeometry(0.2, 0.34, 0.16), F(thigh, 0, -0.2, 0.05), "pad", [[thigh, 1]]);
     }
     // Skate: boot, tendon guard, holder and steel blade.
+    if (detail) {
+      // Crossed laces follow the sloping vamp on close-up models.
+      for (let row = 0; row < 4; row++) {
+        for (const diagonal of [-1, 1]) {
+          const lace = new THREE.BoxGeometry(0.069, 0.005, 0.006)
+            .rotateZ(diagonal * 0.19).rotateY(diagonal * 0.23);
+          b.geometry(lace, F(foot, 0, 0.04 - row * 0.016, 0.053 + row * 0.015), "pad", [[foot, 1]]);
+        }
+      }
+    }
     b.loft(
       [
         { frame: F(foot, 0, 0.05, -0.005), rx: 0.058, rz: 0.06, v: 0, w: [[shin, 0.35], [foot, 0.65]] },
