@@ -174,17 +174,18 @@ export default function ModelLab() {
     const look = new THREE.Vector3(0, 1.0, 0);
     if (view === "front" || view === "side") {
       add(models.skater(blue), "nhl-NYR-8479323", "Adam Fox", 23, "D", {
-        x: -0.55,
+        x: action === "pose" ? -0.55 : 0,
         z: 0,
         yaw: view === "side" ? Math.PI / 2 : 0.25,
         state: "play",
       });
-      add(models.skater(white), "nhl-MTL-8480018", "Nick Suzuki", 14, "C", {
-        x: 0.65,
-        z: -0.2,
-        yaw: view === "side" ? -Math.PI / 2 : -0.35,
-        state: "faceoff-ready",
-      });
+      if (action === "pose")
+        add(models.skater(white), "nhl-MTL-8480018", "Nick Suzuki", 14, "C", {
+          x: 0.65,
+          z: -0.2,
+          yaw: view === "side" ? -Math.PI / 2 : -0.35,
+          state: "faceoff-ready",
+        });
       camera.position.set(0, 1.25, view === "side" ? 4.4 : 4.2);
       look.set(0, 0.95, 0);
     } else if (view === "back") {
@@ -267,8 +268,8 @@ export default function ModelLab() {
         yaw: 0,
         state: "coach-clap",
       });
-      camera.position.set(0.4, 1.4, 4.6);
-      look.set(0, 1.05, -0.3);
+      camera.position.set(0.4, 1.6, 5.9);
+      look.set(0.2, 1.25, -0.3);
     } else {
       // Line-up: five skaters, a goalie and two officials.
       const names = [
@@ -300,7 +301,7 @@ export default function ModelLab() {
         yaw: 0.4,
         state: "play",
       });
-      camera.position.set(0, 1.8, 9.5);
+      camera.position.set(0, 1.8, 11.4);
       look.set(0, 0.9, 0);
     }
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -342,8 +343,18 @@ export default function ModelLab() {
         a.rig.update(dt, dt, {
           x: a.x,
           z: a.z,
-          vx: action === "skate" ? 4 * Math.sin(a.yaw) : 0,
-          vz: action === "skate" ? 4 * Math.cos(a.yaw) : 0,
+          vx:
+            action === "skate"
+              ? view === "goalie"
+                ? 2.5 * Math.sin(elapsed * 2)
+                : 4 * Math.sin(a.yaw)
+              : 0,
+          vz:
+            action === "skate"
+              ? view === "goalie"
+                ? 0
+                : 4 * Math.cos(a.yaw)
+              : 0,
           puckX: 0.5,
           puckZ: 2,
           hasPuck: action === "skate",
