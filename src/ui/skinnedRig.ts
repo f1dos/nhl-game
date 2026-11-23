@@ -1,3 +1,4 @@
+import headMesh from "../assets/hm08-head.json";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { loadHeadgear, type HeadgearPart } from "./headgear";
@@ -135,6 +136,7 @@ type MatKey =
 class Builder {
   pos: number[] = [];
   uv: number[] = [];
+  faceTints = new Map<number, [number, number, number]>();
   si: number[] = [];
   sw: number[] = [];
   tris = new Map<MatKey, number[]>();
@@ -242,6 +244,11 @@ class Builder {
       g.addGroup(index.length, tris.length, MAT_ORDER.indexOf(mat));
       for (const t of tris) index.push(t);
     }
+    if (this.faceTints.size) {
+      const colors = new Float32Array(this.pos.length).fill(1);
+      for (const [index, tint] of this.faceTints) colors.set(tint, 3 * index);
+      g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    }
     g.setIndex(index);
     g.computeVertexNormals();
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 3);
@@ -341,15 +348,22 @@ function buildBody(spec: BuildSpec) {
   const chest = goalie ? 1.28 : coach ? 0.9 : official ? 0.95 : 1;
   const torsoProfile: [number, number, number][] = coach
     ? [[-0.16, 0.2, 0.135], [0.0, 0.19, 0.13], [0.15, 0.2, 0.13], [0.3, 0.215, 0.14], [0.42, 0.235, 0.135], [0.5, 0.2, 0.12], [0.55, 0.12, 0.09], [0.58, 0.065, 0.06]]
-    : [[0.0, 0.2, 0.14], [0.1, 0.205, 0.145], [0.22, 0.222, 0.152], [0.32, 0.238, 0.158], [0.4, 0.248, 0.16], [0.46, 0.242, 0.152], [0.51, 0.215, 0.135], [0.55, 0.165, 0.11], [0.585, 0.095, 0.078]];
+    : [
+        [-0.018, .231, .166], [0, .234, .168], [.045, .225, .16],
+        [.09, .213, .151], [.14, .201, .144], [.18, .197, .14],
+        [.22, .203, .145], [.26, .215, .153], [.30, .232, .162],
+        [.36, .253, .174], [.42, .262, .178], [.465, .259, .167],
+        [.495, .245, .153], [.525, .213, .132], [.552, .157, .103],
+        [.578, .077, .066],
+      ];
   const spineW = (y: number): W => {
     if (y < 0.16) return [["spine1", 1]];
     if (y < 0.3) return [["spine1", 1 - smooth((y - 0.16) / 0.14)], ["spine2", smooth((y - 0.16) / 0.14)]];
     if (y < 0.44) return [["spine2", 1 - smooth((y - 0.3) / 0.14)], ["spine3", smooth((y - 0.3) / 0.14)]];
     return [["spine3", 1]];
   };
-  const torsoRings = torsoProfile.map(([y, rx, rz], i) => {
-    const hem = !coach && i === 0;
+  const torsoRings = torsoProfile.map(([y, rx, rz]) => {
+    const hemWeight = coach ? 0 : .60 * (1 - smooth((y + .018) / .13));
     return {
       frame: F("spine1", 0, y, 0),
       rx: rx * chest * bulk,
@@ -358,10 +372,10 @@ function buildBody(spec: BuildSpec) {
       // Hem: flutter helpers by direction; shoulders: clavicles.
       w: (th: number): W => {
         const base = spineW(y);
-        if (hem) {
+        if (hemWeight > 0) {
           const f = Math.max(0, Math.sin(th)), bk = Math.max(0, -Math.sin(th));
           const l = Math.max(0, Math.cos(th)), r = Math.max(0, -Math.cos(th));
-          return [...base.map(([n, w]) => [n, w * 0.35] as [BoneName, number]), ["jerseyF", f * 0.65], ["jerseyB", bk * 0.65], ["jerseyL", l * 0.65], ["jerseyR", r * 0.65]];
+          return [...base.map(([n, w]) => [n, w * (1 - hemWeight)] as [BoneName, number]), ["jerseyF", f * hemWeight], ["jerseyB", bk * hemWeight], ["jerseyL", l * hemWeight], ["jerseyR", r * hemWeight]];
         }
         if (y > 0.38) {
           const side = Math.cos(th);
@@ -371,7 +385,14 @@ function buildBody(spec: BuildSpec) {
         return base;
       },
       // Fabric creases: a few soft folds that run down the jersey.
-      r: detail && !coach ? (th: number) => 1 + 0.018 * Math.sin(th * 7 + y * 9) * (1 - y / 0.6) : undefined,
+      r: coach ? undefined : (th: number) => {
+        const side = Math.cos(th), front = Math.sin(th);
+        const waist = Math.exp(-(((y - .13) / .145) ** 2));
+        const drape = .035 * Math.cos(7 * th + y * 8) * waist;
+        const compression = .047 * Math.sin(y * 62 + side * 4 + front) * waist;
+        const pad = Math.exp(-(((y - .40) / .09) ** 2));
+        return 1 + drape + compression + pad * .085 * Math.cos(4 * th + Math.PI);
+      },
     };
   });
   b.loft(torsoRings, "jersey", seg, { capEnd: false, exp: goalie ? 2.4 : 2.12 });
@@ -405,17 +426,23 @@ function buildBody(spec: BuildSpec) {
   const sleeve = goalie ? 1.3 : coach ? 0.8 : official ? 0.85 : 1;
   for (const [side, s] of [["L", 1], ["R", -1]] as const) {
     const up = `upper${side}` as BoneName, fore = `fore${side}` as BoneName, hand = `hand${side}` as BoneName, clav = `clav${side}` as BoneName;
-    const ring = (bone: BoneName, t: number, r: number, v: number, w: W) => ({ frame: F(bone, 0, t, 0), rx: r * sleeve * bulk, rz: r * sleeve * bulk, v, w });
+    const ring = (bone: BoneName, t: number, radius: number, v: number, w: W) => ({
+      frame: F(bone, 0, t, 0), rx: radius * sleeve * bulk, rz: radius * sleeve * bulk, v, w,
+      r: (theta: number) => {
+        const elbow = Math.exp(-(((v - .29) / .095) ** 2));
+        return 1 + elbow * (.08 * Math.cos(theta * 2) + .065 * Math.sin(58 * v + theta * 2));
+      },
+    });
     b.loft(
       [
         ring(up, -0.075, 0.018, 0.0, [[clav, 0.45], [up, 0.55]]),
-        ring(up, -0.045, 0.073, 0.02, [[clav, 0.3], [up, 0.7]]),
+        ring(up, -0.045, 0.066, 0.02, [[clav, 0.3], [up, 0.7]]),
         ring(up, -0.005, 0.092, 0.05, [[clav, 0.2], [up, 0.8]]),
-        ring(up, 0.04, 0.089, 0.08, [[up, 0.8], [clav, 0.2]]),
-        ring(up, 0.15, 0.072, 0.18, [[up, 1]]),
-        ring(up, UPPER - 0.04, 0.066, 0.26, [[up, 0.8], [fore, 0.2]]),
-        ring(fore, 0.0, 0.066, 0.3, [[up, 0.5], [fore, 0.5]]),
-        ring(fore, 0.06, 0.064, 0.34, [[fore, 0.85], [up, 0.15]]),
+        ring(up, 0.04, 0.096, 0.08, [[up, 0.8], [clav, 0.2]]),
+        ring(up, 0.15, 0.079, 0.18, [[up, 1]]),
+        ring(up, UPPER - 0.04, 0.073, 0.26, [[up, 0.8], [fore, 0.2]]),
+        ring(fore, 0.0, 0.081, 0.3, [[up, 0.5], [fore, 0.5]]),
+        ring(fore, 0.06, 0.071, 0.34, [[fore, 0.85], [up, 0.15]]),
         ring(fore, 0.17, 0.06, 0.42, [[fore, 1]]),
         ring(fore, FORE - 0.05, 0.058, 0.48, [[fore, 0.8], [hand, 0.2]]),
       ],
@@ -527,8 +554,8 @@ function buildBody(spec: BuildSpec) {
         legRing(thigh, -0.1, 0.13 * pantsR, 0.125 * pantsR, 0.5, [["pelvis", 0.7], [thigh, 0.3]], 0.008),
         legRing(thigh, 0.02, 0.132 * pantsR, 0.128 * pantsR, 0.38, [["pelvis", 0.3], [thigh, 0.7]], 0.01),
         legRing(thigh, 0.14, 0.126 * pantsR, 0.12 * pantsR, 0.22, [[thigh, 1]], 0.01),
-        legRing(thigh, 0.26, 0.114 * pantsR, 0.11 * pantsR, 0.08, [[thigh, 1]], 0.008),
-        legRing(thigh, 0.3, 0.11 * pantsR, 0.106 * pantsR, 0.0, [[thigh, 1]], 0.008),
+        legRing(thigh, 0.26, 0.121 * pantsR, 0.11 * pantsR, 0.08, [[thigh, 1]], 0.008),
+        legRing(thigh, 0.3, 0.118 * pantsR, 0.106 * pantsR, 0.0, [[thigh, 1]], 0.008),
       ],
       "pants",
       seg,
@@ -623,63 +650,37 @@ function buildHead(
   equipment?: HeadgearPart[],
 ) {
   const [jaw, chin, cheek, noseLen, noseW, brow, eyeX, headLen] = face;
-  const seg = o.detail === 2 ? 40 : o.detail ? 24 : 10;
   const H: W = [["head", 1]];
-  // Skull and face as one loft from the chin to the crown; the front is
-  // flatter and the jaw narrows per face shape.
-  const ys = o.detail ? [-0.125, -0.105, -0.08, -0.05, -0.02, 0.01, 0.04, 0.07, 0.095, 0.115, 0.128] : [-0.125, -0.085, -0.03, 0.02, 0.07, 0.11, 0.128];
-  const top = 0.13 * headLen;
-  const rings = ys.map((y0) => {
-    const y = y0 * headLen;
-    const u = clamp(y / top, -1, 1);
-    const round = Math.sqrt(Math.max(0.02, 1 - u * u));
-    const lower = y < -0.02;
-    return {
-      frame: F("head", 0, y, 0.008),
-      rx: 0.093 * round * (lower ? lerp(1, 0.72 * jaw, smooth((-y - 0.02) / 0.1)) : cheek),
-      rz: 0.105 * round,
-      v: (y0 + 0.125) / 0.253,
-      w: H,
-      r: (th: number) => {
-        const front = Math.max(0, Math.sin(th));
-        const back = Math.max(0, -Math.sin(th));
-        // Chin juts forward, the back of the head bulges, the face is flatter.
-        const chinPush = lower ? front * 0.12 * chin * smooth((-y - 0.04) / 0.08) : 0;
-        const side = Math.abs(Math.cos(th));
-        const cheekbone = Math.exp(-((y+.012)**2)/.00045 - ((side-.6)**2)/.06);
-        const socket = Math.exp(-((y-.022)**2)/.00015 - ((side-.36)**2)/.035);
-        const browRidge = Math.exp(-((y-.046)**2)/.00012 - ((side-.39)**2)/.065);
-        return 1 - front * .06 + back * .05 + chinPush + front * (.087*cheekbone-.065*socket+.055*browRidge);
-      },
-    };
-  });
-  b.loft(rings, "skin", seg, { capEnd: true, capStart: true });
-  // Ears.
-  for (const s of [-1, 1]) b.geometry(new THREE.SphereGeometry(0.024, 8, 6).scale(0.45, 1, 0.75), F("head", s * 0.092 * cheek, 0.0, -0.005), "skin", H);
-  // Nose, eyes, brows, mouth.
-  const nose = [[-.032,.009,.008,.104],[-.024,.018,.011,.108],[-.017,.014,.018,.112],[.003,.010,.012,.106],[.034,.007,.005,.101]];
-  b.loft(nose.map(([y,rx,rz,z]) => ({frame:F("head",0,y,z), rx:rx*noseW, rz:rz*noseLen, v:y+.5, w:H})), "skin", o.detail ? 16 : 8, {capStart:true,capEnd:true});
-  if (o.detail) {
-    for (const s of [-1,1]) {
-      const x = s*eyeX;
-      if (o.detail === 2) {
-        const lid = new THREE.SphereGeometry(.014,18,9,0,TAU,0,Math.PI*.49).scale(1,.55,.41);
-        b.geometry(lid,F("head",x,.021,.101), "skin", H);
-        const earRim = new THREE.TorusGeometry(.016,.0035,5,16).scale(1,1.34,1).rotateY(s*Math.PI/2);
-        b.geometry(earRim,F("head",s*.096*cheek,.001,-.006), "skin", H);
-      }
-      b.geometry(new THREE.SphereGeometry(.011,12,8).scale(1.22,.49,.43), F("head",x,.019,.101), "eyeWhite", H);
-      b.geometry(new THREE.SphereGeometry(.0053,10,8).scale(1,1,.55), F("head",x,.019,.105), "iris", H);
-      b.geometry(new THREE.SphereGeometry(.016,12,6).scale(1,.22,.33), F("head",x,.038+brow,.102,0,0,-s*.14), "hair", H);
-    }
-    b.geometry(new THREE.SphereGeometry(.019,12,6).scale(1,.17,.32), F("head", 0, -0.052 * chin, 0.103), "lips", H);
+  // The CC0 HM08 head includes continuous eyelids, lips, ears and nostrils.
+  const mesh = o.detail === 2 ? headMesh.near : o.detail ? headMesh.middle : headMesh.far;
+  const base = b.pos.length / 3;
+  const transform = F("head");
+  for (let i = 0; i < mesh.points.length; i += 3) {
+    const x = mesh.points[i] / 1000, y = mesh.points[i + 1] / 1000, z = mesh.points[i + 2] / 1000;
+    const jawWeight = smooth((6.95 - y) / .65);
+    const noseWeight = smooth((z - 1.48) / .16) * smooth((7.2 - y) / .2);
+    const eyeWeight = Math.exp(-(((y - 7.28) / .25) ** 2 + ((Math.abs(x) - .31) / .26) ** 2));
+    const width = lerp(cheek, jaw, jawWeight) * lerp(1, noseW, noseWeight) * lerp(1, eyeX / .036, eyeWeight);
+    const point = new THREE.Vector3(x * .11 * width, (y - 7.09) * .103 * headLen,
+      (z - .56) * .119 + .026 * (chin - 1) * jawWeight + .06 * (noseLen - 1) * noseWeight);
+    const vertex = b.vertex(point.applyMatrix4(transform), 0, 0, H);
+    const lip = smooth(1 - ((y - 6.66) / .085) ** 2 - (x / .24) ** 2) * smooth((z - 1.30) / .12);
+    const stubble = (look.beard / 2) * smooth((6.58 + Math.abs(x) * .36 - y) / .16)
+      * smooth((z - .4) / .45) * smooth((y - 6.10) / .12);
+    b.faceTints.set(vertex, [1 - stubble * .53, 1 - lip * .52 - stubble * .47, 1 - lip * .42 - stubble * .39]);
   }
-  // Beard.
-  if (look.beard) {
-    const thick = look.beard === 2 ? 0.005 : 0.0015;
-    const beard = new THREE.SphereGeometry(0.104 + thick, o.detail ? 16 : 9, o.detail ? 8 : 4, Math.PI / 2 - 1.0, 2.0, Math.PI * 0.62, Math.PI * 0.26);
-    beard.scale(0.93 * jaw, 1.08, 1.03);
-    b.geometry(beard, F("head", 0, 0, 0.01), "beard", H);
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    b.tri("skin", base + mesh.indices[i], base + mesh.indices[i + 1], base + mesh.indices[i + 2]);
+  }
+  if (o.detail) {
+    for (const side of [-1, 1]) {
+      const x = side * .30775 * .11 * cheek * eyeX / .036;
+      const y = (7.28415 - 7.09) * .103 * headLen;
+      b.geometry(new THREE.SphereGeometry(.0158, 12, 8), F("head", x, y, .082), "eyeWhite", H);
+      b.geometry(new THREE.SphereGeometry(.006, 12, 6).scale(1, 1, .32), F("head", x, y, .097), "iris", H);
+      b.geometry(new THREE.SphereGeometry(.016, 12, 6).scale(1, .18, .30),
+        F("head", x, y + .021 + brow, .107, 0, 0, -side * .12), "hair", H);
+    }
   }
   // Hair: a shell whose coverage follows the style, visible below the
   // helmet rim (flow at the back, sideburns) and fully on coaches.
@@ -782,10 +783,35 @@ function jerseyTexture(kit: TeamKit, name: string, number: number, role: RigRole
       ctx.fillStyle = kit.trim;
       ctx.fillRect(0, torsoY(0.01), 512, 12); // hem stripes
       ctx.fillRect(0, torsoY(0.06), 512, 6);
-      ctx.fillRect(0, torsoY(0.535), 512, 512 - torsoY(0.535)); // shoulder yoke
+      // A curved yoke runs low over the pads and rises at the sternum.
+      ctx.beginPath();
+      ctx.moveTo(0, 512);
+      for (let x = 0; x <= 512; x += 4) {
+        const side = Math.cos(x * TAU / 512);
+        ctx.lineTo(x, torsoY(.572 - .098 * side * side));
+      }
+      ctx.lineTo(512, 512);
+      ctx.fill();
       ctx.fillRect(0, 0.3 * 512, 512, 12); // sleeve stripes at the elbow
       ctx.fillRect(0, 0.35 * 512, 512, 6);
       ctx.fillRect(0, 0.46 * 512, 512, 10); // cuff
+      // Raglan panels follow the shoulder cap into the underarm, front and back.
+      for (const center of [128, 384]) {
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(center + side * 42, torsoY(.576));
+          ctx.bezierCurveTo(center + side * 60, torsoY(.50),
+            center + side * 93, torsoY(.44), center + side * 104, torsoY(.34));
+          ctx.strokeStyle = "rgba(0,0,0,.22)";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255,.32)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
       // Fabric: faint vertical weave.
       for (let x = 0; x < 512; x += 4) {
         ctx.fillStyle = `rgba(0,0,0,${0.02 + 0.02 * Math.sin(x * 0.7)})`;
@@ -1115,7 +1141,7 @@ export class SkinnedRig implements RigLike {
     this.jerseyTex?.dispose();
     this.logoDrawn = !!this.factory.logo(this.kit);
     this.jerseyTex = jerseyTexture(this.kit, id.name, id.number, this.role, this.factory.logo(this.kit));
-    const skinMat = this.factory.mat(`skin${look.skin}`, () => new THREE.MeshStandardMaterial({ color: SKIN_TONES[look.skin], roughness: 0.62 }));
+    const skinMat = this.factory.mat(`skin${look.skin}`, () => new THREE.MeshStandardMaterial({ color: SKIN_TONES[look.skin], vertexColors: true, roughness: 0.62 }));
     const hairMat = this.factory.mat(`hair${look.hairColor}`, () => new THREE.MeshStandardMaterial({ color: HAIR_COLORS[look.hairColor], roughness: 0.85, side: THREE.DoubleSide }));
     const k = this.kit;
     const std = (key: string, color: string, roughness = 0.75, extra: THREE.MeshStandardMaterialParameters = {}) =>
@@ -1132,7 +1158,7 @@ export class SkinnedRig implements RigLike {
       steel: std("steel", "#c9d3da", 0.2, { metalness: 0.85 }),
       stick: std("stick", "#1b1c20", 0.42),
       tape: std("tape", "#f2f2f2", 0.9),
-      visor: this.factory.mat("visor", () => new THREE.MeshStandardMaterial({ color: "#d8eef8", roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide })),
+      visor: this.factory.mat("visor", () => new THREE.MeshStandardMaterial({ color: "#d8eef8", roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.13, depthWrite: false, side: THREE.DoubleSide })),
       eyeWhite: std("eyeW", "#f1eee8", 0.4),
       iris: std("iris", "#2b1d14", 0.3),
       lips: std("lips", "#9a5a50", 0.6),

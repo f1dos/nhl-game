@@ -1408,10 +1408,13 @@ export class HockeyRig {
     // --- torso and head
     const lean = (gk ? 0.22 : 0) + this.amp * 0.3 * (1 - P.legW) + crouch * 0.45 + P.lean - stop * 0.15 - P.bf * 0.1;
     const twist = P.twist * this.hs + Math.sin(this.phase * TAU) * 0.14 * amp * (dir || 1);
-    this.spine.rotation.set(lean, twist, this.bank * (1 - P.seat) + idleSway + P.roll * this.hs);
+    // Load the supporting edge as the opposite leg extends. Goalies keep
+    // their shoulders square and the head counterbalances the torso.
+    const strideLoad = skating && !gk ? Math.sin(this.phase * TAU) * amp * (1 - stop) : 0;
+    this.spine.rotation.set(lean, twist, this.bank * (1 - P.seat) + idleSway + P.roll * this.hs + strideLoad * .065);
     this.pelvis.rotation.y = -twist * 0.25;
     const look = clamp(wrap(toLook - this.yaw - P.yawOff), -1.1, 1.1) * 0.55;
-    this.head.rotation.set(-lean * 0.7 + P.headPitch, look - twist * 0.6 + P.headYaw * this.hs, -this.bank * 0.4);
+    this.head.rotation.set(-lean * 0.7 + P.headPitch, look - twist * 0.6 + P.headYaw * this.hs, -this.bank * 0.4 - strideLoad * .05);
     // --- root placement
     const stopYaw = stop * this.stopDir * 1.2;
     this.root.rotation.y = this.yaw + stopYaw + P.yawOff;
