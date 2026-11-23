@@ -52,8 +52,12 @@ export async function bakeCharacter(goalie: boolean) {
   const joints = source.skeleton.bones.map((b) => {
     const joint = new THREE.Bone();
     joint.name = b.name;
-    group.add(joint);
+
     return joint;
+  });
+  source.skeleton.bones.forEach((bone, i) => {
+    const parent = source.skeleton.bones.indexOf(bone.parent as THREE.Bone);
+    (parent < 0 ? group : joints[parent]).add(joints[i]);
   });
   const mesh = new THREE.SkinnedMesh(source.geometry, source.material);
   group.add(mesh);

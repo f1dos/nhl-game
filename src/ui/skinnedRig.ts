@@ -1,6 +1,7 @@
 import headMesh from "../assets/hm08-head.json";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { loadSweaters, type Garment } from "./sweater";
 import { loadHeadgear, type HeadgearPart } from "./headgear";
 import {
   BLADE_DROP,
@@ -50,6 +51,15 @@ export const BONES = [
 ] as const;
 type BoneName = (typeof BONES)[number];
 const B = Object.fromEntries(BONES.map((b, i) => [b, i])) as Record<BoneName, number>;
+const PARENT: Record<BoneName, BoneName | null> = {
+  pelvis: null, spine1: "pelvis", spine2: "spine1", spine3: "spine2", neck: "spine3", head: "neck",
+  clavL: "spine3", clavR: "spine3", upperL: "clavL", upperR: "clavR",
+  foreL: "upperL", foreR: "upperR", handL: "foreL", handR: "foreR",
+  thighL: "pelvis", thighR: "pelvis", shinL: "thighL", shinR: "thighR",
+  footL: "shinL", footR: "shinR", toeL: "footL", toeR: "footR",
+  stick: "pelvis", blade: "stick", jerseyF: "spine1", jerseyB: "spine1", jerseyL: "spine1", jerseyR: "spine1",
+};
+const parentIndices = BONES.map(name => PARENT[name] === null ? -1 : B[PARENT[name]!]);
 type W = [BoneName, number][];
 
 const TAU = Math.PI * 2;
@@ -327,6 +337,7 @@ interface BuildSpec {
   role: RigRole;
   look: Appearance;
   detail: 2 | 1 | 0;
+  sweater?: Garment;
   equipment?: HeadgearPart[];
 }
 
@@ -400,7 +411,28 @@ function buildBody(spec: BuildSpec) {
       },
     };
   });
-  b.loft(torsoRings, "jersey", seg, { capEnd: false, exp: goalie ? 2.4 : 2.12 });
+  if (spec.sweater) {
+    const {geometry, joints} = spec.sweater;
+    const positions = geometry.getAttribute("position");
+    const uv = geometry.getAttribute("uv");
+    const indices = geometry.getAttribute("skinIndex");
+    const weights = geometry.getAttribute("skinWeight");
+    const names = joints.map(name => {
+      if (!(name in B)) throw new Error("Unknown garment joint " + name);
+      return name as BoneName;
+    });
+    for (let i = 0; i < positions.count; i++) {
+      const p = _v.fromBufferAttribute(positions, i);
+      p.x *= bulk;
+      p.z *= bulk;
+      const influences: W = [];
+      for (let j = 0; j < 4; j++) influences.push([names[indices.getComponent(i,j)], weights.getComponent(i,j)]);
+      b.vertex(p, uv.getX(i), uv.getY(i), influences);
+    }
+    const triangles = geometry.index!;
+    for (let i = 0; i < triangles.count; i += 3)
+      b.tri("jersey", triangles.getX(i), triangles.getX(i+1), triangles.getX(i+2));
+  } else b.loft(torsoRings, "jersey", seg, { capEnd: false, exp: goalie ? 2.4 : 2.12 });
   // Collar / neck opening.
   b.loft(
     [
@@ -438,7 +470,7 @@ function buildBody(spec: BuildSpec) {
         return 1 + elbow * (.08 * Math.cos(theta * 2) + .065 * Math.sin(58 * v + theta * 2));
       },
     });
-    b.loft(
+    if (!spec.sweater) b.loft(
       [
         ring(up, -0.075, 0.018, 0.0, [[clav, 0.45], [up, 0.55]]),
         ring(up, -0.045, 0.066, 0.02, [[clav, 0.3], [up, 0.7]]),
@@ -593,6 +625,17 @@ function buildBody(spec: BuildSpec) {
       const rail = new THREE.CapsuleGeometry(.018,.49,3,detail ? 9 : 5);
       b.geometry(rail,F(shin,s*.108,PAD_Y+.012,.109), "glove", [[shin,1]]);
     }
+    const fittedSkate = spec.equipment?.filter(part => part.foot);
+    if (role === "skater" && fittedSkate?.length) {
+      const toe = `toe${side}` as BoneName;
+      for (const part of fittedSkate) {
+        b.geometry(part.geometry.clone(), F(foot), part.material, p => {
+          const flex = smooth((p.z - .075) / .085) * .7;
+          return [[foot, 1-flex], [toe, flex]];
+        });
+      }
+      continue;
+    }
     // Skate: boot, tendon guard, holder and steel blade.
     if (detail) {
       // Crossed laces follow the sloping vamp on close-up models.
@@ -739,7 +782,7 @@ function buildHead(
   if (o.coach) return;
   // Helmet (two models) or goalie mask with cage.
   if (equipment?.length) {
-    for (const part of equipment) b.geometry(part.geometry.clone(), F("head"), part.material, H);
+    for (const part of equipment) if (!part.foot) b.geometry(part.geometry.clone(), F("head"), part.material, H);
     if (!o.goalie && !o.official)
       b.geometry(new THREE.CylinderGeometry(.142,.136,.049,28,1,true,-1.16,2.32), F("head",0,.028,.005), "visor", H);
     return;
@@ -864,7 +907,14 @@ function jerseyTexture(kit: TeamKit, name: string, number: number, role: RigRole
       });
       upright(128, torsoY(0.33), () => {
         if (logo) ctx.drawImage(logo, -52, -52, 104, 104);
-        else {
+        else if (kit.abbr === "NYR") {
+          ctx.rotate(-0.68);
+          ctx.font = "italic 900 27px Arial, sans-serif";
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#c6263e";
+          ctx.strokeText("RANGERS", 0, 0, 125);
+          ctx.fillText("RANGERS", 0, 0, 125);
+        } else {
           // No crest image (CORS): a stitched badge with the club letters.
           ctx.beginPath();
           ctx.arc(0, 0, 42, 0, TAU);
@@ -879,6 +929,17 @@ function jerseyTexture(kit: TeamKit, name: string, number: number, role: RigRole
           ctx.fillStyle = ink;
         }
       });
+      // Rib-knit collar dips below the throat and folds back into the yoke.
+      for (const [width, colour] of [[12, kit.trim], [5, "#202632"]] as const) {
+        ctx.lineJoin = "round";
+        ctx.lineWidth = width;
+        ctx.strokeStyle = colour;
+        ctx.beginPath();
+        ctx.moveTo(81, 511);
+        ctx.quadraticCurveTo(108, 499, 128, 473);
+        ctx.quadraticCurveTo(148, 499, 175, 511);
+        ctx.stroke();
+      }
       // Shoulder numbers on the outside of both sleeves.
       ctx.fillStyle = ink;
       // Sleeves: u runs round the arm and v down it, so text needs no flip.
@@ -985,6 +1046,7 @@ export interface RigLike {
 }
 
 interface Built {
+  tailoredFar?: THREE.BufferGeometry;
   hi: THREE.BufferGeometry;
   mid: THREE.BufferGeometry;
   lo: THREE.BufferGeometry;
@@ -994,21 +1056,41 @@ interface Built {
   dispose(): void;
 }
 
+function applyPigments(geometry: THREE.BufferGeometry) {
+  const pigment = new Float32Array(geometry.getAttribute("position").count);
+  const indices = geometry.index!;
+  for (const group of geometry.groups) {
+    for (let i = group.start; i < group.start + group.count; i++) {
+      pigment[indices.getX(i)] = group.materialIndex ?? 0;
+    }
+  }
+  geometry.setAttribute("pigment", new THREE.BufferAttribute(pigment, 1));
+}
+
 export class SkinnedRigFactory {
   private cache = new Map<string, Built>();
   private shared = new Map<string, THREE.Material>();
   private logos = new Map<string, HTMLImageElement | null>();
   readonly primitive = new RigFactory();
 
+  private sweaters?: Garment[];
   private equipment?: Awaited<ReturnType<typeof loadHeadgear>>;
   private released = false;
   private textures = new Map<string, THREE.Texture>();
   readonly ready: Promise<void>;
   constructor(private logoFor?: (kit: TeamKit) => Promise<HTMLImageElement | null>) {
-    this.ready = logoFor ? loadHeadgear().then(parts => {
-      if (this.released) Object.values(parts).flat().forEach(p => p.geometry.dispose());
-      else this.equipment = parts;
-    }).catch(error => console.warn("Using built-in hockey equipment", error)) : Promise.resolve();
+    this.ready = logoFor ? Promise.all([
+      loadSweaters().catch(error => { console.warn("Garment unavailable", error); return undefined; }),
+      loadHeadgear().catch(error => { console.warn("Equipment unavailable", error); return undefined; }),
+    ]).then(([sweaters, equipment]) => {
+      if (this.released) {
+        sweaters?.forEach(part => part.geometry.dispose());
+        if (equipment) Object.values(equipment).flat().forEach(part => part.geometry.dispose());
+      } else {
+        this.sweaters = sweaters;
+        this.equipment = equipment;
+      }
+    }) : Promise.resolve();
   }
   knit(url: string) {
     if (!this.logoFor) return null;
@@ -1022,9 +1104,18 @@ export class SkinnedRigFactory {
     return texture;
   }
   equipped(model: Built, role: RigRole, look: Appearance, level: 1 | 2) {
-    if (!this.equipment || role === "coach") return level === 2 ? model.hi : model.mid;
-    if (level === 1) return model.broadcast ??= buildBody({role, look, detail:1, equipment:this.equipment[role === "goalie" ? "broadcast_goalie" : "broadcast_skater"]}).geometry;
-    return model.detailed ??= buildBody({role, look, detail:2, equipment:this.equipment[role === "goalie" ? "goalie" : "skater"]}).geometry;
+    const sweater = role === "skater" ? this.sweaters?.[level] : undefined;
+    if ((!this.equipment && !sweater) || role === "coach") return level === 2 ? model.hi : model.mid;
+    if (level === 1) return model.broadcast ??= buildBody({role, look, detail:1, sweater, equipment:this.equipment?.[role === "goalie" ? "broadcast_goalie" : "broadcast_skater"]}).geometry;
+    return model.detailed ??= buildBody({role, look, detail:2, sweater, equipment:this.equipment?.[role === "goalie" ? "goalie" : "skater"]}).geometry;
+  }
+  far(model: Built, role: RigRole, look: Appearance) {
+    if (!this.sweaters || role !== "skater") return model.lo;
+    if (!model.tailoredFar) {
+      model.tailoredFar = buildBody({role, look, detail:0, sweater:this.sweaters[0]}).geometry;
+      applyPigments(model.tailoredFar);
+    }
+    return model.tailoredFar;
   }
   mat(key: string, make: () => THREE.Material) {
     let m = this.shared.get(key);
@@ -1041,14 +1132,9 @@ export class SkinnedRigFactory {
         get hi() { return high ??= buildBody({role,look,detail:2}).geometry; },
         get mid() { return medium ??= buildBody({role,look,detail:1}).geometry; },
         lo: lo.geometry, bind:lo.bind,
-        dispose() {lo.geometry.dispose(); high?.dispose(); medium?.dispose(); this.detailed?.dispose(); this.broadcast?.dispose();}
+        dispose() {lo.geometry.dispose(); this.tailoredFar?.dispose(); high?.dispose(); medium?.dispose(); this.detailed?.dispose(); this.broadcast?.dispose();}
       };
-      const pigment = new Float32Array(lo.geometry.getAttribute("position").count);
-      const indices = lo.geometry.index!;
-      for (const group of lo.geometry.groups) {
-        for (let i=group.start;i<group.start+group.count;i++) pigment[indices.getX(i)] = group.materialIndex ?? 0;
-      }
-      lo.geometry.setAttribute("pigment",new THREE.BufferAttribute(pigment,1));
+      applyPigments(lo.geometry);
       this.cache.set(key,m);
 
     }
@@ -1077,6 +1163,7 @@ export class SkinnedRigFactory {
   dispose() {
     this.cache.forEach(model => model.dispose());
     this.released = true;
+    this.sweaters?.forEach(p => p.geometry.dispose());
     if (this.equipment) Object.values(this.equipment).flat().forEach(p => p.geometry.dispose());
     this.textures.forEach(t => t.dispose());
     this.shared.forEach(m => {
@@ -1106,6 +1193,7 @@ export class SkinnedRig implements RigLike {
   readonly root: THREE.Group;
   private skeleton?: THREE.Skeleton;
   private bones: THREE.Bone[] = [];
+  private poses = BONES.map(() => new THREE.Matrix4());
   private lod = new THREE.LOD();
   private body?: Built;
   private look?: Appearance;
@@ -1166,15 +1254,16 @@ export class SkinnedRig implements RigLike {
     const look = appearanceFor(id.id, this.role, pos);
     this.look = look;
     const model = this.body = this.factory.model(this.role, look);
-    // Skeleton: bones parented flat under the rig root; matrices are written
-    // every frame from the pose solver.
+    // Convert solver-space frames to the local transforms of the deform rig.
     this.meshes.forEach((m) => this.lod.remove(m));
     this.bones.forEach((bone) => bone.parent?.remove(bone));
     const holder = new THREE.Group();
     holder.name = "skeleton";
     this.bones.forEach((bone, i) => {
       bone.matrix.copy(model.bind[i]);
-      holder.add(bone);
+      const parent = parentIndices[i];
+      if (parent >= 0) bone.matrix.premultiply(_m.copy(model.bind[parent]).invert());
+      (parent < 0 ? holder : this.bones[parent]).add(bone);
     });
     this.root.children.filter((c) => c.name === "skeleton").forEach((c) => this.root.remove(c));
     this.root.add(holder);
@@ -1232,7 +1321,7 @@ export class SkinnedRig implements RigLike {
       shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
     };
     this.materials = [jersey,distant];
-    const list = MAT_ORDER.map((m) => mats[m]);
+    const list = MAT_ORDER.map(key => { mats[key].name = key; return mats[key]; });
     this.meshes = [model.lo, model.lo, model.lo].map((geo, i) => {
       const mesh = new THREE.SkinnedMesh(geo, i === 2 ? distant : list);
       // Bounds are in the moving player's frame and include the raised stick.
@@ -1269,6 +1358,7 @@ export class SkinnedRig implements RigLike {
     if (this.body && this.look) {
       if (this.meshes[0].visible) this.meshes[0].geometry = this.factory.equipped(this.body,this.role,this.look,2);
       else if (this.meshes[1].visible) this.meshes[1].geometry = this.factory.equipped(this.body,this.role,this.look,1);
+      else this.meshes[2].geometry = this.factory.far(this.body,this.role,this.look);
     }
     this.clock += animDt;
     // Late logo: redraw the jersey once the crest image has loaded.
@@ -1287,7 +1377,7 @@ export class SkinnedRig implements RigLike {
     this.root.updateMatrixWorld(true);
     const inv = _rootInv.copy(this.root.matrixWorld).invert();
     const local = (o: THREE.Object3D, out: THREE.Matrix4) => out.multiplyMatrices(inv, o.matrixWorld);
-    const M = this.bones.map((b) => b.matrix);
+    const M = this.poses;
     local(src.pelvis, M[B.pelvis]);
     local(src.spine, _spine);
     local(src.head, M[B.head]);
@@ -1351,9 +1441,12 @@ export class SkinnedRig implements RigLike {
       _q2.setFromAxisAngle(axis, flap[name] * sign);
       M[B[name]].compose(_v, _q.copy(_qp).multiply(_q2), _sp);
     }
-    for (const bone of this.bones) {
-      bone.matrixWorld.multiplyMatrices(this.root.matrixWorld, bone.matrix);
-      bone.matrixWorldNeedsUpdate = true;
+    for (let i = 0; i < this.bones.length; i++) {
+      const bone = this.bones[i], parent = parentIndices[i];
+      bone.matrix.copy(M[i]);
+      if (parent >= 0) bone.matrix.premultiply(_m.copy(M[parent]).invert());
+      bone.matrixWorld.multiplyMatrices(this.root.matrixWorld, M[i]);
+      bone.matrixWorldNeedsUpdate = false;
     }
   }
   dispose() {

@@ -14,7 +14,7 @@ await build({
   logLevel: "warn",
   build: {
     outDir: out,
-    assetsInlineLimit: file => file.endsWith("headgear.glb") || undefined,
+    assetsInlineLimit: file => /\/(headgear|sweater|skate)\.glb$/.test(file) || undefined,
     emptyOutDir: true,
     chunkSizeWarningLimit: 6000,
     rollupOptions: { output: { inlineDynamicImports: true } },
