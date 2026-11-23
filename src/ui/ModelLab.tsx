@@ -7,6 +7,7 @@ import { NHL_TEAM_LOGOS } from "../data/nhl-2026-27";
 import "./modelLab.css";
 import { loadLogo } from "./arenaScene";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { RigState, RigActionKind, TeamKit } from "./hockeyRig";
 
 /**
@@ -174,7 +175,43 @@ export default function ModelLab() {
     };
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 100);
     const look = new THREE.Vector3(0, 1.0, 0);
-    if (view === "front" || view === "side") {
+    let closed = false;
+    let studyReady = view !== "skater27";
+    let studyError = false;
+    let study: THREE.Group | undefined;
+    const disposeStudy = (model: THREE.Group) => {
+      const materials = new Set<THREE.Material>();
+      model.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.geometry.dispose();
+          for (const material of [node.material].flat())
+            materials.add(material);
+        }
+      });
+      materials.forEach((material) => material.dispose());
+    };
+    if (view === "skater27") {
+      new GLTFLoader().load(
+        "models/hockey/skater-27.glb",
+        ({ scene: model }) => {
+          if (closed) return disposeStudy(model);
+          study = model;
+          model.traverse((node) => {
+            if (node instanceof THREE.Mesh) node.castShadow = true;
+          });
+          scene.add(model);
+          studyReady = true;
+        },
+        undefined,
+        () => {
+          studyError = true;
+          if (!closed && meter.current)
+            meter.current.textContent = "Could not load Skater 27";
+        },
+      );
+      camera.position.set(1.7, 1.55, 3.4);
+      look.set(0.13, 0.88, 0.21);
+    } else if (view === "front" || view === "side") {
       add(models.skater(blue), "nhl-NYR-8479323", "Adam Fox", 23, "D", {
         x: action === "pose" ? -0.55 : 0,
         z: 0,
@@ -345,18 +382,16 @@ export default function ModelLab() {
         a.rig.update(dt, dt, {
           x: a.x,
           z: a.z,
-          vx:
-            skating
-              ? view === "goalie"
-                ? 2.5 * Math.sin(elapsed * 2)
-                : (pursuit ? 7 : 4) * Math.sin(a.yaw)
-              : 0,
-          vz:
-            skating
-              ? view === "goalie"
-                ? 0
-                : (pursuit ? 7 : 4) * Math.cos(a.yaw)
-              : 0,
+          vx: skating
+            ? view === "goalie"
+              ? 2.5 * Math.sin(elapsed * 2)
+              : (pursuit ? 7 : 4) * Math.sin(a.yaw)
+            : 0,
+          vz: skating
+            ? view === "goalie"
+              ? 0
+              : (pursuit ? 7 : 4) * Math.cos(a.yaw)
+            : 0,
           puckX: 0.5,
           puckZ: pursuit ? 10 : 2,
           hasPuck: action === "skate",
@@ -384,7 +419,7 @@ export default function ModelLab() {
       fpsT += wallDt;
       if (fpsT > 1) {
         (window as unknown as { __fps: number }).__fps = frames / fpsT;
-        if (meter.current)
+        if (meter.current && studyReady && !studyError)
           meter.current.textContent =
             Math.round(frames / fpsT) +
             " FPS · " +
@@ -395,11 +430,13 @@ export default function ModelLab() {
         frames = 0;
         fpsT = 0;
       }
-      (window as unknown as { __ready: boolean }).__ready = true;
+      (window as unknown as { __ready: boolean }).__ready = studyReady;
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => {
+      closed = true;
+      if (study) disposeStudy(study);
       cancelAnimationFrame(frame);
       observer.disconnect();
       actors.forEach((a) => a.rig.dispose());
@@ -428,52 +465,57 @@ export default function ModelLab() {
           faceoff: "Faceoff",
           celebrate: "Celebration",
           lineup: "Line-up",
+          skater27: "Skater 27 · Blender",
         })}
-        {select(
-          "club",
-          "Club",
-          Object.fromEntries(
-            clubs.map(([id, city, name]) => [id, city + " " + name]),
-          ),
+        {params.get("view") !== "skater27" && (
+          <>
+            {select(
+              "club",
+              "Club",
+              Object.fromEntries(
+                clubs.map(([id, city, name]) => [id, city + " " + name]),
+              ),
+            )}
+            {select("kit", "Uniform", { home: "Home", away: "Away" })}
+            {select("build", "Appearance", {
+              roster: "Roster",
+              lean: "Lean",
+              average: "Average",
+              heavy: "Heavy",
+            })}
+            {select(
+              "motion",
+              "Movement",
+              params.get("view") === "goalie"
+                ? ({
+                    pose: "Set",
+                    skate: "Shuffle",
+                    save: "Save",
+                    conceded: "Recovery",
+                  } as Record<string, string>)
+                : {
+                    pose: "Stance",
+                    skate: "Stride",
+                    pursuit: "Off-puck sprint",
+                    wrist: "Wrist shot",
+                    snap: "Snap shot",
+                    slap: "Slap shot",
+                    block: "Block",
+                    pass: "Pass",
+                    receive: "Receive",
+                    deke: "Deke",
+                    check: "Check",
+                  },
+            )}
+            {select("rig", "Model", { skinned: "Skinned", classic: "Classic" })}
+            {select("lod", "Detail", {
+              auto: "Auto",
+              "0": "Close",
+              "1": "Broadcast",
+              "2": "Distant",
+            })}
+          </>
         )}
-        {select("kit", "Uniform", { home: "Home", away: "Away" })}
-        {select("build", "Appearance", {
-          roster: "Roster",
-          lean: "Lean",
-          average: "Average",
-          heavy: "Heavy",
-        })}
-        {select(
-          "motion",
-          "Movement",
-          params.get("view") === "goalie"
-            ? ({
-                pose: "Set",
-                skate: "Shuffle",
-                save: "Save",
-                conceded: "Recovery",
-              } as Record<string, string>)
-            : {
-                pose: "Stance",
-                skate: "Stride",
-                pursuit: "Off-puck sprint",
-                wrist: "Wrist shot",
-                snap: "Snap shot",
-                slap: "Slap shot",
-                block: "Block",
-                pass: "Pass",
-                receive: "Receive",
-                deke: "Deke",
-                check: "Check",
-              },
-        )}
-        {select("rig", "Model", { skinned: "Skinned", classic: "Classic" })}
-        {select("lod", "Detail", {
-          auto: "Auto",
-          "0": "Close",
-          "1": "Broadcast",
-          "2": "Distant",
-        })}
       </aside>
     </main>
   );
