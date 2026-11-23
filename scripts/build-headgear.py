@@ -35,11 +35,11 @@ def shell(role):
             a = i*math.tau/n
             front = max(0,math.cos(a))
             # Long chin and occipital protection, raised brow above the visor.
-            lift = 0 if goalie else front**1.2 * (j/rows)**3 * 8
+            lift = 0 if goalie else front**.85 * (j/rows)**2.6 * 11.2
             ridge = 1 + .035*math.cos(6*a)*math.sin(phi)**2
-            verts.append(point(12.2*math.sin(phi)*math.sin(a)*ridge,
+            verts.append(point((12.2 if goalie else 11.3)*math.sin(phi)*math.sin(a)*ridge,
                 2.1 + 13.5*math.cos(phi) + lift,
-                -1 + (14.4 + (2.8 if goalie else 0)*(j/rows)**2)*math.sin(phi)*math.cos(a)))
+                -1 + ((14.4 if goalie else 13.1) + (2.8 if goalie else 0)*(j/rows)**2)*math.sin(phi)*math.cos(a)))
     for j in range(rows):
         for i in range(n):
             col = min(i,n-1-i)
