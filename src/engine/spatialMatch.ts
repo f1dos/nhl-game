@@ -2,7 +2,8 @@ import {
   lineWithDoubleShift,
   resolveIceTime,
   shiftLength,
-  unitForShift,
+  normalizeShares,
+  pickNextUnit,
 } from "./iceTime";
 import { RNG, clamp } from "./random";
 import type { Team, Player, Result, SpecialTeamsSituation } from "./types";
@@ -155,7 +156,9 @@ export class SpatialMatch {
   private decision = 0;
   private nextShot = [0, 0];
   private readonly players: Map<string, Player>;
-  private shiftIndex = [0, 0];
+  private forwardUnit = [-1, -1];
+  private defenseUnit = [-1, -1];
+  private evenSeconds = new Map<string, number>();
   private shiftStart = [0, 0];
   private goalieWasPulled = [false, false];
   private rolling: (string[] | undefined)[] = [];
@@ -191,6 +194,7 @@ export class SpatialMatch {
       duration: 0,
       events: [],
     };
+    this.teams.forEach((_team, side) => this.rotate(side));
     this.changeShift();
     this.faceoff();
   }
@@ -229,13 +233,11 @@ export class SpatialMatch {
     const other = counts[1 - side] + Number(this.pullGoalie[1 - side]);
     const situation = `${n}v${other}` as SpecialTeamsSituation;
     const unit = ensureSpecialTeams(team)[situation];
-    // Even strength: lines and pairs rotate by the configured ice-time
-    // shares, a pure function of the shift index (no RNG draws).
+    // Even-strength selections stay fixed until the next safe change.
     const plan = resolveIceTime(team);
-    const shiftIndex = this.shiftIndex[side];
     const planned = unit?.players ?? [
-      ...lineWithDoubleShift(team, unitForShift(plan.forwards, shiftIndex), plan),
-      ...team.defense[unitForShift(plan.defense, shiftIndex)],
+      ...lineWithDoubleShift(team, this.forwardUnit[side], plan),
+      ...team.defense[this.defenseUnit[side]],
     ];
     const available = team.players.filter(
       (p) =>
@@ -323,7 +325,14 @@ export class SpatialMatch {
     }
   }
   private rotate(side: number) {
-    this.shiftIndex[side]++;
+    const team = this.teams[side];
+    const plan = resolveIceTime(team);
+    // Live shifts vary in length and a whistle may interrupt a rolling change.
+    // Credit the ice actually taken, in units of a standard shift.
+    const credit = (line: string[]) => line.reduce((sum, id) =>
+      sum + (this.evenSeconds.get(id) ?? 0), 0) / (Math.max(1, line.length) * shiftLength(team));
+    this.forwardUnit[side] = pickNextUnit(normalizeShares(plan.forwards), team.lines.map(credit), this.forwardUnit[side]);
+    this.defenseUnit[side] = pickNextUnit(normalizeShares(plan.defense), team.defense.map(credit), this.defenseUnit[side]);
     this.shiftStart[side] = this.time;
   }
   private changeAtWhistle(kind: SpatialStoppage["kind"], offender: number) {
@@ -350,8 +359,8 @@ export class SpatialMatch {
       }
       const unit = this.rolling[side]!;
       const ice = this.frame.bodies.filter(b => b.side === side);
-      const incoming = unit.find(id => this.player(id).pos !== "G" && !ice.some(b => b.id === id));
-      if (!incoming) { this.rolling[side] = undefined; continue; }
+      const waiting = unit.filter(id => this.player(id).pos !== "G" && !ice.some(b => b.id === id));
+      if (!waiting.length) { this.rolling[side] = undefined; continue; }
       const gateX = BENCH.centerX[side];
       const gateZ = BENCH.frontZ;
       const distance = (b: SkaterBody) => Math.hypot(b.x - gateX, b.z - gateZ);
@@ -363,11 +372,12 @@ export class SpatialMatch {
         spots.set(outgoing.id, {x: gateX, z: gateZ});
       } else {
         spots.delete(outgoing.id);
-        outgoing.id = incoming;
+        const isDefender = this.player(outgoing.id).pos === "D";
+        outgoing.id = waiting.find(id => (this.player(id).pos === "D") === isDefender) ?? waiting[0];
         outgoing.x = gateX + this.direction(side) * 1.15;
         outgoing.z = gateZ;
         outgoing.vx = outgoing.vz = 0;
-        spots.set(incoming, {x: outgoing.x, z: gateZ + 2});
+        spots.set(outgoing.id, {x: outgoing.x, z: gateZ + 2});
       }
     }
   }
@@ -883,6 +893,7 @@ export class SpatialMatch {
     // left every player outside pickup range around a stationary loose puck.
     const spots = this.positions(owner, puck);
     this.lineChangeRoutes(spots, owner);
+    const evenStrength = !this.penalties.length && !this.pullGoalie[0] && !this.pullGoalie[1] && (this.time < 3600 || this.playoffs);
     const previousX = puck.x;
     const previousSkaters = this.frame.bodies.map(b => ({x: b.x, z: b.z}));
     for (const b of this.frame.bodies) {
@@ -927,6 +938,7 @@ export class SpatialMatch {
         p.stats.gp++;
       }
       p.stats.toi += dt / 60;
+      if (evenStrength && !b.goalie) this.evenSeconds.set(b.id, (this.evenSeconds.get(b.id) ?? 0) + dt);
       if (!b.goalie) p.fatigue = clamp(p.fatigue + dt * 0.005, 0, 100);
     });
     separateSkaters(this.frame.bodies, previousSkaters);
