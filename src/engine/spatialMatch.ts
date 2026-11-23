@@ -156,8 +156,8 @@ export class SpatialMatch {
   private decision = 0;
   private nextShot = [0, 0];
   private readonly players: Map<string, Player>;
-  private forwardUnit = [0, 0];
-  private defenseUnit = [0, 0];
+  private forwardUnit = [-1, -1];
+  private defenseUnit = [-1, -1];
   private evenSeconds = new Map<string, number>();
   private shiftStart = [0, 0];
   private goalieWasPulled = [false, false];
@@ -194,6 +194,7 @@ export class SpatialMatch {
       duration: 0,
       events: [],
     };
+    this.teams.forEach((_team, side) => this.rotate(side));
     this.changeShift();
     this.faceoff();
   }
