@@ -20,26 +20,30 @@ const shots = [
   ["faceoff", "?demo=models&view=faceoff"],
   ["goal-celebration", "?demo=models&view=celebrate"],
   ["lineup", "?demo=models&view=lineup"],
+  ["skating", "?demo=models&view=side&motion=skate"],
+  ["shot", "?demo=models&view=side&motion=slap"],
 ];
 
 // PW_CHANNEL=chrome|msedge uses an installed browser (real GPU); otherwise
 // Playwright's Chromium with software GL.
 const channel = process.env.PW_CHANNEL;
-const browser = await chromium.launch(
-  channel
-    ? { channel, args: ["--ignore-gpu-blocklist", "--enable-gpu-rasterization"] }
-    : { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
-);
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+const browser = await chromium.launch({
+  channel, executablePath: process.env.CHROMIUM_PATH,
+  args: channel ? ["--ignore-gpu-blocklist","--enable-gpu-rasterization"] : ["--use-angle=swiftshader","--enable-unsafe-swiftshader","--ignore-gpu-blocklist"],
+});
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on("pageerror", (e) => console.log("pageerror", e.message));
 page.on("console", (m) => m.type() === "error" && console.log("console", m.text()));
+const selected = process.env.MODEL_VIEWS?.split(",");
 for (const [name, query] of shots) {
-  await page.goto(base + "/" + query, { waitUntil: "load" });
+  if (selected && !selected.includes(name)) continue;
+  await page.goto(base + "/" + query + "&sample=.98", { waitUntil: "load" });
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
   await page.waitForTimeout(2500);
-  await page.screenshot({ path: path.join(out, `${name}.png`) });
+  await page.locator(".model-stage, canvas").first().screenshot({ path: path.join(out, `${name}.jpg`),quality:88, timeout:90000 });
   console.log("shot", name);
 }
+if (process.env.MODELS_ONLY) { await browser.close(); process.exit(0); }
 // Broadcast demo: general view, then wait for play and measure fps.
 const extra = process.env.BROADCAST_SHOTS?.split(",") ?? [];
 await page.goto(base + "/?demo=broadcast", { waitUntil: "load" });

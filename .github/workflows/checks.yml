@@ -18,3 +18,14 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Build offline character review
+        if: github.event_name == 'pull_request' && github.head_ref == 'feature/nextgen-hockey-3d'
+        run: npm run build:preview
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request' && github.head_ref == 'feature/nextgen-hockey-3d'
+        with:
+          name: hockey-character-review
+          path: |
+            dist/downloads/NHL-Manager-27-model-lab.html
+            dist/downloads/NHL-Manager-27-broadcast-demo.html
+          if-no-files-found: error

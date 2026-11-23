@@ -3,7 +3,7 @@ import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
 import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
-import { RigFactory, type RigState, type TeamKit } from "./hockeyRig";
+import { RigFactory, type RigState } from "./hockeyRig";
 import { SkinnedRigFactory, type RigLike } from "./skinnedRig";
 import { TrackSmoother } from "./motionSmoothing";
 import { buildArena, insideBoards, loadLogo } from "./arenaScene";
@@ -14,11 +14,8 @@ import { BroadcastDirector } from "./broadcastDirector";
 import Select from "./Select";
 export { CAMERA_MODES, type CameraMode };
 
-const shade = (hex: string, amount: number) => `#${new THREE.Color(hex).multiplyScalar(amount).getHexString()}`;
-/** Home plays in its colour, away in a light kit trimmed in its own colour. */
-export const kitFor = (team: Team, away: boolean): TeamKit => away
-  ? { jersey: "#e8edf3", trim: team.color, pants: shade(team.color, 0.55), helmet: shade(team.color, 0.7), socks: team.color, logo: team.logoUrl, abbr: team.id }
-  : { jersey: team.color, trim: "#f4f6f8", pants: "#10161e", helmet: "#10161e", socks: team.color, logo: team.logoUrl, abbr: team.id };
+export { kitFor } from "./teamKit";
+import { kitFor } from "./teamKit";
 
 /** Skinned FM-style models by default; `?rig=classic` keeps the primitive figures. */
 function makeFactory() {
@@ -98,6 +95,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const iceFx = buildIceFx(scene, arena.ice, quality);
     let lastPeriod = "";
     let frameNo = 0, slowFor = 0, reflections = quality === "high";
+    let directRender = quality === "low";
+    const warmupUntil = performance.now()+4500;
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 260);
     camera.layers.enable(1);
     const kits = [kitFor(home, false), kitFor(away, true)];
@@ -253,7 +252,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     };
 
     const animate = (now: number) => {
-      const dt = Math.min(0.05, (now - previous) / 1000); previous = now;
+      const wallDt = Math.max(0,(now - previous)/1000);
+      const dt = Math.min(.05, wallDt); previous = now;
       const data = current.current;
       // Stride cadence tracks playback speed up to a readable limit.
       const animDt = data.running ? dt * Math.min(Math.max(1, data.playback), 2.5) : 0;
@@ -342,9 +342,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
             if (shooter && danger > 0.45) { benchUp[0] = benchUp[1] = now + 2600; }
             gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
           }
-          if (cue.kind === "shot" || cue.kind === "pass") { actor?.trigger(cue.kind); if (cue.kind === "pass") other?.trigger("receive"); }
+          if (cue.kind === "shot") actor?.trigger(cue.release ?? "shot");
+          else if (cue.kind === "pass" || cue.kind === "receive") actor?.trigger(cue.kind);
           else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger(((cue.seq * 2654435761) >>> 0) % 100 < 28 ? "fall" : "checked"); }
-          else if (cue.kind === "block") actor?.trigger("checked");
+          else if (cue.kind === "block") actor?.trigger("block");
           else if (cue.kind === "goal") {
             const keeper = at(cue.target);
             other?.trigger("beaten", keeper && cue.x !== undefined ? { x: cue.x - keeper.x, z: (cue.z ?? 0) - keeper.z } : undefined, cue.height);
@@ -529,14 +530,21 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         label.textContent = `${scorer ? "🚨 " : ""}${p ? `#${p.number} ${p.name}` : ""}`;
         label.style.borderLeftColor = teams[labelled.side].color;
       }
-      // Automatic quality: drop the ice reflections if the frame rate sags.
       frameNo++;
-      // Ignore the first seconds (shader compilation, texture uploads).
-      if (frameNo > 360) slowFor = dt > 1 / 45 ? slowFor + dt : Math.max(0, slowFor - dt * 0.5);
-      if (reflections && slowFor > 4) { reflections = false; iceFx.setReflections(false); }
-      (window as unknown as { __arena3d?: object }).__arena3d = { reflections, shot: shotOut.shot };
+      // Measure presentation time in wall seconds; the animation clock is capped.
+      if (now > warmupUntil && !document.hidden) {
+        slowFor = Math.max(0,slowFor + (wallDt > 1/42 ? Math.min(.5,wallDt) : -wallDt*.7));
+      }
+      if (reflections && slowFor > 3) { reflections = false; iceFx.setReflections(false); }
+      if (slowFor > 6 && !directRender) {
+        directRender = true;
+        renderer.shadowMap.enabled = false;
+      }
       tickShadows(renderer, frameNo);
-      post.render(); frame = requestAnimationFrame(animate);
+      if (directRender) renderer.render(scene,camera);
+      else post.render();
+      (window as unknown as { __arena3d?: object }).__arena3d = {reflections, directRender, shot:shotOut.shot, characters:byBody.size, geometries:renderer.info.memory.geometries, textures:renderer.info.memory.textures};
+      frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {

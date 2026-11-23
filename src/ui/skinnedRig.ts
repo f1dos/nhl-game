@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { loadHeadgear, type HeadgearPart } from "./headgear";
 import {
   BLADE_DROP,
   FORE,
@@ -22,8 +24,8 @@ import {
 } from "./hockeyRig";
 
 /**
- * Skinned hockey people: every player is ONE SkinnedMesh (two LODs) on a
- * 27-bone skeleton — pelvis, three spine bones, neck, head, clavicles, arms,
+ * Skinned hockey people: every player is ONE SkinnedMesh (three LODs) on a
+ * 28-bone skeleton — pelvis, three spine bones, neck, head, clavicles, arms,
  * hands, legs, feet, a stick bone and four jersey helper bones that flutter
  * with speed. Body, kit and equipment are lofted around the bones in a bind
  * pose with blended weights at the joints, so limbs bend without seams.
@@ -43,7 +45,7 @@ export const BONES = [
   "pelvis", "spine1", "spine2", "spine3", "neck", "head",
   "clavL", "clavR", "upperL", "upperR", "foreL", "foreR", "handL", "handR",
   "thighL", "thighR", "shinL", "shinR", "footL", "footR",
-  "stick", "jerseyF", "jerseyB", "jerseyL", "jerseyR", "toeL", "toeR",
+  "stick", "blade", "jerseyF", "jerseyB", "jerseyL", "jerseyR", "toeL", "toeR",
 ] as const;
 type BoneName = (typeof BONES)[number];
 const B = Object.fromEntries(BONES.map((b, i) => [b, i])) as Record<BoneName, number>;
@@ -119,6 +121,7 @@ function bindPose(goalie: boolean, hs: number): THREE.Matrix4[] {
   }
   // Stick: heel of the blade at the origin, shaft up +Y, blade forward +Z.
   frameFrom(new THREE.Vector3(hs * 0.45, -1.05, 0.9), new THREE.Vector3(0, 1, -0.35), new THREE.Vector3(0, 0, 1), m[B.stick]);
+  m[B.blade] = t(hs * .45, -1.05, .9);
   for (const [b, o] of Object.entries(HEM_OFFSETS)) m[B[b as BoneName]] = t(o[0], SPINE_Y + o[1], o[2]);
   return m;
 }
@@ -316,7 +319,8 @@ export function appearanceFor(id: string, role: RigRole, pos = "C"): Appearance 
 interface BuildSpec {
   role: RigRole;
   look: Appearance;
-  detail: 1 | 0; // 1 = near LOD, 0 = far LOD
+  detail: 2 | 1 | 0;
+  equipment?: HeadgearPart[];
 }
 
 function buildBody(spec: BuildSpec) {
@@ -326,8 +330,8 @@ function buildBody(spec: BuildSpec) {
   const official = role === "referee" || role === "linesman";
   const bind = bindPose(goalie, look.hs);
   const b = new Builder();
-  const seg = detail ? 28 : 11;
-  const segL = detail ? 18 : 8;
+  const seg = detail === 2 ? 42 : detail ? 25 : 10;
+  const segL = detail === 2 ? 26 : detail ? 16 : 7;
   const F = (bone: BoneName, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) =>
     new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(1, 1, 1)).premultiply(bind[B[bone]]);
   const face = FACES[look.face];
@@ -404,8 +408,10 @@ function buildBody(spec: BuildSpec) {
     const ring = (bone: BoneName, t: number, r: number, v: number, w: W) => ({ frame: F(bone, 0, t, 0), rx: r * sleeve * bulk, rz: r * sleeve * bulk, v, w });
     b.loft(
       [
-        ring(up, -0.07, 0.07, 0.0, [[clav, 0.6], [up, 0.4]]),
-        ring(up, 0.04, 0.079, 0.08, [[up, 0.8], [clav, 0.2]]),
+        ring(up, -0.075, 0.018, 0.0, [[clav, 0.45], [up, 0.55]]),
+        ring(up, -0.045, 0.073, 0.02, [[clav, 0.3], [up, 0.7]]),
+        ring(up, -0.005, 0.092, 0.05, [[clav, 0.2], [up, 0.8]]),
+        ring(up, 0.04, 0.089, 0.08, [[up, 0.8], [clav, 0.2]]),
         ring(up, 0.15, 0.072, 0.18, [[up, 1]]),
         ring(up, UPPER - 0.04, 0.066, 0.26, [[up, 0.8], [fore, 0.2]]),
         ring(fore, 0.0, 0.066, 0.3, [[up, 0.5], [fore, 0.5]]),
@@ -417,7 +423,7 @@ function buildBody(spec: BuildSpec) {
       segL,
       { u0: 0, u1: 1 },
     );
-    if (!coach) {
+    if (goalie) {
       const dome = new THREE.SphereGeometry(0.1 * sleeve, detail ? 16 : 8, detail ? 10 : 5, 0, TAU, 0, Math.PI * 0.55).scale(0.95, 0.5, 1.05);
       const uv = dome.getAttribute("uv");
       for (let i = 0; i < uv.count; i++) uv.setXY(i, s > 0 ? 0.02 : 0.48, 0.82);
@@ -430,13 +436,35 @@ function buildBody(spec: BuildSpec) {
     } else if (goalie && s === look.hs) {
       // Catching glove (on the blade side's opposite arm via mirroring below).
       b.geometry(new THREE.CylinderGeometry(0.075, 0.08, 0.13, detail ? 14 : 8), F(hand, 0, -0.06, 0), "glove", [[hand, 0.8], [fore, 0.2]]);
-      b.geometry(new THREE.CylinderGeometry(0.14, 0.12, 0.07, detail ? 18 : 10).scale(1, 1, 1.25), F(hand, 0.02 * s, 0.06, 0.03, Math.PI / 2, 0, 0.2 * s), "trim", [[hand, 1]]);
-      b.geometry(new THREE.SphereGeometry(0.1, detail ? 12 : 7, detail ? 8 : 5, 0, TAU, 0, Math.PI / 2).scale(1, 0.45, 1.2), F(hand, 0.02 * s, 0.07, 0.07, Math.PI / 2, 0, 0), "pad", [[hand, 1]]);
+      const pocket = new THREE.SphereGeometry(.117, detail ? 20 : 10, detail ? 10 : 5, 0, TAU, Math.PI*.5, Math.PI*.5);
+      pocket.scale(1.07, .49, 1.22);
+      const mitt = F(hand,.022*s,.063,.059,Math.PI/2,0,.24*s);
+      b.geometry(pocket,mitt,"glove",[[hand,1]]);
+      const rim = new THREE.TorusGeometry(.122,.012,5,detail ? 28 : 12).scale(1,1.16,1).rotateX(Math.PI/2);
+      b.geometry(rim,mitt,"pad",[[hand,1]]);
+      for (const lane of [-.65,-.32,0,.32,.65]) {
+        const reach = Math.sqrt(1-lane*lane);
+        for (const cross of [-1,1]) {
+          const lace = new THREE.CylinderGeometry(.0028,.0028,.218*reach,4).rotateX(Math.PI/2).rotateY(cross*.55);
+          lace.translate(lane*.108,-.013,0);
+          b.geometry(lace,mitt,"tape",[[hand,1]]);
+        }
+      }
     } else if (goalie) {
       b.geometry(new THREE.CylinderGeometry(0.075, 0.08, 0.13, detail ? 14 : 8), F(hand, 0, -0.06, 0), "glove", [[hand, 0.8], [fore, 0.2]]);
-      b.geometry(new THREE.BoxGeometry(0.06, 0.26, 0.19, 1, 2, 2), F(hand, -0.05 * s, 0.05, 0.02), "pad", [[hand, 1]]);
+      b.geometry(new RoundedBoxGeometry(.074,.265,.194, detail ? 2 : 1,.023), F(hand, -0.05 * s, 0.05, 0.02), "pad", [[hand, 1]]);
       b.geometry(new THREE.BoxGeometry(0.065, 0.06, 0.195), F(hand, -0.05 * s, 0.15, 0.02), "trim", [[hand, 1]]);
     } else {
+      if (detail) {
+        for (const z of [-1, 1]) {
+          for (let i = 0; i < 4; i++) {
+            const roll = new THREE.CapsuleGeometry(.014, .067 - i*.006, 3, 9);
+            roll.rotateZ(Math.PI/2);
+            b.geometry(roll, F(hand, 0, -.024+i*.03, z*(.064-i*.005)), "glove", [[hand,1]]);
+          }
+        }
+        b.geometry(new THREE.CapsuleGeometry(.021,.061,3,9), F(hand,.052*s,.035,.018,0,0,s*.36), "glove", [[hand,1]]);
+      }
       // Hockey glove: wide cuff, padded back and rolled fingers.
       b.loft(
         [
@@ -522,11 +550,16 @@ function buildBody(spec: BuildSpec) {
     );
     if (goalie) {
       // Leg pads: tall, wide, flat-fronted, with knee stack and trim rolls.
-      const padSeg = detail ? 3 : 1;
-      b.geometry(new THREE.BoxGeometry(0.25, PAD_H, 0.2, padSeg, detail ? 6 : 3, padSeg), F(shin, 0, PAD_Y, 0.025), "pad", (p) => [[shin, p.y > 0.25 ? 0.6 : 1], [thigh, p.y > 0.25 ? 0.4 : 0]]);
-      for (const y of [PAD_Y + PAD_H / 2 - 0.08, PAD_Y - PAD_H / 2 + 0.08, PAD_Y])
-        b.geometry(new THREE.BoxGeometry(0.26, 0.045, 0.21), F(shin, 0, y, 0.026), "trim", [[shin, 1]]);
-      b.geometry(new THREE.BoxGeometry(0.2, 0.34, 0.16), F(thigh, 0, -0.2, 0.05), "pad", [[thigh, 1]]);
+      const padProfile = [[-.5,.090,.072,.075],[-.44,.118,.091,.055],[-.22,.124,.098,.035],[.12,.128,.093,.035],[.41,.126,.078,.041],[.5,.113,.065,.043]];
+      b.loft(padProfile.map(([height,rx,rz,z]) => ({
+        frame: F(shin,0,PAD_Y+height*PAD_H,z), rx,rz, v:height+.5, w:[[shin,1]] as W,
+      })), "pad", detail ? 20 : 8, {capStart:true,capEnd:true,exp:5});
+      for (const h of [-.22,-.12,-.02]) {
+        const roll = new THREE.CapsuleGeometry(.012,.208,2,detail ? 8 : 4).rotateZ(Math.PI/2);
+        b.geometry(roll,F(shin,0,PAD_Y+h,.13), "pad", [[shin,1]]);
+      }
+      const rail = new THREE.CapsuleGeometry(.018,.49,3,detail ? 9 : 5);
+      b.geometry(rail,F(shin,s*.108,PAD_Y+.012,.109), "glove", [[shin,1]]);
     }
     // Skate: boot, tendon guard, holder and steel blade.
     if (detail) {
@@ -551,36 +584,32 @@ function buildBody(spec: BuildSpec) {
     );
     b.geometry(new THREE.SphereGeometry(0.06, detail ? 12 : 7, detail ? 6 : 4, 0, TAU, 0, Math.PI / 2).scale(0.85, 0.7, 1.0), F(foot, 0, -0.07, 0.11, -Math.PI / 2 + 0.2), "boot", [[`toe${side}` as BoneName, 0.7], [foot, 0.3]]);
     b.geometry(new THREE.BoxGeometry(0.03, 0.05, 0.06), F(foot, 0, 0.07, -0.06, -0.3), "boot", [[foot, 0.6], [shin, 0.4]]);
-    b.geometry(new THREE.BoxGeometry(0.024, 0.034, 0.27), F(foot, 0, -0.098, 0.045), "pad", [[foot, 1]]);
+    for (const z of [-.045,.126])
+      b.geometry(new THREE.CylinderGeometry(.024,.014,.047,detail ? 10 : 5).scale(.64,1,1.3),F(foot,0,-.087,z),"pad",[[foot,1]]);
+    b.geometry(new THREE.BoxGeometry(.021,.017,.265),F(foot,0,-.105,.045),"pad",[[foot,1]]);
     b.geometry(new THREE.BoxGeometry(0.007, 0.018, 0.3, 1, 1, detail ? 4 : 1), F(foot, 0, -BLADE_DROP + 0.009, 0.045), "steel", [[foot, 1]]);
   }
-  if (goalie) {
-    // Chest protector arm and shoulder caps over the jersey.
-    for (const s of [-1, 1])
-      b.geometry(new THREE.SphereGeometry(0.13, detail ? 14 : 8, detail ? 8 : 5, 0, TAU, 0, Math.PI / 2).scale(1.1, 0.7, 1.05), F("spine3", s * 0.22, SHOULDER_Y + 0.02, 0, 0, 0, -s * 0.4), "jersey", [["spine3", 0.5], [s > 0 ? "clavL" : "clavR", 0.5]]);
-  }
-
   // ------------------------------------------------------------ head
-  buildHead(b, F, look, face, { goalie, coach, official, detail });
+  buildHead(b, F, look, face, { goalie, coach, official, detail }, spec.equipment);
 
   // ------------------------------------------------------------ stick
   if (role === "skater" || goalie) {
     const len = goalie ? 1.45 : 1.55;
     const shaftW = goalie ? 0.032 : 0.03;
-    b.geometry(new THREE.BoxGeometry(shaftW, len, 0.02, 1, detail ? 3 : 1, 1), F("stick", 0, len / 2 + 0.06, 0), "stick", [["stick", 1]]);
+    b.geometry(new THREE.BoxGeometry(shaftW, len, 0.02, 1, detail ? 3 : 1, 1), F("stick", 0, len / 2 + 0.023, 0), "stick", [["stick", 1]]);
     b.geometry(new THREE.BoxGeometry(shaftW + 0.004, 0.13, 0.024), F("stick", 0, len - 0.02, 0), "tape", [["stick", 1]]);
     if (goalie) b.geometry(new THREE.BoxGeometry(0.075, 0.62, 0.024), F("stick", 0, 0.36, 0.0), "stick", [["stick", 1]]);
     // Curved blade: bent toward the forehand of a left or right shot.
     const bladeLen = goalie ? 0.38 : 0.3;
-    const blade = new THREE.BoxGeometry(0.012, goalie ? 0.09 : 0.072, bladeLen, 1, 1, detail ? 8 : 3);
-    const pos = blade.getAttribute("position");
-    for (let i = 0; i < pos.count; i++) {
-      const z = pos.getZ(i) + bladeLen / 2;
-      pos.setX(i, pos.getX(i) + look.hs * 0.035 * Math.pow(z / bladeLen, 2));
-      pos.setY(i, pos.getY(i) + 0.01 * Math.pow(z / bladeLen, 2));
-    }
-    b.geometry(blade, F("stick", 0, 0.036, bladeLen / 2 + 0.01), "stick", [["stick", 1]]);
-    b.geometry(new THREE.BoxGeometry(0.015, goalie ? 0.05 : 0.04, bladeLen * 0.6), F("stick", look.hs * 0.006, 0.03, bladeLen * 0.62), "tape", [["stick", 1]]);
+    // Keep the heel on its own joint. A tilted shaft must not lift the toe
+    // when the player is carrying the puck with the blade flat on the ice.
+    const sections = [[0,.058],[.12,.064],[.34,.067],[.56,.069],[.78,.067],[.94,.059],[1,.034]];
+    const rings = sections.map(([u,height]) => ({
+      frame:F("blade",look.hs*.032*u*u,height/2+.012*u*u,bladeLen*u,Math.PI/2),
+      rx:.0075, rz:height*(goalie?.65:.5), v:u, w:[["blade",1]] as W,
+    }));
+    b.loft(rings.slice(0,3),"stick",detail ? 12 : 6,{capStart:true,exp:3.5});
+    b.loft(rings.slice(2),"tape",detail ? 12 : 6,{capEnd:true,exp:3.5});
   }
   return { geometry: b.build(), triangles: b.triangles, bind };
 }
@@ -590,10 +619,11 @@ function buildHead(
   F: (bone: BoneName, x?: number, y?: number, z?: number, rx?: number, ry?: number, rz?: number) => THREE.Matrix4,
   look: Appearance,
   face: number[],
-  o: { goalie: boolean; coach: boolean; official: boolean; detail: 0 | 1 },
+  o: { goalie: boolean; coach: boolean; official: boolean; detail: 0 | 1 | 2 },
+  equipment?: HeadgearPart[],
 ) {
   const [jaw, chin, cheek, noseLen, noseW, brow, eyeX, headLen] = face;
-  const seg = o.detail ? 18 : 10;
+  const seg = o.detail === 2 ? 40 : o.detail ? 24 : 10;
   const H: W = [["head", 1]];
   // Skull and face as one loft from the chin to the crown; the front is
   // flatter and the jaw narrows per face shape.
@@ -615,7 +645,11 @@ function buildHead(
         const back = Math.max(0, -Math.sin(th));
         // Chin juts forward, the back of the head bulges, the face is flatter.
         const chinPush = lower ? front * 0.12 * chin * smooth((-y - 0.04) / 0.08) : 0;
-        return 1 - front * 0.06 + back * 0.05 + chinPush;
+        const side = Math.abs(Math.cos(th));
+        const cheekbone = Math.exp(-((y+.012)**2)/.00045 - ((side-.6)**2)/.06);
+        const socket = Math.exp(-((y-.022)**2)/.00015 - ((side-.36)**2)/.035);
+        const browRidge = Math.exp(-((y-.046)**2)/.00012 - ((side-.39)**2)/.065);
+        return 1 - front * .06 + back * .05 + chinPush + front * (.087*cheekbone-.065*socket+.055*browRidge);
       },
     };
   });
@@ -623,14 +657,22 @@ function buildHead(
   // Ears.
   for (const s of [-1, 1]) b.geometry(new THREE.SphereGeometry(0.024, 8, 6).scale(0.45, 1, 0.75), F("head", s * 0.092 * cheek, 0.0, -0.005), "skin", H);
   // Nose, eyes, brows, mouth.
-  b.geometry(new THREE.ConeGeometry(0.015 * noseW, 0.03 * noseLen, 8).rotateX(Math.PI / 2.1), F("head", 0, -0.012, 0.1), "skin", H);
+  const nose = [[-.032,.009,.008,.104],[-.024,.018,.011,.108],[-.017,.014,.018,.112],[.003,.010,.012,.106],[.034,.007,.005,.101]];
+  b.loft(nose.map(([y,rx,rz,z]) => ({frame:F("head",0,y,z), rx:rx*noseW, rz:rz*noseLen, v:y+.5, w:H})), "skin", o.detail ? 16 : 8, {capStart:true,capEnd:true});
   if (o.detail) {
-    for (const s of [-1, 1]) {
-      b.geometry(new THREE.SphereGeometry(0.0115, 10, 8).scale(1.3, 0.75, 0.5), F("head", s * eyeX, 0.02, 0.095), "eyeWhite", H);
-      b.geometry(new THREE.SphereGeometry(0.0058, 8, 6), F("head", s * (eyeX - 0.001), 0.019, 0.0995), "iris", H);
-      b.geometry(new THREE.BoxGeometry(0.036, 0.008, 0.012), F("head", s * eyeX, 0.045 + brow, 0.098, 0, 0, -s * 0.12), "hair", H);
+    for (const s of [-1,1]) {
+      const x = s*eyeX;
+      if (o.detail === 2) {
+        const lid = new THREE.SphereGeometry(.014,18,9,0,TAU,0,Math.PI*.49).scale(1,.55,.41);
+        b.geometry(lid,F("head",x,.021,.101), "skin", H);
+        const earRim = new THREE.TorusGeometry(.016,.0035,5,16).scale(1,1.34,1).rotateY(s*Math.PI/2);
+        b.geometry(earRim,F("head",s*.096*cheek,.001,-.006), "skin", H);
+      }
+      b.geometry(new THREE.SphereGeometry(.011,12,8).scale(1.22,.49,.43), F("head",x,.019,.101), "eyeWhite", H);
+      b.geometry(new THREE.SphereGeometry(.0053,10,8).scale(1,1,.55), F("head",x,.019,.105), "iris", H);
+      b.geometry(new THREE.SphereGeometry(.016,12,6).scale(1,.22,.33), F("head",x,.038+brow,.102,0,0,-s*.14), "hair", H);
     }
-    b.geometry(new THREE.BoxGeometry(0.04, 0.008, 0.01), F("head", 0, -0.052 * chin, 0.098), "lips", H);
+    b.geometry(new THREE.SphereGeometry(.019,12,6).scale(1,.17,.32), F("head", 0, -0.052 * chin, 0.103), "lips", H);
   }
   // Beard.
   if (look.beard) {
@@ -652,9 +694,10 @@ function buildHead(
         const th = (j / cols) * TAU;
         const sx = Math.sin(phi) * Math.cos(th), sz = Math.sin(phi) * Math.sin(th), sy = Math.cos(phi);
         const curl = style.curl ? Math.sin(th * 9 + phi * 11) * 0.006 * style.curl : 0;
-        const r = 0.108 + style.thick + curl;
+        const exposed = o.coach ? 1 : smooth((-sy-.1)/.42);
+        const r = o.coach ? .108+style.thick+curl : .099 + (style.thick+curl)*exposed;
         const back = Math.max(0, -Math.sin(th));
-        const flare = style.flare * back * smooth((0.4 - sy) / 0.6);
+        const flare = style.flare * back * exposed * smooth((0.4 - sy) / 0.6);
         p.push(sx * (r + flare) * cheek, sy * r * headLen + 0.006, sz * (r + flare) * 1.04 + 0.006);
       }
     for (let i = 0; i < rows; i++)
@@ -676,8 +719,14 @@ function buildHead(
   }
   if (o.coach) return;
   // Helmet (two models) or goalie mask with cage.
+  if (equipment?.length) {
+    for (const part of equipment) b.geometry(part.geometry.clone(), F("head"), part.material, H);
+    if (!o.goalie && !o.official)
+      b.geometry(new THREE.CylinderGeometry(.142,.136,.049,28,1,true,-1.16,2.32), F("head",0,.028,.005), "visor", H);
+    return;
+  }
   if (o.goalie) {
-    const mask = new THREE.SphereGeometry(0.13, o.detail ? 20 : 11, o.detail ? 14 : 7, 0, TAU, 0, Math.PI * 0.78);
+    const mask = new THREE.SphereGeometry(0.13, o.detail ? 20 : 11, o.detail ? 14 : 7, 0, TAU, 0, Math.PI * 0.43);
     mask.scale(0.98, 1.08, 1.12);
     b.geometry(mask, F("head", 0, 0.008, -0.004), "mask", H);
     const cageRows = o.detail ? [-0.06, -0.02, 0.02] : [-0.02];
@@ -700,7 +749,7 @@ function buildHead(
   // Ear guards and chin strap.
   for (const s of [-1, 1]) b.geometry(new THREE.BoxGeometry(0.02, 0.07, 0.06), F("head", s * 0.118, -0.01, 0.0), "helmet", H);
   b.geometry(new THREE.TorusGeometry(0.098, 0.004, 3, o.detail ? 12 : 6, Math.PI).rotateZ(Math.PI), F("head", 0, -0.035, 0.01), "pad", H);
-  if (!o.official) {
+  if (!o.official && o.detail) {
     const visor = new THREE.CylinderGeometry(0.138, 0.138, 0.052, o.detail ? 16 : 8, 1, true, -0.95, 1.9);
     b.geometry(visor, F("head", 0, 0.018, 0.0), "visor", H);
   }
@@ -866,9 +915,12 @@ export interface RigLike {
 
 interface Built {
   hi: THREE.BufferGeometry;
+  mid: THREE.BufferGeometry;
   lo: THREE.BufferGeometry;
+  detailed?: THREE.BufferGeometry;
+  broadcast?: THREE.BufferGeometry;
   bind: THREE.Matrix4[];
-  triangles: number;
+  dispose(): void;
 }
 
 export class SkinnedRigFactory {
@@ -876,8 +928,33 @@ export class SkinnedRigFactory {
   private shared = new Map<string, THREE.Material>();
   private logos = new Map<string, HTMLImageElement | null>();
   readonly primitive = new RigFactory();
-  stats = { built: 0, triangles: 0 };
-  constructor(private logoFor?: (kit: TeamKit) => Promise<HTMLImageElement | null>) {}
+
+  private equipment?: Awaited<ReturnType<typeof loadHeadgear>>;
+  private released = false;
+  private textures = new Map<string, THREE.Texture>();
+  readonly ready: Promise<void>;
+  constructor(private logoFor?: (kit: TeamKit) => Promise<HTMLImageElement | null>) {
+    this.ready = logoFor ? loadHeadgear().then(parts => {
+      if (this.released) Object.values(parts).flat().forEach(p => p.geometry.dispose());
+      else this.equipment = parts;
+    }).catch(error => console.warn("Using built-in hockey equipment", error)) : Promise.resolve();
+  }
+  knit(url: string) {
+    if (!this.logoFor) return null;
+    let texture = this.textures.get(url);
+    if (!texture) {
+      texture = new THREE.TextureLoader().load(url);
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(10, 10);
+      this.textures.set(url, texture);
+    }
+    return texture;
+  }
+  equipped(model: Built, role: RigRole, look: Appearance, level: 1 | 2) {
+    if (!this.equipment || role === "coach") return level === 2 ? model.hi : model.mid;
+    if (level === 1) return model.broadcast ??= buildBody({role, look, detail:1, equipment:this.equipment[role === "goalie" ? "broadcast_goalie" : "broadcast_skater"]}).geometry;
+    return model.detailed ??= buildBody({role, look, detail:2, equipment:this.equipment[role === "goalie" ? "goalie" : "skater"]}).geometry;
+  }
   mat(key: string, make: () => THREE.Material) {
     let m = this.shared.get(key);
     if (!m) this.shared.set(key, (m = make()));
@@ -887,12 +964,22 @@ export class SkinnedRigFactory {
     const key = `${role}|${look.face}|${look.hair}|${look.beard}|${look.helmet}|${look.hs}|${look.build.toFixed(2)}`;
     let m = this.cache.get(key);
     if (!m) {
-      const hi = buildBody({ role, look, detail: 1 });
-      const lo = buildBody({ role, look, detail: 0 });
-      m = { hi: hi.geometry, lo: lo.geometry, bind: hi.bind, triangles: hi.triangles };
-      this.cache.set(key, m);
-      this.stats.built++;
-      this.stats.triangles = Math.max(this.stats.triangles, hi.triangles);
+      const lo = buildBody({role,look,detail:0});
+      let high: THREE.BufferGeometry | undefined, medium: THREE.BufferGeometry | undefined;
+      m = {
+        get hi() { return high ??= buildBody({role,look,detail:2}).geometry; },
+        get mid() { return medium ??= buildBody({role,look,detail:1}).geometry; },
+        lo: lo.geometry, bind:lo.bind,
+        dispose() {lo.geometry.dispose(); high?.dispose(); medium?.dispose(); this.detailed?.dispose(); this.broadcast?.dispose();}
+      };
+      const pigment = new Float32Array(lo.geometry.getAttribute("position").count);
+      const indices = lo.geometry.index!;
+      for (const group of lo.geometry.groups) {
+        for (let i=group.start;i<group.start+group.count;i++) pigment[indices.getX(i)] = group.materialIndex ?? 0;
+      }
+      lo.geometry.setAttribute("pigment",new THREE.BufferAttribute(pigment,1));
+      this.cache.set(key,m);
+
     }
     return m;
   }
@@ -917,11 +1004,14 @@ export class SkinnedRigFactory {
     return new SkinnedRig(this, { jersey: suit, trim: teamColour, pants: suit, helmet: suit, socks: suit }, "coach");
   }
   dispose() {
-    this.cache.forEach((m) => {
-      m.hi.dispose();
-      m.lo.dispose();
+    this.cache.forEach(model => model.dispose());
+    this.released = true;
+    if (this.equipment) Object.values(this.equipment).flat().forEach(p => p.geometry.dispose());
+    this.textures.forEach(t => t.dispose());
+    this.shared.forEach(m => {
+      if (m instanceof THREE.MeshStandardMaterial) m.map?.dispose();
+      m.dispose();
     });
-    this.shared.forEach((m) => m.dispose());
     this.cache.clear();
     this.shared.clear();
     this.primitive.dispose();
@@ -946,6 +1036,8 @@ export class SkinnedRig implements RigLike {
   private skeleton?: THREE.Skeleton;
   private bones: THREE.Bone[] = [];
   private lod = new THREE.LOD();
+  private body?: Built;
+  private look?: Appearance;
   private meshes: THREE.SkinnedMesh[] = [];
   private materials: THREE.Material[] = [];
   private jerseyTex?: THREE.CanvasTexture;
@@ -1001,7 +1093,8 @@ export class SkinnedRig implements RigLike {
   }
   private rebuild(id: RigIdentity, pos: string) {
     const look = appearanceFor(id.id, this.role, pos);
-    const model = this.factory.model(this.role, look);
+    this.look = look;
+    const model = this.body = this.factory.model(this.role, look);
     // Skeleton: bones parented flat under the rig root; matrices are written
     // every frame from the pose solver.
     this.meshes.forEach((m) => this.lod.remove(m));
@@ -1015,6 +1108,7 @@ export class SkinnedRig implements RigLike {
     this.root.children.filter((c) => c.name === "skeleton").forEach((c) => this.root.remove(c));
     this.root.add(holder);
     const inverses = model.bind.map((m) => m.clone().invert());
+    this.skeleton?.dispose();
     this.skeleton = new THREE.Skeleton(this.bones, inverses);
     // Only the jersey material is per player; the rest are shared.
     this.materials.forEach((m) => m.dispose());
@@ -1026,14 +1120,14 @@ export class SkinnedRig implements RigLike {
     const k = this.kit;
     const std = (key: string, color: string, roughness = 0.75, extra: THREE.MeshStandardMaterialParameters = {}) =>
       this.factory.mat(`${key}${color}${roughness}`, () => new THREE.MeshStandardMaterial({ color, roughness, ...extra }));
-    const jersey = new THREE.MeshStandardMaterial({ map: this.jerseyTex, roughness: 0.82, side: THREE.DoubleSide });
+    const jersey = new THREE.MeshStandardMaterial({ map: this.jerseyTex, normalMap: this.factory.knit(new URL("../assets/jersey-knit-normal.png", import.meta.url).href), normalScale: new THREE.Vector2(.26,.26), roughnessMap: this.factory.knit(new URL("../assets/jersey-knit-roughness.png", import.meta.url).href), roughness: .95, side: THREE.DoubleSide });
     const mats: Record<MatKey, THREE.Material> = {
       jersey,
       pants: std("pants", k.pants, 0.8),
       socks: this.factory.mat(`socks${k.socks}${k.trim}`, () => new THREE.MeshStandardMaterial({ map: socksTexture(k), roughness: 0.9 })),
       skin: skinMat,
       helmet: std("helmet", k.helmet, 0.28, { metalness: 0.05 }),
-      glove: std("glove", k.pants === "#10161e" ? k.jersey : k.pants, 0.7),
+      glove: std("glove", k.pants === "#10161e" ? k.jersey : k.pants, 0.7, {side:THREE.DoubleSide}),
       boot: std("boot", "#15181d", 0.45),
       steel: std("steel", "#c9d3da", 0.2, { metalness: 0.85 }),
       stick: std("stick", "#1b1c20", 0.42),
@@ -1051,11 +1145,23 @@ export class SkinnedRig implements RigLike {
       shirt: std("shirt", "#f3f5f7", 0.7),
       shoe: std("shoe", "#0d0f12", 0.35),
     };
-    this.materials = [jersey];
+    // At arena distance the small equipment highlights are subpixel. Keep the
+    // jersey atlas and team colours in one opaque draw for the whole player.
+    const palette = MAT_ORDER.map(key => (mats[key] as THREE.MeshStandardMaterial).color.clone());
+    palette[MAT_ORDER.indexOf("socks")].set(k.socks);
+    palette[MAT_ORDER.indexOf("mask")].set(k.helmet);
+    const distant = new THREE.MeshStandardMaterial({map:this.jerseyTex,roughness:.78});
+    distant.onBeforeCompile = shader => {
+      shader.uniforms.kitPigments = {value:palette};
+      shader.vertexShader = "attribute float pigment; varying float vPigment;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvPigment = pigment;");
+      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
+    };
+    this.materials = [jersey,distant];
     const list = MAT_ORDER.map((m) => mats[m]);
-    this.meshes = [model.hi, model.lo].map((geo) => {
-      const mesh = new THREE.SkinnedMesh(geo, list);
-      mesh.frustumCulled = false;
+    this.meshes = [model.lo, model.lo, model.lo].map((geo, i) => {
+      const mesh = new THREE.SkinnedMesh(geo, i === 2 ? distant : list);
+      // Bounds are in the moving player's frame and include the raised stick.
+      mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(0,1,0),2.85);
       mesh.castShadow = this.role !== "coach";
       mesh.receiveShadow = true;
       mesh.bind(this.skeleton!, new THREE.Matrix4());
@@ -1064,8 +1170,11 @@ export class SkinnedRig implements RigLike {
     this.lod.levels.length = 0;
     this.lod.clear();
     this.lod.addLevel(this.meshes[0], 0);
-    this.lod.addLevel(this.meshes[1], 26);
+    this.lod.addLevel(this.meshes[1], 12, .12);
+    this.lod.addLevel(this.meshes[2], 35, .12);
     this.lod.visible = true;
+    this.meshes[0].visible = false;
+    this.meshes[1].visible = false;
   }
   setState(state: RigState, variant?: number, side?: number) {
     this.driver.setState(state, variant, side);
@@ -1082,12 +1191,16 @@ export class SkinnedRig implements RigLike {
   update(dt: number, animDt: number, inp: RigInput) {
     this.driver.update(dt, animDt, inp);
     if (!this.ok || !this.root.visible) return;
+    if (this.body && this.look) {
+      if (this.meshes[0].visible) this.meshes[0].geometry = this.factory.equipped(this.body,this.role,this.look,2);
+      else if (this.meshes[1].visible) this.meshes[1].geometry = this.factory.equipped(this.body,this.role,this.look,1);
+    }
     this.clock += animDt;
     // Late logo: redraw the jersey once the crest image has loaded.
     if (!this.logoDrawn && this.factory.logo(this.kit) && this.idInfo && this.jerseyTex) {
       this.logoDrawn = true;
       const fresh = jerseyTexture(this.kit, this.idInfo.name, this.idInfo.number, this.role, this.factory.logo(this.kit));
-      (this.materials[0] as THREE.MeshStandardMaterial).map = fresh;
+      for (const mat of this.materials) (mat as THREE.MeshStandardMaterial).map = fresh;
       this.jerseyTex.dispose();
       this.jerseyTex = fresh;
     }
@@ -1124,15 +1237,15 @@ export class SkinnedRig implements RigLike {
     }
     // Arms: the solver positions capsules between shoulder, elbow and hand.
     const fwd = _fwd.set(0, 0, 1).transformDirection(_spine);
-    for (const arm of src.arms) {
+    for (const [i,arm] of src.arms.entries()) {
       const upper = arm.upper;
       const lenU = upper.scale.y;
       _dir.set(0, 1, 0).applyQuaternion(upper.quaternion);
       const shoulder = _sh0.copy(upper.position).addScaledVector(_dir, -lenU / 2).applyMatrix4(_spine);
       const elbow = _el0.copy(upper.position).addScaledVector(_dir, lenU / 2).applyMatrix4(_spine);
       const hand = _hd0.copy(arm.hand.position).applyMatrix4(_spine);
-      // Side from spine space: x > 0 is the player's left.
-      const sName = _tmp.copy(upper.position).x > 0 ? "L" : "R";
+      // The grip hand stays on its anatomical side when the elbows cross.
+      const sName = (i === 0 ? -this.driver.hs : this.driver.hs) > 0 ? "L" : "R";
       const w = (_ss.x + _ss.z) / 2;
       frameFrom(shoulder, _d1.subVectors(elbow, shoulder), fwd, M[B[`upper${sName}` as BoneName]], _s.set(w, elbow.distanceTo(shoulder) / UPPER, w));
       frameFrom(elbow, _d1.subVectors(hand, elbow), fwd, M[B[`fore${sName}` as BoneName]], _s.set(w, hand.distanceTo(elbow) / FORE, w));
@@ -1141,6 +1254,7 @@ export class SkinnedRig implements RigLike {
     // Stick: heel at the blade, shaft up toward the grip, blade forward.
     if (src.shaft) {
       _dir.set(0, 1, 0).applyQuaternion(src.shaft.quaternion).negate();
+      local(src.blade,M[B.blade]);
       frameFrom(src.blade.position, _dir, _fwd.set(0, 0, 1), M[B.stick]);
     }
     // Jersey hem flutters back with speed and sways with the stride.
@@ -1182,5 +1296,5 @@ const _pp = new THREE.Vector3(), _ps = new THREE.Vector3(), _ph = new THREE.Vect
 const _qp = new THREE.Quaternion(), _qs = new THREE.Quaternion(), _qh = new THREE.Quaternion();
 const _sp = new THREE.Vector3(), _ss = new THREE.Vector3(), _sh = new THREE.Vector3();
 const _fwd = new THREE.Vector3(), _dir = new THREE.Vector3(), _d1 = new THREE.Vector3(), _ax = new THREE.Vector3();
-const _sh0 = new THREE.Vector3(), _el0 = new THREE.Vector3(), _hd0 = new THREE.Vector3(), _tmp = new THREE.Vector3();
+const _sh0 = new THREE.Vector3(), _el0 = new THREE.Vector3(), _hd0 = new THREE.Vector3();
 void _m;

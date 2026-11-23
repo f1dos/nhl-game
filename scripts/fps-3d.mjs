@@ -7,9 +7,10 @@ const base = process.argv[2] ?? "http://localhost:5173";
 const query = process.argv[3] ?? "?demo=broadcast";
 const browser = await chromium.launch({
   channel: process.env.PW_CHANNEL,
-  args: ["--ignore-gpu-blocklist", "--enable-gpu", "--use-angle=d3d11", "--enable-unsafe-webgpu"],
+  executablePath: process.env.CHROMIUM_PATH,
+  args: ["--ignore-gpu-blocklist", "--enable-gpu", ...(process.env.SOFTWARE_GL ? ["--use-angle=swiftshader","--enable-unsafe-swiftshader"] : [])],
 });
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 await page.goto(base + "/" + query, { waitUntil: "load" });
 await page.waitForSelector(".bw-play", { timeout: 60000 });
 const gpu = await page.evaluate(() => {
@@ -17,18 +18,19 @@ const gpu = await page.evaluate(() => {
   const info = gl?.getExtension("WEBGL_debug_renderer_info");
   return info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : "unknown";
 });
-await page.click(".bw-play");
+await page.locator(".bw-play").evaluate(button=>button.click());
 await page.waitForTimeout(4000);
+const sampleCount = Math.max(30,Number(process.env.FPS_SAMPLES) || 300);
 const measure = () =>
   page.evaluate(
-    () =>
+    target =>
       new Promise((resolve) => {
         const times = [];
         let last = performance.now();
         const loop = (t) => {
           times.push(t - last);
           last = t;
-          if (times.length < 300) requestAnimationFrame(loop);
+          if (times.length < target) requestAnimationFrame(loop);
           else {
             const sorted = [...times].sort((a, b) => a - b);
             const avg = times.reduce((a, b) => a + b, 0) / times.length;
@@ -36,9 +38,10 @@ const measure = () =>
           }
         };
         requestAnimationFrame(loop);
-      }),
+      }), sampleCount,
   );
 const live = await measure();
+if (process.env.MATCH_SCREENSHOT) await page.screenshot({path:process.env.MATCH_SCREENSHOT});
 const state = await page.evaluate(() => window.__arena3d);
-console.log(JSON.stringify({ gpu, query, live, state }));
+console.log(JSON.stringify({ gpu, query, sampleCount, resolution:"1920x1080", live, state }));
 await browser.close();

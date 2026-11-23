@@ -35,7 +35,7 @@ import {
   MINOR_LEAGUE_META,
   type MinorLeagueIdentity,
 } from "../data/minor-leagues-2026-27";
-const clubs = [
+export const clubs = [
   ["BOS", "Boston", "Bruins", "Atlantic", "#eab743"],
   ["BUF", "Buffalo", "Sabres", "Atlantic", "#3267be"],
   ["DET", "Detroit", "Red Wings", "Atlantic", "#e34646"],

@@ -21,6 +21,9 @@ html = html.replace(
     fs.readFileSync(path.join(dist, src.replace(/^\//, "")), "utf8") +
     "</style>",
 );
+// Preserve the character library when the standalone page is opened offline.
+html = html.replace(/"\/assets\/(headgear-[^"]+\.glb)"/g, (_, name) =>
+  '"data:model/gltf-binary;base64,' + fs.readFileSync(path.join(dist,"assets",name)).toString("base64") + '"');
 fs.writeFileSync(path.join(dist, "downloads", "NHL-Manager-27.html"), html);
 const files = {};
 function collect(dir) {

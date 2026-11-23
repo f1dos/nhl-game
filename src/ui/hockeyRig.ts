@@ -33,6 +33,10 @@ export interface TeamKit {
 export type RigRole = "skater" | "goalie" | "referee" | "linesman" | "coach";
 export type RigActionKind =
   | "shot"
+  | "wrist"
+  | "snap"
+  | "slap"
+  | "block"
   | "pass"
   | "check"
   | "checked"
@@ -228,6 +232,33 @@ function sampleAction(spec: ActionSpec, t: number, base: Pose, out: Pose) {
   return out;
 }
 
+// Bake authored partial poses into mixer tracks once. Each target carries its
+// own weight so unspecified joints can continue skating or tracking the puck.
+const compiledActions = new WeakMap<ActionSpec, THREE.AnimationClip>();
+function compileAction(spec: ActionSpec) {
+  const cached = compiledActions.get(spec);
+  if (cached) return cached;
+  const times: number[] = [], values: number[] = [];
+  const zero = pose(), one = pose(), offset = pose(), weighted = pose();
+  for (const key of PARAMS) { zero[key] = 0; one[key] = 1; }
+  for (let i=0;i<spec.keys.length;i++) {
+    const start=spec.keys[i][0];
+    const end=spec.keys[i+1]?.[0] ?? start;
+    const steps=Math.max(1,Math.ceil((end-start)*30));
+    for (let j=0;j<steps;j++) {
+      const t=start+(end-start)*j/steps;
+      times.push(t);
+      sampleAction(spec,t,zero,offset);
+      sampleAction(spec,t,one,weighted);
+      for (const key of PARAMS) values.push(offset[key], weighted[key]-offset[key]);
+    }
+  }
+  const track=new THREE.NumberKeyframeTrack(".coefficients",times,values);
+  const clip=new THREE.AnimationClip("Hockey action",spec.dur,[track]);
+  compiledActions.set(spec,clip);
+  return clip;
+}
+
 const ACTIONS: Record<string, ActionSpec> = {
   // Wrist shot: load the blade back, sweep through, high follow-through.
   shot: {
@@ -239,6 +270,16 @@ const ACTIONS: Record<string, ActionSpec> = {
       [0.6, { bx: -0.08, by: 0.85, bz: 1.05, gx: -0.12, gy: 0.5, gz: 0.42, twist: -0.65, lean: 0.15, offF: 0.1 }],
       [0.85, {}],
     ],
+  },
+  snap: {
+    dur: .48,
+    keys: [[0,{}],[.09,{bx:.28,bz:.54,gz:.32,crouch:.32}],[.18,{bx:.13,bz:.94,by:.12,gz:.39,twist:-.3}],
+      [.31,{bx:.08,bz:.98,by:.38,twist:-.36}],[.48,{}]],
+  },
+  block: {
+    dur:.9,
+    keys:[[0,{}],[.18,{legW:1,sHip:.82,sKnee:1.8,sAbd:.12,oHip:.8,oKnee:1.1,oAbd:.44,kneel:1,lean:.54,bx:.5,bz:.65}],
+      [.52,{legW:1,sHip:.86,sKnee:1.9,sAbd:.18,oHip:.75,oKnee:1.1,oAbd:.46,kneel:1,lean:.49}],[.9,{}]],
   },
   // Slap shot: big back-swing above the shoulder, then a fast strike.
   slap: {
@@ -741,7 +782,10 @@ export class HockeyRig {
   private action: { spec: ActionSpec; t: number; urgent: boolean } | null = null;
   private current = pose();
   private target = pose();
-  private actionPose = pose();
+  private readonly poseTarget = Object.assign(new THREE.Object3D(), {coefficients: Array<number>(PARAMS.length*2).fill(0)});
+  private readonly mixer = new THREE.AnimationMixer(this.poseTarget);
+  private playingClip?: THREE.AnimationAction;
+  private interrupted?: Pose;
   private readonly contactDrop: number;
   /** Short ragdoll-style tilt after a heavy hit (pitch/roll and their rates). */
   private tilt = { p: 0, r: 0, vp: 0, vr: 0 };
@@ -1020,8 +1064,9 @@ export class HockeyRig {
     let spec: ActionSpec | undefined;
     if (kind === "save" || kind === "beaten") {
       spec = this.saveFor(toward, height);
-      if (kind === "beaten") spec = { dur: spec.dur * 1.25, keys: spec.keys };
+
     } else if (kind === "shot") spec = this.variety > 0.7 ? ACTIONS.slap : ACTIONS.shot;
+    else if (kind === "wrist") spec = ACTIONS.shot;
     else if (kind === "faceoff") spec = ACTIONS.draw;
     else spec = ACTIONS[kind];
     if (kind === "fall") {
@@ -1033,6 +1078,10 @@ export class HockeyRig {
     if (!spec) return;
     const urgent = kind === "fall" || kind === "checked" || kind === "save" || kind === "beaten" || kind === "drop";
     if (this.action && !urgent && this.action.t < this.action.spec.dur * 0.8) return;
+    this.interrupted = this.action ? {...this.current} : undefined;
+    this.playingClip?.stop();
+    this.playingClip = this.mixer.clipAction(compileAction(spec)).reset().setLoop(THREE.LoopOnce,1).play();
+    this.playingClip.clampWhenFinished = true;
     this.action = { spec, t: 0, urgent };
   }
   /** Picks the save from where the puck arrives relative to the goalie. */
@@ -1239,12 +1288,14 @@ export class HockeyRig {
     if (this.stopT > 0) this.stopT = Math.max(0, this.stopT - animDt);
     const stop = this.stopT > 0 ? Math.sin((this.stopT / 0.55) * Math.PI) : 0;
     // --- skating cycle
-    const wantAmp = skating ? smooth(clamp((sp - 0.35) / 6, 0, 1)) : 0;
+    const drive = clamp(-decel/5,0,1);
+    const coast = smooth(clamp(decel/3.5,0,1));
+    const wantAmp = skating ? smooth(clamp((sp-.2)/5,0,1)) * (1-.7*coast) : 0;
     // Input velocity is authoritative for the stride: a parked player never
     // keeps striding while the smoothed velocity decays.
     if (Math.hypot(inp.vx, inp.vz) < 0.08) this.amp = 0;
     else this.amp += (wantAmp - this.amp) * (1 - Math.exp(-dt * 7));
-    const cadence = 0.28 + Math.min(sp, 12) * 0.12;
+    const cadence = .28 + Math.min(sp,12)*.12 + drive*.25;
     const dir = this.goalie ? Math.sign(vl || vf || 1) : vf >= -0.4 ? 1 : -1;
     this.phase = (this.phase + animDt * cadence * dir + 8) % 1;
     this.bank += (clamp(-yawRate * sp * 0.028, -0.42, 0.42) - this.bank) * (1 - Math.exp(-dt * 6));
@@ -1256,10 +1307,18 @@ export class HockeyRig {
     if (this.action) {
       const a = this.action;
       a.t += animDt;
-      if (a.t >= a.spec.dur) this.action = null;
+      if (a.t >= a.spec.dur) {
+        this.action = null;
+        this.playingClip?.stop();
+        this.interrupted = undefined;
+      }
       else {
-        sampleAction(a.spec, a.t, P, this.actionPose);
-        Object.assign(P, this.actionPose);
+        this.mixer.update(animDt);
+        const channels = this.poseTarget.coefficients;
+        PARAMS.forEach((key,i) => {
+          const value = channels[2*i] + P[key]*channels[2*i+1];
+          P[key] = this.interrupted ? lerp(this.interrupted[key], value, smooth(clamp(a.t/.09,0,1))) : value;
+        });
       }
     }
     // Puck handling: gentle side-to-side sweep while carrying.
@@ -1293,7 +1352,7 @@ export class HockeyRig {
       P.crouch += near * 0.18;
       P.headYaw += clamp(-lat * 0.06, -0.5, 0.5);
     }
-    const posed = P.legW > 0.5 || P.seat > 0.5;
+
     const amp = (this.goalie ? this.amp * 0.55 : this.amp) * (1 - P.legW) * (1 - P.seat);
     const idleSway = Math.sin(this.clock * 1.7 + this.phase * 6) * 0.025 * (1 - this.amp);
     const gk = this.goalie;
@@ -1312,7 +1371,12 @@ export class HockeyRig {
         k = 0.05;
         a = 0.06;
       }
-      h += crouch * 0.55;
+      // The outside leg drives a turn while the inside skate recovers across it.
+      const edge = !gk && skating ? this.bank * amp * (1 - stop) : 0;
+      const recovery = Math.max(0, Math.cos((this.phase + i * .5) * TAU));
+      a += s * edge * (.45 + .72 * recovery);
+      k += Math.abs(edge) * recovery * .54;
+      h += crouch * .55 + drive*amp*.14;
       k += crouch * 1.05;
       // Backward C-cuts keep both blades low, with alternating outward edges.
       const push = 0.5 + 0.5 * s * Math.sin(this.phase * TAU);
@@ -1327,9 +1391,9 @@ export class HockeyRig {
       h = lerp(h, 0.45, stop);
       k = lerp(k, 1.1, stop);
       a = lerp(a, 0.32, stop);
-      h = lerp(h, 0.5, P.bf);
-      k = lerp(k, 0.9, P.bf);
-      a = lerp(a, 1.28, P.bf);
+      h = lerp(h, .85, P.bf);
+      k = lerp(k, 1.55, P.bf);
+      a = lerp(a, .18, P.bf);
       if (P.legW > 0) {
         // Posed legs are named by the mirrored side (s = stick/glove side).
         const stickSide = s === this.hs;
@@ -1338,8 +1402,8 @@ export class HockeyRig {
         a = lerp(a, stickSide ? P.sAbd : P.oAbd, P.legW);
       }
       this.hips[i].rotation.set(-h, s * a * 0.7, s * a);
-      this.knees[i].rotation.set(k, 0, 0);
-      this.ankles[i].rotation.set(posed ? h - k : h - k, -s * a * 0.2, -s * a * 0.85 * (1 - P.seat));
+      this.knees[i].rotation.set(k, s * P.bf * .42, s * P.bf * 1.23);
+      this.ankles[i].rotation.set(h - k, -s * a * 0.2, -s * a * 0.85 * (1 - P.seat) + edge * .36);
     }
     // --- torso and head
     const lean = (gk ? 0.22 : 0) + this.amp * 0.3 * (1 - P.legW) + crouch * 0.45 + P.lean - stop * 0.15 - P.bf * 0.1;
@@ -1475,6 +1539,8 @@ export class HockeyRig {
     this.blade.visible = false;
   }
   dispose() {
+    this.mixer.stopAllAction();
+    this.mixer.uncacheRoot(this.poseTarget);
     this.numberTex?.dispose();
     this.numberMat?.dispose();
   }

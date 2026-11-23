@@ -30,6 +30,7 @@ export interface SpatialCue {
   seq: number;
   kind:
     | "pass"
+    | "receive"
     | "shot"
     | "check"
     | "save"
@@ -48,6 +49,7 @@ export interface SpatialCue {
   /** Where the puck was when a shot reached the goal line (save / goal). */
   x?: number;
   z?: number;
+  release?: "slap" | "snap" | "wrist";
   /** Pseudo shot height 0 (ice) .. 1 (top shelf), for save and goal animations. */
   height?: number;
 }
@@ -192,7 +194,7 @@ export class SpatialMatch {
     kind: SpatialCue["kind"],
     id: string,
     target?: string,
-    extra: Pick<SpatialCue, "x" | "z" | "height"> = {},
+    extra: Pick<SpatialCue, "x" | "z" | "height" | "release"> = {},
   ) {
     this.frame.cues.push({ seq: ++this.cueSeq, kind, id, target, time: this.time, ...extra });
     // Keep only a short window; the renderer consumes cues by sequence number.
@@ -961,6 +963,7 @@ export class SpatialMatch {
             if (!takes) continue;
             this.flight = undefined;
             this.owner = b.id;
+            if (f.kind === "pass") this.cue("receive", b.id, f.shooter);
             if (!mate) {
               this.touches = [b.id];
               if (f.kind === "pass") this.emit("turnover", b, "Перехват");
@@ -1121,7 +1124,7 @@ export class SpatialMatch {
         blocker &&
         this.rng.next() < 0.42 * ((this.player(blocker.id).attributes.blocking ?? 70) / 75)
       ) {
-        this.cue("shot", owner.id);
+        this.cue("shot", owner.id, undefined, { release: rebound || distance < 6 ? "snap" : distance > 15 ? "slap" : "wrist" });
         this.cue("block", blocker.id, owner.id);
         this.owner = "";
         this.frame.puck = { x: blocker.x, y: 0.12, z: blocker.z };
@@ -1145,7 +1148,7 @@ export class SpatialMatch {
         shot: true,
         distance,
       };
-      this.cue("shot", owner.id);
+      this.cue("shot", owner.id, undefined, { release: rebound || distance < 6 ? "snap" : distance > 15 ? "slap" : "wrist" });
       this.owner = "";
       return;
     }
