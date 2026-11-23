@@ -73,6 +73,7 @@ export async function bakeCharacter(goalie: boolean) {
       ]
     : [
         ["Forward stride", null],
+        ["Off-puck sprint", null],
         ["Wrist shot", "wrist"],
         ["Slap shot", "slap"],
         ["Snap shot", "snap"],
@@ -82,7 +83,8 @@ export async function bakeCharacter(goalie: boolean) {
         ["Body check", "check"],
       ];
   for (const [name, action] of motions) {
-    input.vz = name === "Forward stride" ? 5 : 0;
+    input.vz = name === "Off-puck sprint" ? 7 : name === "Forward stride" ? 5 : 0;
+    input.puckZ = name === "Off-puck sprint" ? 10 : 2;
     for (let i = 0; i < 70; i++) rig.update(1 / 30, 1 / 30, input);
     if (action)
       rig.trigger(

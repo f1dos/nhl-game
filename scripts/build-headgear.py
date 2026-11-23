@@ -25,26 +25,33 @@ for name, color, rough in [
 def point(x,y,z):
     return (x/100,-z/100,y/100)
 
+def shell_surface(goalie, angle, row):
+    phi = .015 + row * (2.69 if goalie else 2.13)
+    front = max(0, math.cos(angle))
+    brow = 0 if goalie else front**.85 * row**2.6 * 11.2
+    ridge = 1 + .035 * math.cos(6 * angle) * math.sin(phi)**2
+    # Longitudinal corrugations stiffen the crown around the vent channels.
+    across = math.sin(phi) * math.sin(angle)
+    crown = 0 if goalie else .7 * math.exp(-((abs(across) - .36) / .10)**2)
+    return ((12.2 if goalie else 11.3) * math.sin(phi) * math.sin(angle) * ridge,
+            2.1 + 13.5 * math.cos(phi) + brow + crown,
+            -1 + ((14.4 if goalie else 13.1) + (2.8 if goalie else 0)*row**2) *
+            math.sin(phi) * math.cos(angle))
+
 def shell(role):
     goalie = role == "goalie"
-    verts, faces = [], []
+    faces = []
     n, rows = 48, 20
-    for j in range(rows+1):
-        phi = .015 + j/rows * (2.69 if goalie else 2.13)
-        for i in range(n):
-            a = i*math.tau/n
-            front = max(0,math.cos(a))
-            # Long chin and occipital protection, raised brow above the visor.
-            lift = 0 if goalie else front**.85 * (j/rows)**2.6 * 11.2
-            ridge = 1 + .035*math.cos(6*a)*math.sin(phi)**2
-            verts.append(point((12.2 if goalie else 11.3)*math.sin(phi)*math.sin(a)*ridge,
-                2.1 + 13.5*math.cos(phi) + lift,
-                -1 + ((14.4 if goalie else 13.1) + (2.8 if goalie else 0)*(j/rows)**2)*math.sin(phi)*math.cos(a)))
+    verts = [point(*shell_surface(goalie, i * math.tau / n, j / rows))
+             for j in range(rows + 1) for i in range(n)]
     for j in range(rows):
         for i in range(n):
             col = min(i,n-1-i)
             if goalie and 6 <= j <= 14 and col < (8 if j<13 else 6): continue
             if j in (3,4,5,6) and col in (5,6,14,15): continue
+            if not goalie and ((j in (9,10) and 9 <= col <= 15) or
+                              (j in (15,16,17) and col in (11,12))): continue
+            if goalie and j in (15,17) and col in (6,8,10): continue
             a=j*n+i; b=j*n+(i+1)%n
             faces.append((a,a+n,b+n,b))
     mesh=bpy.data.meshes.new(role); mesh.from_pydata(verts,[],faces); mesh.update()
@@ -74,12 +81,30 @@ def wire(role, name, pts, radius):
 for role in ("skater","goalie"):
     shell(role)
     if role=="goalie":
+        # Follow the cheeks and join the horizontal wires at the chin.
+        for side in (-1,1):
+            wire(role, "cage", [(side*10.7,6.3,8.7),(side*11.8,.5,10.4),
+                 (side*8.2,-6.9,11.1),(side*3.6,-8.4,12.2),(0,-8.6,12.5)], .4)
         for y in (-6,-1,6.3):
             wire(role,"cage",[(12.4*math.sin(a/12),y+.9*(a/12)**2,15.1*math.cos(a/12)) for a in range(-14,15)],.34)
         for x in (-8,-3,3,8):
             wire(role,"cage",[(x*.72,-8,11.8-abs(x)*.16),(x,-2,15.1-abs(x)*.28),(x*1.12,6.5,15-abs(x)*.32)],.32)
     else:
         for side in (-1,1):
+            # Two shell panels meet behind the visor mount. Trace their seam
+            # on the mould itself so it follows the curvature at either temple.
+            seam = []
+            for i in range(21):
+                angle = .90 + i * .09
+                x,y,z = shell_surface(False, angle, .67 + .055 * math.sin(i / 20 * math.pi))
+                seam.append((side * (x + .08), y, z))
+            wire(role, "boot", seam, .115)
+            # Metallic visor pivot and its black bushing, seen edge-on in front view.
+            x,y,z = shell_surface(False, 1.18, .77)
+            for radius, thickness, material in ((.68,.16,"boot"),(.38,.12,"cage")):
+                ring = [(side*(x+.14), y + radius*math.cos(i*math.tau/14),
+                         z + radius*math.sin(i*math.tau/14)) for i in range(15)]
+                wire(role, material, ring, thickness)
             wire(role,"boot",[(side*11.8,.5,2),(side*9,-5,3),(side*4,-11,4),(0,-11.7,4)],.45)
 # A separate broadcast shell keeps the aperture and cage silhouette at distance.
 for original in list(bpy.context.scene.objects):

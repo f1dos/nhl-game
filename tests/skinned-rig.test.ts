@@ -77,7 +77,7 @@ test("exported match characters have animated joints, embedded kit textures and 
     assert(model.materials.some((material: {normalTexture?:unknown}) => material.normalTexture));
     assert(model.meshes[0].primitives.every((part: {attributes:Record<string,number>}) => part.attributes.WEIGHTS_0 !== undefined && part.attributes.JOINTS_0 !== undefined));
     const clips = model.animations.map((clip: {name:string})=>clip.name);
-    for (const clip of role === "skater" ? ["Forward stride","Snap shot","Pass","Shot block"] : ["Glove save","Butterfly"]) assert(clips.includes(clip));
+    for (const clip of role === "skater" ? ["Forward stride","Off-puck sprint","Snap shot","Pass","Shot block"] : ["Glove save","Butterfly"]) assert(clips.includes(clip));
   }
 });
 
