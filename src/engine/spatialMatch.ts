@@ -9,7 +9,7 @@ import type { Team, Player, Result, SpecialTeamsSituation } from "./types";
 import { ensureSpecialTeams } from "./tactics";
 import { snapshotStats, updateMatchPerformance } from "./performance";
 import { rateMatch } from "./matchRatings";
-import { BENCH, CENTER_DOT, PENALTY_BOX, RINK, type Dot } from "./rink";
+import { BENCH, CENTER_DOT, PENALTY_BOX, RINK, separateSkaters, type Dot } from "./rink";
 
 export interface SkaterBody {
   id: string;
@@ -59,7 +59,7 @@ export interface SpatialCue {
  * faceoff. It never changes the match; see SpatialMatch `presentation`.
  */
 export interface SpatialStoppage {
-  kind: "goal" | "save" | "penalty" | "icing";
+  kind: "goal" | "save" | "penalty" | "icing" | "offside";
   phase: "celebrate" | "whistle" | "lineup" | "drop";
   /** Seconds elapsed in the current phase and its length. */
   t: number;
@@ -75,6 +75,7 @@ export interface SpatialStoppage {
 }
 export interface SpatialFrame {
   carrierId?: string;
+  delayedOffside?: number;
   bodies: SkaterBody[];
   puck: { x: number; y: number; z: number };
   cues: SpatialCue[];
@@ -99,7 +100,7 @@ export interface SpatialMatchOptions {
 
 const STOPPAGE_LENGTH = {
   celebrate: 6.2,
-  whistle: { save: 1.7, penalty: 2.6, goal: 0, icing: 1.9 },
+  whistle: { save: 1.7, penalty: 2.6, goal: 0, icing: 1.9, offside: 1.6 },
   lineup: 2.8,
   drop: 0.9,
 } as const;
@@ -153,13 +154,18 @@ export class SpatialMatch {
   private penalties: { id: string; side: number; until: number }[] = [];
   private decision = 0;
   private nextShot = [0, 0];
-  private shift = -1;
+  private readonly players: Map<string, Player>;
+  private shiftIndex = [0, 0];
+  private shiftStart = [0, 0];
+  private goalieWasPulled = [false, false];
+  private rolling: (string[] | undefined)[] = [];
+
   private appeared = new Set<string>();
   private touches: string[] = [];
   private baseline;
   private readonly presentation: boolean;
   /** Work deferred to the end of a presentation stoppage. */
-  private resumeWith?: { changeShift: boolean; finish: boolean };
+  private finishAfterWhistle = false;
   constructor(
     home: Team,
     away: Team,
@@ -169,6 +175,7 @@ export class SpatialMatch {
   ) {
     this.presentation = !!options.presentation;
     this.teams = structuredClone([home, away]);
+    this.players = new Map(this.teams.flatMap(t => t.players.map(p => [p.id, p] as const)));
     this.rng = new RNG(seed);
     this.baseline = snapshotStats(this.teams);
     this.result = {
@@ -188,7 +195,7 @@ export class SpatialMatch {
     this.faceoff();
   }
   private player(id: string): Player {
-    return this.teams.flatMap((t) => t.players).find((p) => p.id === id)!;
+    return this.players.get(id)!;
   }
   private cue(
     kind: SpatialCue["kind"],
@@ -215,36 +222,47 @@ export class SpatialMatch {
       ? [3 + Math.max(0, p[1] - p[0]), 3 + Math.max(0, p[0] - p[1])]
       : p.map((n) => Math.max(3, 5 - n));
   }
-  private changeShift() {
+  private plannedUnit(side: number) {
+    const team = this.teams[side];
     const counts = this.counts();
+    const n = counts[side] + Number(this.pullGoalie[side]);
+    const other = counts[1 - side] + Number(this.pullGoalie[1 - side]);
+    const situation = `${n}v${other}` as SpecialTeamsSituation;
+    const unit = ensureSpecialTeams(team)[situation];
+    // Even strength: lines and pairs rotate by the configured ice-time
+    // shares, a pure function of the shift index (no RNG draws).
+    const plan = resolveIceTime(team);
+    const shiftIndex = this.shiftIndex[side];
+    const planned = unit?.players ?? [
+      ...lineWithDoubleShift(team, unitForShift(plan.forwards, shiftIndex), plan),
+      ...team.defense[unitForShift(plan.defense, shiftIndex)],
+    ];
+    const available = team.players.filter(
+      (p) =>
+        !p.injury &&
+        p.pos !== "G" &&
+        !this.penalties.some((q) => q.id === p.id),
+    );
+    const ids = [...new Set([...planned, ...available.map((p) => p.id)])]
+      .filter((id) => available.some((p) => p.id === id))
+      .slice(0, n);
+    const goalie =
+      team.players.find((p) => p.id === team.goalie && !p.injury) ??
+      team.players.find((p) => p.pos === "G" && !p.injury);
+    if (!this.pullGoalie[side] && goalie) ids.push(goalie.id);
+    return ids;
+  }
+  private changeShift(lockedSide?: number) {
     const old = new Map(this.frame.bodies.map((b) => [b.id, b]));
     this.frame.bodies = [];
-    this.teams.forEach((team, side) => {
-      const n = counts[side] + Number(this.pullGoalie[side]);
-      const other = counts[1 - side] + Number(this.pullGoalie[1 - side]);
-      const situation = `${n}v${other}` as SpecialTeamsSituation;
-      const unit = ensureSpecialTeams(team)[situation];
-      // Even strength: lines and pairs rotate by the configured ice-time
-      // shares, a pure function of the shift index (no RNG draws).
-      const plan = resolveIceTime(team);
-      const shiftIndex = Math.floor(this.time / shiftLength(team));
-      const planned = unit?.players ?? [
-        ...lineWithDoubleShift(team, unitForShift(plan.forwards, shiftIndex), plan),
-        ...team.defense[unitForShift(plan.defense, shiftIndex)],
-      ];
-      const available = team.players.filter(
-        (p) =>
-          !p.injury &&
-          p.pos !== "G" &&
-          !this.penalties.some((q) => q.id === p.id),
-      );
-      const ids = [...new Set([...planned, ...available.map((p) => p.id)])]
-        .filter((id) => available.some((p) => p.id === id))
-        .slice(0, n);
-      const goalie =
-        team.players.find((p) => p.id === team.goalie && !p.injury) ??
-        team.players.find((p) => p.pos === "G" && !p.injury);
-      if (!this.pullGoalie[side] && goalie) ids.push(goalie.id);
+    this.teams.forEach((_team, side) => {
+      if (side === lockedSide) {
+        this.frame.bodies.push(...[...old.values()].filter(b => b.side === side));
+        return;
+      }
+      this.rolling[side] = undefined;
+      this.goalieWasPulled[side] = this.pullGoalie[side];
+      const ids = this.plannedUnit(side);
       ids.forEach((id, slot) => {
         const isGoalie = this.player(id).pos === "G";
         // During a stoppage new skaters step on from their bench gate. These
@@ -267,6 +285,109 @@ export class SpatialMatch {
     });
     if (!this.frame.bodies.some((b) => b.id === this.owner)) this.owner = "";
     this.syncPenaltyBox();
+  }
+  /** Expiry and a coach pulling the goalie change manpower immediately.
+   * Retain everyone else on the ice until their own change opportunity. */
+  private adjustManpower(returning: {id:string;side:number}[]) {
+    const counts = this.counts();
+    for (const side of [0, 1]) {
+      const ice = this.frame.bodies.filter(b => b.side === side);
+      const pulled = this.pullGoalie[side];
+      const skaters = ice.filter(b => !b.goalie);
+      const needed = counts[side] + Number(pulled);
+      if (needed === skaters.length && pulled === this.goalieWasPulled[side]) continue;
+      this.goalieWasPulled[side] = pulled;
+      this.rolling[side] = undefined;
+      const goalie = ice.find(b => b.goalie);
+      const remove = new Set<string>();
+      if (pulled && goalie) remove.add(goalie.id);
+      while (skaters.length > needed) {
+        const index = skaters[skaters.length - 1].id === this.owner ? skaters.length - 2 : skaters.length - 1;
+        remove.add(skaters.splice(index, 1)[0].id);
+      }
+      this.frame.bodies = this.frame.bodies.filter(b => !remove.has(b.id));
+      const plan = this.plannedUnit(side);
+      const returningIds = returning.filter(p => p.side === side).map(p => p.id);
+      const candidates = new Set([...returningIds, ...plan]);
+      for (const id of candidates) {
+        if (this.frame.bodies.some(b => b.id === id)) continue;
+        const isGoalie = this.player(id).pos === "G";
+        if (isGoalie ? pulled || goalie : skaters.length >= needed) continue;
+        const fromBox = returningIds.includes(id);
+        const body = {id, side, goalie:isGoalie, vx:0, vz:0,
+          x: fromBox ? PENALTY_BOX.centerX[side] : BENCH.centerX[side],
+          z: fromBox ? RINK.halfWidth : BENCH.frontZ};
+        this.frame.bodies.push(body);
+        if (!isGoalie) skaters.push(body);
+      }
+    }
+  }
+  private rotate(side: number) {
+    this.shiftIndex[side]++;
+    this.shiftStart[side] = this.time;
+  }
+  private changeAtWhistle(kind: SpatialStoppage["kind"], offender: number) {
+    const locked = kind === "icing" ? offender : undefined;
+    this.teams.forEach((team, side) => {
+      if (side !== locked && this.time - this.shiftStart[side] >= shiftLength(team) * .6)
+        this.rotate(side);
+    });
+    this.changeShift(locked);
+  }
+  /** Bring one replacement over the boards only after the outgoing skater
+   * reaches the gate. A turnover suspends further changes until it is safe. */
+  private lineChangeRoutes(spots: Map<string, Dot>, owner?: SkaterBody) {
+    for (const side of [0, 1]) {
+      const progress = this.frame.puck.x * this.direction(side);
+      const controlled = owner?.side === side && progress > 0 &&
+        !this.frame.bodies.some(b => b.side !== side && !b.goalie && Math.hypot(b.x-owner.x, b.z-owner.z) < 2.8);
+      const dumped = this.flight?.side === side && this.flight.kind === "dump" && progress > RINK.blueLine;
+      if ((!controlled && !dumped) || this.frame.delayedOffside === side) continue;
+      if (!this.rolling[side]) {
+        if (this.time - this.shiftStart[side] < shiftLength(this.teams[side])) continue;
+        this.rotate(side);
+        this.rolling[side] = this.plannedUnit(side);
+      }
+      const unit = this.rolling[side]!;
+      const ice = this.frame.bodies.filter(b => b.side === side);
+      const incoming = unit.find(id => this.player(id).pos !== "G" && !ice.some(b => b.id === id));
+      if (!incoming) { this.rolling[side] = undefined; continue; }
+      const gateX = BENCH.centerX[side];
+      const gateZ = BENCH.frontZ;
+      const distance = (b: SkaterBody) => Math.hypot(b.x - gateX, b.z - gateZ);
+      const outgoing = ice.filter(b => !b.goalie && !unit.includes(b.id) && b !== owner &&
+        Math.hypot(b.x - this.frame.puck.x, b.z - this.frame.puck.z) > 4)
+        .sort((a,b) => distance(a) - distance(b))[0];
+      if (!outgoing) continue;
+      if (distance(outgoing) > 1.3) {
+        spots.set(outgoing.id, {x: gateX, z: gateZ});
+      } else {
+        spots.delete(outgoing.id);
+        outgoing.id = incoming;
+        outgoing.x = gateX + this.direction(side) * 1.15;
+        outgoing.z = gateZ;
+        outgoing.vx = outgoing.vz = 0;
+        spots.set(incoming, {x: outgoing.x, z: gateZ + 2});
+      }
+    }
+  }
+  private checkEntry(previousX: number, side: number, carrier: string | undefined, previousSkaters: Dot[]) {
+    const d = this.direction(side);
+    const before = previousX * d, after = this.frame.puck.x * d;
+    // The whole puck must clear the far edge of the 30 cm painted line.
+    const entry = RINK.blueLine + .15 + .038;
+    if (before > entry || after <= entry) return;
+    const fraction = (entry - before) / (after - before);
+    // Approximate the trailing skate rather than calling offside on a torso
+    // leaning across the line. Sample at the instant the puck crossed.
+    const early = this.frame.bodies.some((b, i) => b.side === side && !b.goalie && b.id !== carrier &&
+      (previousSkaters[i].x + (b.x - previousSkaters[i].x) * fraction) * d > RINK.blueLine + .15 + .32);
+    if (early) this.frame.delayedOffside = side;
+  }
+  private whistleOffside(body: SkaterBody) {
+    this.emit("offside", body, "Вне игры");
+    this.stopPlay("offside", body.side, body.id,
+      {x: this.direction(body.side) * (RINK.blueLine - 1.5), z: Math.sign(this.frame.puck.z || 1) * RINK.dotZ});
   }
   private syncPenaltyBox() {
     this.frame.penaltyBox = this.penalties.map(({ id, side, until }) => ({ id, side, until }));
@@ -479,6 +600,12 @@ export class SpatialMatch {
       .filter((o) => o.ahead > 0 && o.ahead < 7 && Math.abs(o.side) < 3.2)
       .sort((a, b) => a.ahead - b.ahead)[0];
     if (adv < RINK.blueLine) {
+      // On a regroup the puck carrier curls at the line until teammates
+      // clear the zone. A late read at speed can still result in offside.
+      if (adv > RINK.blueLine - 4 && this.frame.bodies.some(b => b.side === owner.side &&
+          b !== owner && !b.goalie && b.x*d > RINK.blueLine + .32)) {
+        return at(d * (RINK.blueLine - 2.1), clamp(z + (z > 0 ? -3 : 3), -10, 10));
+      }
       // Breakout and neutral zone: carry with speed, step around a defender.
       const dodge = blocker ? (blocker.side >= 0 ? -1 : 1) * 4.5 : 0;
       const laneZ = Math.abs(z) < 2 ? wall * lane * 0.7 : z * 0.95;
@@ -540,6 +667,7 @@ export class SpatialMatch {
     this.flight = undefined;
     this.owner = "";
     this.touches = [];
+    this.frame.delayedOffside = undefined;
     this.frame.dot = { ...dot };
     this.frame.puck = { x: dot.x, y: 0.12, z: dot.z };
     const spots = this.formation(dot);
@@ -553,8 +681,10 @@ export class SpatialMatch {
     const center = this.drawTaker(side)!;
     const opponent = this.drawTaker(1 - side);
     this.owner = center.id;
+    this.frame.carrierId = center.id;
     center.x = dot.x;
     center.z = dot.z;
+    if (opponent) opponent.x = dot.x + this.direction(side) * .9;
     this.emit("faceoff", center, "Вбрасывание");
     this.cue("faceoff", center.id, opponent?.id, { x: dot.x, z: dot.z });
     this.decision = this.time + 1;
@@ -568,6 +698,7 @@ export class SpatialMatch {
     own.goalie = team.goalie;
     own.tactics = structuredClone(team.tactics);
     own.specialTeams = structuredClone(team.specialTeams);
+    this.rolling[this.teams.indexOf(own)] = undefined;
   }
   resume() {
     this.intermission = false;
@@ -585,18 +716,19 @@ export class SpatialMatch {
     side: number,
     actor: string,
     dot: Dot,
-    then: { changeShift: boolean; finish: boolean },
+    finish = false,
   ) {
+    this.frame.delayedOffside = undefined;
     if (!this.presentation) {
-      if (then.finish) return this.finish();
-      if (then.changeShift) this.changeShift();
+      if (finish) return this.finish();
+      this.changeAtWhistle(kind, side);
       this.faceoff(dot);
       return;
     }
     this.flight = undefined;
     this.owner = "";
     this.frame.carrierId = undefined;
-    this.resumeWith = then;
+    this.finishAfterWhistle = finish;
     const phase = kind === "goal" ? "celebrate" : "whistle";
     this.frame.stoppage = {
       kind,
@@ -618,22 +750,23 @@ export class SpatialMatch {
     const s = this.frame.stoppage!;
     s.t = Math.round((s.t + dt) * 100) / 100;
     this.choreograph(s, dt);
+    separateSkaters(this.frame.bodies);
     if (s.t < s.length - 1e-6) return;
     if (s.phase === "celebrate" || s.phase === "whistle") {
-      if (this.resumeWith?.finish) {
+      if (this.finishAfterWhistle) {
         this.frame.stoppage = undefined;
-        this.resumeWith = undefined;
+        this.finishAfterWhistle = false;
         this.finish();
         return;
       }
-      if (this.resumeWith?.changeShift) this.changeShift();
+      this.changeAtWhistle(s.kind, s.side);
       this.frame.puck = { x: s.dot.x, y: 1.15, z: s.dot.z };
       Object.assign(s, { phase: "lineup", t: 0, length: STOPPAGE_LENGTH.lineup });
     } else if (s.phase === "lineup") {
       Object.assign(s, { phase: "drop", t: 0, length: STOPPAGE_LENGTH.drop });
     } else {
       this.frame.stoppage = undefined;
-      this.resumeWith = undefined;
+      this.finishAfterWhistle = false;
       this.faceoff(s.dot);
     }
   }
@@ -645,11 +778,11 @@ export class SpatialMatch {
   private flushStoppage() {
     const s = this.frame.stoppage;
     if (!s) return;
-    const then = this.resumeWith;
+    const finish = this.finishAfterWhistle;
     this.frame.stoppage = undefined;
-    this.resumeWith = undefined;
-    if (then?.finish) return this.finish();
-    if (then?.changeShift) this.changeShift();
+    this.finishAfterWhistle = false;
+    if (finish) return this.finish();
+    this.changeAtWhistle(s.kind, s.side);
     this.faceoff(s.dot);
   }
   /** Moves bodies toward presentation targets (no randomness, no statistics). */
@@ -738,18 +871,27 @@ export class SpatialMatch {
     const dt = 0.1;
     this.time = Math.round((this.time + dt) * 10) / 10;
     this.result.duration = this.time;
-    const expired = this.penalties.some((p) => p.until <= this.time);
+    const expired = this.penalties.filter((p) => p.until <= this.time);
     this.penalties = this.penalties.filter((p) => p.until > this.time);
-    const shift = this.teams.reduce((sum,t)=>sum+Math.floor(this.time/(t.tactics.shiftSeconds??40)),0);
-    if (shift !== this.shift || expired) {
-      this.shift = shift;
-      this.changeShift();
+    if (expired.length || this.pullGoalie.some((pulled, side) => pulled !== this.goalieWasPulled[side])) {
+      this.adjustManpower(expired);
+      this.syncPenaltyBox();
     }
     const puck = this.frame.puck;
     const owner = this.frame.bodies.find((b) => b.id === this.owner);
     // Assign an actual puck retriever per side. Formation offsets previously
     // left every player outside pickup range around a stationary loose puck.
     const spots = this.positions(owner, puck);
+    this.lineChangeRoutes(spots, owner);
+    const previousX = puck.x;
+    const previousSkaters = this.frame.bodies.map(b => ({x: b.x, z: b.z}));
+    for (const b of this.frame.bodies) {
+      if (b.goalie || b === owner) continue;
+      const d = this.direction(b.side), target = spots.get(b.id)!;
+      if (this.frame.delayedOffside === b.side) target.x = d * Math.min(target.x * d, RINK.blueLine - 1.2);
+      else if (owner?.side === b.side && puck.x * d < RINK.blueLine)
+        target.x = d * Math.min(target.x * d, RINK.blueLine - .45);
+    }
     // Teammates keep a little space instead of skating through each other.
     const spacing = (b: SkaterBody, tx: number, tz: number): Dot => {
       for (const o of this.frame.bodies) {
@@ -787,6 +929,7 @@ export class SpatialMatch {
       p.stats.toi += dt / 60;
       if (!b.goalie) p.fatigue = clamp(p.fatigue + dt * 0.005, 0, 100);
     });
+    separateSkaters(this.frame.bodies, previousSkaters);
     if (owner) {
       // The puck rides on the blade, a stick length ahead of the carrier.
       const speed = Math.hypot(owner.vx, owner.vz);
@@ -795,14 +938,18 @@ export class SpatialMatch {
       const fz = speed > 0.5 ? owner.vz / speed : 0;
       puck.x = clamp(owner.x + fx * reach, -29, 29);
       puck.z = clamp(owner.z + fz * reach, -12, 12);
+      this.checkEntry(previousX, owner.side, owner.id, previousSkaters);
     }
     if (this.flight) {
       const f = this.flight;
       puck.x += f.vx * dt;
       puck.z += f.vz * dt;
+      this.checkEntry(previousX, f.side, undefined, previousSkaters);
       f.remaining -= dt;
       const shooter = this.frame.bodies.find((b) => b.id === f.shooter);
-      if (f.shot && shooter && Math.abs(puck.x) >= 26) {
+      if (f.shot && shooter && this.frame.delayedOffside === f.side && Math.abs(puck.x) >= RINK.goalLine) {
+        this.whistleOffside(shooter);
+      } else if (f.shot && shooter && Math.abs(puck.x) >= RINK.goalLine) {
         const goalie = this.frame.bodies.find(
           (b) => b.side !== f.side && b.goalie,
         );
@@ -873,10 +1020,7 @@ export class SpatialMatch {
               z: clamp(puck.z, -0.75, 0.75),
             };
             const ends = this.time > 3600;
-            this.stopPlay("goal", f.side, shooter.id, CENTER_DOT, {
-              changeShift: true,
-              finish: ends,
-            });
+            this.stopPlay("goal", f.side, shooter.id, CENTER_DOT, ends);
             if (ends) return;
           } else {
             if (goalie) this.cue("save", goalie.id, shooter.id, where);
@@ -906,10 +1050,7 @@ export class SpatialMatch {
               // The goalie freezes the puck: restart in that end of the rink.
               if (goalie) this.frame.puck = { x: goalie.x, y: 0.12, z: goalie.z };
               const defending = 1 - f.side;
-              this.stopPlay("save", defending, goalie?.id ?? shooter.id, this.zoneDot(defending), {
-                changeShift: false,
-                finish: false,
-              });
+              this.stopPlay("save", defending, goalie?.id ?? shooter.id, this.zoneDot(defending));
             }
           }
         } else {
@@ -941,10 +1082,7 @@ export class SpatialMatch {
           const offender = f.icingSide;
           this.flight = undefined;
           this.cue("whistle", f.shooter);
-          this.stopPlay("icing", offender, f.shooter, this.zoneDot(offender), {
-            changeShift: false,
-            finish: false,
-          });
+          this.stopPlay("icing", offender, f.shooter, this.zoneDot(offender));
         } else {
           // Reception and interception along the way.
           const near = this.frame.bodies
@@ -999,13 +1137,25 @@ export class SpatialMatch {
       }
     }
     const carrier = this.frame.bodies.find((b) => b.id === this.owner);
-    if (carrier && this.time >= this.decision && !this.frame.stoppage) {
+    if (this.frame.delayedOffside !== undefined) {
+      const side = this.frame.delayedOffside, dir = this.direction(side);
+      if (this.frame.puck.x * dir < RINK.blueLine - .15 - .038 || !this.frame.bodies.some(b => b.side === side && !b.goalie && b.x * dir > RINK.blueLine + .15 + .32))
+        this.frame.delayedOffside = undefined;
+    }
+    if (carrier && carrier.side === this.frame.delayedOffside) this.whistleOffside(carrier);
+    else if (carrier && this.frame.delayedOffside !== undefined && !this.frame.stoppage) {
+      const forechecker = this.frame.bodies.find(b => b.side === this.frame.delayedOffside &&
+        !b.goalie && Math.hypot(b.x-carrier.x, b.z-carrier.z) < 1.25);
+      if (forechecker) this.whistleOffside(forechecker);
+      else if (this.time >= this.decision) this.decide(carrier);
+    } else if (carrier && this.time >= this.decision && !this.frame.stoppage) {
       this.decide(carrier);
     }
     this.frame.carrierId = this.owner || undefined;
     if (this.time === 1200 || this.time === 2400) {
       this.flushStoppage();
       this.intermission = true;
+      this.changeAtWhistle("save", -1);
       this.faceoff();
     }
     if (this.time === 3600) {
@@ -1058,10 +1208,7 @@ export class SpatialMatch {
         this.cue("check", pressure.id, owner.id);
         this.emit("penalty", pressure, "2 минуты за нарушение");
         this.cue("penalty", pressure.id, owner.id);
-        this.stopPlay("penalty", pressure.side, pressure.id, this.zoneDot(pressure.side), {
-          changeShift: true,
-          finish: false,
-        });
+        this.stopPlay("penalty", pressure.side, pressure.id, this.zoneDot(pressure.side));
       } else if (
         this.rng.next() <
         0.3 + rival.physical * 0.003 + ((this.player(pressure.id).attributes.checking ?? 70) - 70) * 0.004
@@ -1201,7 +1348,8 @@ export class SpatialMatch {
       }
       return;
     }
-    const mates = this.frame.bodies.filter((b) => b.side === owner.side && !b.goalie && b.id !== owner.id);
+    const mates = this.frame.bodies.filter(b => b.side === owner.side && !b.goalie && b !== owner &&
+      (adv >= RINK.blueLine || b.x * dir <= RINK.blueLine + .15));
     if (mates.length && this.rng.next() < 0.15 + (tactics.passingRisk ?? 50) * 0.004) {
       // The open man: forward progress plus space from the nearest checker.
       const scored = mates.map((m) => {

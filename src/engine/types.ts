@@ -512,6 +512,7 @@ export interface Event {
     | "hit"
     | "turnover"
     | "faceoff"
+    | "offside"
     | "injury"
     | "shootout";
   team: string;

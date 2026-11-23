@@ -20,6 +20,7 @@ const shots = [
   ["faceoff", "?demo=models&view=faceoff"],
   ["goal-celebration", "?demo=models&view=celebrate"],
   ["lineup", "?demo=models&view=lineup"],
+  ["pursuit", "?demo=models&view=side&motion=pursuit"],
   ["skating", "?demo=models&view=side&motion=skate"],
   ["shot", "?demo=models&view=side&motion=slap"],
 ];

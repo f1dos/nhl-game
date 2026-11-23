@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { arenaPreset } from "./arenaFx";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Team } from "../engine/types";
-import { BENCH, PENALTY_BOX } from "../engine/rink";
+import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
 
 /**
  * The arena around the rink: rounded boards with sponsor panels (fictional
@@ -174,8 +174,8 @@ function iceTexture(home: Team) {
       }
     };
     line(0, "#c8102e", 0.3, true);
-    line(-7.6, "#1f5fbf", 0.3);
-    line(7.6, "#1f5fbf", 0.3);
+    line(-RINK.blueLine, "#1f5fbf", 0.3);
+    line(RINK.blueLine, "#1f5fbf", 0.3);
     line(-26.9, "#c8102e", 0.06);
     line(26.9, "#c8102e", 0.06);
     const ring = (x: number, z: number, r: number, color: string, width = 0.06) => {
@@ -201,7 +201,7 @@ function iceTexture(home: Team) {
         for (const side of [-1, 1])
           for (const dx of [-0.85, 0.85]) c.fillRect(X(x + dx) - 2, Z(z + side * 4.57) - (side > 0 ? 0 : 0.6 * sz), 4, 0.6 * sz);
       }
-    for (const x of [-6.1, 6.1]) for (const z of [-6.7, 6.7]) dot(x, z, 0.3, "#c8102e");
+    for (const x of [1.5 - RINK.blueLine, RINK.blueLine - 1.5]) for (const z of [-6.7, 6.7]) dot(x, z, 0.3, "#c8102e");
     // Creases and trapezoids.
     for (const side of [-1, 1]) {
       c.fillStyle = "rgba(90,160,230,0.55)";

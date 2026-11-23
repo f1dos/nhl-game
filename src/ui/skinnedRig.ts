@@ -180,7 +180,7 @@ class Builder {
    * so normals face outward.
    */
   loft(
-    rings: { frame: THREE.Matrix4; rx: number; rz: number; v: number; w: W | ((theta: number) => W); r?: (theta: number) => number }[],
+    rings: { frame: THREE.Matrix4; rx: number; rz: number; v: number; w: W | ((theta: number) => W); r?: (theta: number) => number; lift?: (theta: number) => number }[],
     mat: MatKey,
     seg: number,
     opts: { capStart?: boolean; capEnd?: boolean; u0?: number; u1?: number; exp?: number } = {},
@@ -197,7 +197,7 @@ class Builder {
         // Super-ellipse: e > 2 gives squarer, broader sections (shoulders, pads).
         const k = Math.pow(Math.pow(Math.abs(c), e) + Math.pow(Math.abs(sn), e), -1 / e);
         const r = ring.r ? ring.r(th) : 1;
-        p.set(c * k * ring.rx * r, 0, sn * k * ring.rz * r).applyMatrix4(ring.frame);
+        p.set(c * k * ring.rx * r, ring.lift?.(th) ?? 0, sn * k * ring.rz * r).applyMatrix4(ring.frame);
         this.vertex(p, lerp(u0, u1, s / seg), ring.v, typeof ring.w === "function" ? ring.w(th) : ring.w);
       }
     }
@@ -369,6 +369,11 @@ function buildBody(spec: BuildSpec) {
       rx: rx * chest * bulk,
       rz: rz * chest * (goalie ? 1.12 : 1) * bulk,
       v: 0.5 + (y + 0.02) / 0.62 * 0.5,
+      lift: coach ? undefined : (th: number) => {
+        const front = Math.max(0, Math.sin(th));
+        return -.036 * front ** 5 * smooth((y - .49) / .085)
+          - .016 * Math.sin(th) ** 2 * (1 - smooth((y + .018) / .12));
+      },
       // Hem: flutter helpers by direction; shoulders: clavicles.
       w: (th: number): W => {
         const base = spineW(y);
@@ -399,8 +404,8 @@ function buildBody(spec: BuildSpec) {
   // Collar / neck opening.
   b.loft(
     [
-      { frame: F("spine3", 0, 0.575, 0.004), rx: 0.07, rz: 0.066, v: 0.99, w: [["spine3", 1]] },
-      { frame: F("spine3", 0, 0.6, 0.006), rx: 0.06, rz: 0.057, v: 1, w: [["spine3", 0.6], ["neck", 0.4]] },
+      { frame: F("spine3", 0, 0.574, 0.004), rx: 0.080, rz: 0.070, lift: (th: number) => coach ? 0 : -.036 * Math.max(0, Math.sin(th)) ** 5, v: 0.99, w: [["spine3", 1]] },
+      { frame: F("spine3", 0, 0.591, 0.006), rx: 0.061, rz: 0.055, lift: (th: number) => coach ? 0 : -.028 * Math.max(0, Math.sin(th)) ** 5, v: 1, w: [["spine3", 0.6], ["neck", 0.4]] },
     ],
     coach ? "shirt" : "trim",
     segL,
@@ -553,13 +558,13 @@ function buildBody(spec: BuildSpec) {
       [
         legRing(thigh, -0.1, 0.13 * pantsR, 0.125 * pantsR, 0.5, [["pelvis", 0.7], [thigh, 0.3]], 0.008),
         legRing(thigh, 0.02, 0.132 * pantsR, 0.128 * pantsR, 0.38, [["pelvis", 0.3], [thigh, 0.7]], 0.01),
-        legRing(thigh, 0.14, 0.126 * pantsR, 0.12 * pantsR, 0.22, [[thigh, 1]], 0.01),
+        legRing(thigh, 0.14, 0.125 * pantsR, 0.135 * pantsR, 0.22, [[thigh, 1]], 0.014),
         legRing(thigh, 0.26, 0.121 * pantsR, 0.11 * pantsR, 0.08, [[thigh, 1]], 0.008),
         legRing(thigh, 0.3, 0.118 * pantsR, 0.106 * pantsR, 0.0, [[thigh, 1]], 0.008),
       ],
       "pants",
       seg,
-      { exp: 2.0 },
+      { exp: 2.35, u0: s > 0 ? 0 : .5, u1: s > 0 ? .5 : 1 },
     );
     // Socks over the shin guards, blending at the knee.
     b.loft(
@@ -599,22 +604,35 @@ function buildBody(spec: BuildSpec) {
         }
       }
     }
-    b.loft(
-      [
-        { frame: F(foot, 0, 0.05, -0.005), rx: 0.058, rz: 0.06, v: 0, w: [[shin, 0.35], [foot, 0.65]] },
-        { frame: F(foot, 0, -0.02, 0.01), rx: 0.06, rz: 0.075, v: 0.4, w: [[foot, 1]] },
-        { frame: F(foot, 0, -0.07, 0.04), rx: 0.054, rz: 0.13, v: 1, w: [[foot, 1]] },
-      ],
-      "boot",
-      segL,
-      { capEnd: true, exp: 2.2 },
-    );
-    b.geometry(new THREE.SphereGeometry(0.06, detail ? 12 : 7, detail ? 6 : 4, 0, TAU, 0, Math.PI / 2).scale(0.85, 0.7, 1.0), F(foot, 0, -0.07, 0.11, -Math.PI / 2 + 0.2), "boot", [[`toe${side}` as BoneName, 0.7], [foot, 0.3]]);
-    b.geometry(new THREE.BoxGeometry(0.03, 0.05, 0.06), F(foot, 0, 0.07, -0.06, -0.3), "boot", [[foot, 0.6], [shin, 0.4]]);
+    // Last-shaped boot: transverse sections run from the heel pocket to
+    // the toe cap. The raised ankle runs into a low, rounded forefoot.
+    const toeBone = `toe${side}` as BoneName;
+    const bootSections = [
+      [-.087, .031, -.005, .059], [-.063, .049, .006, .078],
+      [-.022, .056, .013, .089], [.026, .058, .002, .077],
+      [.070, .055, -.020, .058], [.115, .051, -.038, .042],
+      [.156, .043, -.049, .030], [.178, .025, -.055, .022],
+    ];
+    const visibleSections = detail ? bootSections : bootSections.filter((_, i) => [0, 2, 4, 6, 7].includes(i));
+    b.loft(visibleSections.map(([z, width, y, height]) => {
+      const flex = smooth((z - .075) / .085) * .7;
+      return {frame: F(foot, 0, y, z, Math.PI / 2), rx: width, rz: height,
+        v: (z + .087) / .265, w: [[foot, 1 - flex], [toeBone, flex]] as W};
+    }), "boot", detail ? 14 : 7, {capStart: true, capEnd: true, exp: 2.8});
+    // Achilles guard bends with the ankle while the heel stays in the boot.
+    b.geometry(new RoundedBoxGeometry(.061, .106, .021, 1, .009),
+      F(foot, 0, .064, -.062, -.22), "boot", [[foot, .7], [shin, .3]]);
     for (const z of [-.045,.126])
       b.geometry(new THREE.CylinderGeometry(.024,.014,.047,detail ? 10 : 5).scale(.64,1,1.3),F(foot,0,-.087,z),"pad",[[foot,1]]);
     b.geometry(new THREE.BoxGeometry(.021,.017,.265),F(foot,0,-.105,.045),"pad",[[foot,1]]);
-    b.geometry(new THREE.BoxGeometry(0.007, 0.018, 0.3, 1, 1, detail ? 4 : 1), F(foot, 0, -BLADE_DROP + 0.009, 0.045), "steel", [[foot, 1]]);
+    const runner = new THREE.Shape();
+    runner.moveTo(-.145, .026);
+    runner.lineTo(.151, .026);
+    runner.quadraticCurveTo(.144, .004, .111, .002);
+    runner.quadraticCurveTo(0, -.002, -.101, .002);
+    runner.quadraticCurveTo(-.138, .003, -.145, .026);
+    const steel = new THREE.ExtrudeGeometry(runner, {depth: .004, bevelEnabled: false, curveSegments: detail ? 6 : 2});
+    b.geometry(steel, F(foot, .002, -BLADE_DROP, .043, 0, -Math.PI/2), "steel", [[foot, 1]]);
   }
   // ------------------------------------------------------------ head
   buildHead(b, F, look, face, { goalie, coach, official, detail }, spec.equipment);
@@ -901,6 +919,33 @@ function maskTexture(kit: TeamKit) {
   return tex;
 }
 
+/** Paired outside-leg panels share one atlas. Each short uses half the wrap,
+ * putting the stripe on the left or right hip according to the leg. */
+function pantsTexture(kit: TeamKit) {
+  const c = document.createElement("canvas");
+  c.width = 256;
+  c.height = 128;
+  const ctx = c.getContext("2d");
+  if (ctx) {
+    ctx.fillStyle = kit.pants;
+    ctx.fillRect(0, 0, 256, 128);
+    for (const center of [0, 192, 256]) {
+      ctx.fillStyle = "rgba(255,255,255,.055)";
+      ctx.fillRect(center - 13, 0, 26, 128);
+      ctx.fillStyle = kit.trim;
+      ctx.fillRect(center - 3, 0, 2, 128);
+      ctx.fillStyle = kit.jersey;
+      ctx.fillRect(center - 1, 0, 5, 128);
+      ctx.fillStyle = "rgba(255,255,255,.22)";
+      for (let y = 1; y < 128; y += 4) ctx.fillRect(center + 7, y, 1, 2);
+    }
+  }
+  const texture = new THREE.CanvasTexture(c);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
 function socksTexture(kit: TeamKit) {
   const c = document.createElement("canvas");
   c.width = 16;
@@ -1149,7 +1194,10 @@ export class SkinnedRig implements RigLike {
     const jersey = new THREE.MeshStandardMaterial({ map: this.jerseyTex, normalMap: this.factory.knit(new URL("../assets/jersey-knit-normal.png", import.meta.url).href), normalScale: new THREE.Vector2(.26,.26), roughnessMap: this.factory.knit(new URL("../assets/jersey-knit-roughness.png", import.meta.url).href), roughness: .95, side: THREE.DoubleSide });
     const mats: Record<MatKey, THREE.Material> = {
       jersey,
-      pants: std("pants", k.pants, 0.8),
+      pants: this.role === "skater" || this.role === "goalie"
+        ? this.factory.mat(`pants-panels:${k.pants}:${k.jersey}:${k.trim}`, () =>
+          new THREE.MeshStandardMaterial({map: pantsTexture(k), roughness: .87}))
+        : std("pants", k.pants, .8),
       socks: this.factory.mat(`socks${k.socks}${k.trim}`, () => new THREE.MeshStandardMaterial({ map: socksTexture(k), roughness: 0.9 })),
       skin: skinMat,
       helmet: std("helmet", k.helmet, 0.28, { metalness: 0.05 }),
@@ -1174,6 +1222,7 @@ export class SkinnedRig implements RigLike {
     // At arena distance the small equipment highlights are subpixel. Keep the
     // jersey atlas and team colours in one opaque draw for the whole player.
     const palette = MAT_ORDER.map(key => (mats[key] as THREE.MeshStandardMaterial).color.clone());
+    palette[MAT_ORDER.indexOf("pants")].set(k.pants);
     palette[MAT_ORDER.indexOf("socks")].set(k.socks);
     palette[MAT_ORDER.indexOf("mask")].set(k.helmet);
     const distant = new THREE.MeshStandardMaterial({map:this.jerseyTex,roughness:.78});

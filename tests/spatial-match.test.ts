@@ -187,3 +187,88 @@ test("faceoffs line both teams up on the dot, and saves restart in that zone", (
   }
   assert(checked >= 3);
 });
+
+test("an early attacker must tag up before touching a dump-in", () => {
+  const g = newGame();
+  for (const tagsUp of [true, false]) {
+    const match = new SpatialMatch(g.teams[0], g.teams[1], 3, false, {presentation:true});
+    const state = match as unknown as {owner:string; flight:unknown; decision:number};
+    const attackers = match.frame.bodies.filter(b => !b.goalie && b.side === 0);
+    for (const [i, b] of match.frame.bodies.entries()) {
+      b.x = -12 + i;
+      b.z = i % 2 ? 7 : -7;
+      b.vx = b.vz = 0;
+    }
+    attackers[0].x = 11;
+    attackers[0].z = 0;
+    match.frame.puck.x = 7.4;
+    match.frame.puck.z = 0;
+    state.owner = "";
+    state.decision = 20;
+    state.flight = {vx:12, vz:0, shooter:attackers[1].id, side:0, shot:false, kind:"dump", remaining:1};
+    match.step();
+    assert.equal(match.frame.delayedOffside, 0);
+    assert.equal(match.stopped, false);
+    if (tagsUp) {
+      attackers[0].x = 6.8;
+      match.step();
+      assert.equal(match.frame.delayedOffside, undefined);
+    } else {
+      state.flight = undefined;
+      state.owner = attackers[0].id;
+      match.step();
+      assert.equal(match.frame.stoppage?.kind, "offside");
+      assert.equal(match.frame.stoppage.dot.x, 6.12);
+      assert.equal(match.result.events.at(-1)?.type, "offside");
+    }
+  }
+});
+
+test("a tired line stays on under pressure and changes one skater at the gate", () => {
+  const g = newGame();
+  const m = new SpatialMatch(g.teams[0], g.teams[1], 8);
+  const state = m as unknown as {owner:string; decision:number};
+  const start = m.frame.bodies.filter(b => b.side === 0 && !b.goalie);
+  const original = start.map(b => b.id);
+  state.owner = start[0].id;
+  state.decision = 100;
+  m.time = 80;
+  m.frame.puck.x = start[0].x = -18;
+  m.step();
+  assert.deepEqual(start.map(b => b.id), original);
+  m.frame.puck.x = start[0].x = 15;
+  const outgoing = start[1];
+  outgoing.x = -8.5; outgoing.z = -11.4;
+  m.step();
+  assert.equal(start[0].id, original[0]);
+  assert.equal(start.filter(b => !original.includes(b.id)).length, 1);
+  assert(Math.abs(outgoing.z + 11.4) < .3);
+  assert.equal(new Set(m.frame.bodies.map(b => b.id)).size, m.frame.bodies.length);
+});
+
+test("fast opponents cannot tunnel past one another between samples", async () => {
+  const {separateSkaters} = await import("../src/engine/rink");
+  const before = [{x:-1, z:0}, {x:1, z:0}];
+  const bodies = [{x:.6,z:0,vx:16,vz:2,goalie:false}, {x:-.6,z:0,vx:-16,vz:2,goalie:false}];
+  separateSkaters(bodies, before);
+  assert(bodies[1].x - bodies[0].x >= .839);
+  assert.equal(bodies[0].vz, 2);
+  assert.equal(bodies[0].vx, bodies[1].vx);
+});
+
+test("icing keeps the clearing team's tired skaters while its opponent can change", () => {
+  const g = newGame();
+  const m = new SpatialMatch(g.teams[0], g.teams[1], 18);
+  const state = m as unknown as {owner:string; flight:unknown};
+  m.time = 90;
+  const before = [0,1].map(s => m.frame.bodies.filter(b => b.side === s).map(b => b.id));
+  m.frame.puck.x = 25.5;
+  m.frame.puck.z = 6;
+  state.owner = "";
+  state.flight = {side:0, shooter:before[0][0], kind:"clear", vx:18, vz:0, remaining:2, shot:false, icingSide:0};
+  m.step();
+  const after = [0,1].map(s => m.frame.bodies.filter(b => b.side === s).map(b => b.id));
+  assert.deepEqual(after[0], before[0]);
+  assert.notDeepEqual(after[1], before[1]);
+  assert.equal(m.frame.dot.x, -20.5);
+});

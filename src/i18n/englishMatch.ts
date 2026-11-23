@@ -326,6 +326,7 @@ export const englishMatch: Record<string, string> = {
   "3D недоступен: включите аппаратное ускорение или выберите режим 2D.":
     "3D unavailable: enable hardware acceleration or select 2D mode.",
   Вбрасывание: "Faceoff",
+  "Вне игры": "Offside",
   "Бросок — сейв": "Shot — saved",
   "Бросок — мимо": "Shot — wide",
   "Отбор шайбы": "Takeaway",

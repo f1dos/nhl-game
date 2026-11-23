@@ -85,6 +85,8 @@ export default function ModelLab() {
     const options = new URLSearchParams(location.search);
     const view = options.get("view") ?? "front";
     const action = options.get("motion") ?? "pose";
+    const pursuit = action === "pursuit";
+    const skating = pursuit || action === "skate";
     const variantId = options.get("build") ?? "roster";
     const forcedLod = options.get("lod") ?? "auto";
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -334,7 +336,7 @@ export default function ModelLab() {
             a.variant ?? 0.2,
             1,
           );
-        if (action !== "skate" && action !== "pose" && elapsed >= nextAction)
+        if (!skating && action !== "pose" && elapsed >= nextAction)
           a.rig.trigger(
             action as RigActionKind,
             { x: a.x + 0.5, z: a.z + 3 },
@@ -344,19 +346,19 @@ export default function ModelLab() {
           x: a.x,
           z: a.z,
           vx:
-            action === "skate"
+            skating
               ? view === "goalie"
                 ? 2.5 * Math.sin(elapsed * 2)
-                : 4 * Math.sin(a.yaw)
+                : (pursuit ? 7 : 4) * Math.sin(a.yaw)
               : 0,
           vz:
-            action === "skate"
+            skating
               ? view === "goalie"
                 ? 0
-                : 4 * Math.cos(a.yaw)
+                : (pursuit ? 7 : 4) * Math.cos(a.yaw)
               : 0,
           puckX: 0.5,
-          puckZ: 2,
+          puckZ: pursuit ? 10 : 2,
           hasPuck: action === "skate",
           face: a.yaw,
         });
@@ -454,6 +456,7 @@ export default function ModelLab() {
             : {
                 pose: "Stance",
                 skate: "Stride",
+                pursuit: "Off-puck sprint",
                 wrist: "Wrist shot",
                 snap: "Snap shot",
                 slap: "Slap shot",

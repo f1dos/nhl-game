@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
-import { BENCH, PENALTY_BOX, RINK } from "../engine/rink";
+import { BENCH, PENALTY_BOX, RINK, separateSkaters } from "../engine/rink";
 import { RigFactory, type RigState } from "./hockeyRig";
 import { SkinnedRigFactory, type RigLike } from "./skinnedRig";
 import { TrackSmoother } from "./motionSmoothing";
@@ -303,7 +303,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (icePrimed && !prevOnIce.has(body.id) && !body.goalie) {
             const m = memberOf.get(body.id);
             const from = m ? (m.mode === "box" ? boxDoor(m.side) : benchDoor(m)) : undefined;
-            if (from) entering.set(body.id, { dx: from.x - x, dz: from.z - z, t: 0 });
+            if (from && (stoppage || Math.abs(body.z - BENCH.frontZ) > 2)) entering.set(body.id, { dx: from.x - x, dz: from.z - z, t: 0 });
           }
           const enter = entering.get(body.id);
           if (enter) {
@@ -489,13 +489,26 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           state = "official-drop"; face = 0;
         } else if (o === refA && stoppage?.kind === "goal" && stoppage.phase === "celebrate" && stoppage.t < 2.6) {
           state = "official-point"; face = Math.atan2(goalNet - o.x, -o.z);
-        } else if ((o === refB && stoppage?.kind === "penalty" && stoppage.phase === "whistle") || (o === lineB && stoppage?.kind === "icing" && stoppage.phase === "whistle")) {
+        } else if ((o === refB && stoppage?.kind === "penalty" && stoppage.phase === "whistle") || (o === lineB && (frameData?.delayedOffside !== undefined || ((stoppage?.kind === "icing" || stoppage?.kind === "offside") && stoppage.phase === "whistle")))) {
           state = "official-arm";
         }
         o.rig.setState(state);
         o.rig.update(dt, odt, { x: o.x, z: o.z, vx: o.vx, vz: o.vz, puckX: px, puckZ: pz, hasPuck: false, face });
       });
 
+      // Camera interpolation, bench entries and official paths are visual
+      // tracks. Keep the interpolated bodies apart between simulation ticks.
+      const visibleSkaters = [
+        ...actors.filter(a => a.rig.root.visible).map(a => ({rig: a.rig, goalie: a.slot === 6})),
+        ...officials.map(o => ({rig: o.rig, goalie: false})),
+        ...bench.filter(m => m.mode === "moving" && m.rig.root.visible && Math.abs(m.z) < RINK.halfWidth)
+          .map(m => ({rig: m.rig, goalie: false})),
+      ].map(({rig, goalie}) => ({rig, goalie, x: rig.root.position.x, z: rig.root.position.z, vx: 0, vz: 0}));
+      separateSkaters(visibleSkaters);
+      for (const body of visibleSkaters) {
+        body.rig.root.position.x = body.x;
+        body.rig.root.position.z = body.z;
+      }
       // --- arena reactions (goal lights, crowd)
       // Ice: skate marks build up, the sheet is resurfaced between periods.
       if (frameData && data.running) iceFx.skate(actors.filter(a => a.rig.root.visible).map(a => { const m = a.rig.motion; return { x: m?.x ?? 0, z: m?.z ?? 0, speed: m?.speed ?? 0, stopping: !!m?.stopping }; }), dt);

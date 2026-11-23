@@ -1321,6 +1321,19 @@ export class HockeyRig {
         });
       }
     }
+    // On a long pursuit the lower hand comes off the shaft. It swings
+    // against the pushing leg, then returns to the stick near the puck.
+    if (this.state === "play" && this.role === "skater" && !this.action && !inp.hasPuck) {
+      const distance = Math.hypot(inp.puckX - this.px, inp.puckZ - this.pz);
+      const reach = smooth(clamp((distance - 2.4) / 3.5, 0, 1)) * smooth(clamp((sp - 2.5) / 3.8, 0, 1));
+      const swing = Math.sin(this.phase * TAU) * this.hs;
+      P.stickW *= 1 - reach;
+      P.fx = lerp(P.fx, .32, reach);
+      P.fy = lerp(P.fy, -.015 + .095 * swing, reach);
+      P.fz = lerp(P.fz, .10 + .29 * swing, reach);
+      P.gz -= .055 * reach * swing;
+      P.lean += .085 * reach;
+    }
     // Puck handling: gentle side-to-side sweep while carrying.
     if (inp.hasPuck && !this.action && this.state === "play" && this.role === "skater") {
       if (inp.nearBoards) {
