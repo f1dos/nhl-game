@@ -22,7 +22,7 @@ html = html.replace(
     "</style>",
 );
 // Preserve the character library when the standalone page is opened offline.
-html = html.replace(/"\/assets\/(headgear-[^"]+\.glb)"/g, (_, name) =>
+html = html.replace(/"\/assets\/((?:headgear|sweater|skate)-[^"]+\.glb)"/g, (_, name) =>
   '"data:model/gltf-binary;base64,' + fs.readFileSync(path.join(dist,"assets",name)).toString("base64") + '"');
 fs.writeFileSync(path.join(dist, "downloads", "NHL-Manager-27.html"), html);
 const files = {};

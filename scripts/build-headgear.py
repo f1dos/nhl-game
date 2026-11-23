@@ -44,16 +44,29 @@ def shell(role):
     n, rows = 48, 20
     verts = [point(*shell_surface(goalie, i * math.tau / n, j / rows))
              for j in range(rows + 1) for i in range(n)]
+    liner_faces=[]
     for j in range(rows):
         for i in range(n):
             col = min(i,n-1-i)
             if goalie and 6 <= j <= 14 and col < (8 if j<13 else 6): continue
-            if j in (3,4,5,6) and col in (5,6,14,15): continue
-            if not goalie and ((j in (9,10) and 9 <= col <= 15) or
-                              (j in (15,16,17) and col in (11,12))): continue
+            vent = (j in (3,4,5,6) and col in (5,6,14,15)) or (not goalie and
+                   ((j in (9,10) and 9 <= col <= 15) or (j in (15,16,17) and col in (11,12))))
+            if vent:
+                a=j*n+i; b=j*n+(i+1)%n
+                liner_faces.append((a,a+n,b+n,b))
+                continue
             if goalie and j in (15,17) and col in (6,8,10): continue
             a=j*n+i; b=j*n+(i+1)%n
             faces.append((a,a+n,b+n,b))
+    used=sorted({idx for f in liner_faces for idx in f})
+    remap={old:new for new,old in enumerate(used)}
+    backing=bpy.data.meshes.new(role+"_lining")
+    backing.from_pydata([tuple(v*.992 for v in verts[i]) for i in used],[],
+                        [tuple(remap[i] for i in f) for f in liner_faces])
+    backing.update()
+    lining=bpy.data.objects.new(role+"_liner",backing)
+    bpy.context.collection.objects.link(lining)
+    backing.materials.append(materials["boot"])
     mesh=bpy.data.meshes.new(role); mesh.from_pydata(verts,[],faces); mesh.update()
     uv = mesh.uv_layers.new(name="Shell wrap")
     for polygon in mesh.polygons:

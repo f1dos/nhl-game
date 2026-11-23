@@ -38,3 +38,15 @@ blender --background --python scripts/build-hockey-assets.py
 
 Export currently uses uncompressed glTF because this environment lacks the Blender
 Draco exporter library. This does not prevent exporting valid GLB files.
+
+## Editable match skater
+
+Open `match-skater.blend` for the posed skater, packed texture maps and studio camera. Import `match-skater-parts.glb` into another DCC for 18 separately editable meshes bound to one 28-joint armature. The export has 24,693 triangles and nine animation clips. The head uses the HM08 source credited above. The body is covered by the uniform. The face is an identity variation and is not a portrait scan.
+
+The match and ModelLab load the Blender sweater and skate libraries into the same rig. Team colours, name and number come from the career. The asset merger retains the existing player identity and does not add a draw call per lace. The far camera uses the 613-triangle sweater cage and simplified boots. The other sweater levels use 2,149 and 6,758 triangles.
+
+To reproduce the character, run from the repository root:
+
+1. Run `blender -b -P scripts/build-sweater.py`, `blender -b -P scripts/build-skate.py` and `blender -b -P scripts/build-headgear.py`.
+2. Run the Vite development server and `node scripts/export-characters.mjs http://localhost:5173` with Playwright and Chromium available.
+3. In Blender, execute `scripts/assemble-match-skater.py` with `project_root` set to the repository. It creates a separate studio scene and exports the editable character. The final review used Blender MCP's `get_scene_info`, `execute_blender_code` and `look`.

@@ -98,3 +98,23 @@ test("distant characters use one shaded draw and release per-identity GPU resour
   assert.equal(skeletonsFreed,1);
   rig.dispose();factory.dispose();
 });
+
+test("Blender character delivery contains one dressed skater with a hierarchical animated skeleton", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const file = await readFile(new URL("../public/models/hockey/match-skater-parts.glb", import.meta.url));
+  const model = JSON.parse(file.toString("utf8", 20, 20 + file.readUInt32LE(12)));
+  assert.equal(model.scenes.length, 1);
+  assert.equal(model.skins.length, 1);
+  const jointIds = new Set<number>(model.skins[0].joints);
+  assert.equal(jointIds.size, BONES.length);
+  const jointChildren = [...jointIds].flatMap(id => (model.nodes[id].children ?? []).filter((child:number) => jointIds.has(child)));
+  assert.equal(new Set(jointChildren).size, BONES.length - 1);
+  assert.equal(model.animations.length, 9);
+  assert(model.meshes.length >= 12);
+  let triangles = 0;
+  for (const mesh of model.meshes) for (const primitive of mesh.primitives) {
+    assert(primitive.attributes.JOINTS_0 !== undefined && primitive.attributes.WEIGHTS_0 !== undefined);
+    triangles += model.accessors[primitive.indices].count / 3;
+  }
+  assert(triangles <= 25000);
+});

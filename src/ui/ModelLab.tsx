@@ -127,6 +127,8 @@ export default function ModelLab() {
     ice.receiveShadow = true;
     scene.add(ice);
     const factory = new SkinnedRigFactory((kit) => loadLogo(kit.logo));
+    let assetsReady = false;
+    void factory.ready.then(() => { assetsReady = true; });
     const models =
       options.get("rig") === "classic" ? factory.primitive : factory;
     const club = clubs.find(([id]) => id === (options.get("club") ?? "NYR"))!;
@@ -395,7 +397,7 @@ export default function ModelLab() {
         frames = 0;
         fpsT = 0;
       }
-      (window as unknown as { __ready: boolean }).__ready = true;
+      (window as unknown as { __ready: boolean }).__ready = assetsReady;
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
