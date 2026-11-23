@@ -12,7 +12,9 @@ import {
   X,
 } from "lucide-react";
 import type { Game, Team } from "../engine/types";
+import { RINK } from "../engine/rink";
 import { SpatialMatch, type SpatialFrame } from "../engine/spatialMatch";
+import { englishDynamic } from "../i18n/englishMatch";
 import { advanceDay } from "../engine/management";
 import { Crest } from "./components";
 import TacticalCenter from "./TacticalCenter";
@@ -47,7 +49,7 @@ function MiniRink({ frame, teams }: { frame: SpatialFrame; teams: Team[] }) {
     <svg className="bw-radar" viewBox="0 0 240 104" aria-hidden="true">
       <rect x="4" y="4" width="232" height="96" rx="30" className="bw-radar-ice" />
       <line x1="120" y1="4" x2="120" y2="100" stroke="#d64251" strokeWidth="2" />
-      {[-7.6, 7.6].map((x) => (
+      {[-RINK.blueLine, RINK.blueLine].map((x) => (
         <line key={x} x1={X(x)} y1="4" x2={X(x)} y2="100" stroke="#3f7fd1" strokeWidth="2" />
       ))}
       {[-26.9, 26.9].map((x) => (
@@ -131,6 +133,10 @@ export default function SpatialMatchCenter({
           color: team?.color ?? "#f1c958",
           until: now + 6500,
         });
+      else if (e.type === "offside")
+        next.push({id: ++toastId.current, kind: "info", title: tr("Вне игры", "Offside"),
+          sub: tr("Вбрасывание в средней зоне", "Neutral-zone faceoff") + " · " + e.team,
+          color: team?.color ?? "#91b5ce", until: now + 3500});
       else if (e.type === "penalty")
         next.push({
           id: ++toastId.current,
@@ -283,6 +289,7 @@ export default function SpatialMatchCenter({
           <span>{match.done ? tr("ФИНАЛ", "FINAL") : periodLabel(match.time, ru)}</span>
           <b>{match.done ? (result.so ? "SO" : result.ot ? "OT" : "—") : clock(match.time)}</b>
         </div>
+        {frame.delayedOffside !== undefined && <div className="bw-bug-pp">{tr("Отложенное вне игры", "Delayed offside")} · {teams[frame.delayedOffside].id}</div>}
         {power && <div className="bw-bug-pp">{power}</div>}
         <div className="bw-bug-sog">
           {tr("БРОСКИ", "SOG")} {result.shots[1]} — {result.shots[0]}
@@ -474,6 +481,7 @@ export default function SpatialMatchCenter({
                       ["xG", result.xg[1].toFixed(2), result.xg[0].toFixed(2)],
                       [tr("Реализация большинства", "Power play"), `${result.pp[1]}/${result.ppo[1]}`, `${result.pp[0]}/${result.ppo[0]}`],
                       [tr("Выигранные вбрасывания", "Faceoffs won"), stat("faceoff", 1), stat("faceoff", 0)],
+                      [tr("Вне игры", "Offsides"), stat("offside", 1), stat("offside", 0)],
                       [tr("Отборы", "Takeaways"), stat("turnover", 1), stat("turnover", 0)],
                       [tr("Удаления", "Penalties"), stat("penalty", 1), stat("penalty", 0)],
                     ] as const
@@ -499,7 +507,7 @@ export default function SpatialMatchCenter({
                       <span>
                         <b>{e.player}</b>
                         <small>
-                          {e.team} · {e.text}
+                          {e.team} · {ru ? e.text : englishDynamic(e.text)}
                         </small>
                       </span>
                     </li>
