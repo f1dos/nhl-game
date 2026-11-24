@@ -38,7 +38,7 @@ function collect(dir) {
       );
   }
 }
-for (const dir of ["src", "tests", "scripts"]) collect(dir);
+for (const dir of ["src", "tests", "scripts", "public"]) collect(dir);
 for (const file of [
   "README.md",
   "package.json",

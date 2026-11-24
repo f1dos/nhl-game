@@ -140,3 +140,40 @@ test("Alpine match surfaces share their LODs and follow the animated blade for b
   }
   factory.dispose();
 });
+test("Alpine sweater follows both clavicles and all four hem pivots at each distance", () => {
+  const factory = new SkinnedRigFactory();
+  for (const lod of [0, 1, 2] as const) {
+    const geo = factory.alpineModel(lod, 1);
+    const joints = geo.getAttribute("skinIndex"), weights = geo.getAttribute("skinWeight");
+    const used = new Set<string>();
+    for (let i = 0; i < joints.count; i++) {
+      for (let j = 0; j < 4; j++) {
+        if (weights.getComponent(i,j) > .005) used.add(BONES[joints.getComponent(i,j)]);
+      }
+    }
+    for (const name of ["clavL","clavR","jerseyF","jerseyB","jerseyL","jerseyR"])
+      assert(used.has(name), `missing ${name} influence at LOD ${lod}`);
+  }
+  factory.dispose();
+});
+test("Alpine runners contact the ice through a stationary stance and full strides", () => {
+  const factory = new SkinnedRigFactory();
+  const rig = factory.skater({jersey:"#163456",trim:"#fff",pants:"#111",helmet:"#123",socks:"#fff"});
+  rig.setIdentity({id:"blade-review",name:"Test",number:12},"C");
+  const lod = rig.root.children.find(node=>node instanceof THREE.LOD) as THREE.LOD;
+  const mesh = lod.levels[2].object as THREE.SkinnedMesh;
+  const joints = mesh.geometry.getAttribute("skinIndex");
+  const feet = Array.from({length:joints.count},(_,i)=>i).filter(i=>["footL","footR"].includes(BONES[joints.getX(i)]));
+  const point = new THREE.Vector3();
+  for (const speed of [0,4,7]) {
+    for (let frame=0;frame<100;frame++) {
+      rig.update(1/60,1/60,{x:0,z:0,vx:0,vz:speed,puckX:0,puckZ:.8,hasPuck:true,face:0});
+      rig.root.updateMatrixWorld(true);
+      let contact = Infinity;
+      for (const i of feet) contact=Math.min(contact,mesh.localToWorld(mesh.getVertexPosition(i,point)).y);
+      assert(Math.abs(contact)<.002,`speed ${speed} frame ${frame} contact ${contact}`);
+    }
+  }
+  rig.dispose();
+  factory.dispose();
+});

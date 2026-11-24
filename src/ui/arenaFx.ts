@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -6,6 +7,18 @@ import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { Reflector } from "three/addons/objects/Reflector.js";
 import type { Team } from "../engine/types";
+
+/** Broad reflected panels provide highlights on helmets, eyes and steel. */
+export function studioReflections(renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
+  const generator = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const target = generator.fromScene(room, .04);
+  room.dispose();
+  generator.dispose();
+  scene.environment = target.texture;
+  scene.environmentIntensity = .32;
+  return target;
+}
 
 /**
  * Picture quality layer of the 3D match: arena light presets, soft shadows,
@@ -55,7 +68,8 @@ export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene)
   });
   if (key) {
     key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
+    const size = Math.min(renderer.capabilities.maxTextureSize, 4096);
+    key.shadow.mapSize.set(size, size);
     const cam = key.shadow.camera;
     cam.left = -34;
     cam.right = 34;
@@ -64,7 +78,7 @@ export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene)
     cam.near = 5;
     cam.far = 90;
     key.shadow.bias = -0.0004;
-    key.shadow.normalBias = 0.02;
+    key.shadow.normalBias = 0.006;
     key.shadow.radius = 3;
     key.target.position.set(0, 0, 0);
     cam.updateProjectionMatrix();
@@ -73,8 +87,7 @@ export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene)
 }
 
 export interface IceFx {
-  /** Turn the reflections off (automatic quality fallback). */
-  setReflections(on: boolean): void;
+  setReflectionInterval(frames: number): void;
   /** Record skates on the ice (scratch marks) for this frame. */
   skate(points: { x: number; z: number; speed: number; stopping: boolean }[], dt: number): void;
   /** Fresh sheet: called at intermission. */
@@ -93,6 +106,7 @@ const HALF_X = 30.5, HALF_Z = 13.2;
 export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, quality: "high" | "low"): IceFx {
   const disposables: { dispose(): void }[] = [];
   let reflector: Reflector | undefined;
+  let reflectionInterval = 2;
   if (ice && quality === "high") {
     const size = new THREE.Vector2();
     const w = Math.max(256, Math.round(window.innerWidth * 0.3));
@@ -110,8 +124,16 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
     // The reflection is soft and low-res: refresh it every other frame.
     const render = reflector.onBeforeRender.bind(reflector);
     let tick = 0;
+    const lastCameraPosition = new THREE.Vector3();
+    const lastCameraRotation = new THREE.Quaternion();
     reflector.onBeforeRender = (...args: Parameters<typeof render>) => {
-      if (tick++ % 2 === 0) render(...args);
+      const camera = args[2];
+      const cut = camera.position.distanceToSquared(lastCameraPosition) > 2.25
+        || camera.quaternion.angleTo(lastCameraRotation) > .16;
+      if (!cut && tick++ % reflectionInterval !== 0) return;
+      render(...args);
+      lastCameraPosition.copy(camera.position);
+      lastCameraRotation.copy(camera.quaternion);
     };
     scene.add(reflector);
     disposables.push(reflector.geometry, reflector.getRenderTarget());
@@ -169,14 +191,8 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
         tex.needsUpdate = true;
       }
     },
-    setReflections(on) {
-      if (reflector) reflector.visible = on;
-      if (ice) {
-        const m = ice.material as THREE.MeshStandardMaterial;
-        m.opacity = on ? 0.86 : 1;
-        m.transparent = on;
-        m.needsUpdate = true;
-      }
+    setReflectionInterval(frames) {
+      reflectionInterval = Math.max(1, Math.round(frames));
     },
     resurface() {
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
@@ -202,12 +218,13 @@ export interface Post {
 /** Bloom on the light rig, ACES output, optional depth of field. */
 export function buildPost(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera, bloom: number): Post {
   const composer = new EffectComposer(renderer);
+  composer.renderTarget1.samples = composer.renderTarget2.samples = Math.min(4, renderer.capabilities.maxSamples);
   composer.addPass(new RenderPass(scene, camera));
   // High threshold: only emissive light panels, goal lights and the video
   // board glow — never the (bright, white) ice itself.
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), bloom * 0.7, 0.45, 2.2);
   composer.addPass(bloomPass);
-  const bokeh = new BokehPass(scene, camera, { focus: 12, aperture: 0.0006, maxblur: 0.005 });
+  const bokeh = new BokehPass(scene, camera, { focus: 12, aperture: 0.0006, maxblur: 0.0012 });
   bokeh.enabled = false;
   composer.addPass(bokeh);
   composer.addPass(new OutputPass());

@@ -70,6 +70,16 @@ def player():
             bind(bone,key+side,frame(head(bone),-axis(bone)),frame(V((sign*.11,h,0)),up),.46/axis(bone).length)
         bone='Foot'+suffix
         bind(bone,'foot'+side,Matrix.Translation(head(bone)),Matrix.Translation((sign*.11,-.97+.067,0)))
+    def sweater_uv(point, sleeve):
+        if sleeve:
+            shoulder=V((sleeve*.235,.51,0))
+            direction=V((sleeve*.3,-1,.05)).normalized()
+            along=(point-shoulder).dot(direction)
+            radial=point-shoulder-direction*along
+            return (.5-math.atan2(sleeve*radial.z,sleeve*radial.x)/(2*math.pi),
+                    min(.48,max(0,along*.80)))
+        angle=(math.atan2(point.z,point.x)/(2*math.pi))%1
+        return (angle,.5+.5*max(0,min(1,(point.y+.02)/.62)))
     shaft=bpy.data.objects['Flex 85 | composite shaft']
     coords=sorted([game(shaft.matrix_world@v.co) for v in shaft.data.vertices],key=lambda p:p.y)
     heel=sum(coords[:4],V((0,0,0)))/4
@@ -89,44 +99,87 @@ def player():
     stickdir=V((0,1,-.35))
     bind('Stick','stick',frame(heel,tip-heel,V((1,0,0))),frame(V((.45,-1.05,.9)),stickdir))
     bind('Blade','blade',frame(heel,up,V((1,0,0))),Matrix.Translation((.45,-1.025,.9)))
-    skip=('Jersey hem binding','Alternate captain patch','Woven web belt','Home sweater','Ribbed V neck','Shoulder impact cup','Thoracic protector','Twill','Woven shield','Embroidered','Back numerals','Player name','Woven cuff ID','Helmet front print')
+    skip=('Jersey hem binding','Alternate captain patch','Woven web belt','Shoulder impact cup','Thoracic protector','Twill','Woven shield','Embroidered','Back numerals','Player name','Woven cuff ID','Helmet front print')
     def surface(o,m):
         n=m.name.lower() if m else ''
+        if 'eyebrows | soft roots' in n:return 'brow'
         if 'sweater' in o.name.lower(): return 'jersey'
         if 'stocking' in o.name.lower(): return 'socks'
         if o.name.startswith('Taped rocker blade'):return 'stick'
         if 'pant' in o.name.lower() or 'breezer' in o.name.lower(): return 'pants'
-        for token,key in [('polycarbonate','visor'),('clear ear','visor'),('skin','skin'),('sclera','eyeWhite'),('iris','iris'),('corneal','iris'),('hair','hair'),('espresso','hair'),('eyebrow','hair'),('helmet enamel','helmet'),('pearl white','helmet'),('steel','steel'),('titanium','steel'),('copper','steel'),('nylon','pad'),('tape','tape'),('cotton','tape'),('glove','glove'),('teal','trim'),('marigold','trim'),('ivory','pad')]:
+        for token,key in [('polycarbonate','visor'),('clear ear','visor'),('skin','skin'),('sclera','eyeWhite'),('iris','iris'),('corneal','iris'),('hair','hair'),('espresso','hair'),('eyebrow','hair'),('helmet enamel','helmet'),('pearl white','helmet'),('stainless','steel'),('steel','steel'),('titanium','steel'),('copper','steel'),('nylon','pad'),('tape','tape'),('cotton','tape'),('glove','glove'),('teal','trim'),('marigold','trim'),('ivory','pad')]:
             if token in n:return key
         return 'stick' if o.users_collection[0].name.startswith('05_') else 'boot'
-    # Sample the original diffuse texture on its authored head UVs. Store only
-    # face vertices, keeping the atlas and unused body regions out of the game.
     import numpy as np
     face=bpy.data.objects['Player | continuous face, neck and ears']
-    bsdf=next(n for n in face.active_material.node_tree.nodes if n.type=='BSDF_PRINCIPLED')
-    image=bsdf.inputs['Base Color'].links[0].from_node.image.copy()
-    image.scale(512,512)
-    pixels=np.empty(512*512*4,dtype=np.float32)
-    image.pixels.foreach_get(pixels)
-    texels=pixels.reshape((512,512,4))
+    eye=bpy.data.materials['Eyes | limbus, iris and pupil']
+    def maps(material):
+        return [node.image for node in material.node_tree.nodes if node.type=='TEX_IMAGE' and node.image]
+    def export_maps(mesh):
+        # Rasterise only visible UV islands, including padding for mip filtering.
+        size=512
+        mask=np.zeros((size,size), dtype=bool)
+        uvs=mesh.uv_layers.active.data
+        for tri in mesh.loop_triangles:
+            a,b,c=np.array([list(uvs[i].uv) for i in tri.loops])*size
+            lo=np.maximum(0,np.floor(np.minimum(np.minimum(a,b),c)).astype(int)-1)
+            hi=np.minimum(size,np.ceil(np.maximum(np.maximum(a,b),c)).astype(int)+1)
+            x,y=np.meshgrid(np.arange(lo[0],hi[0])+.5,np.arange(lo[1],hi[1])+.5)
+            edges=[(q[0]-p[0])*(y-p[1])-(q[1]-p[1])*(x-p[0]) for p,q in ((a,b),(b,c),(c,a))]
+            mask[lo[1]:hi[1],lo[0]:hi[0]] |= (np.max(edges,axis=0)<=0) | (np.min(edges,axis=0)>=0)
+        for i in range(4):
+            mask=np.logical_or.reduce([np.roll(mask,n,axis) for n,axis in [(1,0),(-1,0),(1,1),(-1,1),(0,0)]])
+        images={}
+        for image in maps(face.active_material)+maps(eye):
+            name=image.name.lower()
+            key='iris' if image in maps(eye) else 'normal' if 'normal' in name or 'nrm' in name else 'specular' if 'spec' in name else 'skin'
+            img=image.copy()
+            if key!='iris':
+                width,height=img.size
+                rgba=np.empty(width*height*4,dtype=np.float32)
+                img.pixels.foreach_get(rgba)
+                pixels=rgba.reshape(height,width,4)
+                used=mask[np.arange(height)*size//height][:,np.arange(width)*size//width]
+                pixels[~used,:3]=[.5,.5,1] if key=='normal' else [.4,.3,.23]
+                img.pixels.foreach_set(rgba)
+            import tempfile
+            with tempfile.TemporaryDirectory() as folder:
+                img.filepath_raw=str(Path(folder)/'map.jpg')
+                img.file_format='JPEG'
+                img.save()
+                images[key]='data:image/jpeg;base64,'+base64.b64encode(Path(img.filepath_raw).read_bytes()).decode()
+            bpy.data.images.remove(img)
+        brow=maps(bpy.data.materials['Eyebrows | soft roots'])[0]
+        with tempfile.TemporaryDirectory() as folder:
+            brow.filepath_raw=str(Path(folder)/'brow.png')
+            brow.file_format='PNG'
+            brow.save()
+            images['brow']='data:image/png;base64,'+base64.b64encode(Path(brow.filepath_raw).read_bytes()).decode()
+        (output/'alpine-textures.json').write_text(json.dumps(images,separators=(',',':')))
     graph=bpy.context.evaluated_depsgraph_get()
-    for level,ratio in [('detail',.28),('broadcast',.085),('wide',.026)]:
-        data={'faceColor':[],'p':[],'uv':[],'j':[],'w':[],'bones':list(dict.fromkeys(t[0] for t in transforms.values())),'tri':collections.defaultdict(list)}
+    for level,ratio in [('detail',.28),('broadcast',.085),('wide',.021)]:
+        data={'p':[],'uv':[],'j':[],'w':[],'bones':list(dict.fromkeys(t[0] for t in transforms.values())),'tri':collections.defaultdict(list)}
         selected=[]
         for o in sorted(arm.children,key=lambda x:x.name):
             if o.type not in {'MESH','CURVE','FONT'} or o.hide_render or o.name.startswith(skip):continue
             if any(m and 'Corneal gloss' in m.name for m in o.data.materials):continue
-            if level!='detail' and (level=='wide' or o.parent_bone!='Head') and (max(o.dimensions)<(.09 if level=='wide' else .045) or o.type=='CURVE'):continue
+            if level!='detail' and (level=='wide' or (o.parent_bone!='Head' and not o.parent_bone.startswith('Foot'))) and (max(o.dimensions)<(.09 if level=='wide' else .045) or o.type=='CURVE'):continue
             if level=='wide' and o.name.startswith(('Shaft finish','Spiral friction','Grip tape','Helmet energy liner')):continue
             if o.type=='CURVE':
                 o.data.resolution_u=2
                 o.data.bevel_resolution=0
             for mod in o.modifiers:
-                if mod.type in ('SUBSURF','BEVEL'):mod.show_viewport=False
+                if mod.type in ('SUBSURF','BEVEL'):
+                    mod.show_viewport=level=='detail' and (o==face or o.parent_bone.startswith(('Foot','Head')) or o.name.startswith(('Protective knit stocking','Home sweater')))
+                    if mod.type=='SUBSURF' and mod.show_viewport:mod.levels=min(1,mod.levels)
             mod=None
             if o.type=='MESH' and len(o.data.polygons)>12:
                 mod=o.modifiers.new('Broadcast reduction','DECIMATE')
-                mod.ratio=ratio
+                if o==face and level!='wide':
+                    mod.ratio=.78 if level=='detail' else .38
+                elif o.parent_bone.startswith(('Head','Foot')) and level!='wide':
+                    mod.ratio=.28 if level=='detail' else .14
+                else:mod.ratio=ratio
             selected.append((o,mod))
         bpy.context.view_layer.update()
         graph=bpy.context.evaluated_depsgraph_get()
@@ -135,6 +188,7 @@ def player():
             mesh=obj.to_mesh()
             mesh.calc_loop_triangles()
             base=len(data['p'])//3
+            sweater_charts=[]
             for v in mesh.vertices:
                 p=game(obj.matrix_world@v.co)
                 rigid='Stick' if o.users_collection[0].name.startswith('05_') else o.parent_bone
@@ -145,6 +199,19 @@ def player():
                 weights=weights or [('Chest',1)]
                 total=sum(k for _,k in weights)
                 point=sum(((transforms[b][1]@p)*(k/total) for b,k in weights),V((0,0,0)))
+                if o.name.startswith('Home sweater'):
+                    # Shape the chest protector under the original knit in the solver's upright bind.
+                    front=max(0,min(1,point.z/.12))
+                    chest=max(0,1-abs(point.y-.31)/.22)
+                    point.z+=.025*front*chest
+                    cap=max(0,1-abs(point.y-.50)/.16)*min(1,abs(point.x)/.24)
+                    point.y-=.018*cap
+                if o.name.startswith('Protective knit stocking'):
+                    ankle=max(0,min(1,(-point.y-.69)/.21))
+                    point.z += .035*ankle
+                    point.y -= .018*ankle
+                if any(m==eye for m in mesh.materials):
+                    point.z += .0023
                 data['p'].extend(round(x*10000) for x in point)
                 for i in range(4):
                     b,k=weights[i] if i<len(weights) else ('Pelvis',0)
@@ -155,34 +222,52 @@ def player():
                 vcoord=.5+.5*h
                 if o.name.startswith('Home sweater'):
                     arm_weight=sum(k for b,k in weights if 'Arm.' in b or 'Forearm.' in b)
-                    if arm_weight>total*.45:
-                        sign=1 if point.x>0 else -1
-                        shoulder=V((sign*.235,.51,0))
-                        arm_axis=V((sign*.3,-1,.05)).normalized()
-                        along=(point-shoulder).dot(arm_axis)
-                        center=shoulder+arm_axis*along
-                        radial=point-center
-                        u=.5-math.atan2(sign*radial.z,sign*radial.x)/(2*math.pi)
-                        vcoord=min(.48,max(0,along*.80))
+                    sleeve=(1 if point.x>0 else -1) if arm_weight>total*.45 else 0
+                    sweater_charts.append(sleeve)
+                    u,vcoord=sweater_uv(point,sleeve)
                 elif o.name.startswith('Protective knit stocking'):
                     vcoord=max(0,min(1,(point.y+.93)/.48))
                 data['uv'].extend((round(u*65535),round(vcoord*65535)))
-            if o==face and mesh.uv_layers.active:
-                uv=mesh.uv_layers.active.data
-                sampled=set()
-                for loop in mesh.loops:
-                    idx=loop.vertex_index
-                    if idx in sampled:continue
-                    sampled.add(idx)
-                    u,v=uv[loop.index].uv
-                    rgb=texels[int(v*512)%512,int(u*512)%512,:3]
-                    # Preserve pores, brows and lip colour around the team's
-                    # per-player skin tone instead of baking one complexion.
-                    relative=np.clip((rgb / np.array([.76,.54,.42]))**1.4,.07,1.0)
-                    data['faceColor'].extend([base+idx,*[round(float(c)*255) for c in relative]])
+            if o==face and level=='detail':
+                export_maps(mesh)
+            uv_layer=mesh.uv_layers.active
+            corners={}
+            first=set()
             for t in mesh.loop_triangles:
                 mat=mesh.materials[t.material_index] if len(mesh.materials)>t.material_index else None
-                data['tri'][surface(o,mat)].extend(base+i for i in t.vertices)
+                group=surface(o,mat)
+                indices=data['tri'][group]
+                # One UV chart per triangle prevents numbers and hems from bleeding
+                # into the shoulder panel where the sleeve meets the torso.
+                face_uv={}
+                if group=='jersey' and sweater_charts:
+                    sleeve=collections.Counter(sweater_charts[i] for i in t.vertices).most_common(1)[0][0]
+                    for i in t.vertices:
+                        offset=3*(base+i)
+                        point=V(data['p'][offset:offset+3])/10000
+                        face_uv[i]=sweater_uv(point,sleeve)
+                    us=[u for u,_ in face_uv.values()]
+                    if max(us)-min(us)>.5:
+                        face_uv={i:(u+1 if u<.5 else u,v) for i,(u,v) in face_uv.items()}
+                for vertex,loop in zip(t.vertices,t.loops):
+                    index=base+vertex
+                    if face_uv or (uv_layer and group in ('skin','iris','brow')):
+                        coord=face_uv[vertex] if face_uv else uv_layer.data[loop].uv
+                        uv=tuple(round(v*65535) for v in coord)
+                        key=(vertex,uv)
+                        if key not in corners:
+                            if vertex in first:
+                                duplicate=len(data['p'])//3
+                                for attr,width in [('p',3),('w',4),('j',4)]:
+                                    data[attr].extend(data[attr][index*width:(index+1)*width])
+                                data['uv'].extend(uv)
+                                index=duplicate
+                            else:
+                                first.add(vertex)
+                                data['uv'][index*2:index*2+2]=uv
+                            corners[key]=index
+                        index=corners[key]
+                    indices.append(index)
             obj.to_mesh_clear()
         for o,mod in selected:
             if mod:o.modifiers.remove(mod)

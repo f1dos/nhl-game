@@ -1,3 +1,4 @@
+import alpineTextures from "../assets/alpine-textures.json";
 import alpineDetail from "../assets/alpine-detail.json";
 import alpineWide from "../assets/alpine-wide.json";
 import alpineBroadcast from "../assets/alpine-broadcast.json";
@@ -89,7 +90,10 @@ const _basis = new THREE.Matrix4();
 function frameFrom(origin: THREE.Vector3, dir: THREE.Vector3, ref: THREE.Vector3, out: THREE.Matrix4, scale?: THREE.Vector3) {
   const y = _v.copy(dir).normalize();
   const z = _v2.copy(ref).addScaledVector(y, -ref.dot(y));
-  if (z.lengthSq() < 1e-6) z.set(0, 0, 1).addScaledVector(y, -y.z);
+  if (z.lengthSq() < 1e-6) {
+    if (Math.abs(y.z) < .8) z.set(0,0,1).addScaledVector(y,-y.z);
+    else z.set(1,0,0).addScaledVector(y,-y.x);
+  }
   z.normalize();
   const x = _v3.crossVectors(y, z).normalize();
   _basis.makeBasis(x, y, z);
@@ -135,7 +139,7 @@ function bindPose(goalie: boolean, hs: number): THREE.Matrix4[] {
 
 type MatKey =
   | "jersey" | "pants" | "socks" | "skin" | "helmet" | "glove" | "boot" | "steel" | "stick" | "tape"
-  | "visor" | "eyeWhite" | "iris" | "lips" | "hair" | "beard" | "trim" | "pad" | "mask" | "cage" | "shirt" | "shoe";
+  | "visor" | "eyeWhite" | "iris" | "lips" | "hair" | "beard" | "trim" | "pad" | "mask" | "cage" | "shirt" | "shoe" | "brow";
 
 class Builder {
   pos: number[] = [];
@@ -266,7 +270,7 @@ class Builder {
 }
 const MAT_ORDER: MatKey[] = [
   "jersey", "pants", "socks", "skin", "helmet", "glove", "boot", "steel", "stick", "tape", "visor",
-  "eyeWhite", "iris", "lips", "hair", "beard", "trim", "pad", "mask", "cage", "shirt", "shoe",
+  "eyeWhite", "iris", "lips", "hair", "beard", "trim", "pad", "mask", "cage", "shirt", "shoe", "brow",
 ];
 
 interface AlpineBake {
@@ -277,107 +281,37 @@ interface AlpineBake {
 /** Reuse the game's animated skeleton and kit atlas on the Blender surface. */
 /** Continuous raglan garment. Each sleeve starts at the boundary of a real
  * armhole, so lifting an elbow cannot open a gap through the shoulder. */
-function alpineSweater(b: Builder, level: 0 | 1 | 2) {
-  const n = [16, 24, 40][level];
-  const first = b.pos.length/3;
-  const profile = [
-    [-.080,.225,.150],[-.062,.229,.152],[.015,.215,.146],[.11,.207,.140],
-    [.22,.211,.144],[.32,.224,.153],[.39,.235,.157],[.46,.239,.151],
-    [.52,.210,.135],[.553,.168,.112],[.578,.101,.083],[.583,.074,.064],[.603,.074,.065],[.612,.070,.061],
-  ];
-  const bottom=5, top=8, span=n/8;
-  const ring:number[][]=[];
-  const at=(r:number,k:number)=>ring[r][(k+n)%n];
-  const position=(i:number)=>new THREE.Vector3().fromArray(b.pos,3*i);
-  const wrap=(v:number)=>(v+1)%1;
-  function quad(a:number,c:number,d:number,e:number,normal:THREE.Vector3,mat:MatKey="jersey") {
-    const outward=position(c).sub(position(a)).cross(position(d).sub(position(a))).dot(normal)>0;
-    if(outward){ b.tri(mat,a,c,d); b.tri(mat,a,d,e); }
-    else { b.tri(mat,a,d,c); b.tri(mat,a,e,d); }
-  }
-  for(const [r,[y,rx,rz]] of profile.entries()){
-    ring.push([]);
-    for(let k=0;k<=n;k++){
-      const angle=TAU*k/n, x=Math.cos(angle), z=Math.sin(angle);
-      const fold=(.022*Math.cos(7*angle+y*9)+.013*Math.sin(12*angle-y*18))*Math.exp(-((y-.065)**2)/.018);
-      const collar=Math.max(0,(y-.50)/.083);
-      const height=y+.04-.030*Math.max(0,z)**4*collar-.013*z*z*(1-smooth(clamp((y+.08)/.11,0,1)));
-      const p=new THREE.Vector3(rx*x*(1+fold),height,rz*z*(1+fold)+.013*Math.max(0,z)*Math.sin(Math.PI*r/(profile.length-1)));
-      const alpha=clamp((y-.12)/.32,0,1);
-      const weights:W=[["spine1",1-alpha],["spine3",alpha]];
-      if(y<.02) {
-        const hem:BoneName=Math.abs(x)>Math.abs(z)?(x>0?"jerseyL":"jerseyR"):(z>0?"jerseyF":"jerseyB");
-        weights[0][1]-=.24;weights.push([hem,.24]);
+/** Bind the source sweater to the moving shoulder girdle and the existing cloth pivots. */
+function fitAlpineSweater(b: Builder, indices: number[]) {
+  for (const i of new Set(indices)) {
+    const x = b.pos[3*i], y = b.pos[3*i+1], z = b.pos[3*i+2];
+    const side = x > 0 ? "L" : "R";
+    const shoulder = smooth((Math.abs(x)-.09)/.12) * smooth((.37-Math.abs(x))/.10)
+      * smooth((y-.28)/.17) * smooth((.66-y)/.09);
+    const hem = smooth((.12-y)/.16) * .68;
+    if (shoulder + hem < .001) continue;
+    const weights = new Map<number,number>();
+    const add = (joint:number, weight:number) => weights.set(joint,(weights.get(joint) ?? 0)+weight);
+    for (let j=0;j<4;j++) {
+      const joint = b.si[4*i+j], weight = b.sw[4*i+j];
+      if (weight <= 0) continue;
+      const sleeve = joint === B[`upper${side}`] || joint === B.spine3 || joint === B.spine1;
+      const cloth = joint === B.pelvis || joint === B.spine1;
+      const toClav = sleeve ? .52*shoulder*weight : 0;
+      const toHem = cloth ? hem*weight : 0;
+      add(joint,weight-toClav-toHem);
+      if (toClav) add(B[`clav${side}`],toClav);
+      if (toHem) {
+        const lateral = Math.abs(x)/(Math.abs(x)+Math.abs(z)+.0001);
+        add(B[x>0?"jerseyL":"jerseyR"],toHem*lateral);
+        add(B[z>0?"jerseyF":"jerseyB"],toHem*(1-lateral));
       }
-      ring[r].push(b.vertex(p,k/n,.5+.5*(y+.08)/.67,weights));
     }
-    if(!r)continue;
-    for(let k=0;k<n;k++){
-      const mid=k+.5, distance=Math.min(mid,n-mid,Math.abs(mid-n/2));
-      if(r>bottom && r<=top && distance<span)continue;
-      const a=TAU*mid/n;
-      quad(ring[r-1][k],ring[r-1][k+1],ring[r][k+1],ring[r][k],new THREE.Vector3(Math.cos(a),.22,Math.sin(a)),r>=profile.length-2?"boot":"jersey");
-    }
-  }
-  for(const [side,sign] of [["L",1],["R",-1]] as const){
-    const k0=sign>0?0:n/2;
-    const boundary:number[]=[];
-    for(let k=-span;k<span;k++)boundary.push(at(bottom,k0+k));
-    for(let r=bottom;r<top;r++)boundary.push(at(r,k0+span));
-    for(let k=span;k>-span;k--)boundary.push(at(top,k0+k));
-    for(let r=top;r>bottom;r--)boundary.push(at(r,k0-span));
-    const polar=boundary.map(i=>{const p=position(i);return Math.atan2(p.z/.12,(p.y-.46)/.12);});
-    const shoulder=new THREE.Vector3(sign*SHOULDER_X,.51,0);
-    const upper=new THREE.Vector3(sign*.3,-1,.05).normalize();
-    const fore=new THREE.Vector3(sign*.12,-1,.3).normalize();
-    const elbow=shoulder.clone().addScaledVector(upper,UPPER);
-    const upperBone:BoneName=`upper${side}`, foreBone:BoneName=`fore${side}`;
-    // The armhole is the same physical seam but lives on another atlas island.
-    let previous=boundary.map((v,i)=>{
-      const index=b.pos.length/3;
-      b.pos.push(...b.pos.slice(3*v,3*v+3));
-      b.si.push(...b.si.slice(4*v,4*v+4)); b.sw.push(...b.sw.slice(4*v,4*v+4));
-      b.uv.push(wrap(.5-sign*polar[i]/TAU),0);
-      return index;
-    });
-    for(const [t,radius,v] of [[.015,.090,.02],[.075,.089,.08],[.17,.085,.16],[.255,.077,.23],[.307,.079,.29],[.36,.074,.34],[.46,.064,.41],[.53,.065,.46],[.57,.063,.48]]){
-      const center=t<UPPER?shoulder.clone().addScaledVector(upper,t):elbow.clone().addScaledVector(fore,t-UPPER);
-      const axis=t<UPPER?upper:fore;
-      const across=new THREE.Vector3(sign,-sign*axis.x/axis.y,0).normalize();
-      const front=new THREE.Vector3().crossVectors(axis,across).multiplyScalar(sign).normalize();
-      const mix=smooth(clamp((t-.24)/.14,0,1));
-      const cap=clamp(1-t/.10,0,1)*.40;
-      const weights:W=[[upperBone,(1-mix)*(1-cap)],[foreBone,mix],[`clav${side}`,cap]];
-      const row=polar.map((a,i)=>{
-        const p=center.clone().addScaledVector(across,Math.cos(a)*radius).addScaledVector(front,Math.sin(a)*radius);
-        if(t<.075)p.lerp(position(boundary[i]),.78*(1-t/.075));
-        return b.vertex(p,wrap(.5-sign*a/TAU),v,weights);
-      });
-      for(let i=0;i<row.length;i++){
-        const j=(i+1)%row.length;
-        quad(previous[i],row[i],row[j],previous[j],position(row[i]).sub(center));
-      }
-      previous=row;
-    }
-  }
-  // Unwrap triangles crossing the cylindrical UV seam in a narrow strip.
-  const jersey=b.tris.get("jersey")!;
-  const duplicates=new Map<number,number>();
-  for(let i=0;i<jersey.length;i+=3){
-    const tri=jersey.slice(i,i+3);
-    if(tri.some(v=>v<first))continue;
-    const us=tri.map(v=>b.uv[2*v]);
-    if(Math.max(...us)-Math.min(...us)<.70)continue;
-    for(let k=0;k<3;k++){
-      const v=tri[k];if(us[k]>.4)continue;
-      let dup=duplicates.get(v);
-      if(dup===undefined){
-        dup=b.pos.length/3;
-        b.pos.push(...b.pos.slice(3*v,3*v+3));b.uv.push(us[k]+1,b.uv[2*v+1]);
-        b.sw.push(...b.sw.slice(4*v,4*v+4));b.si.push(...b.si.slice(4*v,4*v+4));
-        duplicates.set(v,dup);
-      }
-      jersey[i+k]=dup;
+    const sorted = [...weights].sort((a,b) => b[1]-a[1]).slice(0,4);
+    const sum = sorted.reduce((total,pair) => total+pair[1],0);
+    for (let j=0;j<4;j++) {
+      b.si[4*i+j]=sorted[j]?.[0] ?? B.pelvis;
+      b.sw[4*i+j]=(sorted[j]?.[1] ?? 0)/sum;
     }
   }
 }
@@ -396,20 +330,43 @@ function alpineGeometry(encoded: string, handedness: number, level: 0 | 1 | 2) {
   }
   for (const [name, triangles] of Object.entries(art.tri))
     b.tris.set(name as MatKey, triangles);
-  // The original sweater was modelled in a crouched grip. Build the garment
-  // directly on the solver's neutral joints so the shoulder cap and cuff
-  // stay connected through both grips, checks and bench poses.
-  alpineSweater(b,level);
+  fitAlpineSweater(b,art.tri.jersey ?? []);
+  // Project the authored iris onto its eyeball as well. At tight angles
+  // the sclera can otherwise occlude the separate corneal disc.
+  const eyes = art.tri.eyeWhite ?? [];
+  const irises = Array.from(new Set(art.tri.iris ?? []));
+  for (const sign of [-1, 1]) {
+    const disc = irises.filter(i => b.pos[i*3]*sign > 0);
+    if (!disc.length) continue;
+    const xs = disc.map(i => b.pos[i*3]), ys = disc.map(i => b.pos[i*3+1]);
+    const left = Math.min(...xs), bottom = Math.min(...ys);
+    const width = Math.max(...xs)-left, height = Math.max(...ys)-bottom;
+    for (const i of eyes) if (b.pos[i*3]*sign > 0) {
+      b.uv[i*2] = (b.pos[i*3]-left)/Math.max(.001, width);
+      b.uv[i*2+1] = (b.pos[i*3+1]-bottom)/Math.max(.001, height);
+    }
+  }
   const pigment = new Float32Array(b.pos.length/3);
   for (const [material,triangles] of b.tris)
     for (const vertex of triangles) pigment[vertex] = MAT_ORDER.indexOf(material);
   const geometry = b.build();
+  if (level === 0) {
+    // Use the source runners as the shared contact surface across all camera distances.
+    const steel = [...new Set(art.tri.steel ?? [])];
+    const bind = bindPose(false,handedness);
+    geometry.userData.runnerContacts = (["footR","footL"] as const).map(name => {
+      const inverse = bind[B[name]].clone().invert();
+      const runner = steel.filter(i => b.si[4*i] === B[name]).map(i =>
+        new THREE.Vector3().fromArray(b.pos,3*i).applyMatrix4(inverse));
+      const support = new Set<THREE.Vector3>();
+      for (const pitch of [-.65,-.25,0,.25,.65]) for (const roll of [-.65,0,.65]) {
+        const normal = new THREE.Vector3(roll,1,pitch);
+        if (runner.length) support.add(runner.reduce((a,c) => a.dot(normal)<c.dot(normal) ? a : c));
+      }
+      return [...support];
+    });
+  }
   geometry.setAttribute("pigment", new THREE.BufferAttribute(pigment, 1));
-  const colors = new Float32Array(b.pos.length).fill(1);
-  const face = art.faceColor ?? [];
-  for (let i=0;i<face.length;i+=4)
-    for (let c=0;c<3;c++) colors[3*face[i]+c]=face[i+1+c]/255;
-  geometry.setAttribute("color",new THREE.BufferAttribute(colors,3));
   geometry.name = "Alpine 27";
   return geometry;
 }
@@ -1161,6 +1118,17 @@ export class SkinnedRigFactory {
       else this.equipment = parts;
     }).catch(error => console.warn("Using built-in hockey equipment", error)) : Promise.resolve();
   }
+  authoredMap(key: keyof typeof alpineTextures) {
+    if (!this.logoFor) return null;
+    let texture = this.textures.get(key);
+    if (!texture) {
+      texture = new THREE.TextureLoader().load(alpineTextures[key]);
+      if (key === "skin" || key === "iris" || key === "brow") texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = 4;
+      this.textures.set(key, texture);
+    }
+    return texture;
+  }
   knit(url: string) {
     if (!this.logoFor) return null;
     let texture = this.textures.get(url);
@@ -1350,20 +1318,35 @@ export class SkinnedRig implements RigLike {
     this.logoDrawn = !!this.factory.logo(this.kit);
     this.jerseyTex = jerseyTexture(this.kit, id.name, id.number, this.role, this.factory.logo(this.kit));
     const skinMat = this.factory.mat(`skin:${this.role}:${look.skin}:${look.face}`, () => {
-      const skin = new THREE.MeshStandardMaterial({color:SKIN_TONES[look.skin],vertexColors:true,roughness:.68});
+      const skin = new THREE.MeshStandardMaterial({color:SKIN_TONES[look.skin],roughness:.68});
       if (this.role === "skater") {
+        skin.color.set(["#ffffff", "#fff8f0", "#ffebdb", "#efd1ba", "#c49e84", "#9c765e"][look.skin]);
+        skin.map = this.factory.authoredMap("skin");
+        skin.normalMap = this.factory.authoredMap("normal");
+        skin.normalScale.set(.18,.18);
         const features = FACES[look.face];
+        const skinSpecular = this.factory.authoredMap("specular");
         // Sculpt in bind space before skinning. Taper to zero at the eyes,
         // helmet and collar so their separate meshes stay registered.
         skin.onBeforeCompile = shader => {
           shader.uniforms.faceShape={value:new THREE.Vector3(features[0]-1,features[1]-1,features[2]-1)};
-          shader.vertexShader = "uniform vec3 faceShape;\n"+shader.vertexShader.replace(
+          if (skinSpecular) {
+            shader.uniforms.skinSpecular = {value:skinSpecular};
+            shader.fragmentShader = "uniform sampler2D skinSpecular;\n"+shader.fragmentShader.replace(
+              "#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
+              roughnessFactor = clamp(.78-.29*texture2D(skinSpecular,vMapUv).r,.42,.80);`);
+          }
+          shader.uniforms.noseShape={value:new THREE.Vector2(features[3]-1,features[4]-1)};
+          shader.vertexShader = "uniform vec2 noseShape; uniform vec3 faceShape;\n"+shader.vertexShader.replace(
             "#include <begin_vertex>",`#include <begin_vertex>
             float jaw = smoothstep(.625,.675,position.y)*(1.-smoothstep(.715,.755,position.y));
             float cheek = smoothstep(.69,.73,position.y)*(1.-smoothstep(.75,.78,position.y));
             transformed.x *= 1.+jaw*faceShape.x+cheek*faceShape.z;
             transformed.z += jaw*faceShape.y*.10;
-            transformed.y -= jaw*faceShape.y*.025;`);
+            transformed.y -= jaw*faceShape.y*.025;
+            float nose = smoothstep(.113,.140,position.z)*(1.-smoothstep(.014,.032,abs(position.x)));
+            transformed.x *= 1.+nose*noseShape.y;
+            transformed.z += nose*noseShape.x*.047;`);
         };
       }
       return skin;
@@ -1372,7 +1355,7 @@ export class SkinnedRig implements RigLike {
     const k = this.kit;
     const std = (key: string, color: string, roughness = 0.75, extra: THREE.MeshStandardMaterialParameters = {}) =>
       this.factory.mat(`${key}${color}${roughness}`, () => new THREE.MeshStandardMaterial({ color, roughness, ...extra }));
-    const jersey = new THREE.MeshStandardMaterial({ map: this.jerseyTex, normalMap: this.factory.knit(new URL("../assets/jersey-knit-normal.png", import.meta.url).href), normalScale: new THREE.Vector2(.26,.26), roughnessMap: this.factory.knit(new URL("../assets/jersey-knit-roughness.png", import.meta.url).href), roughness: .95, side: THREE.DoubleSide });
+    const jersey = new THREE.MeshStandardMaterial({ map: this.jerseyTex, normalMap: this.factory.knit(new URL("../assets/jersey-knit-normal.png", import.meta.url).href), normalScale: new THREE.Vector2(.14,.14), roughnessMap: this.factory.knit(new URL("../assets/jersey-knit-roughness.png", import.meta.url).href), roughness: .95, side: THREE.DoubleSide });
     const mats: Record<MatKey, THREE.Material> = {
       jersey,
       pants: this.role === "skater" || this.role === "goalie"
@@ -1388,9 +1371,24 @@ export class SkinnedRig implements RigLike {
       stick: std("stick", "#1b1c20", 0.42),
       tape: std("tape", "#f2f2f2", 0.9),
       visor: this.factory.mat("visor", () => new THREE.MeshStandardMaterial({ color: "#d8eef8", roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.13, depthWrite: false, side: THREE.DoubleSide })),
-      eyeWhite: std("eyeW", "#f1eee8", 0.4),
-      iris: std("iris", "#2b1d14", 0.3),
+      eyeWhite: this.role === "skater" ? this.factory.mat("alpineGlobe", () => {
+        const globe = new THREE.MeshStandardMaterial({color:"#dfd8d4", roughness:.26, map:this.factory.authoredMap("iris")});
+        globe.onBeforeCompile = shader => {
+          shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", `
+            #ifdef USE_MAP
+              float radius = length(vMapUv - vec2(.5));
+              diffuseColor.rgb *= mix(texture2D(map, vMapUv).rgb, vec3(1.), smoothstep(.46,.5,radius));
+            #endif
+          `);
+        };
+        return globe;
+      }) : std("eyeW", "#f1eee8", 0.4),
+      iris: this.role === "skater" ? std("alpineIris", "#ffffff", .32, {map:this.factory.authoredMap("iris"), side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-1, polygonOffsetUnits:-2}) : std("iris", "#2b1d14", 0.3),
       lips: std("lips", "#9a5a50", 0.6),
+      brow: this.factory.mat("alpineBrows", () => new THREE.MeshStandardMaterial({
+        map:this.factory.authoredMap("brow"), roughness:.95, transparent:true, depthWrite:false, alphaTest:.025,
+        polygonOffset:true, polygonOffsetFactor:-1, side:THREE.DoubleSide,
+      })),
       hair: hairMat,
       beard: this.factory.mat(`beard${look.hairColor}${look.skin}`, () => new THREE.MeshStandardMaterial({ color: new THREE.Color(HAIR_COLORS[look.hairColor]).lerp(new THREE.Color(SKIN_TONES[look.skin]), 0.35), roughness: 1 })),
       trim: std("trim", k.trim, 0.75),
@@ -1403,6 +1401,7 @@ export class SkinnedRig implements RigLike {
     // At arena distance the small equipment highlights are subpixel. Keep the
     // jersey atlas and team colours in one opaque draw for the whole player.
     const palette = MAT_ORDER.map(key => (mats[key] as THREE.MeshStandardMaterial).color.clone());
+    palette[MAT_ORDER.indexOf("skin")].set(SKIN_TONES[look.skin]);
     palette[MAT_ORDER.indexOf("pants")].set(k.pants);
     palette[MAT_ORDER.indexOf("socks")].set(k.socks);
     palette[MAT_ORDER.indexOf("mask")].set(k.helmet);
@@ -1410,11 +1409,12 @@ export class SkinnedRig implements RigLike {
     distant.onBeforeCompile = shader => {
       shader.uniforms.kitPigments = {value:palette};
       shader.vertexShader = "attribute float pigment; varying float vPigment;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvPigment = pigment;");
-      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(abs(vPigment - 10.0) < 0.25) discard; if(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
+      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(abs(vPigment - 10.0) < 0.25 || vPigment > 21.5) discard; if(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
     };
     this.materials = [jersey,distant];
     const list = MAT_ORDER.map((m) => mats[m]);
     const wide = this.role === "skater" ? this.factory.alpineModel(0, look.hs) : model.lo;
+    if (this.role === "skater") this.driver.setRunnerContacts(wide.userData.runnerContacts);
     this.meshes = [wide, wide, wide].map((geo, i) => {
       const mesh = new THREE.SkinnedMesh(geo, i === 2 ? distant : list);
       // Bounds are in the moving player's frame and include the raised stick.
@@ -1505,6 +1505,15 @@ export class SkinnedRig implements RigLike {
       // The grip hand stays on its anatomical side when the elbows cross.
       const sName = (i === 0 ? -this.driver.hs : this.driver.hs) > 0 ? "L" : "R";
       const w = (_ss.x + _ss.z) / 2;
+      if (this.role === "skater") {
+        const clav = M[B[`clav${sName}`]];
+        _clavPivot.setFromMatrixPosition(clav);
+        const side = sName === "L" ? 1 : -1;
+        _clavRest.set(side,0,0).transformDirection(_spine);
+        _clavAim.subVectors(shoulder,_clavPivot).normalize();
+        _clavTurn.setFromUnitVectors(_clavRest,_clavAim).multiply(_qs);
+        clav.compose(_clavPivot,_clavTurn,_ss);
+      }
       frameFrom(shoulder, _d1.subVectors(elbow, shoulder), fwd, M[B[`upper${sName}` as BoneName]], _s.set(w, elbow.distanceTo(shoulder) / UPPER, w));
       frameFrom(elbow, _d1.subVectors(hand, elbow), fwd, M[B[`fore${sName}` as BoneName]], _s.set(w, hand.distanceTo(elbow) / FORE, w));
       frameFrom(hand, _d1.subVectors(hand, elbow), fwd, M[B[`hand${sName}` as BoneName]], _s.set(w, w, w));
@@ -1558,6 +1567,8 @@ export class SkinnedRig implements RigLike {
   }
 }
 
+const _clavPivot=new THREE.Vector3(), _clavRest=new THREE.Vector3(), _clavAim=new THREE.Vector3();
+const _clavTurn=new THREE.Quaternion();
 const _gripAxis = new THREE.Vector3(), _gripPosition = new THREE.Vector3();
 const _gripFrame = new THREE.Matrix4(), _gripQuat = new THREE.Quaternion(), _freeQuat = new THREE.Quaternion();
 const _headSeat = new THREE.Matrix4().makeTranslation(0,-.027,.008);

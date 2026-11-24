@@ -265,7 +265,7 @@ const ACTIONS: Record<string, ActionSpec> = {
     dur: 0.85,
     keys: [
       [0, {}],
-      [0.26, { bx: 0.6, by: 0.25, bz: -0.2, gx: 0.12, gy: 0.4, gz: 0.05, twist: 0.7, crouch: 0.1 }],
+      [0.26, { bx: 0.76, by: 0.12, bz: -0.12, gx: 0.14, gy: 0.29, gz: 0.27, twist: 0.58, crouch: 0.14 }],
       [0.38, { bx: 0.2, by: 0.02, bz: 1.15, gx: -0.02, gy: 0.05, gz: 0.42, twist: -0.35, lean: 0.35, crouch: 0.18, offF: 0.1 }],
       [0.6, { bx: -0.08, by: 0.85, bz: 1.05, gx: -0.12, gy: 0.5, gz: 0.42, twist: -0.65, lean: 0.15, offF: 0.1 }],
       [0.85, {}],
@@ -286,7 +286,8 @@ const ACTIONS: Record<string, ActionSpec> = {
     dur: 1.05,
     keys: [
       [0, {}],
-      [0.4, { bx: 0.9, by: 1.55, bz: -0.55, gx: 0.05, gy: 0.55, gz: 0.0, twist: 0.95, crouch: 0.15, stickW: 1 }],
+      [0.23, { bx: .98, by: .65, bz: -.10, gx: .09, gy: .26, gz: .30, twist: .42, crouch: .16, stance: .06 }],
+      [0.4, { bx: 1.24, by: 1.66, bz: -.25, gx: .18, gy: .42, gz: .29, twist: .76, crouch: .22, stance: .09, stickW: 1 }],
       [0.52, { bx: 0.25, by: 0.02, bz: 1.1, gx: -0.02, gy: 0.0, gz: 0.4, twist: -0.4, lean: 0.4, crouch: 0.25, offF: 0.12 }],
       [0.78, { bx: -0.2, by: 1.0, bz: 0.95, gx: -0.15, gy: 0.55, gz: 0.4, twist: -0.75, lean: 0.12 }],
       [1.05, {}],
@@ -462,13 +463,28 @@ const STRIDE = [
   [0.85, 0.4, 0.95, 0.08],
   [1.0, 0.3, 1.05, 0.1],
 ];
+// Match angular velocity across keyframes, including the wrap from recovery
+// to the next glide. Zero the tangent only where a joint changes direction.
+const strideTangents = STRIDE.map((key, index) => {
+  const last = STRIDE.length - 1;
+  const prev = STRIDE[(index + last - 1) % last], next = STRIDE[(index + 1) % last];
+  const before = key[0] > prev[0] ? key[0]-prev[0] : key[0]+1-prev[0];
+  const after = next[0] > key[0] ? next[0]-key[0] : next[0]+1-key[0];
+  return key.map((value, k) => {
+    const left = (value-prev[k])/before, right = (next[k]-value)/after;
+    return left*right > 0 ? 2*left*right/(left+right) : 0;
+  });
+});
 function sampleStride(t: number, out: number[]) {
   let i = 0;
   while (t > STRIDE[i + 1][0]) i++;
   const a = STRIDE[i],
     b = STRIDE[i + 1];
-  const u = smooth((t - a[0]) / (b[0] - a[0]));
-  for (let k = 1; k < 4; k++) out[k - 1] = lerp(a[k], b[k], u);
+  const duration = b[0]-a[0], u = (t-a[0])/duration, v = 1-u;
+  for (let k = 1; k < 4; k++) {
+    out[k-1] = lerp(a[k], b[k], u*u*(3-2*u)) +
+      duration*u*v*(v*strideTangents[i][k] - u*strideTangents[i+1][k]);
+  }
 }
 const strideOut = [0, 0, 0];
 
@@ -787,6 +803,10 @@ export class HockeyRig {
   private playingClip?: THREE.AnimationAction;
   private interrupted?: Pose;
   private readonly contactDrop: number;
+  private runnerContacts?: readonly (readonly THREE.Vector3[])[];
+  setRunnerContacts(points: readonly (readonly THREE.Vector3[])[]) {
+    if (points.length === 2 && points.every(side => side.length)) this.runnerContacts = points;
+  }
   /** Short ragdoll-style tilt after a heavy hit (pitch/roll and their rates). */
   private tilt = { p: 0, r: 0, vp: 0, vr: 0 };
   constructor(
@@ -1447,11 +1467,15 @@ export class HockeyRig {
     this.root.updateMatrixWorld(true);
     let low = Infinity;
     const rootY = this.root.position.y;
-    for (const ankle of this.ankles)
-      for (const bz of [-0.1, 0.19]) {
-        ankle.localToWorld(_a.set(0, -this.contactDrop, bz));
-        low = Math.min(low, _a.y - rootY);
+    for (let i=0; i<this.ankles.length; i++) {
+      const ankle = this.ankles[i];
+      const points = this.runnerContacts?.[i];
+      if (points) {
+        for (const point of points) low = Math.min(low, _a.copy(point).applyMatrix4(ankle.matrixWorld).y-rootY);
+      } else {
+        for (const bz of [-.1,.19]) low = Math.min(low,_a.set(0,-this.contactDrop,bz).applyMatrix4(ankle.matrixWorld).y-rootY);
       }
+    }
     if (P.kneel > 0.5)
       for (const knee of this.knees) {
         knee.localToWorld(_a.set(0, -0.02, 0.07));
@@ -1488,7 +1512,18 @@ export class HockeyRig {
     let lowTarget: THREE.Vector3;
     const free = new THREE.Vector3(P.fx * hs, P.fy, P.fz);
     if (this.hasStick && this.shaft) {
+      if (this.role === "skater") {
+        const advanceShoulder = (shoulder: THREE.Vector3, x:number, y:number, z:number) => {
+          const reach = smooth(clamp((Math.hypot(x-shoulder.x,y-shoulder.y,z)-.36)/.28,0,1));
+          shoulder.z += reach*.039;
+          shoulder.x += clamp(x-shoulder.x,-.22,.22)*reach*.10;
+          shoulder.y += clamp(y-shoulder.y,-.08,.23)*reach*.14;
+        };
+        advanceShoulder(shoulderTop,P.gx*hs,P.gy,P.gz);
+        advanceShoulder(shoulderLow,lerp(P.fx,P.gx,P.stickW)*hs,lerp(P.fy,P.gy,P.stickW),lerp(P.fz,P.gz+.19,P.stickW));
+      }
       const grip = clampReach(new THREE.Vector3(P.gx * hs, P.gy, P.gz), shoulderTop);
+      if (!gk && P.stickW >= .995) clampReach(grip, shoulderLow);
       const gripRoot = grip.clone().applyMatrix4(_m);
       const bladeRoot = new THREE.Vector3(P.bx * hs, P.by, P.bz);
       const stick = bladeRoot.clone().sub(gripRoot);
@@ -1501,11 +1536,14 @@ export class HockeyRig {
       this.blade.rotation.set(0, hs * 0.12, 0);
       topTarget = grip;
       // Lower hand slides down the shaft only as far as the arm reaches.
-      const onStick = new THREE.Vector3();
-      for (let u = 0.52; u >= 0.24; u -= 0.035) {
-        onStick.copy(gripRoot).addScaledVector(stickDir, u).applyMatrix4(_mi);
-        if (onStick.distanceTo(shoulderLow) <= reachMax) break;
-      }
+      // Intersect the shaft with the lower arm's reach sphere in chest space.
+      const localAxis = bladeRoot.clone().applyMatrix4(_mi).sub(grip).divideScalar(bladeRoot.distanceTo(gripRoot));
+      const offset = grip.clone().sub(shoulderLow);
+      const projection = offset.dot(localAxis);
+      const axisLengthSq = localAxis.lengthSq();
+      const discriminant = projection*projection-axisLengthSq*(offset.lengthSq()-reachMax*reachMax);
+      const reachAlongShaft = (-projection+Math.sqrt(Math.max(0,discriminant)))/Math.max(.0001,axisLengthSq);
+      const onStick = grip.clone().addScaledVector(localAxis,clamp(reachAlongShaft,0,.52));
       lowTarget = gk ? free : onStick.lerp(free, 1 - clamp(P.stickW, 0, 1));
     } else {
       // No stick: top hand = right hand, low hand = left hand, both free.

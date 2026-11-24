@@ -406,12 +406,13 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   scene.fog = new THREE.Fog("#0a1019", 75, 150);
   // Lighting: cool fill plus the bright overhead rig of an NHL arena.
   group.add(new THREE.HemisphereLight(0xe6f4ff, 0x1a2230, preset.hemi));
-  const key = new THREE.DirectionalLight(0xffffff, preset.key);
-  key.position.set(8, 40, 14);
+  const key = new THREE.DirectionalLight(0xfff4e8, preset.key);
+  key.position.set(11, 35, 18);
   group.add(key, key.target);
   const fill = new THREE.DirectionalLight(0xbcd6ff, 0.8);
   fill.position.set(-20, 25, -20);
   group.add(fill);
+  group.add(new THREE.HemisphereLight(0xd2e1ed, 0xd9e7ed, .23));
   const mat = (color: string, roughness = 0.6, metalness = 0) =>
     own(new THREE.MeshStandardMaterial({ color, roughness, metalness }));
   const addMerged = (geos: THREE.BufferGeometry[], material: THREE.Material) => {

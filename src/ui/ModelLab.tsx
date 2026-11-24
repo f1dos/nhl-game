@@ -1,3 +1,4 @@
+import { studioReflections } from "./arenaFx";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { appearanceFor, SkinnedRigFactory, type RigLike } from "./skinnedRig";
@@ -98,6 +99,7 @@ export default function ModelLab() {
     renderer.shadowMap.type = THREE.PCFShadowMap;
     el.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
+    const environment = studioReflections(renderer, scene);
     scene.background = new THREE.Color("#0c1218");
     scene.add(new THREE.HemisphereLight("#dfeaf5", "#1a222b", 0.9));
     const key = new THREE.DirectionalLight("#ffffff", 2.4);
@@ -211,14 +213,14 @@ export default function ModelLab() {
       );
       camera.position.set(1.7, 1.55, 3.4);
       look.set(0.13, 0.88, 0.21);
-    } else if (view === "front" || view === "side") {
+    } else if (["front", "side", "portrait", "skates"].includes(view)) {
       add(models.skater(blue), "nhl-NYR-8479323", "Adam Fox", 23, "D", {
-        x: action === "pose" ? -0.55 : 0,
+        x: action === "pose" && view !== "portrait" && view !== "skates" ? -0.55 : 0,
         z: 0,
         yaw: view === "side" ? Math.PI / 2 : 0.25,
         state: "play",
       });
-      if (action === "pose")
+      if (action === "pose" && view !== "portrait" && view !== "skates")
         add(models.skater(white), "nhl-MTL-8480018", "Nick Suzuki", 14, "C", {
           x: 0.65,
           z: -0.2,
@@ -413,6 +415,16 @@ export default function ModelLab() {
       const wallDt = (now - last) / 1000;
       last = now;
       advance(still ? 0 : dt);
+      if (view === "portrait" || view === "skates") {
+        const bone = actors[0].rig.root.getObjectByName(view === "portrait" ? "head" : "footL");
+        if (bone) {
+          bone.getWorldPosition(controls.target);
+          controls.target.y += view === "portrait" ? .055 : .025;
+          controls.target.z += view === "portrait" ? .035 : .015;
+          camera.position.copy(controls.target).add(view === "portrait"
+            ? new THREE.Vector3(.57,.085,.55) : new THREE.Vector3(.64,.27,.57));
+        }
+      }
       controls.update();
       renderer.render(scene, camera);
       frames++;
@@ -445,7 +457,7 @@ export default function ModelLab() {
       ice.geometry.dispose();
       ice.material.dispose();
       key.shadow.dispose();
-      renderer.dispose();
+      environment.dispose(); renderer.dispose();
       renderer.domElement.remove();
     };
   }, []);
@@ -459,6 +471,8 @@ export default function ModelLab() {
       <aside aria-label="Model studio">
         {select("view", "Camera", {
           front: "Front",
+          portrait: "Portrait",
+          skates: "Skates",
           side: "Profile",
           back: "Jersey",
           goalie: "Goaltender",

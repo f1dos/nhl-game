@@ -1,3 +1,4 @@
+import { studioReflections } from "./arenaFx";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
@@ -87,6 +88,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
+    const environment = studioReflections(renderer, scene);
     const factory = makeFactory();
     const arena = buildArena(scene, home, away);
     renderer.toneMappingExposure = arena.preset.exposure;
@@ -547,12 +549,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       frameNo++;
       // Measure presentation time in wall seconds; the animation clock is capped.
       if (now > warmupUntil && !document.hidden) {
-        slowFor = Math.max(0,slowFor + (wallDt > 1/42 ? Math.min(.5,wallDt) : -wallDt*.7));
+        slowFor = Math.min(8,Math.max(0,slowFor + (wallDt > 1/42 ? Math.min(.5,wallDt) : -wallDt*.7)));
       }
-      if (reflections && slowFor > 3) { reflections = false; iceFx.setReflections(false); }
-      if (slowFor > 6 && !directRender) {
-        directRender = true;
-        renderer.shadowMap.enabled = false;
+      if (reflections) {
+        iceFx.setReflectionInterval(slowFor > 3 ? 4 : 2);
+        if (slowFor > 6) directRender = true;
+        else if (slowFor < 1) directRender = false;
       }
       tickShadows(renderer, frameNo);
       if (directRender) renderer.render(scene,camera);
@@ -568,7 +570,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       arena.dispose();
       scene.traverse(object => { if (object instanceof THREE.Mesh && !object.userData.shared) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       factory.dispose();
-      label.remove(); replayBadge.remove(); renderer.dispose(); renderer.domElement.remove();
+      label.remove(); replayBadge.remove(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
   }, [home.id, away.id]);
   const ru = language === "ru";

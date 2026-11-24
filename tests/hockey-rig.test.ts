@@ -123,3 +123,35 @@ test("every pose state is grounded: skates, knees or pads on the ice, or seated 
   assert(moved > 0.2, `a high save reaches out with a hand (${moved.toFixed(2)} m)`);
   factory.dispose();
 });
+test("the skater's gloves stay on the shaft through mirrored shot wind-ups", () => {
+  const factory = new RigFactory();
+  const grips = new Set<number>();
+  for (let id=0; id<32 && grips.size<2; id++) {
+    const rig = factory.skater(kit);
+    rig.setIdentity({id:"grip-test-"+id, name:"Test", number:14},"C");
+    const source = rig.skeletonSource();
+    if (!grips.has(source.hs)) {
+      grips.add(source.hs);
+      for (const action of ["wrist","slap","pass"] as const) {
+        rig.trigger(action);
+        for (let frame=0; frame<75; frame++) {
+          rig.update(1/60,1/60,{x:0,z:0,vx:0,vz:0,puckX:0,puckZ:.8,hasPuck:true,face:0});
+          rig.root.updateMatrixWorld(true);
+          const pose = rig.skeletonSource();
+          if (pose.stickGrip < .995) continue;
+          const shaft = pose.shaft!;
+          const centre = shaft.getWorldPosition(new THREE.Vector3());
+          const axis = new THREE.Vector3(0,1,0).applyQuaternion(shaft.getWorldQuaternion(new THREE.Quaternion()));
+          for (const arm of pose.arms) {
+            const offset = arm.hand.getWorldPosition(new THREE.Vector3()).sub(centre);
+            const gap = offset.addScaledVector(axis,-offset.dot(axis)).length();
+            assert(gap < .018, `${action} frame ${frame} grip ${source.hs} arm ${pose.arms.indexOf(arm)} gap ${gap} hand ${arm.hand.position.toArray()} shaft ${centre.toArray()} axis ${axis.toArray()}`);
+          }
+        }
+      }
+    }
+    rig.dispose();
+  }
+  assert.equal(grips.size,2);
+  factory.dispose();
+});
