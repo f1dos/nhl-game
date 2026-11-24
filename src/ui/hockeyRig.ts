@@ -1146,7 +1146,7 @@ export class HockeyRig {
       case "play":
         if (g) Object.assign(out, { crouch: 0.42, lean: 0.22, gx: -0.3, gy: 0.05, gz: 0.38, bx: -0.05, by: 0.02, bz: 0.95, stickW: 0, fx: 0.42, fy: 0.02, fz: 0.42 });
         else if (this.role === "skater") Object.assign(out, {
-          crouch:.22,lean:.27,stance:.07, gx:-.14,gy:.20,gz:.29, bx:.48,bz:.78
+          crouch:.14,lean:.16,stance:.055, gx:-.14,gy:.20,gz:.29, bx:.48,bz:.78
         });
         else if (!this.hasStick) Object.assign(out, { crouch: 0.15, lean: 0.25, stickW: 0 });
         break;
@@ -1361,8 +1361,8 @@ export class HockeyRig {
     if (inp.hasPuck && !this.action && this.state === "play" && this.role === "skater") {
       if (inp.nearBoards) {
         // Protect the puck along the boards: low, wide, blade away from checkers.
-        P.crouch += 0.2;
-        P.lean += 0.2;
+        P.crouch += .13;
+        P.lean += .105;
         P.roll += 0.18;
         P.bx = 0.55 + Math.sin(this.clock * 3) * 0.05;
         P.bz = 0.55;
@@ -1399,8 +1399,9 @@ export class HockeyRig {
     for (let i = 0; i < 2; i++) {
       const s = i === 0 ? -1 : 1; // physical side: -1 right, +1 left
       sampleStride((this.phase + (i ? 0.5 : 0)) % 1, strideOut);
-      let h = lerp(0.25, strideOut[0], amp),
-        k = lerp(0.6, strideOut[1], amp),
+      const skaterStride = this.role === "skater";
+      let h = lerp(0.25, skaterStride ? .10 + strideOut[0]*.82 : strideOut[0], amp),
+        k = lerp(0.6, skaterStride ? .08 + strideOut[1]*.76 : strideOut[1], amp),
         a = lerp(0.12, strideOut[2], amp);
       if (!skating) {
         h = 0.02;
@@ -1439,10 +1440,14 @@ export class HockeyRig {
       }
       this.hips[i].rotation.set(-h, s * a * 0.7, s * a);
       this.knees[i].rotation.set(k, s * P.bf * .42, s * P.bf * 1.23);
-      this.ankles[i].rotation.set(h - k, -s * a * 0.2, -s * a * 0.85 * (1 - P.seat) + edge * .36);
+      // During recovery a hockey boot follows the shin partway instead of
+      // counter-rotating all the way to a flat blade under a raised heel.
+      const release = skaterStride ? amp*(1-stop)*(1-backward)*(1-P.legW)*Math.max(0, -Math.sin(((this.phase+i*.5)%1)*TAU)) : 0;
+      const anklePitch = (h-k)*(1-.36*release);
+      this.ankles[i].rotation.set(anklePitch, -s * a * 0.2, -s * a * 0.85 * (1 - P.seat) + edge * .36);
     }
     // --- torso and head
-    const lean = (gk ? 0.22 : 0) + this.amp * 0.3 * (1 - P.legW) + crouch * 0.45 + P.lean - stop * 0.15 - P.bf * 0.1;
+    const lean = (gk ? 0.22 : 0) + this.amp * (this.role === "skater" ? .16 : .30) * (1 - P.legW) + crouch * (this.role === "skater" ? .36 : .45) + P.lean - stop * 0.15 - P.bf * 0.1;
     const twist = P.twist * this.hs + Math.sin(this.phase * TAU) * 0.14 * amp * (dir || 1);
     // Load the supporting edge as the opposite leg extends. Goalies keep
     // their shoulders square and the head counterbalances the torso.

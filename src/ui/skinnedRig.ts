@@ -139,7 +139,7 @@ function bindPose(goalie: boolean, hs: number): THREE.Matrix4[] {
 
 type MatKey =
   | "jersey" | "pants" | "socks" | "skin" | "helmet" | "glove" | "boot" | "steel" | "stick" | "tape"
-  | "visor" | "eyeWhite" | "iris" | "lips" | "hair" | "beard" | "trim" | "pad" | "mask" | "cage" | "shirt" | "shoe" | "brow";
+  | "visor" | "eyeWhite" | "iris" | "lips" | "hair" | "beard" | "trim" | "pad" | "mask" | "cage" | "shirt" | "shoe" | "brow" | "liner" | "shinTape";
 
 class Builder {
   pos: number[] = [];
@@ -270,7 +270,7 @@ class Builder {
 }
 const MAT_ORDER: MatKey[] = [
   "jersey", "pants", "socks", "skin", "helmet", "glove", "boot", "steel", "stick", "tape", "visor",
-  "eyeWhite", "iris", "lips", "hair", "beard", "trim", "pad", "mask", "cage", "shirt", "shoe", "brow",
+  "eyeWhite", "iris", "lips", "hair", "beard", "trim", "pad", "mask", "cage", "shirt", "shoe", "brow", "liner", "shinTape",
 ];
 
 interface AlpineBake {
@@ -358,12 +358,7 @@ function alpineGeometry(encoded: string, handedness: number, level: 0 | 1 | 2) {
       const inverse = bind[B[name]].clone().invert();
       const runner = steel.filter(i => b.si[4*i] === B[name]).map(i =>
         new THREE.Vector3().fromArray(b.pos,3*i).applyMatrix4(inverse));
-      const support = new Set<THREE.Vector3>();
-      for (const pitch of [-.65,-.25,0,.25,.65]) for (const roll of [-.65,0,.65]) {
-        const normal = new THREE.Vector3(roll,1,pitch);
-        if (runner.length) support.add(runner.reduce((a,c) => a.dot(normal)<c.dot(normal) ? a : c));
-      }
-      return [...support];
+      return runner;
     });
   }
   geometry.setAttribute("pigment", new THREE.BufferAttribute(pigment, 1));
@@ -1366,6 +1361,8 @@ export class SkinnedRig implements RigLike {
       skin: skinMat,
       helmet: std("helmet", k.helmet, 0.28, { metalness: 0.05 }),
       glove: std("glove", k.pants === "#10161e" ? k.jersey : k.pants, 0.7, {side:THREE.DoubleSide}),
+      liner: std("liner","#282c2e", .94, {side:THREE.DoubleSide}),
+      shinTape: std("shinTape",new THREE.Color(k.socks).lerp(new THREE.Color("#e1e5e3"),.12).getStyle(),.56),
       boot: std("boot", "#15181d", 0.45),
       steel: std("steel", "#c9d3da", 0.2, { metalness: 0.85 }),
       stick: std("stick", "#1b1c20", 0.42),
@@ -1409,7 +1406,7 @@ export class SkinnedRig implements RigLike {
     distant.onBeforeCompile = shader => {
       shader.uniforms.kitPigments = {value:palette};
       shader.vertexShader = "attribute float pigment; varying float vPigment;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvPigment = pigment;");
-      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(abs(vPigment - 10.0) < 0.25 || vPigment > 21.5) discard; if(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
+      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(abs(vPigment - 10.0) < 0.25 || abs(vPigment - 22.0) < .25) discard; if(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
     };
     this.materials = [jersey,distant];
     const list = MAT_ORDER.map((m) => mats[m]);

@@ -155,3 +155,18 @@ test("the skater's gloves stay on the shaft through mirrored shot wind-ups", () 
   assert.equal(grips.size,2);
   factory.dispose();
 });
+test("skaters keep an athletic trunk angle on an open-ice sprint", () => {
+  const factory = new RigFactory();
+  const rig = factory.skater(kit);
+  rig.setIdentity({id:"stride-posture",name:"Posture",number:12},"C");
+  let maxLean=0, maxKnee=0;
+  for (let frame=0;frame<180;frame++) {
+    rig.update(1/60,1/60,{x:0,z:0,vx:0,vz:7,puckX:0,puckZ:12,hasPuck:false,face:0});
+    const pose=rig.skeletonSource();
+    maxLean=Math.max(maxLean,pose.spine.rotation.x);
+    for(const knee of pose.knees) maxKnee=Math.max(maxKnee,knee.rotation.x);
+  }
+  assert(maxLean>.25 && maxLean<.57, `sprint spine pitch ${maxLean}`);
+  assert(maxKnee>.9 && maxKnee<1.32, `sprint knee flexion ${maxKnee}`);
+  rig.dispose();factory.dispose();
+});

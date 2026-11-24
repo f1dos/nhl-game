@@ -177,3 +177,24 @@ test("Alpine runners contact the ice through a stationary stance and full stride
   rig.dispose();
   factory.dispose();
 });
+test("the stocking inside each Alpine skate collar moves rigidly with the boot", () => {
+  const factory=new SkinnedRigFactory();
+  for(const lod of [0,1,2] as const) {
+    const geo=factory.alpineModel(lod,1);
+    const p=geo.getAttribute("position"), joints=geo.getAttribute("skinIndex"), weights=geo.getAttribute("skinWeight");
+    const material=geo.getAttribute("pigment");
+    for(const side of ["L","R"] as const) {
+      const foot=BONES.indexOf(`foot${side}`);
+      let count=0;
+      for(let i=0;i<p.count;i++) {
+        if(material.getX(i)!==2 || p.getY(i)>-.913 || (p.getX(i)>0)!==(side==="L"))continue;
+        let influence=0;
+        for(let j=0;j<4;j++) if(joints.getComponent(i,j)===foot)influence+=weights.getComponent(i,j);
+        assert(influence>.999,`cuff detached at LOD ${lod}, ${side}`);
+        count++;
+      }
+      assert(count>=3,`missing collar section at LOD ${lod}, ${side}`);
+    }
+  }
+  factory.dispose();
+});

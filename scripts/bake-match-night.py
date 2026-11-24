@@ -69,7 +69,7 @@ def player():
             bone=name+suffix
             bind(bone,key+side,frame(head(bone),-axis(bone)),frame(V((sign*.11,h,0)),up),.46/axis(bone).length)
         bone='Foot'+suffix
-        bind(bone,'foot'+side,Matrix.Translation(head(bone)),Matrix.Translation((sign*.11,-.97+.067,0)))
+        bind(bone,'foot'+side,Matrix.Translation(head(bone)),Matrix.Translation((sign*.11,-.97,0)))
     def sweater_uv(point, sleeve):
         if sleeve:
             shoulder=V((sleeve*.235,.51,0))
@@ -80,6 +80,14 @@ def player():
                     min(.48,max(0,along*.80)))
         angle=(math.atan2(point.z,point.x)/(2*math.pi))%1
         return (angle,.5+.5*max(0,min(1,(point.y+.02)/.62)))
+    # The original quarter, tongue and stocking overlap in the authored pose.
+    # Retarget them in one foot frame up to the padded opening. Blend back to
+    # the shin above the boot, using the height of each source boot as scale.
+    cuffs={}
+    for side in ('L','R'):
+        foam=bpy.data.objects['Fitted ankle foam.'+side]
+        bottom,top=tuple(f((foam.matrix_world@V(c)).z for c in foam.bound_box) for f in (min,max))
+        cuffs[side]=(top,top-bottom)
     shaft=bpy.data.objects['Flex 85 | composite shaft']
     coords=sorted([game(shaft.matrix_world@v.co) for v in shaft.data.vertices],key=lambda p:p.y)
     heel=sum(coords[:4],V((0,0,0)))/4
@@ -102,6 +110,8 @@ def player():
     skip=('Jersey hem binding','Alternate captain patch','Woven web belt','Shoulder impact cup','Thoracic protector','Twill','Woven shield','Embroidered','Back numerals','Player name','Woven cuff ID','Helmet front print')
     def surface(o,m):
         n=m.name.lower() if m else ''
+        if o.name.startswith(('Fitted ankle foam','Felt skate tongue','Continuous padded skate tongue')): return 'liner'
+        if o.name.startswith('Shin tape wrap'): return 'shinTape'
         if 'eyebrows | soft roots' in n:return 'brow'
         if 'sweater' in o.name.lower(): return 'jersey'
         if 'stocking' in o.name.lower(): return 'socks'
@@ -197,6 +207,15 @@ def player():
                 if rigid=='Stick' and o.name.startswith(('Taped rocker blade','Spiral friction tape')):rigid='Blade'
                 weights=[(rigid,1)] if rigid else sorted([(o.vertex_groups[g.group].name,g.weight) for g in v.groups if g.weight>.001 and o.vertex_groups[g.group].name in transforms],key=lambda x:-x[1])[:4]
                 weights=weights or [('Chest',1)]
+                if o.name.startswith(('Protective knit stocking','Shin tape wrap')):
+                    side=o.name[-1]
+                    top,height=cuffs[side]
+                    t=max(0,min(1,(p.y-top)/max(height*1.5,.001)))
+                    shin=t*t*(3-2*t)
+                    native=dict(weights)
+                    foot='Foot.'+side
+                    ankle=max(1-shin,native.get(foot,0)/sum(native.values()))
+                    weights=[(foot,ankle),('Shin.'+side,1-ankle)]
                 total=sum(k for _,k in weights)
                 point=sum(((transforms[b][1]@p)*(k/total) for b,k in weights),V((0,0,0)))
                 if o.name.startswith('Home sweater'):
@@ -206,10 +225,6 @@ def player():
                     point.z+=.025*front*chest
                     cap=max(0,1-abs(point.y-.50)/.16)*min(1,abs(point.x)/.24)
                     point.y-=.018*cap
-                if o.name.startswith('Protective knit stocking'):
-                    ankle=max(0,min(1,(-point.y-.69)/.21))
-                    point.z += .035*ankle
-                    point.y -= .018*ankle
                 if any(m==eye for m in mesh.materials):
                     point.z += .0023
                 data['p'].extend(round(x*10000) for x in point)
