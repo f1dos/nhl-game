@@ -16,6 +16,7 @@
     "build:preview": "node scripts/build-preview.mjs"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -29,7 +30,6 @@
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.187.0",
     "fake-indexeddb": "^6.2.8",
-    "fflate": "^0.8.3",
     "happy-dom": "^21.0.4",
     "prettier": "^3.10.1",
     "tsx": "^4.19.0",

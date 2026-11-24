@@ -275,7 +275,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       }
       if (frameData) {
         const stamp = now;
-        if (frameData.tick !== lastTick) {
+        const newTick = frameData.tick !== lastTick;
+        if (newTick) {
           lastTick = frameData.tick;
           puckTrack.push(frameData.tick, frameData.puck.x, frameData.puck.z, stamp);
           frameData.bodies.forEach(b => {
@@ -319,7 +320,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (carrying) {
             pressure = Math.min(...frameData.bodies.filter(o => o.side !== side && !o.goalie).map(o => Math.hypot(o.x - body.x, o.z - body.z)), 20);
             // A pressured carrier dekes now and then (presentation only).
-            if (pressure < 2.4 && frameData.tick % 41 === 0 && !stoppage) rig.trigger("deke");
+            if (newTick && data.running && pressure < 2.4 && frameData.tick % 41 === 0 && !stoppage) rig.trigger("deke");
           }
           rig.update(dt, stoppage ? showDt : animDt, { x: inside.x, z: inside.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: carrying, face: look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
           const mo = rig.motion;

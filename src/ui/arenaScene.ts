@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { buildMatchNight } from "./matchArt";
 import { arenaPreset } from "./arenaFx";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Team } from "../engine/types";
@@ -550,120 +551,10 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     group.add(glassBox);
   });
 
-  // --- two-tier bowl with a crowd
-  const risers: THREE.BufferGeometry[] = [],
-    walls: THREE.BufferGeometry[] = [];
-  const seats: { x: number; y: number; z: number; ry: number }[] = [];
-  const tier = (rows: number, startOut: number, startY: number, rise: number, depth: number) => {
-    for (let r = 0; r < rows; r++) {
-      const out = startOut + r * depth,
-        y = startY + r * rise;
-      const ring = ringPath(out, 2.4);
-      for (let i = 0; i < ring.length; i++) {
-        const a = ring[i],
-          b = ring[(i + 1) % ring.length];
-        const len = a.distanceTo(b);
-        const mx = (a.x + b.x) / 2,
-          mz = (a.y + b.y) / 2;
-        // Leave the bench side's lowest rows clear for benches and staff.
-        if (mz < 0 && Math.abs(mx) < 17 && out < 5.8) continue;
-        if (mz > 0 && Math.abs(mx) < 6 && out < 4.2) continue;
-        const ang = -Math.atan2(b.y - a.y, b.x - a.x);
-        risers.push(placed(new THREE.BoxGeometry(len + 0.05, 0.42, depth), mx, y - 0.21, mz, ang));
-        const count = Math.max(1, Math.floor(len / 0.62));
-        const nx = -(b.y - a.y) / len,
-          nz = (b.x - a.x) / len;
-        const sign = mx * nx + mz * nz > 0 ? 1 : -1;
-        for (let k = 0; k < count; k++) {
-          const t = (k + 0.5) / count;
-          seats.push({ x: a.x + (b.x - a.x) * t, y, z: a.y + (b.y - a.y) * t, ry: Math.atan2(-nx * sign, -nz * sign) });
-        }
-      }
-    }
-  };
-  const L = preset.lowerRows;
-  tier(L, 2.6, 0.9, 0.42, 0.88);
-  // Club-level fascia between the tiers, then the steeper upper deck.
-  const suiteGlass: THREE.BufferGeometry[] = [];
-  {
-    const ring = ringPath(2.6 + L * 0.88 + 0.3, 2.6);
-    for (let i = 0; i < ring.length; i++) {
-      const a = ring[i],
-        b = ring[(i + 1) % ring.length];
-      const len = a.distanceTo(b);
-      const mx = (a.x + b.x) / 2, mz = (a.y + b.y) / 2, ang = -Math.atan2(b.y - a.y, b.x - a.x);
-      walls.push(placed(new THREE.BoxGeometry(len + 0.05, preset.suites ? 0.9 : 2.4, 0.3), mx, 0.9 + L * 0.42 + (preset.suites ? 0.45 : 1.2), mz, ang));
-      // Luxury suites: a lit glass band between the bowls.
-      if (preset.suites) suiteGlass.push(placed(new THREE.BoxGeometry(len - 0.1, 1.5, 0.1), mx, 0.9 + L * 0.42 + 1.65, mz, ang));
-    }
-  }
-  tier(preset.upperRows, 2.6 + L * 0.88 + 1.2, 0.9 + L * 0.42 + 2.6, 0.62, 0.9);
-  addMerged(suiteGlass, own(new THREE.MeshStandardMaterial({ color: "#2a3542", emissive: "#ffd9a0", emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.3 })));
-  addMerged(risers, mat("#27323e", 0.85))?.layers.set(1);
-  addMerged(walls, mat(home.color, 0.6))?.layers.set(1);
-  const fanBody = new THREE.InstancedMesh(own(new THREE.CapsuleGeometry(0.2, 0.42, 2, 6)), mat("#ffffff", 0.95), seats.length);
-  const fanHead = new THREE.InstancedMesh(own(new THREE.SphereGeometry(0.13, 8, 6)), mat("#ffffff", 0.8), seats.length);
-  const skin = ["#f2cfae", "#e6b690", "#d09a72", "#a76d48", "#6b4430"].map((c) => new THREE.Color(c));
-  const homeColor = new THREE.Color(home.color),
-    awayColor = new THREE.Color(away.color);
-  const neutral = ["#e9eef3", "#2b3a4a", "#55697e", "#1d1d1d", "#8a98a6"].map((c) => new THREE.Color(c));
-  const dim = 0.35 + preset.stands * 0.75;
-  homeColor.multiplyScalar(dim);
-  awayColor.multiplyScalar(dim);
-  neutral.forEach((c) => c.multiplyScalar(dim));
-  const homeFan: boolean[] = [];
-  const dummy = new THREE.Object3D();
-  const rand = (i: number) => {
-    const x = Math.sin(i * 12.9898) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  seats.forEach((s, i) => {
-    const r = rand(i);
-    const empty = rand(i + 7) < 0.04;
-    dummy.position.set(s.x, empty ? -50 : s.y + 0.42, s.z);
-    dummy.rotation.set(0, s.ry, 0);
-    dummy.scale.setScalar(0.92 + rand(i + 3) * 0.16);
-    dummy.updateMatrix();
-    fanBody.setMatrixAt(i, dummy.matrix);
-    dummy.position.y += 0.47;
-    dummy.updateMatrix();
-    fanHead.setMatrixAt(i, dummy.matrix);
-    const isHome = r < 0.62;
-    homeFan.push(isHome);
-    fanBody.setColorAt(i, isHome ? (rand(i + 11) < 0.7 ? homeColor : neutral[0]) : r < 0.7 ? awayColor : neutral[Math.floor(rand(i + 5) * neutral.length)]);
-    fanHead.setColorAt(i, skin[Math.floor(rand(i + 13) * skin.length)]);
-  });
-  group.add(fanBody, fanHead);
-  // Stands live on layer 1: drawn by the main camera only, never in the
-  // ice reflection or the shadow map.
-  fanBody.layers.set(1);
-  fanHead.layers.set(1);
-  const baseBody = Array.from({ length: seats.length }, (_, i) => {
-    const m = new THREE.Matrix4();
-    fanBody.getMatrixAt(i, m);
-    return m;
-  });
-  const baseHead = Array.from({ length: seats.length }, (_, i) => {
-    const m = new THREE.Matrix4();
-    fanHead.getMatrixAt(i, m);
-    return m;
-  });
-
+  const venue = buildMatchNight(own);
+  group.add(venue.bowl, venue.ceiling);
   // --- rafters, catwalk lights, banners
-  const roofY = 28;
-  const ceiling: THREE.Object3D[] = [];
-  const truss: THREE.BufferGeometry[] = [];
-  for (let x = -40; x <= 40; x += 8) truss.push(placed(new THREE.BoxGeometry(0.4, 0.6, 70), x, roofY, 0));
-  for (let z = -30; z <= 30; z += 10) truss.push(placed(new THREE.BoxGeometry(84, 0.4, 0.4), 0, roofY - 0.4, z));
-  const trussMesh = addMerged(truss, mat("#1c242e", 0.7, 0.4));
-  if (trussMesh) {
-    trussMesh.layers.set(1);
-    ceiling.push(trussMesh);
-  }
-  const lightPanels: THREE.BufferGeometry[] = [];
-  for (let x = -28; x <= 28; x += 7) for (const z of [-9, 0, 9]) lightPanels.push(placed(new THREE.BoxGeometry(2.2, 0.2, 1.2), x, roofY - 1, z));
-  const panelMesh = addMerged(lightPanels, own(new THREE.MeshStandardMaterial({ color: "#ffffff", emissive: "#fff6e0", emissiveIntensity: 1.6 })));
-  if (panelMesh) ceiling.push(panelMesh);
+  const ceiling: THREE.Object3D[] = [venue.ceiling];
   for (let i = 0; i < 4; i++) {
     const banner = canvasTexture(256, 512, (c) => {
       c.fillStyle = i % 2 ? "#ffffff" : home.color;
@@ -790,7 +681,6 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   });
 
   let clock = 0;
-  let jumping = false;
   return {
     group,
     ice,
@@ -804,30 +694,7 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
         m.color.set(on ? "#ff4a3a" : "#5a1414");
       });
       if (r.score) drawScore(r.score, r.goalSide !== 0, clock);
-      // Home fans jump when their team scores, the building rises on a big
-      // chance, and now and then a wave rolls around the bowl.
-      const waveT = clock % 75;
-      const wave = !!r.playing && waveT < 9;
-      const rising = !!r.danger;
-      if (r.homeScored || jumping || wave || rising) {
-        jumping = r.homeScored || wave || rising;
-        const front = (waveT / 9) * Math.PI * 2 - Math.PI;
-        const m = new THREE.Matrix4();
-        for (let i = 0; i < seats.length; i++) {
-          const s = seats[i];
-          const angle = Math.atan2(s.z, s.x);
-          const inWave = wave ? Math.max(0, 1 - Math.abs(((angle - front + Math.PI * 3) % (Math.PI * 2)) - Math.PI) * 2.2) : 0;
-          const jump = (r.homeScored && homeFan[i] ? Math.abs(Math.sin(clock * 7 + i * 0.37)) * 0.32 : 0) + inWave * 0.45 + (rising ? 0.14 : 0);
-          m.copy(baseBody[i]);
-          m.elements[13] += jump;
-          fanBody.setMatrixAt(i, m);
-          m.copy(baseHead[i]);
-          m.elements[13] += jump;
-          fanHead.setMatrixAt(i, m);
-        }
-        fanBody.instanceMatrix.needsUpdate = true;
-        fanHead.instanceMatrix.needsUpdate = true;
-      }
+      venue.react(clock, !!r.homeScored, !!r.danger, !!r.playing);
     },
     /** Hide the rafters and scoreboard for cameras that look down from above them. */
     setCeilingVisible(visible: boolean) {

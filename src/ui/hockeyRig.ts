@@ -1125,6 +1125,9 @@ export class HockeyRig {
     switch (state) {
       case "play":
         if (g) Object.assign(out, { crouch: 0.42, lean: 0.22, gx: -0.3, gy: 0.05, gz: 0.38, bx: -0.05, by: 0.02, bz: 0.95, stickW: 0, fx: 0.42, fy: 0.02, fz: 0.42 });
+        else if (this.role === "skater") Object.assign(out, {
+          crouch:.22,lean:.27,stance:.07, gx:-.14,gy:.20,gz:.29, bx:.48,bz:.78
+        });
         else if (!this.hasStick) Object.assign(out, { crouch: 0.15, lean: 0.25, stickW: 0 });
         break;
       case "faceoff-ready":
@@ -1177,7 +1180,7 @@ export class HockeyRig {
       case "box":
         Object.assign(out, {
           legW: 1, sHip: 1.45, sKnee: 1.5, sAbd: 0.12, oHip: 1.45, oKnee: 1.5, oAbd: 0.12, seat: 1,
-          lean: state === "box" ? 0.35 : 0.18 + 0.04 * Math.sin(c * 0.6 + v * 9),
+          lean: state === "box" ? 0.35 : 0.22 + .19*v + 0.045 * Math.sin(c * 0.6 + v * 9),
           bx: 0.08, by: 0.02, bz: 0.55, gx: 0.02, gy: 0.06, gz: 0.32, stickW: 0, fx: 0.16, fy: -0.15, fz: 0.36,
           headPitch: state === "box" ? 0.35 : -0.05,
         });
@@ -1499,7 +1502,7 @@ export class HockeyRig {
       topTarget = grip;
       // Lower hand slides down the shaft only as far as the arm reaches.
       const onStick = new THREE.Vector3();
-      for (let u = 0.5; u >= 0.2; u -= 0.05) {
+      for (let u = 0.52; u >= 0.24; u -= 0.035) {
         onStick.copy(gripRoot).addScaledVector(stickDir, u).applyMatrix4(_mi);
         if (onStick.distanceTo(shoulderLow) <= reachMax) break;
       }
@@ -1538,6 +1541,7 @@ export class HockeyRig {
       knees: this.knees,
       ankles: this.ankles,
       arms: this.armMeshes,
+      stickGrip: this.current.stickW,
       shaft: this.shaft,
       blade: this.blade,
       hs: this.hs,
