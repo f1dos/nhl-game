@@ -1,3 +1,7 @@
+import alpineDetail from "../assets/alpine-detail.json";
+import alpineWide from "../assets/alpine-wide.json";
+import alpineBroadcast from "../assets/alpine-broadcast.json";
+import { unpack } from "./matchArt";
 import headMesh from "../assets/hm08-head.json";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -264,6 +268,37 @@ const MAT_ORDER: MatKey[] = [
   "jersey", "pants", "socks", "skin", "helmet", "glove", "boot", "steel", "stick", "tape", "visor",
   "eyeWhite", "iris", "lips", "hair", "beard", "trim", "pad", "mask", "cage", "shirt", "shoe",
 ];
+
+interface AlpineBake {
+  p: number[]; uv: number[]; j: number[]; w: number[];
+  bones: BoneName[]; tri: Partial<Record<MatKey, number[]>>;
+}
+
+/** Reuse the game's animated skeleton and kit atlas on the Blender surface. */
+function alpineGeometry(encoded: string, handedness: number) {
+  const art = unpack<AlpineBake>(encoded);
+  const b = new Builder();
+  b.pos = art.p.map(x => x / 10000);
+  b.uv = art.uv.map(x => x / 65535);
+  b.si = art.j.map(i => B[art.bones[i]]);
+  b.sw = art.w.map(x => x / 255);
+  for (let i = 0; i < b.sw.length; i += 4) {
+    const total = b.sw[i] + b.sw[i+1] + b.sw[i+2] + b.sw[i+3];
+    for (let j = 0; j < 4; j++) b.sw[i+j] /= total;
+    if ((b.si[i] === B.stick || b.si[i] === B.blade) && handedness < 0) b.pos[i/4*3] -= .90;
+  }
+  const pigment = new Float32Array(b.pos.length/3);
+  for (const [name, triangles] of Object.entries(art.tri)) {
+    const material = name as MatKey;
+    b.tris.set(material, triangles);
+    for (const vertex of triangles) pigment[vertex] = MAT_ORDER.indexOf(material);
+  }
+  const geometry = b.build();
+  geometry.setAttribute("pigment", new THREE.BufferAttribute(pigment, 1));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(b.pos.length).fill(1),3));
+  geometry.name = "Alpine 27";
+  return geometry;
+}
 
 /* ---------------------------------------------------------- appearance */
 
@@ -995,6 +1030,7 @@ interface Built {
 }
 
 export class SkinnedRigFactory {
+  private alpine = new Map<string, THREE.BufferGeometry>();
   private cache = new Map<string, Built>();
   private shared = new Map<string, THREE.Material>();
   private logos = new Map<string, HTMLImageElement | null>();
@@ -1022,9 +1058,19 @@ export class SkinnedRigFactory {
     return texture;
   }
   equipped(model: Built, role: RigRole, look: Appearance, level: 1 | 2) {
+    if (role === "skater") return this.alpineModel(level,look.hs);
     if (!this.equipment || role === "coach") return level === 2 ? model.hi : model.mid;
     if (level === 1) return model.broadcast ??= buildBody({role, look, detail:1, equipment:this.equipment[role === "goalie" ? "broadcast_goalie" : "broadcast_skater"]}).geometry;
     return model.detailed ??= buildBody({role, look, detail:2, equipment:this.equipment[role === "goalie" ? "goalie" : "skater"]}).geometry;
+  }
+  alpineModel(level: 0 | 1 | 2, hs: number) {
+    const key = level + ":" + hs;
+    let geometry = this.alpine.get(key);
+    if (!geometry) {
+      geometry = alpineGeometry(level === 2 ? alpineDetail : level === 1 ? alpineBroadcast : alpineWide, hs);
+      this.alpine.set(key, geometry);
+    }
+    return geometry;
   }
   mat(key: string, make: () => THREE.Material) {
     let m = this.shared.get(key);
@@ -1075,6 +1121,8 @@ export class SkinnedRigFactory {
     return new SkinnedRig(this, { jersey: suit, trim: teamColour, pants: suit, helmet: suit, socks: suit }, "coach");
   }
   dispose() {
+    this.alpine.forEach(geometry => geometry.dispose());
+    this.alpine.clear();
     this.cache.forEach(model => model.dispose());
     this.released = true;
     if (this.equipment) Object.values(this.equipment).flat().forEach(p => p.geometry.dispose());
@@ -1229,11 +1277,12 @@ export class SkinnedRig implements RigLike {
     distant.onBeforeCompile = shader => {
       shader.uniforms.kitPigments = {value:palette};
       shader.vertexShader = "attribute float pigment; varying float vPigment;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvPigment = pigment;");
-      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
+      shader.fragmentShader = `uniform vec3 kitPigments[${palette.length}]; varying float vPigment;\n`+shader.fragmentShader.replace("#include <map_fragment>","#include <map_fragment>\nif(abs(vPigment - 10.0) < 0.25) discard; if(vPigment > 0.5) diffuseColor.rgb = kitPigments[int(vPigment+0.5)];");
     };
     this.materials = [jersey,distant];
     const list = MAT_ORDER.map((m) => mats[m]);
-    this.meshes = [model.lo, model.lo, model.lo].map((geo, i) => {
+    const wide = this.role === "skater" ? this.factory.alpineModel(0, look.hs) : model.lo;
+    this.meshes = [wide, wide, wide].map((geo, i) => {
       const mesh = new THREE.SkinnedMesh(geo, i === 2 ? distant : list);
       // Bounds are in the moving player's frame and include the raised stick.
       mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(0,1,0),2.85);
@@ -1331,6 +1380,9 @@ export class SkinnedRig implements RigLike {
       _dir.set(0, 1, 0).applyQuaternion(src.shaft.quaternion).negate();
       local(src.blade,M[B.blade]);
       frameFrom(src.blade.position, _dir, _fwd.set(0, 0, 1), M[B.stick]);
+      // Keep the shaft butt just above the upper grip at each reach.
+      if (this.role === "skater")
+        M[B.stick].scale(_s.set(1, src.shaft.scale.y / 1.65, 1));
     }
     // Jersey hem flutters back with speed and sways with the stride.
     const speed = src.speed;
