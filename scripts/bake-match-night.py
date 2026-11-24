@@ -74,26 +74,49 @@ def player():
     coords=sorted([game(shaft.matrix_world@v.co) for v in shaft.data.vertices],key=lambda p:p.y)
     heel=sum(coords[:4],V((0,0,0)))/4
     tip=sum(coords[-4:],V((0,0,0)))/4
+    shaft_axis=(tip-heel).normalized()
+    for side,sign in [('L',1),('R',-1)]:
+        suffix='.'+side
+        # Game targets are on the shaft; the Blender hand bone begins at the wrist.
+        anchor=heel+shaft_axis*(head('Hand'+suffix)-heel).dot(shaft_axis)
+        d1=V((sign*.3,-1,.05)).normalized()
+        d2=V((sign*.12,-1,.3)).normalized()
+        hand=V((sign*.235,.51,0))+d1*.31+d2*.30
+        bind('Hand'+suffix,'hand'+side,frame(anchor,shaft_axis,axis('Forearm'+suffix)),frame(hand,d2))
+        cuff=bpy.data.objects['Cuff lining'+suffix]
+        cuff_center=sum((game(cuff.matrix_world@V(c)) for c in cuff.bound_box),V((0,0,0)))/8
+        bind('Cuff'+suffix,'fore'+side,frame(cuff_center,axis('Forearm'+suffix)),frame(hand-d2*.050,d2))
     stickdir=V((0,1,-.35))
     bind('Stick','stick',frame(heel,tip-heel,V((1,0,0))),frame(V((.45,-1.05,.9)),stickdir))
     bind('Blade','blade',frame(heel,up,V((1,0,0))),Matrix.Translation((.45,-1.025,.9)))
-    skip=('Twill','Woven shield','Embroidered','Back numerals','Player name','Woven cuff ID','Helmet front print')
+    skip=('Jersey hem binding','Alternate captain patch','Woven web belt','Home sweater','Ribbed V neck','Shoulder impact cup','Thoracic protector','Twill','Woven shield','Embroidered','Back numerals','Player name','Woven cuff ID','Helmet front print')
     def surface(o,m):
         n=m.name.lower() if m else ''
         if 'sweater' in o.name.lower(): return 'jersey'
         if 'stocking' in o.name.lower(): return 'socks'
+        if o.name.startswith('Taped rocker blade'):return 'stick'
         if 'pant' in o.name.lower() or 'breezer' in o.name.lower(): return 'pants'
         for token,key in [('polycarbonate','visor'),('clear ear','visor'),('skin','skin'),('sclera','eyeWhite'),('iris','iris'),('corneal','iris'),('hair','hair'),('espresso','hair'),('eyebrow','hair'),('helmet enamel','helmet'),('pearl white','helmet'),('steel','steel'),('titanium','steel'),('copper','steel'),('nylon','pad'),('tape','tape'),('cotton','tape'),('glove','glove'),('teal','trim'),('marigold','trim'),('ivory','pad')]:
             if token in n:return key
         return 'stick' if o.users_collection[0].name.startswith('05_') else 'boot'
+    # Sample the original diffuse texture on its authored head UVs. Store only
+    # face vertices, keeping the atlas and unused body regions out of the game.
+    import numpy as np
+    face=bpy.data.objects['Player | continuous face, neck and ears']
+    bsdf=next(n for n in face.active_material.node_tree.nodes if n.type=='BSDF_PRINCIPLED')
+    image=bsdf.inputs['Base Color'].links[0].from_node.image.copy()
+    image.scale(512,512)
+    pixels=np.empty(512*512*4,dtype=np.float32)
+    image.pixels.foreach_get(pixels)
+    texels=pixels.reshape((512,512,4))
     graph=bpy.context.evaluated_depsgraph_get()
     for level,ratio in [('detail',.28),('broadcast',.085),('wide',.026)]:
-        data={'p':[],'uv':[],'j':[],'w':[],'bones':list(dict.fromkeys(t[0] for t in transforms.values())),'tri':collections.defaultdict(list)}
+        data={'faceColor':[],'p':[],'uv':[],'j':[],'w':[],'bones':list(dict.fromkeys(t[0] for t in transforms.values())),'tri':collections.defaultdict(list)}
         selected=[]
         for o in sorted(arm.children,key=lambda x:x.name):
             if o.type not in {'MESH','CURVE','FONT'} or o.hide_render or o.name.startswith(skip):continue
             if any(m and 'Corneal gloss' in m.name for m in o.data.materials):continue
-            if level!='detail' and (max(o.dimensions)<(.09 if level=='wide' else .045) or o.type=='CURVE'):continue
+            if level!='detail' and (level=='wide' or o.parent_bone!='Head') and (max(o.dimensions)<(.09 if level=='wide' else .045) or o.type=='CURVE'):continue
             if level=='wide' and o.name.startswith(('Shaft finish','Spiral friction','Grip tape','Helmet energy liner')):continue
             if o.type=='CURVE':
                 o.data.resolution_u=2
@@ -115,6 +138,8 @@ def player():
             for v in mesh.vertices:
                 p=game(obj.matrix_world@v.co)
                 rigid='Stick' if o.users_collection[0].name.startswith('05_') else o.parent_bone
+                if rigid.startswith('Hand.') and o.name.startswith(('Cuff lining','Independent wrist petal','Gauntlet stitch','Woven cuff ID')):
+                    rigid='Cuff'+rigid[-2:]
                 if rigid=='Stick' and o.name.startswith(('Taped rocker blade','Spiral friction tape')):rigid='Blade'
                 weights=[(rigid,1)] if rigid else sorted([(o.vertex_groups[g.group].name,g.weight) for g in v.groups if g.weight>.001 and o.vertex_groups[g.group].name in transforms],key=lambda x:-x[1])[:4]
                 weights=weights or [('Chest',1)]
@@ -142,6 +167,19 @@ def player():
                 elif o.name.startswith('Protective knit stocking'):
                     vcoord=max(0,min(1,(point.y+.93)/.48))
                 data['uv'].extend((round(u*65535),round(vcoord*65535)))
+            if o==face and mesh.uv_layers.active:
+                uv=mesh.uv_layers.active.data
+                sampled=set()
+                for loop in mesh.loops:
+                    idx=loop.vertex_index
+                    if idx in sampled:continue
+                    sampled.add(idx)
+                    u,v=uv[loop.index].uv
+                    rgb=texels[int(v*512)%512,int(u*512)%512,:3]
+                    # Preserve pores, brows and lip colour around the team's
+                    # per-player skin tone instead of baking one complexion.
+                    relative=np.clip((rgb / np.array([.76,.54,.42]))**1.4,.07,1.0)
+                    data['faceColor'].extend([base+idx,*[round(float(c)*255) for c in relative]])
             for t in mesh.loop_triangles:
                 mat=mesh.materials[t.material_index] if len(mesh.materials)>t.material_index else None
                 data['tri'][surface(o,mat)].extend(base+i for i in t.vertices)

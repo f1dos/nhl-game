@@ -27,9 +27,9 @@ const HOME: TeamKit = {
 const AWAY: TeamKit = {
   jersey: "#e8edf3",
   trim: "#c8102e",
-  pants: "#5a0a16",
-  helmet: "#c8102e",
-  socks: "#c8102e",
+  pants: "#182c57",
+  helmet: "#eceded",
+  socks: "#e6e8e8",
   logo: "https://assets.nhle.com/logos/nhl/svg/MTL_light.svg",
   abbr: "MTL",
 };
@@ -422,9 +422,9 @@ export default function ModelLab() {
         if (meter.current && studyReady && !studyError)
           meter.current.textContent =
             Math.round(frames / fpsT) +
-            " FPS · " +
+            " FPS В· " +
             renderer.info.render.triangles.toLocaleString() +
-            " triangles · " +
+            " triangles В· " +
             renderer.info.render.calls +
             " draws";
         frames = 0;
@@ -465,7 +465,7 @@ export default function ModelLab() {
           faceoff: "Faceoff",
           celebrate: "Celebration",
           lineup: "Line-up",
-          skater27: "Skater 27 · Blender",
+          skater27: "Skater 27 В· Blender",
         })}
         {params.get("view") !== "skater27" && (
           <>
