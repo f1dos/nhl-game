@@ -98,3 +98,45 @@ test("distant characters use one shaded draw and release per-identity GPU resour
   assert.equal(skeletonsFreed,1);
   rig.dispose();factory.dispose();
 });
+
+test("Alpine match surfaces share their LODs and follow the animated blade for both grips", () => {
+  const factory = new SkinnedRigFactory();
+  const kit = { jersey:"#1b3568", trim:"#fff", pants:"#111", helmet:"#112", socks:"#eee" };
+  for (const hs of [-1,1]) {
+    const detail = factory.alpineModel(2,hs);
+    const broadcast = factory.alpineModel(1,hs);
+    const wide = factory.alpineModel(0,hs);
+    assert.equal(factory.alpineModel(0,hs),wide);
+    assert(wide.index!.count < broadcast.index!.count && broadcast.index!.count < detail.index!.count);
+    assert(wide.index!.count / 3 < 5000);
+    const id = Array.from({length:64},(_,i)=>String(i)).find(key=>appearanceFor(key,"skater","C").hs===hs)!;
+    const rig = factory.skater(kit);
+    rig.setIdentity({id,name:"Sample",number:17},"C");
+    const lod = rig.root.children.find(o=>o instanceof THREE.LOD) as THREE.LOD;
+    const mesh = lod.levels[2].object as THREE.SkinnedMesh;
+    assert.equal(mesh.geometry,wide);
+    const joints = wide.getAttribute("skinIndex");
+    let tip = -1;
+    for (let i=0;i<joints.count;i++) {
+      if(joints.getX(i)===BONES.indexOf("blade")) { tip=i;break; }
+    }
+    assert(tip>=0);
+    let previous: THREE.Vector3 | undefined;
+    let travel=0;
+    for (const kind of ["pass","wrist","snap","slap","check","fall","deke","receive","draw"] as const) {
+      rig.trigger(kind);
+      for(let frame=0;frame<40;frame++) {
+        rig.update(1/60,1/60,{x:0,z:0,vx:1,vz:3,puckX:0,puckZ:.9,hasPuck:true});
+        rig.root.updateMatrixWorld(true);
+        const point=mesh.getVertexPosition(tip,new THREE.Vector3());
+        assert(point.toArray().every(Number.isFinite));
+        assert(point.length()<4);
+        if(previous)travel+=previous.distanceTo(point);
+        previous=point;
+      }
+    }
+    assert(travel>1);
+    rig.dispose();
+  }
+  factory.dispose();
+});
