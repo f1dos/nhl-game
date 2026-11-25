@@ -3,6 +3,7 @@ import * as THREE from "three";
 import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
 import { BENCH, PENALTY_BOX, RINK, separateSkaters } from "../engine/rink";
+import { clearSkaterNet, skaterNetRoute } from "../engine/goalGeometry";
 import { RigFactory, type RigState } from "./hockeyRig";
 import { type RigLike } from "./skinnedRig";
 import { TrackSmoother } from "./motionSmoothing";
@@ -120,7 +121,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     // --- benches: every dressed player has a seat and a full figure. Players
     // skate between the ice, their bench gate and the penalty box.
     type Spot = { x: number; z: number };
-    interface Member { rig: RigLike; id: string; side: number; seatX: number; mode: "seat" | "moving" | "box"; x: number; z: number; vx: number; vz: number; path: Spot[]; boxSeat?: Spot }
+    interface Member { rig: RigLike; id: string; side: number; seatX: number; mode: "seat" | "moving" | "box"; x: number; z: number; vx: number; vz: number; path: Spot[]; vault?: boolean; boxSeat?: Spot }
     const bench: Member[] = [];
     const memberOf = new Map<string, Member>();
     teams.forEach((team, side) => {
@@ -138,7 +139,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         memberOf.set(p.id, m);
       });
     });
-    const benchDoor = (m: Member): Spot => ({ x: Math.max(BENCH.centerX[m.side] - BENCH.halfLength + 0.8, Math.min(BENCH.centerX[m.side] + BENCH.halfLength - 0.8, m.seatX)), z: BENCH.doorZ });
+    const benchDoor = (m: Member): Spot => ({ x: BENCH.centerX[m.side], z: BENCH.doorZ });
     const boxDoor = (side: number): Spot => ({ x: PENALTY_BOX.centerX[side], z: PENALTY_BOX.doorZ });
     // --- coaches: head coach and assistant behind each bench, on the step
     const coaches = teams.flatMap((team, side) => [0, 1].map((k) => {
@@ -153,7 +154,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     const prevOnIce = new Set<string>();
     let icePrimed = false;
     const lastIce = new Map<string, Spot>();
-    const entering = new Map<string, { dx: number; dz: number; t: number }>();
+    const entering = new Map<string, { dx: number; dz: number; t: number; vaultX?: number }>();
     // --- officials: two referees (orange armbands) and two linesmen
     const officials: Official[] = (["referee", "referee", "linesman", "linesman"] as const).map((role, i) => {
       const rig = factory.official(role);
@@ -318,7 +319,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           rig.setVisible(!!body);
           if (!body) return;
           const player = playerOf(side, body.id);
-          if (player) rig.setIdentity({ id: player.id, name: player.name, number: player.number }, player.pos);
+          const swapped = rig.root.userData.playerId !== body.id;
+          if (swapped && player) {
+            rig.setIdentity({ id: player.id, name: player.name, number: player.number }, player.pos);
+            rig.root.userData.playerId = body.id;
+          }
           byBody.set(body.id, rig);
           const look = skaterState(body, stoppage, frameData);
           rig.setState(look.state, look.variant ?? 0, look.side ?? 1);
@@ -330,24 +335,31 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
             const m = memberOf.get(body.id);
             const from = m ? (m.mode === "box" ? boxDoor(m.side) : benchDoor(m)) : undefined;
             if (from && (stoppage || Math.abs(body.z - BENCH.frontZ) > 2)) entering.set(body.id, { dx: from.x - x, dz: from.z - z, t: 0 });
+            else if (Math.abs(body.z-BENCH.frontZ) < 2)
+              entering.set(body.id, { dx: 0, dz: 0, t: 0, vaultX: BENCH.centerX[side]-2.05 });
           }
           const enter = entering.get(body.id);
           if (enter) {
-            enter.t += dt * Math.min(Math.max(1, data.playback), 2.5);
+            enter.t += (data.running ? dt : 0) * Math.min(Math.max(1, data.playback), 2.5);
             const k = 1 - smoothstep(enter.t / 1.3);
-            x += enter.dx * k; z += enter.dz * k;
+            if (enter.vaultX !== undefined) {
+              const landing = smoothstep(Math.max(0,(enter.t-.78)/.52));
+              x = THREE.MathUtils.lerp(enter.vaultX,x,landing);
+              const cross = smoothstep(Math.min(1,enter.t/.78));
+              z = THREE.MathUtils.lerp(THREE.MathUtils.lerp(-RINK.boardsZ-.82,BENCH.doorZ,cross),z,landing);
+            } else { x += enter.dx * k; z += enter.dz * k; }
             if (enter.t >= 1.3) entering.delete(body.id);
           }
-          const inside = insideBoards(x, z);
-          lastIce.set(body.id, inside);
+          const inside = enter?.vaultX !== undefined ? {x,z} : insideBoards(x, z);
+          const safe = clearSkaterNet(swapped ? inside : lastIce.get(body.id) ?? inside, inside);
+          if (swapped) rig.place(safe.x, safe.z, look.face ?? Math.atan2(body.vx, body.vz || .01));
+          lastIce.set(body.id, safe);
           const carrying = frameData.carrierId === body.id;
-          let pressure: number | undefined;
-          if (carrying) {
-            pressure = Math.min(...frameData.bodies.filter(o => o.side !== side && !o.goalie).map(o => Math.hypot(o.x - body.x, o.z - body.z)), 20);
-            // A pressured carrier dekes now and then (presentation only).
-            if (pressure < 2.4 && frameData.tick % 41 === 0 && !stoppage) rig.trigger("deke");
-          }
-          rig.update(dt, stoppage ? showDt : animDt, { x: inside.x, z: inside.z, vx: body.vx, vz: body.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: carrying, face: look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
+          const pressure = carrying || Math.hypot(frameData.puck.x-body.x, frameData.puck.z-body.z) < 3
+            ? Math.min(...frameData.bodies.filter(o => o.side !== side && !o.goalie)
+                .map(o => Math.hypot(o.x - body.x, o.z - body.z)), 20)
+            : undefined;
+          rig.update(dt, stoppage ? showDt : animDt, { x: safe.x, z: safe.z, vx: body.vx, vz: body.vz, puckX: frameData.puck.x, puckZ: frameData.puck.z, hasPuck: carrying, vault: enter?.vaultX !== undefined ? Math.min(1,enter.t/.78) : undefined, face: enter?.vaultX !== undefined && enter.t<.78 ? 0 : look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
           const mo = rig.motion;
           if (mo?.stopping && running(data)) spray.emit(inside.x, inside.z, mo.yaw, dt);
         });
@@ -369,14 +381,27 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
             gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
           }
           if (cue.kind === "shot") {
-            actor?.trigger(cue.release ?? "shot");
+            const shooterBody = at(cue.id);
+            const keeperBody = frameData.bodies.find(b=>b.goalie && b.side!==actorSide);
+            actor?.trigger(cue.release ?? "shot", shooterBody && keeperBody ? {x:keeperBody.x-shooterBody.x,z:(cue.z ?? 0)-shooterBody.z} : undefined);
             if(cue.height!==undefined && cue.z!==undefined){
               const keeper=frameData.bodies.find(b=>b.goalie && b.side!==actorSide);
               if(keeper)byBody.get(keeper.id)?.trigger("save",{x:0,z:cue.z-keeper.z},cue.height);
             }
           }
-          else if (cue.kind === "pass" || cue.kind === "receive") actor?.trigger(cue.kind);
-          else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger(((cue.seq * 2654435761) >>> 0) % 100 < 28 ? "fall" : "checked"); }
+          else if (cue.kind === "pass" || cue.kind === "receive") {
+            const body = at(cue.id);
+            const toward = body && cue.x !== undefined && cue.z !== undefined
+              ? { x: cue.x-body.x, z: cue.z-body.z } : undefined;
+            actor?.trigger(cue.kind, toward);
+          }
+          else if (cue.kind === "check") {
+            if (cue.contact === "stick") actor?.trigger("poke");
+            else {
+              actor?.trigger("check");
+              other?.trigger("checked");
+            }
+          }
           else if (cue.kind === "block") actor?.trigger("block");
           else if (cue.kind === "goal") {
             const keeper = at(cue.target);
@@ -413,7 +438,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           else { px = stoppage.dot.x; pz = stoppage.dot.z; py = 0.04; }
         }
         puckY += (py - puckY) * (1 - Math.exp(-dt * (py < puckY ? 14 : 6)));
-        const pIn = insideBoards(px, pz, 0.3);
+        const pIn = insideBoards(px, pz, 0.0381);
         puck.position.set(pIn.x, stoppage?.phase==="drop"?py:puckY, pIn.z);
       } else if (data.running && data.event) {
         // Event replay (no spatial frames): a simple read of the event position.
@@ -441,6 +466,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       frameData?.penaltyBox.forEach((p, i) => boxed.set(p.id, i));
       const scorer = stoppage?.kind === "goal" && stoppage.phase === "celebrate" ? frameData?.bodies.find(b => b.id === stoppage.actor) : undefined;
       const moveDt = data.running ? dt * Math.min(Math.max(1, data.playback), 2.5) : 0;
+      const gateOpen = [false,false];
       bench.forEach((m) => {
         const { rig, id, side, seatX } = m;
         if (onIce.has(id)) { rig.setVisible(false); return; }
@@ -452,8 +478,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           // Just came off the ice.
           const from = lastIce.get(id) ?? seat;
           m.x = from.x; m.z = from.z;
-          m.path = inBox ? [boxDoor(side), boxSeat] : [benchDoor(m), seat];
+          // Use the rail when it shortens the route to the player's seat.
+          m.vault = !inBox && seatX > BENCH.centerX[side]+.8;
+          const gate = benchDoor(m);
+          if (m.vault) gate.x += 2.05;
+          m.path = inBox ? [boxDoor(side), boxSeat] : [gate,{x:gate.x,z:-RINK.boardsZ-.95},seat];
+          rig.place(from.x,from.z,Math.atan2(gate.x-from.x,gate.z-from.z));
           m.mode = "moving";
+          tracks.delete(id);
         } else if (m.mode === "box" && !inBox) {
           m.path = [boxDoor(side), { x: m.x, z: 11.5 }, benchDoor(m), seat];
           m.mode = "moving";
@@ -464,13 +496,16 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           rig.place(m.x, m.z, Math.PI);
         }
         if (m.mode === "moving") {
-          const target = m.path[0];
+          const destination = m.path[0];
+          const target = skaterNetRoute(m, destination);
           const dx = target.x - m.x, dz = target.z - m.z, d = Math.hypot(dx, dz);
-          const speed = Math.min(7, d * 3 + 1.5);
+          const crossing = !inBox && Math.abs(m.z+RINK.boardsZ)<1.4;
+          if (crossing && !m.vault && Math.abs(m.x-BENCH.centerX[side])<1.3) gateOpen[side]=true;
+          const speed = Math.min(crossing ? (m.vault ? 1.45 : 2.1) : 7, d * 3 + 1.5);
           m.vx = d > 0.01 ? (dx / d) * speed : 0; m.vz = d > 0.01 ? (dz / d) * speed : 0;
           const step = Math.min(d, speed * moveDt);
           if (d > 0.01) { m.x += (dx / d) * step; m.z += (dz / d) * step; }
-          if (d < 0.08) {
+          if (d < 0.08 && target === destination) {
             m.path.shift();
             if (!m.path.length) { m.mode = inBox ? "box" : "seat"; m.vx = m.vz = 0; }
           }
@@ -486,7 +521,12 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         }
         rig.setState(state, rig.currentState === state ? undefined : (seatX * 0.37 + 5) % 1);
         const face = m.mode === "seat" ? 0 : m.mode === "box" ? Math.PI : undefined;
-        rig.update(dt, data.running ? dt : 0, { x: m.x, z: m.z, vx: m.vx, vz: m.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face });
+        rig.update(dt, data.running ? dt : 0, { x: m.x, z: m.z, vx: m.vx, vz: m.vz, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face,
+          vault: m.mode === "moving" && m.vault && !inBox ? THREE.MathUtils.clamp((BENCH.doorZ-m.z)/1.75,0,1) : undefined });
+      });
+      arena.doors.forEach((door,i)=>{
+        const angle=gateOpen[i] ? 1.48 : 0;
+        door.rotation.y=THREE.MathUtils.damp(door.rotation.y,angle,gateOpen[i]?14:5,moveDt);
       });
       prevOnIce.clear(); onIce.forEach(id => prevOnIce.add(id));
       if (frameData) icePrimed = true;
@@ -568,28 +608,29 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       // Camera interpolation, bench entries and official paths are visual
       // tracks. Keep the interpolated bodies apart between simulation ticks.
       const visibleSkaters = [
-        ...actors.filter(a => a.rig.root.visible).map(a => ({rig: a.rig, goalie: a.slot === 6})),
+        ...actors.filter(a => a.rig.root.visible && a.rig.root.position.z > -RINK.boardsZ+.68).map(a => ({rig: a.rig, goalie: a.slot === 6})),
         ...officials.map(o => ({rig: o.rig, goalie: false})),
         ...bench.filter(m => m.mode === "moving" && m.rig.root.visible && Math.abs(m.z) < RINK.halfWidth)
           .map(m => ({rig: m.rig, goalie: false})),
       ].map(({rig, goalie}) => ({rig, goalie, x: rig.root.position.x, z: rig.root.position.z, vx: 0, vz: 0}));
+      const beforeSeparation = visibleSkaters.map(({ x, z }) => ({ x, z }));
       separateSkaters(visibleSkaters);
-      for (const body of visibleSkaters) {
-        body.rig.root.position.x = body.x;
-        body.rig.root.position.z = body.z;
+      for (const [index, body] of visibleSkaters.entries()) {
+        const safe = clearSkaterNet(beforeSeparation[index], body);
+        body.rig.root.position.x = safe.x;
+        body.rig.root.position.z = safe.z;
       }
-      if(frameData?.carrierId && !stoppage && byBody.get(frameData.carrierId)?.bladePoint?.(bladePosition)){
-        puck.position.set(bladePosition.x, .018, bladePosition.z);
-        lastBlade.copy(puck.position);bladeOwner=frameData.carrierId;
+      const carrierRig = frameData?.carrierId && !stoppage ? byBody.get(frameData.carrierId) : undefined;
+      if (carrierRig?.bladePoint?.(bladePosition)) {
+        carrierRig.alignBlade?.(puck.position);
+        carrierRig.bladePoint(bladePosition);
+        const contact = insideBoards(bladePosition.x, bladePosition.z, .0381);
+        puck.position.set(contact.x, .018, contact.z);
+        lastBlade.copy(puck.position);bladeOwner=frameData?.carrierId;
       } else if(frameData && !stoppage){
-        if(bladeOwner){bladeOwner=undefined;releaseError.copy(lastBlade).sub(puck.position);releaseAge=0;}
+        if(bladeOwner){bladeOwner=undefined;releaseError.copy(lastBlade).sub(puck.position);releaseError.y=0;releaseAge=0;}
         releaseAge+=animDt;
-        puck.position.addScaledVector(releaseError,Math.max(0,1-releaseAge/.13));
-        const target=frameData.passTarget;
-        if(target && byBody.get(target)?.bladePoint?.(bladePosition)){
-          const gap=Math.hypot(bladePosition.x-puck.position.x,bladePosition.z-puck.position.z);
-          bladePosition.y=.018;puck.position.lerp(bladePosition,1-smoothstep(Math.min(1,gap/1.25)));
-        }
+        puck.position.addScaledVector(releaseError,1-smoothstep(releaseAge/.25));
       } else {bladeOwner=undefined;releaseAge=1;}
       // --- arena reactions (goal lights, crowd)
       // Ice: skate marks build up, the sheet is resurfaced between periods.

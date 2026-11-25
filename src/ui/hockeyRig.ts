@@ -54,6 +54,7 @@ export type RigActionKind =
   | "beaten"
   | "fall"
   | "receive"
+  | "poke"
   | "deke";
 export type RigState =
   | "play"
@@ -83,6 +84,7 @@ export type RigState =
   | "coach-point"
   | "coach-despair";
 export interface RigInput {
+  vault?: number;
   x: number;
   z: number;
   vx: number;
@@ -368,6 +370,16 @@ const ACTIONS: Record<string, ActionSpec> = {
       [0.12, { bx: 0.35, by: 0.02, bz: 1.15, gz: 0.42, headPitch: 0.25, lean: 0.2 }],
       [0.3, { bx: 0.3, by: 0.02, bz: 0.8, gz: 0.32, headPitch: 0.2 }],
       [0.5, {}],
+    ],
+  },
+  // Reach with the bottom hand, then bring the stick back under control.
+  poke: {
+    dur: .46,
+    keys: [
+      [0, {}],
+      [.13, { bx: .45, by: .02, bz: 1.05, gx: .08, gz: .53, lean: .2, crouch: .18 }],
+      [.25, { bx: .34, by: .02, bz: 1.12, gz: .42, lean: .14, crouch: .12 }],
+      [.46, {}],
     ],
   },
   // Deke: blade pulled across the body with a shoulder fake.
@@ -988,6 +1000,12 @@ export class HockeyRig {
   setIdentity(id: RigIdentity, pos: string) {
     if (this.identity === id.id) return;
     this.identity = id.id;
+    this.action = null;
+    this.playingClip?.stop();
+    this.interrupted = undefined;
+    this.stopT = 0;
+    this.spPrev = 0;
+    this.amp = 0;
     this.variety = hash01(id.id, 13);
     // Deterministic per player: stride phase and idle clock from the id.
     this.phase = hash01(id.id, 29);
@@ -1240,6 +1258,9 @@ export class HockeyRig {
       this.pz = inp.z;
       this.svx = inp.vx;
       this.svz = inp.vz;
+      this.spPrev = Math.hypot(inp.vx, inp.vz);
+      this.stopT = 0;
+      this.amp = 0;
       if (!this.placed) this.yaw = inp.face ?? Math.atan2(inp.puckX - inp.x, inp.puckZ - inp.z);
       this.placed = true;
     } else {
@@ -1369,13 +1390,16 @@ export class HockeyRig {
     const gk = this.goalie;
     const backward = this.role === "skater" ? smooth(clamp(-vf / 3, 0, 1)) * amp * (1 - stop) : 0;
     const shuffle = gk ? smooth(clamp(Math.abs(vl) / 2, 0, 1)) * (1 - P.bf) * (1 - P.legW) : 0;
-    const crouch = (gk ? 0 : 0.12 + (1 - this.amp) * 0.06) * (1 - P.legW) + P.crouch + stop * 0.3;
+    const relaxed = !gk && this.state === "play" && !this.action
+      ? (1-drive) * (1-stop) * smooth(clamp(((inp.pressure ?? 8)-1.2)/2.2, 0, 1))
+      : 0;
+    const crouch = (gk ? 0 : 0.12 - relaxed * .09) * (1 - P.legW) + P.crouch + stop * 0.3;
     // --- legs: skating legs blended with posed legs
     for (let i = 0; i < 2; i++) {
       const s = i === 0 ? -1 : 1; // physical side: -1 right, +1 left
       sampleStride((this.phase + (i ? 0.5 : 0)) % 1, strideOut);
-      let h = lerp(0.25, strideOut[0], amp),
-        k = lerp(0.6, strideOut[1], amp),
+      let h = lerp(0.25 - relaxed*.13, strideOut[0] - relaxed*.08, amp),
+        k = lerp(0.6 - relaxed*.32, strideOut[1] - relaxed*.17, amp),
         a = lerp(0.12, strideOut[2], amp);
       if (!skating) {
         h = 0.02;
@@ -1417,7 +1441,7 @@ export class HockeyRig {
       this.ankles[i].rotation.set(h - k, -s * a * 0.2, -s * a * 0.85 * (1 - P.seat) + edge * .36);
     }
     // --- torso and head
-    const lean = (gk ? 0.22 : 0) + this.amp * 0.3 * (1 - P.legW) + crouch * 0.45 + P.lean - stop * 0.15 - P.bf * 0.1;
+    const lean = (gk ? 0.22 : 0) + this.amp * (0.3-relaxed*.16) * (1 - P.legW) + crouch * 0.45 + P.lean - stop * 0.15 - P.bf * 0.1;
     const twist = P.twist * this.hs + Math.sin(this.phase * TAU) * 0.14 * amp * (dir || 1);
     // Load the supporting edge as the opposite leg extends. Goalies keep
     // their shoulders square and the head counterbalances the torso.
