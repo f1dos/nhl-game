@@ -872,6 +872,7 @@ export interface InboxFocus {
   to: string;
   days: number;
   matchday: boolean;
+  allEvents?: boolean;
 }
 
 export function DecisionInbox({
@@ -892,7 +893,7 @@ export function DecisionInbox({
   ensureManagementState(game);
   const ru = game.language === "ru";
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState(focus ? "important" : "all");
+  const [filter, setFilter] = useState(focus && !focus.allEvents ? "important" : "all");
   const focused = useMemo(() => new Set(focus?.ids ?? []), [focus]);
   const counts = useMemo(() => {
     const open = game.events!.filter((event) => !event.resolved);
@@ -951,7 +952,9 @@ export function DecisionInbox({
           <AlertTriangle size={22} />
           <div>
             <strong>
-              {ru
+              {focus.allEvents
+                ? (ru ? `Новые сообщения к ${focus.to}` : `New messages by ${focus.to}`)
+                : ru
                 ? `Игра остановлена ${focus.to}: ${focus.ids.length === 1 ? "получено важное сообщение" : `важных сообщений — ${focus.ids.length}`}`
                 : `Game paused on ${focus.to}: ${focus.ids.length === 1 ? "an important message arrived" : `${focus.ids.length} important messages arrived`}`}
             </strong>

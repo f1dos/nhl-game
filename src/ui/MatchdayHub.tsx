@@ -14,7 +14,7 @@ import {
   pressConferenceComplete,
 } from "../engine/press";
 import PressConference from "./PressConference";
-import { advanceDay } from "../engine/management";
+import { advanceDay, openingGameNeedsCaptain } from "../engine/management";
 import { MatchRatingsPanel } from "./MatchRatings";
 import { clamp } from "../engine/random";
 import { swapLineupPlayer } from "../engine/roster";
@@ -35,19 +35,22 @@ export default function MatchdayHub({
   game,
   edit,
   onExit,
+  onChooseCaptain,
   onPlayer,
 }: {
   game: Game;
   edit: Edit;
   onExit: () => void;
+  onChooseCaptain: () => void;
   onPlayer?: (player: Player) => void;
 }) {
-  const [stage, setStage] = useState<"pre" | "live" | "post">("pre");
+  const [stage, setStage] = useState<"pre" | "live" | "post" | "result">("pre");
   const [tab, setTab] = useState<MatchdayTab>("briefing");
   const [prePressSkipped, setPrePressSkipped] = useState(false);
   const ru = game.language === "ru";
   const [matchDate] = useState(game.calendar?.date ?? "");
   const team = game.teams.find((club) => club.id === game.user)!;
+  const captainRequired = openingGameNeedsCaptain(game);
   ensureSpecialTeams(team);
   const preseason = game.preseasonFixtures?.find(
     (fixture) => fixture.date === game.calendar?.date && !fixture.result,
@@ -92,8 +95,7 @@ export default function MatchdayHub({
   const specialCount =
     Object.keys(team.specialTeams ?? {}).length ||
     Object.keys(SPECIAL_TEAM_LABELS).length;
-  const skipPrePress = () => {
-    edit((current) => {
+  const recordSkippedPress = (current: Game) => {
       const fans = current.fans?.[current.user];
       if (fans) {
         fans.happiness = clamp(fans.happiness - 1, 0, 100);
@@ -107,7 +109,9 @@ export default function MatchdayHub({
           0,
           100,
         );
-    });
+  };
+  const skipPrePress = () => {
+    edit(recordSkippedPress);
     setPrePressSkipped(true);
   };
   const playerSelect = (
@@ -164,7 +168,7 @@ export default function MatchdayHub({
         />
       </div>
     );
-  if (stage === "post")
+  if (stage === "post" || stage === "result")
     return (
       <div className="matchday-window">
         <header className="matchday-top">
@@ -173,7 +177,9 @@ export default function MatchdayHub({
             {ru ? "Завершить матч-день" : "End matchday"}
           </button>
           <div>
-            <span>{ru ? "ПОСЛЕМАТЧЕВЫЕ МЕДИА" : "POST-MATCH MEDIA"}</span>
+            <span>{stage === "result"
+              ? (ru ? "ИТОГ МАТЧА" : "MATCH RESULT")
+              : (ru ? "ПОСЛЕМАТЧЕВЫЕ МЕДИА" : "POST-MATCH MEDIA")}</span>
             <b>
               {game.last?.away} {game.last?.goals[1]} : {game.last?.goals[0]}{" "}
               {game.last?.home}
@@ -181,6 +187,7 @@ export default function MatchdayHub({
           </div>
         </header>
         {game.last && <MatchRatingsPanel game={game} result={game.last} />}
+        {stage === "post" && (
         <div className="matchday-press-stage">
           <span className="eyebrow">
             {ru ? "ПОСЛЕМАТЧЕВАЯ ПРЕСС-КОНФЕРЕНЦИЯ" : "POST-MATCH PRESS CONFERENCE"}
@@ -198,6 +205,7 @@ export default function MatchdayHub({
             </button>
           )}
         </div>
+        )}
       </div>
     );
   return (
@@ -478,7 +486,9 @@ export default function MatchdayHub({
       </main>
       <footer className="matchday-footer">
         <span>
-          {preDone
+          {captainRequired
+            ? (ru ? "Назначьте капитана перед первым матчем сезона" : "Name a captain before the season opener")
+            : preDone
             ? ru
               ? "Медиа-обязательства выполнены"
               : "Media obligations complete"
@@ -490,7 +500,7 @@ export default function MatchdayHub({
                 ? "До матча нужно ответить СМИ или явно отказаться от пресс-конференции"
                 : "Before the game, answer the media or explicitly decline the press conference"}
         </span>
-        {!preDone && !prePressSkipped && (
+        {!captainRequired && !preDone && !prePressSkipped && (
           <button className="press-skip" onClick={skipPrePress}>
             {ru
               ? "Пропустить СМИ и принять последствия"
@@ -498,8 +508,25 @@ export default function MatchdayHub({
           </button>
         )}
         <button
+          className="press-skip"
+          disabled={captainRequired}
+          onClick={() => {
+            edit((current) => {
+              if (!preDone && !prePressSkipped) recordSkippedPress(current);
+              advanceDay(current);
+            });
+            setStage("result");
+          }}
+        >
+          {ru ? "Пропустить матч и получить результат" : "Skip match and get result"}
+        </button>
+        <button
           className="primary"
           onClick={() => {
+            if (captainRequired) {
+              onChooseCaptain();
+              return;
+            }
             if (!preDone && !prePressSkipped) {
               setTab("press");
               return;
@@ -508,7 +535,9 @@ export default function MatchdayHub({
           }}
         >
           <Play size={16} />
-          {!preDone && !prePressSkipped
+          {captainRequired
+            ? (ru ? "Выбрать капитана" : "Choose captain")
+            : !preDone && !prePressSkipped
             ? ru
               ? "Перейти к пресс-конференции"
               : "Go to the press conference"

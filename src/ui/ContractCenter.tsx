@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Game, Player } from "../engine/types";
 import { askingSalary, salaryTotal, signContract } from "../engine/contracts";
-import { advanceDay, ensureManagementState } from "../engine/management";
+import { advanceDay, ensureManagementState, openingGameNeedsCaptain } from "../engine/management";
 import {
   OFFER_ROLES, desiredFreeAgentRole, desiredFreeAgentYears, freeAgentInterest,
   proposeFreeAgentContract, withdrawFreeAgentOffer,
@@ -187,7 +187,7 @@ export default function ContractCenter({
             <button onClick={()=>{edit(g=>withdrawFreeAgentOffer(g,latest.id));setMessage(ru?"Предложение отозвано":"Offer withdrawn");}}>
               {ru?"Отозвать":"Withdraw"}
             </button>}
-          {activeCount>0 && <button className="free-agent-next-day"
+          {activeCount>0 && !openingGameNeedsCaptain(game) && <button className="free-agent-next-day"
               onClick={()=>edit(g=>advanceDay(g))}>
             {ru?"Следующий день →":"Advance one day →"}
           </button>}
