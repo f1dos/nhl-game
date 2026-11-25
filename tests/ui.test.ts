@@ -111,6 +111,13 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   fireEvent.click(screen.getByText("Продолжить"));
   assert.equal(useGame.getState().game?.round, 0);
   assert(screen.getByText("Последние решения перед вбрасыванием"));
+  const quickResult = "Пропустить матч и получить результат";
+  assert.equal((screen.getByRole("button", { name: quickResult }) as HTMLButtonElement).disabled, true);
+  fireEvent.click(screen.getByRole("button", { name: "Выбрать капитана" }));
+  fireEvent.click(screen.getByText("Утвердить лидерскую группу"));
+  assert.equal(useGame.getState().game?.leadershipSeason, useGame.getState().game?.year);
+  fireEvent.click(screen.getByText("Продолжить"));
+  assert.equal((screen.getByRole("button", { name: quickResult }) as HTMLButtonElement).disabled, false);
   fireEvent.click(screen.getByText("Перейти к пресс-конференции"));
   // Multi-question press conference: every reporter gets an answer.
   let asked = 0;
@@ -131,6 +138,13 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(screen.getByText(/^МАТЧ В РЕАЛЬНОМ ВРЕМЕНИ/));
   // The live match opens as a full-screen broadcast with its own controls.
   assert(screen.getByRole("combobox", { name: "Скорость матча" }));
+  fireEvent.click(screen.getByText("Обзор клуба"));
+  fireEvent.click(screen.getByText("Продолжить"));
+  const matchDate = useGame.getState().game?.calendar?.date;
+  fireEvent.click(screen.getByRole("button", { name: quickResult }));
+  assert(screen.getByText("ИТОГ МАТЧА"));
+  assert.notEqual(useGame.getState().game?.calendar?.date, matchDate);
+  assert(useGame.getState().game?.last);
   fireEvent.click(screen.getByText("Таблица лиги"));
   assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
   assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));

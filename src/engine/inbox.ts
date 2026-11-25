@@ -46,13 +46,18 @@ function concernsUser(g: Game, event: ManagementEvent) {
 }
 
 /**
- * Important messages: critical ones, and high-priority messages that need a
- * response or concern the user's club. Normal/low messages never qualify.
+ * Prioritize decisions, notable league developments and actionable updates
+ * for the managed club.
  */
 export function isImportantEvent(g: Game, event: ManagementEvent) {
   if (event.priority === "critical") return true;
-  if (event.priority !== "high") return false;
-  return !!event.requiresResponse || concernsUser(g, event);
+  if (event.requiresResponse) return true;
+  if (event.priority === "high")
+    return concernsUser(g, event) || event.category === "league";
+  return event.priority === "normal" && concernsUser(g, event) &&
+    ((event.category === "medical" && event.action === "injuries") ||
+      (event.category === "contract" && event.action === "contracts") ||
+      (event.category === "organization" && event.action === "leadership"));
 }
 
 /** Important messages created after `existing` was captured that are still open. */

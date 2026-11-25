@@ -98,6 +98,7 @@ import {
   gameDate,
   isUserMatchday,
   newImportantEvents,
+  needsOpeningCaptain,
   unreadImportantCount,
   type ContinueMode,
 } from "../engine/management";
@@ -391,8 +392,8 @@ export default function App() {
       return;
     }
     let reachedMatchday = false;
-    let urgent = false;
     let importantIds: string[] = [];
+    let eventIds: string[] = [];
     let days = 0;
     const from = g?.calendar?.date ?? "";
     let to = from;
@@ -404,27 +405,31 @@ export default function App() {
       importantIds = newImportantEvents(game, existing).map(
         (event) => event.id,
       );
-      urgent = importantIds.length > 0;
+      if (continueMode === "next-event")
+        eventIds = (game.events ?? [])
+          .filter((event) => !existing.has(event.id) && !event.resolved)
+          .map((event) => event.id);
     });
-    setTimeAdvance({ from, to, days, urgent });
+    if (importantIds.length || eventIds.length) {
+      go("inbox");
+      setInboxFocus({
+        ids: importantIds.length ? importantIds : eventIds,
+        from,
+        to,
+        days,
+        matchday: reachedMatchday,
+        allEvents: !importantIds.length,
+      });
+      return;
+    }
+    setTimeAdvance({ from, to, days, urgent: false });
     const completeProgress = () => {
       setTimeAdvance(undefined);
-      // An important message stopped the sim: open the inbox on the
-      // "important" tab with the new messages highlighted at the top.
-      if (urgent) {
-        go("inbox");
-        setInboxFocus({
-          ids: importantIds,
-          from,
-          to,
-          days,
-          matchday: reachedMatchday,
-        });
-      } else if (reachedMatchday) setPage("match");
+      if (reachedMatchday) setPage("match");
     };
     if (navigator.userAgent.includes("HappyDOM")) completeProgress();
     else window.setTimeout(completeProgress, Math.min(2200, 900 + days * 120));
-    if (!reachedMatchday && !urgent)
+    if (!reachedMatchday)
       setNotice(
         tr(
           "Время продвинуто до следующей точки календаря",
@@ -434,6 +439,11 @@ export default function App() {
   };
   async function finish() {
     if (!g) return;
+    if (needsOpeningCaptain(g)) {
+      go("leadership");
+      setNotice(tr("Сначала назначьте капитана", "Name a captain first"));
+      return;
+    }
     if (g.strategySeason !== g.year) {
       go("strategy");
       setNotice(
@@ -1135,6 +1145,7 @@ export default function App() {
         game={g}
         edit={edit}
         onExit={() => go("overview")}
+        onChooseCaptain={() => go("leadership")}
         onPlayer={setProfile}
       />
     );

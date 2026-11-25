@@ -574,6 +574,17 @@ export function isUserMatchday(g: Game) {
 
 export type ContinueMode = "day" | "next-game" | "next-event" | "week";
 
+export function needsOpeningCaptain(g: Game) {
+  const team = g.teams.find((club) => club.id === g.user);
+  return g.phase === "regular" && g.round === 0 &&
+    (g.leadershipSeason !== g.year ||
+      !team?.players.some((player) => player.id === team.captainId && player.pos !== "G"));
+}
+
+export function openingGameNeedsCaptain(g: Game) {
+  return needsOpeningCaptain(g) && isUserMatchday(g);
+}
+
 export function continueGame(g: Game, mode: ContinueMode) {
   ensureManagementState(g);
   const startingRound = g.round;
@@ -582,11 +593,10 @@ export function continueGame(g: Game, mode: ContinueMode) {
   const limit = mode === "day" ? 1 : mode === "week" ? 7 : 45;
   let days = 0;
   while (days < limit && g.phase !== "offseason") {
+    if (g.calendar!.date === fixtureDate(g, 0) && openingGameNeedsCaptain(g)) break;
     if (mode === "next-game" && isUserMatchday(g)) break;
     advanceDay(g);
     days++;
-    // Important messages (critical, or high-priority for the user's club /
-    // needing a response) interrupt the simulation; normal ones never do.
     if (newImportantEvents(g, existing).length) break;
     if (isUserMatchday(g)) break;
     if (
