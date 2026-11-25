@@ -1,3 +1,5 @@
+import {hash01,stickSide} from "../engine/handedness";
+export {hash01};
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
@@ -71,8 +73,12 @@ export type RigState =
   | "box"
   | "official-drop"
   | "official-point"
+  | "official-washout"
+  | "official-holding"
+  | "official-roughing"
   | "official-arm"
   | "coach-idle"
+  | "coach-review"
   | "coach-clap"
   | "coach-point"
   | "coach-despair";
@@ -109,14 +115,6 @@ const wrap = (a: number) => {
   while (a < -Math.PI) a += TAU;
   return a;
 };
-export function hash01(id: string, salt = 0) {
-  let h = 2166136261 ^ salt;
-  for (let i = 0; i < id.length; i++) {
-    h ^= id.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return ((h >>> 0) % 100000) / 100000;
-}
 const luminance = (hex: string) => {
   const c = new THREE.Color(hex);
   return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
@@ -994,7 +992,7 @@ export class HockeyRig {
     // Deterministic per player: stride phase and idle clock from the id.
     this.phase = hash01(id.id, 29);
     this.clock = hash01(id.id, 31) * 10;
-    this.hs = this.hasStick ? (hash01(id.id, 3) < 0.62 ? 1 : -1) : 1;
+    this.hs = this.hasStick ? stickSide(id.id) : 1;
     const tall = pos === "D" ? 1.03 : pos === "G" ? 1.02 : pos === "C" ? 1.0 : 0.99;
     const h = tall * (0.955 + hash01(id.id, 5) * 0.09);
     const w = 0.95 + hash01(id.id, 7) * 0.12 + (pos === "D" ? 0.05 : 0);

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
-  Gauge,
+  ChevronDown,
   ListOrdered,
   Maximize2,
   Minimize2,
@@ -31,7 +31,7 @@ interface Toast {
   color: string;
   until: number;
 }
-const SPEEDS = [1, 4, 8, 32, 128];
+const SPEEDS = [1, 2, 4, 8, 32];
 
 const clock = (time: number) => {
   const left = time >= 3600 ? Math.max(0, 3900 - time) : 1200 - (time % 1200 || (time ? 1200 : 0));
@@ -97,11 +97,11 @@ export default function SpatialMatchCenter({
   const [match] = useState(
     () =>
       new SpatialMatch(home, away, game.seed, game.phase === "playoffs", {
-        presentation: true,
+        presentation: true, openingDraw:true, recordReplay:true, clockRate:2,
       }),
   );
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(4);
+  const [speed, setSpeed] = useState(1);
   const [camera, setCamera] = useState<CameraMode>("broadcast");
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -159,7 +159,7 @@ export default function SpatialMatchCenter({
       for (let n = 0; n < speed; n++) {
         // Celebrations, whistles and faceoffs play at natural speed unless the
         // manager chose a fast simulation.
-        if (n > 0 && match.stopped && speed <= 8) break;
+        if (n > 0 && match.stopped) break;
         match.step();
         if (match.done || match.intermission) break;
       }
@@ -168,7 +168,7 @@ export default function SpatialMatchCenter({
       redraw((n) => n + 1);
     }, 100);
     return () => clearInterval(timer);
-  });
+  }, [running, speed, match]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -246,7 +246,7 @@ export default function SpatialMatchCenter({
     : "";
   const manpower = [0, 1].map((s) => frame.bodies.filter((b) => b.side === s && !b.goalie).length);
   const stat = (type: string, s: number) => result.events.filter((e) => e.type === type && e.team === teams[s].id).length;
-  const effective = match.stopped && speed <= 8 ? 1 : speed;
+  const effective = match.stopped ? 1 : speed;
   const period = Math.min(3, Math.floor(match.time / 1200) + 1);
   const nextPeriod = Math.floor(match.time / 1200) + 1;
 
@@ -380,31 +380,32 @@ export default function SpatialMatchCenter({
       </div>
 
       {/* Control bar */}
-      <div className="bw-bar">
-        <button className="bw-play" onClick={toggle} disabled={match.done} aria-label={running ? tr("Пауза", "Pause") : tr("Играть", "Play")} title={tr("Пробел", "Space")}>
-          {running ? <Pause size={20} /> : <Play size={20} />}
-        </button>
-        <div className="bw-speed" role="radiogroup" aria-label={tr("Скорость матча", "Match speed")}>
-          <Gauge size={15} />
-          {SPEEDS.map((n) => (
-            <button key={n} role="radio" aria-checked={speed === n} className={speed === n ? "on" : ""} onClick={() => setSpeed(n)}>
-              ×{n}
-            </button>
-          ))}
+      <div className="match-controls">
+        <div className="transport-panel">
+          <button className="bw-play transport-toggle" onClick={toggle} disabled={match.done}
+            aria-label={running ? tr("Пауза", "Pause") : tr("Играть", "Play")} title={tr("Пробел", "Space")}>
+            {running ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+          </button>
+          <span className="transport-state" data-live={running && !match.stopped}>
+            <i aria-hidden="true" />{match.done ? tr("Финал","Final") : !running ? tr("Пауза","Paused") : match.stopped ? tr("Свисток","Stoppage") : tr("В эфире","Live")}
+          </span>
+          <label className="transport-speed">
+            <select aria-label={tr("Скорость матча","Match speed")} value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
+              {SPEEDS.map(n=><option key={n} value={n}>{n}×</option>)}
+            </select>
+            <ChevronDown aria-hidden="true" size={13}/>
+          </label>
         </div>
-        <span className="bw-status">
-          {match.done ? tr("Матч завершён", "Full time") : match.stopped ? tr("Игра остановлена", "Stoppage") : running ? "LIVE" : tr("Пауза", "Paused")}
-        </span>
-        <div className="bw-tabs">
+        <div className="match-tools">
           {(
             [
               ["lines", <ListOrdered key="l" size={16} />, tr("Звенья", "Lines")],
               ["bench", <SlidersHorizontal key="b" size={16} />, tr("Пульт", "Bench")],
-              ["stats", <BarChart3 key="s" size={16} />, tr("Статистика матча", "Match stats")],
+              ["stats", <BarChart3 key="s" size={16} />, tr("Статистика", "Stats")],
               ["events", <ScrollText key="e" size={16} />, tr("События", "Events")],
             ] as const
           ).map(([key, icon, label]) => (
-            <button key={key} className={drawer === key ? "on" : ""} onClick={() => setDrawer(drawer === key ? null : key)}>
+            <button key={key} aria-label={label} title={label} aria-pressed={drawer === key} className={drawer === key ? "on" : ""} onClick={() => setDrawer(drawer === key ? null : key)}>
               {icon}
               <span>{label}</span>
             </button>

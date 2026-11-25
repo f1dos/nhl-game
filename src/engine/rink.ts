@@ -27,14 +27,14 @@ export const BENCH = {
   frontZ: -11.4,
   /** Gate where players step on and off the ice. */
   doorZ: -12.4,
-  seatZ: -14.55,
+  seatZ: -15.40,
   seatY: 0.48,
 } as const;
 
 /** Penalty boxes sit across the ice from the benches. */
 export const PENALTY_BOX = {
   centerX: [-3.2, 3.2],
-  seatZ: 14.55,
+  seatZ: 15.40,
   doorZ: 12.4,
 } as const;
 

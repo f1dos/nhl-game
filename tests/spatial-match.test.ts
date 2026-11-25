@@ -156,8 +156,8 @@ test("broadcast stoppages show celebrations and faceoffs without changing the ma
     );
     assert(frozen > 0, "the clock stands still during stoppages");
     if (shown.result.goals[0] + shown.result.goals[1] > 0)
-      assert.deepEqual([...phases.get("goal")!], ["celebrate", "lineup", "drop"]);
-    assert.deepEqual([...(phases.get("save") ?? new Set())].sort(), ["drop", "lineup", "whistle"]);
+      assert.deepEqual([...phases.get("goal")!].filter(p=>p!=="review"), ["celebrate", "lineup", "drop"]);
+    assert.deepEqual([...(phases.get("save") ?? new Set())].filter(p=>p!=="review").sort(), ["drop", "lineup", "whistle"]);
   }
 });
 
@@ -175,7 +175,7 @@ test("faceoffs line both teams up on the dot, and saves restart in that zone", (
       assert.equal(faceoff.kind, "faceoff");
       const taker = m.frame.bodies.find((b) => b.id === faceoff.id)!;
       const rival = m.frame.bodies.find((b) => b.id === faceoff.target)!;
-      assert.deepEqual([taker.x, taker.z], [dot.x, dot.z], "winner takes the puck on the dot");
+      assert(Math.abs(taker.x-dot.x)<.6 && taker.z===dot.z && (taker.x-dot.x)*(rival.x-dot.x)<0, "centres contest the dot from opposite sides");
       assert(Math.hypot(rival.x - dot.x, rival.z - dot.z) < 1, "opposing centre faces off on the dot");
       if (stopped.kind === "save") {
         assert.equal(Math.abs(dot.x), 20.5, "save restarts at an end-zone dot");
@@ -271,4 +271,19 @@ test("icing keeps the clearing team's tired skaters while its opponent can chang
   assert.deepEqual(after[0], before[0]);
   assert.notDeepEqual(after[1], before[1]);
   assert.equal(m.frame.dot.x, -20.5);
+});
+
+test("broadcast clock advances two seconds per second of normal-speed skating", () => {
+  const g = newGame();
+  const create = (clockRate: 1 | 2) => new SpatialMatch(g.teams[0], g.teams[1], 42, false, {clockRate});
+  const normal = create(1), broadcast = create(2);
+  for (let tick=0; tick<10; tick++) { normal.step(); broadcast.step(); }
+  assert.equal(normal.time, 1);
+  assert.equal(broadcast.time, 2);
+  assert.equal(broadcast.frame.tick, normal.frame.tick);
+  for (const [index, body] of broadcast.frame.bodies.entries()) {
+    const reference = normal.frame.bodies[index];
+    assert(Math.hypot(body.x-reference.x, body.z-reference.z)<.005);
+  }
+  assert(Math.hypot(normal.frame.puck.x-broadcast.frame.puck.x,normal.frame.puck.z-broadcast.frame.puck.z)<.005);
 });

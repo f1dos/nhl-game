@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { appearanceFor, SkinnedRigFactory, type RigLike } from "./skinnedRig";
+import { appearanceFor, type RigLike } from "./skinnedRig";
+import { MatchNightFactory } from "./matchNightRig";
 import { kitFor } from "./teamKit";
 import { clubs } from "../engine/database";
 import { NHL_TEAM_LOGOS } from "../data/nhl-2026-27";
 import "./modelLab.css";
-import { loadLogo } from "./arenaScene";
+import { RigFactory } from "./hockeyRig";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { RigState, RigActionKind, TeamKit } from "./hockeyRig";
@@ -127,9 +128,8 @@ export default function ModelLab() {
     ice.rotation.x = -Math.PI / 2;
     ice.receiveShadow = true;
     scene.add(ice);
-    const factory = new SkinnedRigFactory((kit) => loadLogo(kit.logo));
-    const models =
-      options.get("rig") === "classic" ? factory.primitive : factory;
+    const factory = options.get("rig") === "classic" ? new RigFactory() : new MatchNightFactory();
+    const models = factory;
     const club = clubs.find(([id]) => id === (options.get("club") ?? "NYR"))!;
     const blue = club
       ? kitFor(
@@ -192,7 +192,7 @@ export default function ModelLab() {
     };
     if (view === "skater27") {
       new GLTFLoader().load(
-        "models/hockey/skater-27.glb",
+        new URL("../assets/match-night/skater.glb", import.meta.url).href,
         ({ scene: model }) => {
           if (closed) return disposeStudy(model);
           study = model;

@@ -595,3 +595,61 @@
     left: 10px;
   }
 }
+
+/* Compact two-row broadcast score with a shared timing column. */
+.bw-bug {grid-template-columns:auto auto; grid-template-areas:"a clock" "b clock" "sog man" "pp pp";border-radius:2px;background:#111923f5;box-shadow:0 3px 12px #0005;}
+.bw-bug-team {min-width:128px;padding:2px 9px;background:linear-gradient(95deg,color-mix(in srgb,var(--team) 44%,#131a22),#17202a);}
+.bw-bug-team + .bw-bug-team {border-top:1px solid #ffffff26;}
+.bw-bug-team strong {font:700 22px/1.15 "Arial Narrow",Arial,sans-serif;}
+.bw-bug-clock {border-left:1px solid #ffffff25;background:#101720;min-width:78px;}
+.bw-bug-clock b {color:#fafafa;}
+.bw-bug-man {grid-area:man;position:static;text-align:center;}
+.bw-bug-sog,.bw-bug-man {background:#26303b;color:#d7dee6;font-size:10px;letter-spacing:.06em;}
+.bw-box {top:118px;}
+.bw-bar {bottom:0;left:0;right:0;border-radius:0;border:0;border-top:1px solid #717781;padding:6px clamp(10px,2vw,34px);background:linear-gradient(#222a33f5,#111821fa);gap:12px;}
+.broadcast-window .bw-play,.broadcast-window .bw-play:hover {width:34px;height:32px;background:#dce2e7;border-radius:2px;color:#17212a;}
+.bw-tabs button,.bw-speed button {border:0;border-radius:1px;font-size:12px;}
+.bw-tabs {border-left:1px solid #52606b;padding-left:10px;}
+@media(max-width:640px){.bw-bug-team{min-width:88px}.bw-bar{gap:4px}.bw-tabs{padding-left:2px}}
+
+.broadcast-window .referee-announcement {top:auto!important; bottom:68px;right:18px!important;max-width:min(65vw,500px);background:#16202bef!important;border-left:4px solid #e58436;font-size:13px!important;letter-spacing:.035em!important;}
+.broadcast-window:has(.referee-announcement) .bw-toasts {visibility:hidden;}
+
+.match-controls {
+  position:absolute; inset:auto clamp(12px,2vw,28px) max(14px,env(safe-area-inset-bottom));
+  display:flex; align-items:end; justify-content:space-between; gap:12px; pointer-events:none;
+  font-family:"Segoe UI",Arial,sans-serif;
+}
+.transport-panel,.match-tools {
+  pointer-events:auto; display:flex; align-items:center; padding:5px; border-radius:15px;
+  border:1px solid #ffffff36; background:linear-gradient(125deg,#182733f7,#111a25ee);
+  backdrop-filter:blur(16px); box-shadow:0 4px 16px #030b1752,inset 0 1px 0 #ffffff0c;
+}
+.broadcast-window .transport-toggle,.broadcast-window .transport-toggle:hover {
+  width:36px;height:36px; border-radius:10px; color:#0c2a2f;background:#a5e9df;
+}
+.broadcast-window .transport-toggle:hover {background:#c1fff4}
+.transport-state {display:flex;align-items:center;gap:7px;padding:0 14px;color:#e8f1f5;font-size:13px;font-weight:600;white-space:nowrap;}
+.transport-state i {width:6px;height:6px;border-radius:50%;background:#a2afbd;}
+.transport-state[data-live=true] i {background:#70dec6;box-shadow:0 0 7px #70dec65c}
+.transport-speed {position:relative;border-left:1px solid #ffffff25;}
+.transport-speed select {width:63px;height:32px;appearance:none;border:0;border-radius:6px;background:transparent;color:#e2ebef;padding:0 19px 0 11px;font:600 13px "Segoe UI",Arial,sans-serif;cursor:pointer;}
+.transport-speed option {color:#e2ebef;background:#172330}
+.transport-speed svg {position:absolute;right:6px;top:10px;pointer-events:none;color:#91a6b2}
+.match-tools {gap:2px}
+.broadcast-window .match-tools button {
+  display:flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 13px;
+  border:0;border-radius:9px;background:transparent;color:#e2e9ef;font:600 13px "Segoe UI",Arial,sans-serif;
+}
+.match-tools svg {color:#a9becb;stroke-width:1.65}
+.broadcast-window .match-tools button:hover {background:#ffffff10;color:white}
+.broadcast-window .match-tools button.on {background:#31494f;color:#c0fff2}
+.match-tools .on svg {color:#92e9db}
+.match-controls :focus-visible {outline:2px solid #92e9db;outline-offset:1px}
+@media(max-width:720px){
+  .match-controls {gap:5px;inset-inline:8px;}
+  .match-tools button span {display:none}
+  .broadcast-window .match-tools button {padding:0;width:35px}
+  .transport-state {padding:0 9px}
+}
+@media(max-width:380px){.transport-state{display:none}.transport-speed{border:0}}

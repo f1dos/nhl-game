@@ -4,9 +4,10 @@ import type { Event, Team } from "../engine/types";
 import type { SkaterBody, SpatialFrame, SpatialStoppage } from "../engine/spatialMatch";
 import { BENCH, PENALTY_BOX, RINK, separateSkaters } from "../engine/rink";
 import { RigFactory, type RigState } from "./hockeyRig";
-import { SkinnedRigFactory, type RigLike } from "./skinnedRig";
+import { type RigLike } from "./skinnedRig";
 import { TrackSmoother } from "./motionSmoothing";
-import { buildArena, insideBoards, loadLogo } from "./arenaScene";
+import { buildArena, insideBoards } from "./arenaScene";
+import { MatchNightFactory } from "./matchNightRig";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import { gameAudio } from "./audio";
 import { buildIceFx, buildPost, enableShadows, tickShadows } from "./arenaFx";
@@ -22,12 +23,16 @@ function makeFactory() {
   const classic = typeof location !== "undefined" && new URLSearchParams(location.search).get("rig") === "classic";
   if (classic) return new RigFactory();
   try {
-    return new SkinnedRigFactory((kit) => loadLogo(kit.logo));
+    return new MatchNightFactory();
   } catch {
     return new RigFactory();
   }
 }
 
+const refereeAudio={
+  ru:{holding:new URL("../assets/match-night/ru-holding.wav",import.meta.url).href,roughing:new URL("../assets/match-night/ru-roughing.wav",import.meta.url).href},
+  en:{holding:new URL("../assets/match-night/en-holding.wav",import.meta.url).href,roughing:new URL("../assets/match-night/en-roughing.wav",import.meta.url).href}
+};
 const _focusTarget = new THREE.Vector3();
 const _v = new THREE.Vector3();
 
@@ -159,11 +164,23 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       return o;
     });
     const [refA, refB, lineA, lineB] = officials;
+    if(data0?.stoppage?.phase==="lineup"){
+      lineA.x=data0.stoppage.dot.x;lineA.z=data0.stoppage.dot.z-.64;
+      lineA.rig.place(lineA.x,lineA.z,0);
+    }
 
     const byBody = new Map<string, RigLike>();
+    let replayCue=0,previousAngle=-1;
     let seenCue = data0?.cues.at(-1)?.seq ?? 0;
+    const microphone=new Audio();
+    let penaltyRoute:{stop:SpatialStoppage;x:number;z:number;wingX:number;wingZ:number}|undefined;
+    let calledPenalty:SpatialStoppage|undefined;
+    const dropFrom=new THREE.Vector3();
+    let releasedAt:SpatialStoppage|undefined;
+    const bladePosition=new THREE.Vector3(),lastBlade=new THREE.Vector3(),releaseError=new THREE.Vector3();
+    let bladeOwner:string|undefined,releaseAge=1;
     let lastSave: "glove" | "other" = "other";
-    const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 16), new THREE.MeshStandardMaterial({ color: "#0b0b0b", roughness: 0.6 }));
+    const puck = new THREE.Mesh(new THREE.CylinderGeometry(.052, .052, .0254, 24), new THREE.MeshStandardMaterial({ color: "#0b0b0b", roughness: 0.6 }));
     puck.position.y = 0.04; scene.add(puck);
     let puckY = 0.04;
     const post = buildPost(renderer, scene, camera, arena.preset.bloom);
@@ -228,6 +245,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           return { state: "faceoff-stance", face: Math.atan2(s.dot.x - body.x, s.dot.z - body.z) };
         return { state: "faceoff-ready", face: dirX > 0 ? Math.PI / 2 : -Math.PI / 2 };
       }
+      if (s.phase === "review") return {state:"faceoff-ready"};
       if (s.kind === "goal") {
         if (body.side === s.side) {
           if (body.goalie) return { state: "play" };
@@ -263,10 +281,18 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       const liveFrame = data.spatial;
       if (liveFrame) director.record(liveFrame, now / 1000);
       // During a goal replay the figures show recorded frames.
-      const frameData = director.frameFor(liveFrame, data.running ? dt : 0);
+      const frameData = director.frameFor(liveFrame, data.running ? Math.min(wallDt,.4) : 0);
       const stoppage = frameData?.stoppage;
       const liveStop = liveFrame?.stoppage;
-      replayBadge.style.display = director.replaying ? "block" : "none";
+      const review = liveStop?.review;
+      const showReview = review && liveStop?.phase !== "lineup" && liveStop?.phase !== "drop";
+      replayBadge.classList.remove("referee-announcement");
+      replayBadge.textContent = showReview
+        ? liveStop?.phase === "review" && liveStop.t < 5.6
+          ? (language==="en" ? "VIDEO REVIEW" : "ВИДЕОПРОСМОТР")
+          : review==="confirmed" ? (language==="en" ? "GOOD GOAL" : "ГОЛ ЗАСЧИТАН") : (language==="en" ? "NO GOAL · INTERFERENCE" : "ГОЛ ОТМЕНЁН · ПОМЕХА ВРАТАРЮ")
+        : (language==="en" ? "REPLAY" : "ПОВТОР");
+      replayBadge.style.display = director.replaying || showReview ? "block" : "none";
       if (data.running !== wasRunning) { wasRunning = data.running; gameAudio.setRunning(data.running); }
       const stopKey = stoppage ? `${stoppage.kind}:${stoppage.phase}:${stoppage.actor}` : "";
       if (stopKey !== lastStop) {
@@ -326,23 +352,29 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (mo?.stopping && running(data)) spray.emit(inside.x, inside.z, mo.yaw, dt);
         });
         // --- one-shot animations raised by the simulation (each cue plays once)
+        if(director.replayAngle!==previousAngle){replayCue=0;previousAngle=director.replayAngle;}
         for (const cue of frameData.cues) {
-          if (cue.seq <= seenCue) continue;
-          seenCue = cue.seq;
-          if (director.replaying) continue;
+          if(director.replaying){if(cue.seq<=replayCue)continue;replayCue=cue.seq;}
+          else {if(cue.seq<=seenCue)continue;seenCue=cue.seq;}
           if (!data.running && cue.kind !== "faceoff") continue;
           const actor = byBody.get(cue.id), other = cue.target ? byBody.get(cue.target) : undefined;
           const at = (id?: string) => frameData.bodies.find(b => b.id === id);
           const actorSide = at(cue.id)?.side;
           // The building cheers for the home side (side 0).
           const homeActs = cue.kind === "save" ? actorSide === 0 : actorSide !== 1;
-          if (data.running) {
+          if (data.running && !director.replaying) {
             const shooter = cue.kind === "shot" ? at(cue.id) : undefined;
             const danger = shooter ? Math.max(0, 1 - Math.hypot(Math.abs(shooter.x) - 26, shooter.z) / 18) : 0;
             if (shooter && danger > 0.45) { benchUp[0] = benchUp[1] = now + 2600; }
             gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
           }
-          if (cue.kind === "shot") actor?.trigger(cue.release ?? "shot");
+          if (cue.kind === "shot") {
+            actor?.trigger(cue.release ?? "shot");
+            if(cue.height!==undefined && cue.z!==undefined){
+              const keeper=frameData.bodies.find(b=>b.goalie && b.side!==actorSide);
+              if(keeper)byBody.get(keeper.id)?.trigger("save",{x:0,z:cue.z-keeper.z},cue.height);
+            }
+          }
           else if (cue.kind === "pass" || cue.kind === "receive") actor?.trigger(cue.kind);
           else if (cue.kind === "check") { actor?.trigger("check"); other?.trigger(((cue.seq * 2654435761) >>> 0) % 100 < 28 ? "fall" : "checked"); }
           else if (cue.kind === "block") actor?.trigger("block");
@@ -354,7 +386,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           else if (cue.kind === "faceoff") {
             actor?.trigger("draw");
             other?.trigger("tie-up");
-            lineA.rig.trigger("drop");
+            if(!releasedAt)lineA.rig.trigger("drop");
           } else if (cue.kind === "save") {
             const keeper = at(cue.id);
             const toward = keeper && cue.x !== undefined ? { x: cue.x - keeper.x, z: (cue.z ?? 0) - keeper.z } : undefined;
@@ -363,16 +395,26 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           }
         }
         // --- puck: in the linesman's hand before a drop, then falls to the ice
-        let px = puckTrack.x, pz = puckTrack.z, py = frameData.puck.y > 0.5 ? 1.15 : 0.04;
+        let px = puckTrack.x, pz = puckTrack.z, py = Math.max(.018,frameData.puck.y);
         if (stoppage && (stoppage.phase === "lineup" || stoppage.phase === "drop")) {
           // The linesman carries the puck to the dot and holds it for the drop.
-          const atDot = Math.hypot(lineA.x - stoppage.dot.x, lineA.z - stoppage.dot.z + 1.15) < 2.5;
-          if (atDot) { px = lineA.x + 0.1; pz = lineA.z + 0.55; py = 1.05 - (stoppage.phase === "drop" ? 0.15 : 0); }
+          const atDot = Math.hypot(lineA.x - stoppage.dot.x, lineA.z - stoppage.dot.z + .64) < 2.5;
+          if (atDot) {
+            const t=stoppage.phase==="drop"?Math.max(0,stoppage.t-(stoppage.length-.45)):0;
+            if(t===0 || releasedAt!==stoppage){
+              if(!lineA.rig.handPoint?.(dropFrom))dropFrom.set(lineA.x+.12,.99,lineA.z+.45);
+            }
+            const f=Math.min(1,t/.45);
+            px=THREE.MathUtils.lerp(dropFrom.x,stoppage.dot.x,f);
+            pz=THREE.MathUtils.lerp(dropFrom.z,stoppage.dot.z,f);
+            py=Math.max(.018,dropFrom.y*(1-f*f));
+            if(t>0 && releasedAt!==stoppage){lineA.rig.trigger("drop");releasedAt=stoppage;}
+          }
           else { px = stoppage.dot.x; pz = stoppage.dot.z; py = 0.04; }
         }
         puckY += (py - puckY) * (1 - Math.exp(-dt * (py < puckY ? 14 : 6)));
         const pIn = insideBoards(px, pz, 0.3);
-        puck.position.set(pIn.x, puckY, pIn.z);
+        puck.position.set(pIn.x, stoppage?.phase==="drop"?py:puckY, pIn.z);
       } else if (data.running && data.event) {
         // Event replay (no spatial frames): a simple read of the event position.
         const x = (data.event.x / 100 - 0.5) * 56, z = (data.event.y / 100 - 0.5) * 23;
@@ -454,7 +496,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         let state: RigState = "coach-idle";
         let variant = c.head ? 0.2 : 0.8;
         const own = stoppage?.side === c.side;
-        if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") state = own ? (c.head ? "coach-clap" : "coach-point") : c.head ? "coach-despair" : "coach-idle";
+        if (liveStop?.phase === "review" && c.head) state="coach-review";
+        else if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") state = own ? (c.head ? "coach-clap" : "coach-point") : c.head ? "coach-despair" : "coach-idle";
         else if (stoppage?.kind === "penalty" && stoppage.phase === "whistle" && own && c.head) state = "coach-point";
         else if (!stoppage && c.head && Math.floor((now / 1000 + c.side * 5) / 9) % 3 === 0) { variant = 0.8; }
         else if (!stoppage && !c.head && Math.floor((now / 1000 + c.side * 3) / 11) % 4 === 1) state = "coach-point";
@@ -471,7 +514,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       const odt = data.running ? dt * Math.min(Math.max(1, data.playback), 2) : 0;
       if (stoppage && (stoppage.phase === "lineup" || stoppage.phase === "drop")) {
         const d = stoppage.dot;
-        moveOfficial(lineA, d.x, d.z - 1.15, odt, 12);
+        moveOfficial(lineA, d.x, d.z - .64, odt, 12);
         moveOfficial(lineB, d.x + (d.x >= 0 ? -1 : 1) * 6, d.z > 0 ? -9 : 9, odt);
         moveOfficial(refA, d.x + (d.x >= 0 ? 1 : -1) * 6, d.z > 0 ? -10.5 : 10.5, odt);
         moveOfficial(refB, -d.x * 0.4, 11, odt);
@@ -479,13 +522,39 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         moveOfficial(lineA, zone * 10, 11.2, odt);
         moveOfficial(lineB, -zone * 1.5, -11.2, odt);
         moveOfficial(refA, zone * 24.2, pz > 0 ? -9.8 : 9.8, odt);
-        moveOfficial(refB, zone * 4, pz > 0 ? 10.4 : -10.4, odt);
+        if(liveStop?.kind==="penalty" && liveStop.phase==="whistle"){
+          if(penaltyRoute?.stop!==liveStop)penaltyRoute={stop:liveStop,x:refB.x,z:refB.z,wingX:lineA.x,wingZ:lineA.z};
+          const u=Math.min(1,liveStop.t/3.2),travel=1-smoothstep(u),v=-6*u*(1-u)/3.2;
+          refB.x=penaltyRoute.x*travel;refB.z=penaltyRoute.z*travel;
+          refB.vx=penaltyRoute.x*v;refB.vz=penaltyRoute.z*v;
+          lineA.x=THREE.MathUtils.lerp(zone*9,penaltyRoute.wingX,travel);
+          lineA.z=THREE.MathUtils.lerp(10.3,penaltyRoute.wingZ,travel);
+          lineA.vx=(penaltyRoute.wingX-zone*9)*v;lineA.vz=(penaltyRoute.wingZ-10.3)*v;
+        }
+        else moveOfficial(refB, zone * 4, pz > 0 ? 10.4 : -10.4, odt);
       }
       const goalNet = stoppage?.kind === "goal" ? (frameData?.puck.x ?? 0) : 0;
       officials.forEach(o => {
         let state: RigState = "play";
         let face: number | undefined;
-        if (o === lineA && stoppage && (stoppage.phase === "lineup" || stoppage.phase === "drop") && Math.hypot(o.x - stoppage.dot.x, o.z - stoppage.dot.z + 1.15) < 1.2) {
+        if(o===refB && liveStop?.kind==="penalty" && liveStop.phase==="whistle" && !director.replaying && liveStop.t>=3 && Math.hypot(o.x,o.z)<1.3){
+          face=0;state=liveStop.infraction==="holding"?"official-holding":"official-roughing";
+          const team=teams[liveStop.side],player=playerOf(liveStop.side,liveStop.actor);
+          const holding=liveStop.infraction==="holding";
+          const announcement=language==="en" ? team.id+", number "+player?.number+", two minutes for "+(holding?"holding":"roughing") : team.id+", номер "+player?.number+", две минуты за "+(holding?"задержку соперника":"грубость");
+          replayBadge.classList.add("referee-announcement");
+          replayBadge.textContent=announcement;replayBadge.style.display="block";
+          if(data.running && calledPenalty!==liveStop){
+            calledPenalty=liveStop;
+            if(gameAudio.prefs.sound){
+              microphone.src=refereeAudio[language][holding?"holding":"roughing"];
+              microphone.volume=gameAudio.prefs.volume;
+              void microphone.play().catch(()=>{});
+
+            }
+          }
+        } else if (o===refA && liveStop?.phase==="review" && liveStop.t>=5.6) state=liveStop.review==="confirmed" ? "official-point" : "official-washout";
+        else if (o === lineA && stoppage && (stoppage.phase === "lineup" || stoppage.phase === "drop") && Math.hypot(o.x - stoppage.dot.x, o.z - stoppage.dot.z + .64) < 1.2) {
           state = "official-drop"; face = 0;
         } else if (o === refA && stoppage?.kind === "goal" && stoppage.phase === "celebrate" && stoppage.t < 2.6) {
           state = "official-point"; face = Math.atan2(goalNet - o.x, -o.z);
@@ -509,6 +578,19 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         body.rig.root.position.x = body.x;
         body.rig.root.position.z = body.z;
       }
+      if(frameData?.carrierId && !stoppage && byBody.get(frameData.carrierId)?.bladePoint?.(bladePosition)){
+        puck.position.set(bladePosition.x, .018, bladePosition.z);
+        lastBlade.copy(puck.position);bladeOwner=frameData.carrierId;
+      } else if(frameData && !stoppage){
+        if(bladeOwner){bladeOwner=undefined;releaseError.copy(lastBlade).sub(puck.position);releaseAge=0;}
+        releaseAge+=animDt;
+        puck.position.addScaledVector(releaseError,Math.max(0,1-releaseAge/.13));
+        const target=frameData.passTarget;
+        if(target && byBody.get(target)?.bladePoint?.(bladePosition)){
+          const gap=Math.hypot(bladePosition.x-puck.position.x,bladePosition.z-puck.position.z);
+          bladePosition.y=.018;puck.position.lerp(bladePosition,1-smoothstep(Math.min(1,gap/1.25)));
+        }
+      } else {bladeOwner=undefined;releaseAge=1;}
       // --- arena reactions (goal lights, crowd)
       // Ice: skate marks build up, the sheet is resurfaced between periods.
       if (frameData && data.running) iceFx.skate(actors.filter(a => a.rig.root.visible).map(a => { const m = a.rig.motion; return { x: m?.x ?? 0, z: m?.z ?? 0, speed: m?.speed ?? 0, stopping: !!m?.stopping }; }), dt);
@@ -519,6 +601,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       // --- cameras: damped springs, automatic broadcast director, replays and cut-scenes
       const m = mode.current;
       const shotOut = director.update(dt, m, liveFrame, puck.position, now / 1000, (id) => {
+        if(id==="official-1")return refB.rig.root.position;
         const t2 = tracks.get(id);
         if (t2) return { x: t2.x, z: t2.z };
         const b2 = liveFrame?.bodies.find(b => b.id === id);
@@ -528,6 +611,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       camera.position.copy(shotOut.pos);
       if (Math.abs(camera.fov - shotOut.fov) > 0.01) { camera.fov = shotOut.cut ? shotOut.fov : camera.fov + (shotOut.fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
       camera.lookAt(shotOut.look);
+      if(shotOut.shot==="referee"){
+        const center=refB.rig.root.position;
+        camera.position.set(center.x+.4,1.7,center.z+3.2);
+        camera.lookAt(center.x,1.18,center.z);
+      }
       post.setCinematic(shotOut.dof !== undefined, shotOut.dof);
       void focus; void lookAt; void desired; void lookSmooth; void zoom; void cameraReady; void _focusTarget;
       // --- label over the puck carrier (or the scorer)
@@ -561,6 +649,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
     return () => {
+      microphone.pause();
       leaveArena(); gameAudio.setRunning(false); spray.dispose(); iceFx.dispose(); post.dispose();
       cancelAnimationFrame(frame); observer.disconnect();
       [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());

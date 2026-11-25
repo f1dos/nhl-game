@@ -45,12 +45,14 @@ export class Damped {
 }
 const _c = new THREE.Vector3(), _t = new THREE.Vector3(), _tmp = new THREE.Vector3(), _o = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
-export type Shot = "main" | "low-net" | "over-net" | "bench" | "faceoff" | "celebrate" | "intro" | "replay-side" | "replay-net" | "replay-high";
+export type Shot = "main" | "low-net" | "over-net" | "bench" | "faceoff" | "celebrate" | "referee" | "intro" | "replay-side" | "replay-net" | "replay-high";
 
 interface Snapshot {
+  passTarget?:string;
   bodies: SkaterBody[];
   puck: { x: number; y: number; z: number };
   carrierId?: string;
+  cues: SpatialFrame["cues"];
   at: number;
   save: boolean;
 }
@@ -76,9 +78,11 @@ export class BroadcastDirector {
   private started = false;
   private history: Snapshot[] = [];
   private lastTick = -1;
+  private seenRecordedCue=0;
   private lastSaveAt = -10;
-  private replay?: { frames: Snapshot[]; angles: Shot[]; t: number; length: number; scorer?: string };
-  private replayed = new Set<string>();
+  private replay?: { frames: Snapshot[]; angles: Shot[]; start:number;phase:SpatialStoppage["phase"]; t: number; length: number; scorer?: string };
+  private replayed?: SpatialStoppage;
+  private recordedStop?: SpatialStoppage;
   private introLeft = 5.5;
   private zoneTime = 0;
 
@@ -87,19 +91,25 @@ export class BroadcastDirector {
     return !!this.replay;
   }
 
+  get replayAngle(){ return this.replay ? Math.floor(this.replay.t/(this.replay.length/this.replay.angles.length)) : -1; }
   /** Called with every new simulation frame. */
   record(frame: SpatialFrame, now: number) {
     if (frame.tick === this.lastTick || this.replay) return;
     this.lastTick = frame.tick;
     if (frame.cues.some((c) => c.kind === "save")) this.lastSaveAt = now;
-    if (frame.stoppage) return;
+    if (frame.stoppage && this.recordedStop===frame.stoppage) return;
+    if (frame.stoppage && !["goal","penalty"].includes(frame.stoppage.kind) && !frame.stoppage.review) return;
+    this.recordedStop=frame.stoppage;
     this.history.push({
       bodies: frame.bodies.map((b) => ({ ...b })),
       puck: { ...frame.puck },
       carrierId: frame.carrierId,
+      cues:frame.cues.filter(c=>c.seq>this.seenRecordedCue).map(c=>({...c})),
+      passTarget:frame.passTarget,
       at: now,
       save: now - this.lastSaveAt < 2.2,
     });
+    this.seenRecordedCue=frame.cues.at(-1)?.seq??this.seenRecordedCue;
     while (this.history.length && now - this.history[0].at > 9) this.history.shift();
   }
 
@@ -107,9 +117,11 @@ export class BroadcastDirector {
   frameFor(live: SpatialFrame | undefined, dt: number): SpatialFrame | undefined {
     const r = this.replay;
     if (!r || !live) return live;
-    r.t += dt;
+    if(live.stoppage?.phase===r.phase)r.t=Math.max(0,live.stoppage.t-r.start);
+    else r.t+=dt;
     const per = r.length / r.angles.length;
-    const local = (r.t % per) / per;
+    const angle=Math.min(r.angles.length-1,Math.floor(r.t/per));
+    const local=Math.min(1,(r.t-angle*per)/per);
     // Slow motion over the last seconds before the goal.
     const span = r.frames.length - 1;
     const f = Math.min(span, local * span);
@@ -122,9 +134,10 @@ export class BroadcastDirector {
     return {
       ...live,
       bodies,
-      puck: { x: a.puck.x + (b.puck.x - a.puck.x) * k, y: 0.12, z: a.puck.z + (b.puck.z - a.puck.z) * k },
+      puck: { x: a.puck.x + (b.puck.x - a.puck.x) * k, y:a.puck.y+(b.puck.y-a.puck.y)*k, z: a.puck.z + (b.puck.z - a.puck.z) * k },
       carrierId: a.carrierId,
-      cues: live.cues,
+      passTarget:a.passTarget,
+      cues:r.frames.slice(0,i+1).flatMap(frame=>frame.cues),
       stoppage: undefined,
       tick: live.tick * 1000 + Math.floor(r.t * 30),
     };
@@ -132,16 +145,16 @@ export class BroadcastDirector {
 
   /** Starts a replay of the goal that caused this stoppage (once per goal). */
   private maybeReplay(s: SpatialStoppage, now: number) {
-    const key = `${s.actor}:${s.variant}`;
-    if (this.replayed.has(key) || s.t < 1.4 || s.t > 2.5) return;
-    this.replayed.add(key);
-    const frames = this.history.filter((h) => now - h.at < 5.5).slice(-26);
-    if (frames.length < 6) return;
+
+    if (this.replayed===s || (s.phase==="review" && s.t<1.4)) return;
+    this.replayed=s;
+    const frames = s.replay?.length ? s.replay : this.history.filter((h) => now - h.at < 5.5).slice(-26);
+    if (frames.length < 2) return;
     const rebound = frames.slice(-12).some((f) => f.save);
     // Rebound goals are best seen from behind the net; shots from the side
     // first, then from above the goal.
-    const angles: Shot[] = rebound ? ["replay-net", "replay-side"] : ["replay-side", "replay-high"];
-    this.replay = { frames, angles, t: 0, length: 6.6, scorer: s.actor };
+    const angles: Shot[] = s.kind==="penalty" ? ["replay-side"] : rebound ? ["replay-net", "replay-side"] : ["replay-side", "replay-high"];
+    this.replay = { frames, angles, start:s.phase==="review"?1.4:0,phase:s.phase,t: 0, length: s.kind==="penalty" ? 2.6 : 4.5, scorer: s.actor };
   }
 
   update(dt: number, mode: CameraMode, frame: SpatialFrame | undefined, puck: THREE.Vector3, now: number, find: (id: string) => { x: number; z: number } | undefined): CameraOut {
@@ -149,8 +162,8 @@ export class BroadcastDirector {
     const s = frame?.stoppage;
     let cut = !this.started;
     this.started = true;
-    if (s?.kind === "goal" && s.phase === "celebrate" && mode === "broadcast") this.maybeReplay(s, now);
-    if (this.replay && (this.replay.t >= this.replay.length || !s || s.phase === "drop")) this.replay = undefined;
+    if (s && (s.phase === "review" || (s.kind === "goal" && s.phase === "celebrate") || (s.kind==="penalty" && s.phase==="whistle")) && mode === "broadcast") this.maybeReplay(s, now);
+    if (this.replay && (this.replay.t >= this.replay.length || !s || s.phase === "drop" || (s.review && (s.phase !== "review" || s.t >= 5.6)))) this.replay = undefined;
     const want = new THREE.Vector3(), lookAt = new THREE.Vector3();
     let fov = 42, dof: number | undefined, smooth = 0.45, lookSmooth = 0.3;
     const px = THREE.MathUtils.clamp(puck.x, -27, 27), pz = THREE.MathUtils.clamp(puck.z, -11, 11);
@@ -175,6 +188,20 @@ export class BroadcastDirector {
       }
       dof = want.distanceTo(lookAt);
       smooth = 0.35;
+    } else if(s?.kind==="penalty" && s.phase==="whistle" && mode==="broadcast") {
+      shot="referee";cut=this.lastShot!=="referee"; const ref=find("official-1");
+      const x=ref?.x??0,z=ref?.z??0;want.set(x+.65,1.65,z+3.8);lookAt.set(x,1.12,z);fov=35;smooth=.20;
+    } else if (s?.phase === "review" && mode === "broadcast") {
+      if (s.t<1.5) {
+        shot="bench";
+        const coachX=(s.review==="confirmed" ? 1-s.side : s.side)===0 ? -8.5 : 8.5;
+        want.set(coachX+2.6,2.5,-10.8);lookAt.set(coachX-1.2,1.7,-15.9);fov=38;
+      } else {
+        shot="over-net";
+        const x=Math.sign(puck.x || 1)*26;
+        want.set(x-1.4*Math.sign(x),7.8,.2);lookAt.set(x,0,0);fov=46;
+      }
+      smooth=.18;
     } else if (this.introLeft > 0 && frame && frame.tick < 5 && mode === "broadcast") {
       // Fly-over before the opening faceoff.
       this.introLeft -= dt;

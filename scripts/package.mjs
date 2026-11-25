@@ -4,27 +4,8 @@ import { zipSync } from "fflate";
 const root = process.cwd();
 const dist = path.join(root, "dist");
 fs.mkdirSync(path.join(dist, "downloads"), { recursive: true });
-let html = fs.readFileSync(path.join(dist, "index.html"), "utf8");
-html = html.replace(
-  /<script[^>]+src="([^"]+)"[^>]*><\/script>/g,
-  (_, src) =>
-    '<script type="module">' +
-    fs
-      .readFileSync(path.join(dist, src.replace(/^\//, "")), "utf8")
-      .replace(/<\/script/gi, "<\\/script") +
-    "</script>",
-);
-html = html.replace(
-  /<link[^>]+href="([^"]+\.css)"[^>]*>/g,
-  (_, src) =>
-    "<style>" +
-    fs.readFileSync(path.join(dist, src.replace(/^\//, "")), "utf8") +
-    "</style>",
-);
-// Preserve the character library when the standalone page is opened offline.
-html = html.replace(/"\/assets\/(headgear-[^"]+\.glb)"/g, (_, name) =>
-  '"data:model/gltf-binary;base64,' + fs.readFileSync(path.join(dist,"assets",name)).toString("base64") + '"');
-fs.writeFileSync(path.join(dist, "downloads", "NHL-Manager-27.html"), html);
+await import("./build-preview.mjs");
+fs.copyFileSync(path.join(dist,"downloads","NHL-Manager-27-preview.html"),path.join(dist,"downloads","NHL-Manager-27.html"));
 const files = {};
 function collect(dir) {
   for (const entry of fs.readdirSync(path.join(root, dir), {
@@ -38,7 +19,7 @@ function collect(dir) {
       );
   }
 }
-for (const dir of ["src", "tests", "scripts"]) collect(dir);
+for (const dir of ["src", "tests", "scripts", "public"]) collect(dir);
 for (const file of [
   "README.md",
   "package.json",
