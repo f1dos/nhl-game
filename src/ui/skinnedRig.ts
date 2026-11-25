@@ -971,6 +971,7 @@ const luminance = (hex: string) => {
 /* ------------------------------------------------------------- the rig */
 
 export interface RigLike {
+  alignBlade?(target: THREE.Vector3): void;
   handPoint?(target:THREE.Vector3):boolean;
   bladePoint?(target: THREE.Vector3): boolean;
   readonly root: THREE.Group;

@@ -10,6 +10,7 @@ export const RINK = {
   /** Boards (visual) half length / half width. */
   boardsX: 30.5,
   boardsZ: 13.2,
+  cornerRadius: 8.5,
   /** Goal line and goalie crease position. */
   goalLine: 26,
   goalieX: 25,
@@ -40,6 +41,17 @@ export const PENALTY_BOX = {
 
 export type Dot = { x: number; z: number };
 export const CENTER_DOT: Dot = { x: 0, z: 0 };
+
+export function insideRink(x: number, z: number, margin: number): Dot {
+  const radius = RINK.cornerRadius;
+  const cx = Math.sign(x) * Math.min(Math.abs(x), RINK.boardsX - radius);
+  const cz = Math.sign(z) * Math.min(Math.abs(z), RINK.boardsZ - radius);
+  const dx = x - cx, dz = z - cz;
+  const distance = Math.hypot(dx, dz);
+  const limit = radius - margin;
+  if (distance <= limit) return { x, z };
+  return { x: cx + dx * limit / distance, z: cz + dz * limit / distance };
+}
 
 interface ContactBody extends Dot {
   vx: number;
@@ -85,10 +97,8 @@ export function separateSkaters(bodies: ContactBody[], previous?: Dot[]) {
         if (depth < .0001) continue;
         moved = true;
         const share = a.goalie ? .15 : b.goalie ? .85 : .5;
-        a.x = Math.max(-RINK.halfLength, Math.min(RINK.halfLength, a.x - nx*depth*share));
-        a.z = Math.max(-RINK.halfWidth, Math.min(RINK.halfWidth, a.z - nz*depth*share));
-        b.x = Math.max(-RINK.halfLength, Math.min(RINK.halfLength, b.x + nx*depth*(1-share)));
-        b.z = Math.max(-RINK.halfWidth, Math.min(RINK.halfWidth, b.z + nz*depth*(1-share)));
+        Object.assign(a, insideRink(a.x - nx*depth*share, a.z - nz*depth*share, .68));
+        Object.assign(b, insideRink(b.x + nx*depth*(1-share), b.z + nz*depth*(1-share), .68));
         const closing = Math.max(0,(a.vx-b.vx)*nx + (a.vz-b.vz)*nz);
         a.vx -= nx*closing*share;
         a.vz -= nz*closing*share;

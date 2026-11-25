@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
 import { SpatialMatch } from "../src/engine/spatialMatch";
+import { insideRink } from "../src/engine/rink";
 
 test("spatial scoring stays in hockey-scale ranges across thirty seeded games", () => {
   const g=newGame();let goals=0,shots=0;
@@ -48,7 +49,10 @@ test("spatial simulation is incremental, deterministic and stays inside the rink
   assert.deepEqual(a.result, b.result);
   assert(
     a.frame.bodies.every(
-      (body) => Math.abs(body.x) <= 29 && Math.abs(body.z) <= 12,
+      (body) => {
+        const inside = insideRink(body.x, body.z, .68);
+        return Math.hypot(body.x-inside.x, body.z-inside.z) < .001;
+      },
     ),
   );
   assert.equal(
@@ -111,13 +115,15 @@ test("presentation cues describe on-ice actions without affecting the result", (
   let last = 0;
   while (!cued.done) {
     cued.resume();
+    const before = new Set(cued.frame.bodies.map(b => b.id));
     cued.step();
     for (const cue of cued.frame.cues) {
       if (cue.seq <= last) continue;
       assert.equal(cue.seq, last + 1, "cue sequence numbers have no gaps");
       last = cue.seq;
       seen.set(cue.kind, (seen.get(cue.kind) ?? 0) + 1);
-      assert(cued.frame.bodies.some((b) => b.id === cue.id) || cue.kind === "goal" || cue.kind === "check" || cue.kind === "penalty" || cue.kind === "save" || cue.kind === "shot" || cue.kind === "pass" || cue.kind === "faceoff");
+      assert(before.has(cue.id) || cued.frame.bodies.some((b) => b.id === cue.id),
+        `action ${cue.kind} should belong to a skater on the ice during this tick`);
     }
     assert(cued.frame.cues.length <= 24);
   }
@@ -144,7 +150,10 @@ test("broadcast stoppages show celebrations and faceoffs without changing the ma
         if (!phases.has(s.kind)) phases.set(s.kind, new Set());
         phases.get(s.kind)!.add(s.phase);
         if (shown.time === before) frozen++;
-        assert(shown.frame.bodies.every((b) => Math.abs(b.x) <= 29 && Math.abs(b.z) <= 12));
+        assert(shown.frame.bodies.every((b) => {
+          const inside = insideRink(b.x, b.z, .68);
+          return Math.hypot(b.x-inside.x, b.z-inside.z) < .001;
+        }));
         assert.equal(shown.frame.carrierId, undefined, "nobody carries the puck while play is stopped");
       }
     }
@@ -286,4 +295,20 @@ test("broadcast clock advances two seconds per second of normal-speed skating", 
     assert(Math.hypot(body.x-reference.x, body.z-reference.z)<.005);
   }
   assert(Math.hypot(normal.frame.puck.x-broadcast.frame.puck.x,normal.frame.puck.z-broadcast.frame.puck.z)<.005);
+});
+
+test("a puck pinned against the boards resolves within five playing seconds", () => {
+  const g = newGame();
+  const m = new SpatialMatch(g.teams[0], g.teams[1], 107);
+  const internal = m as unknown as {owner:string;flight?:unknown};
+  internal.owner=""; internal.flight=undefined;
+  m.frame.puck={x:0,z:13.15,y:.018};
+  const skaters = [0,1].map(side=>m.frame.bodies.find(b=>b.side===side && !b.goalie)!);
+  skaters.forEach((b,i)=>Object.assign(b,{x:i ? .42 : -.42,z:12.45,vx:0,vz:0}));
+  let resolved=false;
+  for (let i=0;i<50;i++) {
+    m.step();
+    if (m.frame.carrierId || m.frame.stoppage) { resolved=true;break; }
+  }
+  assert(resolved);
 });

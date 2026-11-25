@@ -1,5 +1,6 @@
 import { strFromU8, unzlibSync } from "fflate";
 import * as THREE from "three";
+import { BENCH, RINK } from "../engine/rink";
 import bowlData from "../assets/match-night.json";
 import fanData from "../assets/match-night/fans.json";
 import rinkData from "../assets/match-night/rink.json";
@@ -218,13 +219,57 @@ export function buildMatchNight(
   chairs.count = empty;
   chairs.layers.set(1);
   bowl.add(chairs);
+  // Replace the three continuous bench-side strips with fixed panels and
+  // hinged leaves. Keep the bench floors and the corner panels from Blender.
+  const panels = unpack<Batch>(rinkData);
+  const strips = [
+    { key:"209,217,217,255", y:.625, h:.91, z:-13.2, depth:.07 },
+    { key:"240,135,5,255", y:.09, h:.18, z:-13.191, depth:.075 },
+    { key:"9,12,15,255", y:1.09, h:.035, z:-13.296, depth:.193 },
+  ];
+  for (const strip of strips) {
+    const [points, indices] = panels[strip.key];
+    const keep = [];
+    for (let i=0; i<indices.length; i+=3) {
+      const face=indices.slice(i,i+3);
+      const xs=face.map(v=>points[v*3]);
+      if (Math.min(...xs)<-22000 && Math.max(...xs)>22000 &&
+          face.every(v=>Math.abs(points[v*3+2]+13200)<210)) continue;
+      keep.push(...face);
+    }
+    panels[strip.key][1]=keep;
+  }
   const rink = shell(
-    unpack<Batch>(rinkData),
+    panels,
     "Match Night | boards, glass, benches and goals",
     1000,
     0,
   );
+  const doorWidth = 1.35;
+  const doors = BENCH.centerX.map(x => {
+    const pivot = new THREE.Group();
+    pivot.position.set(x-doorWidth/2,0,-RINK.boardsZ);
+    rink.add(pivot);
+    return pivot;
+  });
+  for (const strip of strips) {
+    const rgb=strip.key.split(",").map(Number);
+    const material=own(new THREE.MeshStandardMaterial({color:new THREE.Color(rgb[0]/255,rgb[1]/255,rgb[2]/255),roughness:.78}));
+    const panel=(parent:THREE.Group,left:number,right:number,z:number) => {
+      const mesh=new THREE.Mesh(own(new THREE.BoxGeometry(right-left,strip.h,strip.depth)),material);
+      mesh.position.set((left+right)/2,strip.y,z);
+      parent.add(mesh);
+    };
+    let left=-22.367;
+    doors.forEach((door,i)=>{
+      panel(rink,left,door.position.x,strip.z);
+      panel(door,0,doorWidth,strip.z+RINK.boardsZ);
+      left=BENCH.centerX[i]+doorWidth/2;
+    });
+    panel(rink,left,22.367,strip.z);
+  }
   return {
+    doors,
     bowl,
     ceiling,
     rink,

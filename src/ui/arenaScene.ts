@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { buildMatchNight } from "./matchArt";
 import { arenaPreset } from "./arenaFx";
 import type { Team } from "../engine/types";
-import { RINK } from "../engine/rink";
+import { RINK, insideRink } from "../engine/rink";
 
 /**
  * The arena around the rink: rounded boards with sponsor panels (fictional
@@ -25,9 +25,9 @@ export interface ArenaReactions {
   score?: { home: number; away: number; clock: string; period: string };
 }
 
-const HALF_X = 30.5,
-  HALF_Z = 13.2,
-  CORNER = 8.5;
+const HALF_X = RINK.boardsX,
+  HALF_Z = RINK.boardsZ,
+  CORNER = RINK.cornerRadius;
 function roundedRectShape(hx: number, hz: number, r: number) {
   const s = new THREE.Shape();
   s.moveTo(-hx + r, -hz);
@@ -44,16 +44,7 @@ function roundedRectShape(hx: number, hz: number, r: number) {
 
 /** Keeps a rendered position inside the rounded boards (visual only). */
 export function insideBoards(x: number, z: number, margin = 0.7) {
-  const cx = HALF_X - CORNER,
-    cz = HALF_Z - CORNER;
-  if (Math.abs(x) <= cx || Math.abs(z) <= cz) return { x, z };
-  const ox = Math.sign(x) * cx,
-    oz = Math.sign(z) * cz;
-  const dx = x - ox,
-    dz = z - oz,
-    d = Math.hypot(dx, dz),
-    max = CORNER - margin;
-  return d <= max ? { x, z } : { x: ox + (dx / d) * max, z: oz + (dz / d) * max };
+  return insideRink(x, z, margin);
 }
 
 function canvasTexture(w: number, h: number, draw: (ctx: CanvasRenderingContext2D) => void) {
@@ -248,7 +239,7 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   const iceTex = own(icePaint.tex);
   let disposed = false;
   const logo = loadLogo(home.logoUrl);
-  const ice = new THREE.Mesh(iceGeo, own(new THREE.MeshStandardMaterial({ map: iceTex, roughness: 0.18, metalness: 0.05 })));
+  const ice = new THREE.Mesh(iceGeo, own(new THREE.MeshStandardMaterial({ map: iceTex, color: "#dce3e8", roughness: .84, metalness: 0 })));
   ice.rotation.x = -Math.PI / 2;
   group.add(ice);
   // Floor under everything.
@@ -436,6 +427,7 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     group,
     ice,
     preset,
+    doors: venue.doors,
     update(dt: number, r: ArenaReactions) {
       clock += dt;
       lights.forEach((m, i) => {

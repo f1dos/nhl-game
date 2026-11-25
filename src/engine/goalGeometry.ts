@@ -20,6 +20,49 @@ export function closestOnPath(start: Dot, end: Dot, point: Dot) {
   return {x,z,t,gap:Math.hypot(x-point.x,z-point.z)};
 }
 
+const NET_CENTER = RINK.goalLine + .54;
+const SKATER_NET_X = 1.14;
+const SKATER_NET_Z = GOAL_HALF_WIDTH + .5;
+
+/** The goal mouth is traversable by the puck. The frame and its interior are solid for skaters. */
+export function clearSkaterNet(start: Dot, end: Dot): Dot {
+  if (Math.max(Math.abs(start.x), Math.abs(end.x)) < NET_CENTER - SKATER_NET_X ||
+      (Math.abs(start.z) > SKATER_NET_Z && Math.abs(end.z) > SKATER_NET_Z && start.z*end.z > 0)) return end;
+  const side = Math.sign(end.x || start.x) || 1;
+  const center = side * NET_CENTER;
+  const ax = (start.x-center)/SKATER_NET_X, az = start.z/SKATER_NET_Z;
+  const bx = (end.x-center)/SKATER_NET_X, bz = end.z/SKATER_NET_Z;
+  const dx = bx-ax, dz = bz-az;
+  const length2 = dx*dx + dz*dz;
+  const projection = ax*dx + az*dz;
+  const outside = ax*ax + az*az - 1;
+  if (outside < 0) {
+    const distance = Math.hypot(bx, bz);
+    if (distance >= 1) return end;
+    return distance > 1e-6
+      ? { x: center + bx/distance*SKATER_NET_X, z: bz/distance*SKATER_NET_Z }
+      : { x: center - side*SKATER_NET_X, z: 0 };
+  }
+  const det = projection*projection-length2*outside;
+  if (!length2 || det < 0 || projection >= 0) return end;
+  const t = (-projection-Math.sqrt(det))/length2;
+  if (t > 1) return end;
+  const nx = ax+t*dx, nz = az+t*dz;
+  const radial = (dx*nx+dz*nz)*(1-t);
+  return { x: center + (bx-radial*nx+.001*nx)*SKATER_NET_X, z: (bz-radial*nz+.001*nz)*SKATER_NET_Z };
+}
+
+export function skaterNetRoute(start: Dot, target: Dot): Dot {
+  const safe = clearSkaterNet(start, target);
+  if (safe === target) return target;
+  const side = Math.sign(start.x || target.x) || 1;
+  const lane = Math.sign(Math.abs(start.z) > .28 ? start.z : target.z) || 1;
+  return {
+    x: start.x*side < NET_CENTER ? side*(NET_CENTER-SKATER_NET_X-.18) : side*(NET_CENTER+SKATER_NET_X+.18),
+    z: lane*(SKATER_NET_Z+.55),
+  };
+}
+
 const ends = [-1,1].map(side => goalOutline(side));
 // Sweep the puck disc against the two faces and rounded ends of each rail.
 export function netContact(start: Dot, end: Dot) {

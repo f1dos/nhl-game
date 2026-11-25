@@ -117,7 +117,7 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
     disposables.push(reflector.geometry, reflector.getRenderTarget());
     const mat = ice.material as THREE.MeshStandardMaterial;
     mat.transparent = true;
-    mat.opacity = 0.86;
+    mat.opacity = 0.965;
     mat.depthWrite = true;
     mat.needsUpdate = true;
     ice.receiveShadow = true;
@@ -173,7 +173,7 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
       if (reflector) reflector.visible = on;
       if (ice) {
         const m = ice.material as THREE.MeshStandardMaterial;
-        m.opacity = on ? 0.86 : 1;
+        m.opacity = on ? .965 : 1;
         m.transparent = on;
         m.needsUpdate = true;
       }

@@ -100,6 +100,7 @@ const shotClips: Partial<Record<RigActionKind, string>> = {
   draw: "Draw",
   "tie-up": "Contest",
   receive: "Contest",
+  poke: "Contest",
   deke: "Contest",
   protest: "Rise at goal",
   "stick-tap": "Draw",
@@ -182,9 +183,19 @@ class MatchNightPlayer implements RigLike {
   private heel=0;
   private bones=new Map<string,THREE.Object3D>();
   private previousRotations=new Map<THREE.Object3D,THREE.Quaternion>();
+  private pelvisHeight?: number;
+  private previousSpeed = 0;
+  private previousYaw = 0;
+  private glide = 0;
+  private gliding = false;
   private motionTime=0;
   private saveSide=1;
   private catchTime=0;
+  private shotTime = 0;
+  private shotLength = .45;
+  private shotTurn = 0;
+  private passTime = 0;
+  private passDirection = new THREE.Vector3();
   private busy = 0;
   private offset = 0;
   private released = false;
@@ -206,7 +217,7 @@ class MatchNightPlayer implements RigLike {
           if(o instanceof THREE.Bone){
             // GLTFLoader sanitizes periods for its animation binding paths.
             this.bones.set(o.userData.name ?? o.name,o);
-            this.bones.set(o.name.replace(/^(UpperArm|Forearm|Hand)([LR])$/, "$1.$2"),o);
+            this.bones.set(o.name.replace(/^(UpperArm|Forearm|Hand|Thigh|Shin|Foot)([LR])$/, "$1.$2"),o);
           }
           if (!(o instanceof THREE.Mesh)) return;
           if(o instanceof THREE.SkinnedMesh && !Array.isArray(o.material) && o.material.name.endsWith("Blade tape")){
@@ -275,8 +286,8 @@ class MatchNightPlayer implements RigLike {
   private reachArm(side:"L"|"R", target:THREE.Vector3, pole:THREE.Vector3) {
     const upper=this.bones.get("UpperArm."+side),fore=this.bones.get("Forearm."+side),hand=this.bones.get("Hand."+side);
     if(!upper || !fore || !hand || !this.visual)return;
-    this.visual.localToWorld(target);this.visual.localToWorld(pole);
-    const origin=upper.getWorldPosition(new THREE.Vector3()),elbow=fore.getWorldPosition(new THREE.Vector3()),end=hand.getWorldPosition(new THREE.Vector3());
+    const point = (bone: THREE.Object3D) => this.visual!.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
+    const origin=point(upper),elbow=point(fore),end=point(hand);
     const l1=origin.distanceTo(elbow),l2=elbow.distanceTo(end),axis=target.clone().sub(origin);
     const d=THREE.MathUtils.clamp(axis.length(),Math.abs(l1-l2)+.001,l1+l2-.001);
     axis.normalize();
@@ -284,14 +295,60 @@ class MatchNightPlayer implements RigLike {
     const bend=pole.sub(origin);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
     const joint=origin.clone().addScaledVector(axis,x).addScaledVector(bend,Math.sqrt(Math.max(0,l1*l1-x*x)));
     const turn=(bone:THREE.Object3D,child:THREE.Object3D,to:THREE.Vector3)=>{
-      const p=bone.getWorldPosition(new THREE.Vector3());
-      const rot=new THREE.Quaternion().setFromUnitVectors(child.getWorldPosition(new THREE.Vector3()).sub(p).normalize(),to.clone().sub(p).normalize());
-      this.previousRotations.set(bone,bone.quaternion.clone());
-      const world=bone.getWorldQuaternion(new THREE.Quaternion()).premultiply(rot);
-      bone.quaternion.copy(bone.parent!.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
-      bone.updateMatrixWorld(true);
+      const localTarget = bone.parent!.worldToLocal(this.visual!.localToWorld(to.clone()));
+      const from = child.position.clone().applyQuaternion(bone.quaternion).normalize();
+      const direction = localTarget.sub(bone.position).normalize();
+      if (!this.previousRotations.has(bone)) this.previousRotations.set(bone,bone.quaternion.clone());
+      bone.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(from, direction));
     };
     turn(upper,fore,joint);turn(fore,hand,target);
+  }
+  /** Raise the hips while keeping each animated skate's position and edge angle. */
+  private extendGlide(amount: number) {
+    const pelvis = this.bones.get("Pelvis");
+    const basis = pelvis?.parent;
+    if (!pelvis || !basis || amount < .015) return;
+    const point = (bone: THREE.Object3D) => basis.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
+    const rotation = (bone: THREE.Object3D) => {
+      bone.updateWorldMatrix(true, false);
+      const relative = basis.matrixWorld.clone().invert().multiply(bone.matrixWorld);
+      return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(relative));
+    };
+    const legs = (["L", "R"] as const).flatMap(side => {
+      const thigh = this.bones.get("Thigh."+side), shin = this.bones.get("Shin."+side), foot = this.bones.get("Foot."+side);
+      if (!thigh || !shin || !foot) return [];
+      const hip = point(thigh), knee = point(shin), ankle = point(foot);
+      const upper = hip.distanceTo(knee), lower = knee.distanceTo(ankle);
+      const reach = upper + lower - .006;
+      const lateral = Math.hypot(hip.x-ankle.x, hip.z-ankle.z);
+      const lift = Math.sqrt(Math.max(0, reach*reach - lateral*lateral)) - (hip.y-ankle.y);
+      return [{ thigh, shin, foot, knee, ankle, upper, lower, lift, edge: rotation(foot) }];
+    });
+    if (legs.length !== 2) return;
+    this.pelvisHeight = pelvis.position.y;
+    pelvis.position.y += Math.max(0, Math.min(.14 * amount, ...legs.map(leg => leg.lift)));
+    const turn = (joint: THREE.Object3D, child: THREE.Object3D, target: THREE.Vector3) => {
+      const localTarget = joint.parent!.worldToLocal(basis.localToWorld(target.clone()));
+      const from = child.position.clone().applyQuaternion(joint.quaternion).normalize();
+      const to = localTarget.sub(joint.position).normalize();
+      this.previousRotations.set(joint, joint.quaternion.clone());
+      joint.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(from, to));
+    };
+    for (const { thigh, shin, foot, knee, ankle, upper, lower, edge } of legs) {
+      const hip = point(thigh);
+      const axis = ankle.clone().sub(hip);
+      const distance = Math.min(axis.length(), upper + lower - .004);
+      axis.normalize();
+      const bend = knee.sub(hip);
+      bend.addScaledVector(axis, -bend.dot(axis)).normalize();
+      const along = (upper*upper - lower*lower + distance*distance) / (2*distance);
+      const joint = hip.clone().addScaledVector(axis, along)
+        .addScaledVector(bend, Math.sqrt(Math.max(0, upper*upper - along*along)));
+      turn(thigh, shin, joint);
+      turn(shin, foot, ankle);
+      this.previousRotations.set(foot, foot.quaternion.clone());
+      foot.quaternion.copy(rotation(shin).invert().multiply(edge));
+    }
   }
   handPoint(target:THREE.Vector3){
     const hand=this.bones.get("Hand.R");
@@ -305,6 +362,29 @@ class MatchNightPlayer implements RigLike {
     mesh.getVertexPosition(this.heel,target);
     mesh.localToWorld(target);
     return true;
+  }
+  alignBlade(target: THREE.Vector3) {
+    const visual = this.visual;
+    if (!visual || this.role !== "skater" || this.currentState !== "play") return;
+    const blade = new THREE.Vector3();
+    if (!this.bladePoint(blade)) return;
+    const delta = visual.worldToLocal(target.clone()).sub(visual.worldToLocal(blade)).clampLength(0,.29);
+    if (delta.lengthSq() < .0004) return;
+    const relativeRotation = (bone: THREE.Object3D) => {
+      bone.updateWorldMatrix(true, false);
+      const relative = visual.matrixWorld.clone().invert().multiply(bone.matrixWorld);
+      return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(relative));
+    };
+    for (const side of ["R", "L"] as const) {
+      const hand = this.bones.get("Hand."+side), elbow = this.bones.get("Forearm."+side);
+      if (!hand || !elbow) continue;
+      const point = visual.worldToLocal(hand.getWorldPosition(new THREE.Vector3())).add(delta);
+      const pole = visual.worldToLocal(elbow.getWorldPosition(new THREE.Vector3()));
+      const grip = relativeRotation(hand);
+      this.reachArm(side, point, pole);
+      if (!this.previousRotations.has(hand)) this.previousRotations.set(hand, hand.quaternion.clone());
+      hand.quaternion.copy(relativeRotation(elbow).invert().multiply(grip));
+    }
   }
   private play(name: string, once = false) {
     const next = this.actions.get(name);
@@ -334,7 +414,12 @@ class MatchNightPlayer implements RigLike {
     };
   }
   setIdentity(id: RigIdentity, pos: string) {
+    if (this.root.userData.playerId === id.id) return;
     this.driver.setIdentity(id, pos);
+    this.mixer?.stopAllAction();
+    this.active = undefined;
+    this.shotTime = this.busy = this.catchTime = this.passTime = this.glide = 0;
+    this.gliding = false;
     this.offset = (id.number * 0.61803398875) % 1;
     this.root.userData.playerId = id.id;
   }
@@ -353,6 +438,17 @@ class MatchNightPlayer implements RigLike {
     height?: number,
   ) {
     this.driver.trigger(kind, toward, height);
+    if (["wrist","shot","slap","snap"].includes(kind) && this.role === "skater") {
+      this.shotLength = kind === "slap" ? .65 : kind === "snap" ? .3 : .47;
+      this.shotTime = this.shotLength;
+      this.shotTurn = toward ? Math.sin(Math.atan2(toward.x,toward.z)-this.motion.yaw) : 0;
+    }
+    if (kind === "pass" && this.role === "skater") {
+      this.passTime = .46;
+      const yaw = this.motion.yaw;
+      this.passDirection.set(toward?.x ?? Math.sin(yaw), 0, toward?.z ?? Math.cos(yaw)).normalize();
+      return;
+    }
     if(kind==="receive"){this.catchTime=.36;return;}
     if(kind==="save") this.saveSide=Math.sign((toward?.z??0)*Math.sin(this.motion.yaw) || 1);
     const clip =
@@ -371,6 +467,19 @@ class MatchNightPlayer implements RigLike {
     this.driver.update(dt, animDt, input);
     if (!this.visual || !this.mixer || !this.root.visible) return;
     const source = this.driver.skeletonSource();
+    const speedChange = (source.speed-this.previousSpeed) / Math.max(dt, .016);
+    const angularSpeed = Math.sin(source.yaw-this.previousYaw) / Math.max(dt,.016);
+    const turnRate = Math.abs(angularSpeed);
+    this.previousSpeed = source.speed;
+    this.previousYaw = source.yaw;
+    const settled = 1-THREE.MathUtils.smoothstep(speedChange, .3, 3.3);
+    const straight = 1-THREE.MathUtils.smoothstep(turnRate, .35, 2.15);
+    const clearIce = THREE.MathUtils.smoothstep(input.pressure ?? 8, 1.2, 3.4);
+    const upright = this.role === "skater" && this.currentState === "play" && !source.stopping
+      ? settled * straight * clearIce * (input.hasPuck ? .58 : 1)
+      : 0;
+    this.glide += (upright-this.glide) * (1-Math.exp(-dt*6));
+    this.gliding = this.glide > (this.gliding ? .47 : .66);
     this.visual.scale.copy(source.build.scale);
     if (this.role === "skater") this.visual.scale.x *= source.hs;
     this.visual.rotation.copy(source.build.rotation);
@@ -399,7 +508,7 @@ class MatchNightPlayer implements RigLike {
           clip = "Rise at goal";
         else if (state === "faceoff-stance") clip = "Brace";
         else if (state === "play" && source.stopping) clip = "Brake";
-        else if (state === "play" && source.speed > 0.45) clip = "Stride";
+        else if (state === "play" && source.speed > 0.45 && !this.gliding) clip = "Stride";
       }
       if (clip) this.play(clip);
       else if (this.active) {
@@ -408,27 +517,77 @@ class MatchNightPlayer implements RigLike {
       }
       if (clip === "Stride" && this.active)
         this.active.timeScale = THREE.MathUtils.clamp(
-          source.speed / 4.8,
-          0.65,
+          source.speed / 4.8 * (1-.52*this.glide),
+          0.32,
           1.65,
         );
     }
     for(const [bone,q] of this.previousRotations) bone.quaternion.copy(q);
     this.previousRotations.clear();
+    if (this.pelvisHeight !== undefined) {
+      const pelvis = this.bones.get("Pelvis");
+      if (pelvis) pelvis.position.y = this.pelvisHeight;
+      this.pelvisHeight = undefined;
+    }
     this.mixer.update(animDt);
     this.motionTime+=animDt;
     const pose=(name:string,x:number,y:number,z:number)=>{
       const bone=this.bones.get(name);
       if(!bone) return;
-      this.previousRotations.set(bone,bone.quaternion.clone());
+      if (!this.previousRotations.has(bone)) this.previousRotations.set(bone,bone.quaternion.clone());
       bone.rotateX(x);bone.rotateY(y);bone.rotateZ(z);
     };
+    this.shotTime = Math.max(0,this.shotTime-animDt);
+    if (this.shotTime>0) {
+      const follow=Math.sin(Math.PI*(1-this.shotTime/this.shotLength));
+      pose("Chest",-.08*follow,(this.shotTurn*.24+source.hs*.12)*follow,0);
+      pose("Spine",0,0,source.hs*.09*follow);
+    }
+    const vault = input.vault ?? 0;
+    const lift = Math.sin(Math.PI*vault);
+    this.visual.position.y = lift * .91;
+    if (lift>.001) {
+      for (const [side,offset] of [["L",.12],["R",-.12]] as const) {
+        const knee=Math.sin(Math.PI*THREE.MathUtils.clamp(vault+offset,0,1))*lift;
+        pose("Thigh."+side,-.83*knee,0,side==="L"?.32*knee:-.32*knee);
+        pose("Shin."+side,1.09*knee,0,0);
+      }
+      this.visual.rotateY(.69*lift);
+      pose("Chest",.32*lift,0,.16*lift);
+      const freeHand = this.bones.get("Hand.L");
+      if (freeHand) {
+        const hand=this.visual.worldToLocal(freeHand.getWorldPosition(new THREE.Vector3()));
+        const rail=this.visual.worldToLocal(new THREE.Vector3(input.x+.26,1.12,-13.24));
+        this.reachArm("L",hand.lerp(rail,lift),new THREE.Vector3(.5,1.05,.21));
+      }
+    }
     this.catchTime=Math.max(0,this.catchTime-animDt);
+    this.passTime = Math.max(0, this.passTime-animDt);
+    if (this.passTime > 0 && this.currentState === "play") {
+      const age = .46-this.passTime;
+      const load = Math.sin(Math.PI*age/.46);
+      const shift = age<.2 ? -Math.sin(Math.PI*age/.2)*.08 : Math.sin(Math.PI*(age-.2)/.26)*.12;
+      pose("Spine",0,0,shift*source.hs);
+      const towardStick = this.passDirection.x*Math.cos(source.yaw)-this.passDirection.z*Math.sin(source.yaw);
+      pose("Chest", .08*load, .16*load*towardStick*source.hs, 0);
+      if (age >= .22 && !input.hasPuck) {
+        const blade = new THREE.Vector3();
+        if (this.bladePoint(blade)) {
+          blade.addScaledVector(this.passDirection, .18*load);
+          blade.y = .045 + .11*load;
+          this.alignBlade(blade);
+        }
+      }
+    }
     if(this.catchTime>0){
       const give=Math.sin(this.catchTime/.36*Math.PI);
       pose("Forearm.L",.18*give,0,.14*give);pose("Forearm.R",.14*give,0,.10*give);
     }
     const st=this.currentState;
+    if (this.role === "skater" && st === "play" && this.busy <= 0) {
+      if (lift < .001) this.extendGlide(this.glide);
+      pose("Spine", -.23*this.glide, 0, THREE.MathUtils.clamp(angularSpeed*.035,-.12,.12)*Math.min(1,source.speed/3));
+    }
     if(st==="official-holding" || st==="official-roughing"){
       const holding=st==="official-holding";
       this.reachArm("R",new THREE.Vector3(holding?-.035:-.17,holding?1.28:1.54,.43),new THREE.Vector3(-.50,1.09,.32));
@@ -442,8 +601,10 @@ class MatchNightPlayer implements RigLike {
       pose("Spine",0,0,this.saveSide*.24*Math.sin(Math.PI*u));
     } else if(this.role==="skater" && st==="play" && input.pressure!==undefined && input.pressure<2.2){
       pose("Chest",.1, .16*this.driver.skeletonSource().hs,0);
-    } else if(this.role==="skater" && st==="play" && !input.hasPuck){
-      pose("Head",0,THREE.MathUtils.clamp(Math.sin(Math.atan2(input.puckX-input.x,input.puckZ-input.z)-source.yaw)*.46,-.46,.46),0);
+    }
+    if (this.role === "skater" && st === "play" && this.busy <= 0) {
+      const look = Math.atan2(input.puckX-input.x, input.puckZ-input.z)-source.yaw;
+      pose("Head", .1*this.glide, input.hasPuck ? 0 : Math.sin(look)*.36, 0);
     }
   }
   dispose() {
