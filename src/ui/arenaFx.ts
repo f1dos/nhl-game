@@ -73,8 +73,6 @@ export function enableShadows(renderer: THREE.WebGLRenderer, scene: THREE.Scene)
 }
 
 export interface IceFx {
-  /** Turn the reflections off (automatic quality fallback). */
-  setReflections(on: boolean): void;
   /** Record skates on the ice (scratch marks) for this frame. */
   skate(points: { x: number; z: number; speed: number; stopping: boolean }[], dt: number): void;
   /** Fresh sheet: called at intermission. */
@@ -167,15 +165,6 @@ export function buildIceFx(scene: THREE.Scene, ice: THREE.Mesh | undefined, qual
       if (dirty > 0.25) {
         dirty = 0;
         tex.needsUpdate = true;
-      }
-    },
-    setReflections(on) {
-      if (reflector) reflector.visible = on;
-      if (ice) {
-        const m = ice.material as THREE.MeshStandardMaterial;
-        m.opacity = on ? .965 : 1;
-        m.transparent = on;
-        m.needsUpdate = true;
       }
     },
     resurface() {

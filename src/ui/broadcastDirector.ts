@@ -211,6 +211,10 @@ export class BroadcastDirector {
       shot = "intro";
       dof = want.length();
       smooth = 0.8;
+    } else if (mode === "stands") {
+      want.set(37,18.4,29);
+      lookAt.set(-2,5,-2);
+      fov = 56;
     } else if (mode === "overhead") {
       want.set(0, 62, 0.1);
       lookAt.set(0, 0, 0);

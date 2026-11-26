@@ -294,9 +294,9 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
   }
 
   const venue = buildMatchNight(own);
-  group.add(venue.rink, venue.bowl, venue.ceiling);
+  group.add(venue.rink, venue.bowl, venue.ceiling, venue.gallery, venue.overhead);
   // --- rafters, catwalk lights, banners
-  const ceiling: THREE.Object3D[] = [venue.ceiling];
+  const ceiling: THREE.Object3D[] = [venue.ceiling,venue.overhead];
   for (let i = 0; i < 4; i++) {
     const banner = canvasTexture(256, 512, (c) => {
       c.fillStyle = i % 2 ? "#ffffff" : home.color;
@@ -325,6 +325,34 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
     b.position.set(-HALF_X - 6, 20, -9 + i * 6);
     b.rotation.y = Math.PI / 2;
     group.add(b);
+  }
+
+  // Pleated national banners hang clear of the four scoreboard faces.
+  for (const [i,flagX] of [-5.7,5.7].entries()) {
+    const flag = canvasTexture(256,384,c=>{
+      c.fillStyle="#f6f4ed"; c.fillRect(0,0,256,384);
+      if (i) {
+        c.fillStyle="#ab2636";
+        for(let j=0;j<13;j+=2)c.fillRect(j*256/13,0,256/13,384);
+        c.fillStyle="#223657";c.fillRect(0,0,138,155);
+        c.fillStyle="#fff";
+        for(let row=0;row<9;row++)for(let col=0;col<(row%2?5:6);col++){
+          c.beginPath();c.arc(12+col*22+(row%2)*11,9+row*17,3,0,2*Math.PI);c.fill();
+        }
+      } else {
+        c.fillStyle="#b22a35";c.fillRect(0,0,256,86);c.fillRect(0,298,256,86);
+        c.save();c.translate(128,190);c.rotate(Math.PI/2);
+        const leaf=[[0,-76],[12,-48],[26,-57],[22,-16],[43,-32],[50,-23],[68,-26],[60,-4],[70,1],[32,36],[36,46],[4,42],[3,69],[-3,69],[-4,42],[-36,46],[-32,36],[-70,1],[-60,-4],[-68,-26],[-50,-23],[-43,-32],[-22,-16],[-26,-57],[-12,-48]];
+        c.beginPath();leaf.forEach(([x,y],k)=>k?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();c.restore();
+      }
+    });
+    own(flag.tex);
+    const cloth=own(new THREE.PlaneGeometry(2.2,3.5,16,4));
+    const pos=cloth.attributes.position;
+    for(let j=0;j<pos.count;j++)pos.setZ(j,.09*Math.sin(pos.getX(j)*12)*(1.2-pos.getY(j)*.18));
+    cloth.computeVertexNormals();
+    const banner=new THREE.Mesh(cloth,own(new THREE.MeshStandardMaterial({map:flag.tex,roughness:1,side:THREE.DoubleSide})));
+    banner.position.set(flagX,19.7,-4.0);group.add(banner);ceiling.push(banner);
   }
 
   // --- centre-hung scoreboard with the live score
@@ -373,29 +401,22 @@ export function buildArena(scene: THREE.Scene, home: Team, away: Team) {
       c.font = "900 210px system-ui, Arial, sans-serif";
       c.fillText("GOAL!", 512, 256);
     } else {
-      const team = (t: Team, x: number, score: number) => {
-        c.fillStyle = t.color;
-        c.fillRect(x - 210, 70, 420, 110);
-        c.fillStyle = "#ffffff";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.font = "900 84px system-ui, Arial, sans-serif";
-        const emblem = logos.get(t.id);
-        if (emblem) {
-          drawContained(c, emblem, x - 130, 125, 100, 96);
-          c.fillText(t.id, x + 50, 128);
-        } else c.fillText(t.id, x, 128);
-        c.font = "900 190px system-ui, Arial, sans-serif";
-        c.fillText(String(score), x, 320);
-      };
-      team(away, 262, s.away);
-      team(home, 762, s.home);
-      c.fillStyle = "#f1c958";
-      c.font = "800 64px system-ui, Arial, sans-serif";
-      c.fillText(s.clock, 512, 300);
-      c.fillStyle = "#9fb2c4";
-      c.font = "800 42px system-ui, Arial, sans-serif";
-      c.fillText(s.period, 512, 380);
+      c.textAlign="center";c.textBaseline="middle";
+      c.fillStyle="#f5b841";c.font="800 74px Arial,sans-serif";c.fillText(s.clock,512,63);
+      c.font="800 33px Arial,sans-serif";c.fillText(s.period,512,130);
+      for(const [team,x,goals] of [[away,220,s.away],[home,804,s.home]] as const) {
+        c.fillStyle="#f7efde";c.font="900 48px Arial,sans-serif";c.fillText(team.id,x,40);
+        c.fillStyle="#ffc251";c.font="900 88px Arial,sans-serif";c.fillText(String(goals),x,115);
+        const left=x<512?0:512;
+        const wash=c.createLinearGradient(0,168,0,512);
+        wash.addColorStop(0,"#d9e4ee");wash.addColorStop(.4,"#f7f8f7");wash.addColorStop(1,"#bbcbd8");
+        c.fillStyle=wash;c.fillRect(left,174,512,338);
+        c.fillStyle=team.color;c.beginPath();c.moveTo(left,174);c.lineTo(left+96,174);
+        c.lineTo(left+28,512);c.lineTo(left,512);c.fill();
+        const emblem=logos.get(team.id);
+        if(emblem)drawContained(c,emblem,left+266,338,320,256);
+        else {c.fillStyle=team.color;c.font="900 108px Arial,sans-serif";c.fillText(team.id,left+266,338);}
+      }
     }
     screen.tex.needsUpdate = true;
   };

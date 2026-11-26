@@ -106,9 +106,35 @@ const shotClips: Partial<Record<RigActionKind, string>> = {
   "stick-tap": "Draw",
 };
 
+// Each vertex is a weighted average of points transformed by its joints.
+// Bound those points in joint space once per shared geometry; their union
+// bounds every subsequent pose, including procedural IK and one-shot clips.
+type JointEnvelope = { bind: THREE.Matrix4; inverses: THREE.Matrix4[]; radii: number[] };
+const envelopes = new WeakMap<THREE.BufferGeometry, JointEnvelope>();
+function jointRadii(mesh: THREE.SkinnedMesh) {
+  const geometry = mesh.geometry, inverses = mesh.skeleton.boneInverses;
+  const cached = envelopes.get(geometry);
+  if (cached?.inverses === inverses && cached.bind.equals(mesh.bindMatrix)) return cached.radii;
+  const {position, skinIndex, skinWeight} = geometry.attributes;
+  const radii = inverses.map(() => -1);
+  const point = new THREE.Vector3(), bound = new THREE.Vector3();
+  for (let i=0; i<position.count; i++) {
+    bound.fromBufferAttribute(position,i).applyMatrix4(mesh.bindMatrix);
+    for (let k=0; k<4; k++) {
+      if (skinWeight.getComponent(i,k) === 0) continue;
+      const joint = skinIndex.getComponent(i,k);
+      radii[joint] = Math.max(radii[joint],point.copy(bound).applyMatrix4(inverses[joint]).lengthSq());
+    }
+  }
+  for (let i=0; i<radii.length; i++) if (radii[i]>=0) radii[i]=Math.sqrt(radii[i]);
+  envelopes.set(geometry,{bind:mesh.bindMatrix.clone(),inverses,radii});
+  return radii;
+}
+
 export class MatchNightFactory {
   private readonly drivers = new RigFactory();
   private readonly loader = new GLTFLoader();
+  private readonly palettes = new Map<string, Map<THREE.Material, THREE.Material>>();
   private readonly models = new Map<Role, Promise<GLTF>>();
   private readonly uniforms = new Map<string, THREE.Texture>();
   private disposed = false;
@@ -127,7 +153,10 @@ export class MatchNightFactory {
       }
       return tex;
     };
-    return new MatchNightPlayer(driver, role, kit, model, fabric);
+    const key = [role, kit.jersey, kit.trim, kit.pants, kit.socks, kit.helmet].join("/");
+    let palette = this.palettes.get(key);
+    if (!palette) this.palettes.set(key, palette = new Map());
+    return new MatchNightPlayer(driver, role, kit, model, fabric, palette);
   }
   skater(kit: TeamKit) {
     return this.player(this.drivers.skater(kit), kit, "skater");
@@ -156,6 +185,7 @@ export class MatchNightFactory {
     if (this.disposed) return;
     this.disposed = true;
     this.drivers.dispose();
+    this.palettes.forEach(palette => palette.forEach(material => material.dispose()));
     this.uniforms.forEach((texture) => texture.dispose());
     for (const model of this.models.values())
       void model.then(
@@ -177,9 +207,11 @@ class MatchNightPlayer implements RigLike {
   private visual?: THREE.Object3D;
   private mixer?: THREE.AnimationMixer;
   private actions = new Map<string, THREE.AnimationAction>();
-  private materials: THREE.Material[] = [];
+  private skeletons = new Set<THREE.Skeleton>();
   private active?: THREE.AnimationAction;
   private bladeMesh?: THREE.SkinnedMesh;
+  private bounds = new Map<THREE.Skeleton, {meshes: THREE.SkinnedMesh[]; radii: number[]}>();
+  private jointMatrix = new THREE.Matrix4();
   private heel=0;
   private bones=new Map<string,THREE.Object3D>();
   private previousRotations=new Map<THREE.Object3D,THREE.Quaternion>();
@@ -205,6 +237,7 @@ class MatchNightPlayer implements RigLike {
     kit: TeamKit,
     model: Promise<GLTF>,
     fabric: (kind: string) => THREE.Texture,
+    palette: Map<THREE.Material, THREE.Material>,
   ) {
     this.root = driver.root;
     void model
@@ -212,7 +245,7 @@ class MatchNightPlayer implements RigLike {
         if (this.released) return;
         this.visual = clone(g.scene);
         this.visual.name = "Match Night " + role;
-        const palette = new Map<THREE.Material, THREE.Material>();
+
         this.visual.traverse((o) => {
           if(o instanceof THREE.Bone){
             // GLTFLoader sanitizes periods for its animation binding paths.
@@ -220,6 +253,17 @@ class MatchNightPlayer implements RigLike {
             this.bones.set(o.name.replace(/^(UpperArm|Forearm|Hand|Thigh|Shin|Foot)([LR])$/, "$1.$2"),o);
           }
           if (!(o instanceof THREE.Mesh)) return;
+          // SkeletonUtils clones a skeleton per material primitive. Share the
+          // bone texture only when the bind pose and every bone match.
+          if (o instanceof THREE.SkinnedMesh) {
+            const current = o.skeleton;
+            const shared = [...this.skeletons].find(other =>
+              current.boneInverses === other.boneInverses &&
+              current.bones.length === other.bones.length &&
+              current.bones.every((bone,i) => bone === other.bones[i]));
+            if (shared) o.skeleton = shared;
+            else this.skeletons.add(current);
+          }
           if(o instanceof THREE.SkinnedMesh && !Array.isArray(o.material) && o.material.name.endsWith("Blade tape")){
             const pos=o.geometry.attributes.position;
             let best=Infinity;
@@ -236,6 +280,17 @@ class MatchNightPlayer implements RigLike {
               if(m.name.includes("Cloth ")) jerseyPanels(local,kit);
               if (m.name.endsWith("Jersey")) local.color.set(kit.jersey);
               if (m.name.endsWith("Trim")) local.color.set(kit.trim);
+              if (m.name === "skater Equipment") {
+                // The pearl shell shares a vertex-painted primitive with skin,
+                // hardware and hair. Re-dye only its original paint swatch.
+                local.onBeforeCompile = shader => {
+                  shader.uniforms.helmetPaint = {value:new THREE.Color(kit.helmet)};
+                  shader.vertexShader = "uniform vec3 helmetPaint;\n"+shader.vertexShader.replace("#include <color_vertex>",`
+                    #include <color_vertex>
+                    if(position.y>1.57 && distance(color.rgb,vec3(.738,.791,.799))<.003) vColor.rgb=helmetPaint;
+                  `);
+                };
+              }
               if(m.name.endsWith("Ref shell")){local.color.set("#15191d");local.roughness=.44;}
               if(m.name.endsWith("Official stripes")){
                 local.color.set(0xffffff);
@@ -258,18 +313,24 @@ class MatchNightPlayer implements RigLike {
                 local.map = fabric(fabricName);
               copy = local;
               palette.set(m, copy);
-              this.materials.push(copy);
+
             }
             return copy;
           };
           o.material = Array.isArray(o.material)
             ? o.material.map(tint)
             : tint(o.material);
-          o.frustumCulled = false;
+          if (o instanceof THREE.SkinnedMesh && !o.geometry.morphAttributes.position?.length) {
+            const radii = jointRadii(o);
+            let group = this.bounds.get(o.skeleton);
+            if (!group) this.bounds.set(o.skeleton, group = { meshes: [], radii: radii.slice() });
+            else for (let i=0; i<radii.length; i++) group.radii[i] = Math.max(group.radii[i],radii[i]);
+            group.meshes.push(o);
+          }
+          o.frustumCulled = !(o instanceof THREE.SkinnedMesh);
           o.userData.shared = true;
         });
-        driver.hidePrimitives();
-        driver.skeletonSource().build.visible = false;
+        driver.useModelJoints();
         this.root.add(this.visual);
         this.mixer = new THREE.AnimationMixer(this.visual);
         for (const clip of g.animations)
@@ -303,11 +364,11 @@ class MatchNightPlayer implements RigLike {
     };
     turn(upper,fore,joint);turn(fore,hand,target);
   }
-  /** Raise the hips while keeping each animated skate's position and edge angle. */
-  private extendGlide(amount: number) {
+  /** Move the hips while keeping each animated skate's position and edge angle. */
+  private adjustHipHeight(metres: number) {
     const pelvis = this.bones.get("Pelvis");
     const basis = pelvis?.parent;
-    if (!pelvis || !basis || amount < .015) return;
+    if (!pelvis || !basis || Math.abs(metres) < .002) return;
     const point = (bone: THREE.Object3D) => basis.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
     const rotation = (bone: THREE.Object3D) => {
       bone.updateWorldMatrix(true, false);
@@ -326,7 +387,7 @@ class MatchNightPlayer implements RigLike {
     });
     if (legs.length !== 2) return;
     this.pelvisHeight = pelvis.position.y;
-    pelvis.position.y += Math.max(0, Math.min(.14 * amount, ...legs.map(leg => leg.lift)));
+    pelvis.position.y += metres < 0 ? metres : Math.max(0, Math.min(metres, ...legs.map(leg => leg.lift)));
     const turn = (joint: THREE.Object3D, child: THREE.Object3D, target: THREE.Vector3) => {
       const localTarget = joint.parent!.worldToLocal(basis.localToWorld(target.clone()));
       const from = child.position.clone().applyQuaternion(joint.quaternion).normalize();
@@ -350,6 +411,27 @@ class MatchNightPlayer implements RigLike {
       foot.quaternion.copy(rotation(shin).invert().multiply(edge));
     }
   }
+  updateRenderBounds() {
+    if (!this.root.visible) return;
+    for (const [skeleton,{meshes,radii}] of this.bounds) {
+      const reference = meshes[0];
+      let radius = 0;
+      for (let i=0; i<radii.length; i++) {
+        if (radii[i]<0) continue;
+        const e = this.jointMatrix.multiplyMatrices(reference.bindMatrixInverse,skeleton.bones[i].matrixWorld).elements;
+        // Frobenius norm bounds the stretch even for sheared joint matrices.
+        const stretch = Math.sqrt(e[0]**2+e[1]**2+e[2]**2+e[4]**2+e[5]**2+e[6]**2+e[8]**2+e[9]**2+e[10]**2);
+        radius = Math.max(radius,Math.hypot(e[12],e[13]-1,e[14])+stretch*radii[i]);
+      }
+      for (const mesh of meshes) {
+        mesh.frustumCulled = mesh.bindMatrixInverse.equals(reference.bindMatrixInverse);
+        // Keep the original primitive centre for transparent depth sorting.
+        if (!mesh.boundingSphere) mesh.computeBoundingSphere();
+        const sphere = mesh.boundingSphere!;
+        sphere.radius = radius + Math.hypot(sphere.center.x,sphere.center.y-1,sphere.center.z) + .01;
+      }
+    }
+  }
   handPoint(target:THREE.Vector3){
     const hand=this.bones.get("Hand.R");
     if(!hand)return false;
@@ -365,7 +447,7 @@ class MatchNightPlayer implements RigLike {
   }
   alignBlade(target: THREE.Vector3) {
     const visual = this.visual;
-    if (!visual || this.role !== "skater" || this.currentState !== "play") return;
+    if (!visual || this.role !== "skater" || (this.currentState !== "play" && this.currentState !== "faceoff-stance")) return;
     const blade = new THREE.Vector3();
     if (!this.bladePoint(blade)) return;
     const delta = visual.worldToLocal(target.clone()).sub(visual.worldToLocal(blade)).clampLength(0,.29);
@@ -585,7 +667,10 @@ class MatchNightPlayer implements RigLike {
     }
     const st=this.currentState;
     if (this.role === "skater" && st === "play" && this.busy <= 0) {
-      if (lift < .001) this.extendGlide(this.glide);
+      if (lift < .001) this.adjustHipHeight(.14*this.glide);
+      const cross = THREE.MathUtils.clamp(angularSpeed,-2,2)*Math.min(1,source.speed/4);
+      pose("Chest",0,-cross*.055,0);
+      pose("Head",-.045*this.glide, cross*.08,0);
       pose("Spine", -.23*this.glide, 0, THREE.MathUtils.clamp(angularSpeed*.035,-.12,.12)*Math.min(1,source.speed/3));
     }
     if(st==="official-holding" || st==="official-roughing"){
@@ -594,8 +679,30 @@ class MatchNightPlayer implements RigLike {
       if(holding)this.reachArm("L",new THREE.Vector3(.046,1.26,.42),new THREE.Vector3(.48,1.07,.31));
       pose("Head",.035*Math.sin(this.motionTime*5),0,0);
     } else if(st==="official-drop" || st==="faceoff-stance"){
-      pose("Spine",.20,0,0);pose("Head",.13,0,0);
-      if(st==="official-drop")pose("UpperArm.R",-.36,0,-.1);
+      if(st==="official-drop"){
+        pose("Spine",.23,0,-.045);
+        if(this.busy<=0) this.reachArm("R",new THREE.Vector3(-.09,1.01,.54),new THREE.Vector3(-.35,1.16,.30));
+      } else {
+        this.adjustHipHeight(-.085);
+        pose("Spine",.23,0,0);
+        pose("Chest",.09,source.hs*.14,0);
+        pose("Head",-.12,0,0);
+        this.alignBlade(new THREE.Vector3(input.puckX,(.038),input.puckZ));
+      }
+    } else if(this.role==="skater" && st==="seated"){
+      const track=Math.atan2(input.puckX-input.x,Math.max(2,input.puckZ-input.z));
+      const breath=Math.sin(this.motionTime*1.4+this.offset*9);
+      pose("Chest",.12+.035*breath,.13*track,0);
+      pose("Head",-.08,.34*track,0);
+      pose("UpperArm.L",-.08-.04*this.offset,0,.04);
+      pose("Forearm.R",.10+.035*breath,0,0);
+    } else if(this.role==="goalie" && this.busy<=0){
+      const depth=Math.hypot(input.puckX-input.x,input.puckZ-input.z);
+      const set=1-THREE.MathUtils.smoothstep(depth,6,21);
+      const slide=THREE.MathUtils.clamp((input.vx*Math.cos(source.yaw)-input.vz*Math.sin(source.yaw))/3,-1,1);
+      pose("Spine",.12*set,0,-.09*slide);
+      pose("UpperArm.L",-.07*set,0,.09*set);
+      pose("UpperArm.R",-.05*set,0,-.07*set);
     } else if(this.role==="goalie" && this.busy>0){
       const a=this.active, u=a ? a.time/a.getClip().duration : 0;
       pose("Spine",0,0,this.saveSide*.24*Math.sin(Math.PI*u));
@@ -612,12 +719,10 @@ class MatchNightPlayer implements RigLike {
     if (this.visual) {
       this.mixer?.stopAllAction();
       this.mixer?.uncacheRoot(this.visual);
-      this.visual.traverse((o) => {
-        if (o instanceof THREE.SkinnedMesh) o.skeleton.dispose();
-      });
+      this.skeletons.forEach(skeleton => skeleton.dispose());
       this.visual.removeFromParent();
     }
-    this.materials.forEach((m) => m.dispose());
+
     this.driver.dispose();
   }
 }
