@@ -32,7 +32,10 @@ import "./ui/tactics-board.css";
 import "./ui/competitions.css";
 import "./ui/leadership.css";
 import "./ui/broadcast.css";
+import "./ui/benchDesk.css";
 import "./ui/cards.css";
 import "./ui/player-requests.css";
 import "./ui/polish.css";
 import "./ui/select.css";
+
+import "./ui/frontOffice.css";

@@ -1,3 +1,6 @@
+import ScoringSummary from "./ScoringSummary";
+import { rosterCharge } from "../engine/cap";
+import {CapStudio,DevelopmentDesk} from "./CareerDesk";
 import TacticalCenter from "./TacticalCenter";
 import { LOCALES, LOCALE_NAMES, type Locale } from "../i18n/locales";
 import { setDocumentLocale } from "../i18n/runtime";
@@ -78,6 +81,7 @@ import PlayerConversation from "./PlayerConversation";
 import type { ConversationTopic } from "../engine/conversations";
 import { talkTopicFor, type PlayerRequest } from "../engine/playerRequests";
 import ClubCenter from "./ClubCenter";
+import LeagueNews from "./LeagueNews";
 import PressCenter from "./PressCenter";
 import LeadershipCenter from "./LeadershipCenter";
 import {
@@ -127,6 +131,9 @@ const nav = [
     Icon: Building2,
     groupRu: "РАБОЧИЙ СТОЛ",
     groupEn: "WORKSPACE",
+  },
+  {
+    key:"news", ru:"Новости лиги", en:"League news", Icon:Newspaper, groupRu:"РАБОЧИЙ СТОЛ",groupEn:"WORKSPACE",
   },
   {
     key: "press",
@@ -706,7 +713,7 @@ export default function App() {
                   setCreating(false);
                 }}
               >
-                {s.user} · {s.year}/{String(s.year + 1).slice(2)} · {s.round}/82
+                {s.user} · {s.year}/{String(s.year + 1).slice(2)} · {s.round}/{s.schedule.length/16}
                 <ChevronRight size={15} />
               </button>
             ))}
@@ -732,7 +739,7 @@ export default function App() {
       )
     : undefined;
   const title = nav.find((n) => n.key === page)!;
-  const salary = team.players.reduce((n, p) => n + p.salary, 0);
+  const salary = rosterCharge(team.players);
   const roster = team.players.filter(
     (p) =>
       (filter === "all" || p.pos === filter) &&
@@ -802,12 +809,12 @@ export default function App() {
       </table>
     </div>
   );
-  const scheduleRows = (count = 82) =>
+  const scheduleRows = (count = g.schedule.length/16) =>
     g.schedule
       .filter((f) => [f.home, f.away].includes(g.user))
       .slice(
-        count === 82 ? 0 : Math.max(0, g.round - 1),
-        count === 82 ? 82 : g.round + count - 1,
+        count === g.schedule.length/16 ? 0 : Math.max(0, g.round - 1),
+        count === g.schedule.length/16 ? count : g.round + count - 1,
       )
       .map((f) => {
         const opp = g.teams.find(
@@ -842,7 +849,7 @@ export default function App() {
         );
       });
   let content: ReactNode;
-  if (page === "development") content = <TrainingCenter game={g} edit={edit} />;
+  if (page === "development") content = <><TrainingCenter game={g} edit={edit} /><DevelopmentDesk game={g} edit={edit}/></>;
   else if (page === "leagues")
     content = <LeagueCenter game={g} onPlayer={setProfile} />;
   else if (page === "injuries")
@@ -861,6 +868,7 @@ export default function App() {
         onTrade={() => go("trades")}
       />
     );
+  else if (page === "news") content = <LeagueNews game={g}/>;
   else if (page === "press") content = <PressCenter game={g} edit={edit} />;
   else if (page === "draft")
     content = (
@@ -1492,6 +1500,7 @@ export default function App() {
             value={`$${(g.rules.cap - salary).toFixed(2)}M`}
           />
         </div>
+        <CapStudio game={g}/>
         <Panel
           title={tr("КОНТРАКТЫ", "CONTRACTS")}
           extra={
@@ -1614,6 +1623,16 @@ export default function App() {
             ))
           )}
         </Panel>
+        {!!g.clubMatchHistory?.length && (
+          <Panel title={tr("Матчи клуба", "Club results")}>
+            {g.clubMatchHistory.slice().reverse().map(m => (
+              <div className="fixture-row" key={m.date + m.away + m.home}>
+                <b>{m.date}</b><ClubLink id={m.away} /><strong>{m.goals[1]} : {m.goals[0]}</strong>
+                <ClubLink id={m.home} /><span>{m.so ? "SO" : m.ot ? "OT" : ""}</span><ScoringSummary events={m.events} ru={ru}/>
+              </div>
+            ))}
+          </Panel>
+        )}
         {!!g.awards?.length && (
           <Panel title={tr("НАГРАДЫ ЛИГИ", "LEAGUE AWARDS")}>
             <AwardHistory game={g} awards={g.awards} />
@@ -1771,7 +1790,7 @@ export default function App() {
                   go("overview");
                 }}
               >
-                {s.user} · {s.year} · {s.round}/82
+                {s.user} · {s.year} · {s.round}/{s.schedule.length/16}
               </button>
             ))}
           </div>

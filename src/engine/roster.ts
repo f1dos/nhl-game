@@ -1,3 +1,4 @@
+import { capCharge } from "./cap";
 import { tx } from "./text";
 import { autoLines } from "./database";
 import { salaryTotal } from "./contracts";
@@ -44,7 +45,7 @@ export function callUpFromFarm(g: Game, playerId: string) {
       ),
     );
   if (team.players.length >= 30) throw Error("Active roster is full");
-  if (salaryTotal(team) + player.salary > g.rules.cap + 1e-8)
+  if (salaryTotal(team) + capCharge(player) > g.rules.cap + 1e-8)
     throw Error("Call-up would exceed the salary cap");
   team.farm = team.farm!.filter((p) => p.id !== playerId);
   team.players.push(player);

@@ -1,3 +1,5 @@
+import {Observations} from "./CareerDesk";
+import type {ScoutFocus} from "../engine/careerDesk";
 import { useMemo, useState } from "react";
 import {
   CalendarClock,
@@ -327,7 +329,7 @@ export default function DraftCenter({
           canScout={draft.status === "scouting" && draft.scoutingPoints > 0}
           canPick={draft.status === "draft" && current?.team === game.user && !openProspect.draftedBy}
           onClose={() => setOpen(undefined)}
-          onScout={() => run((g) => scoutProspect(g, openProspect.player.id))}
+          onScout={(focus) => run((g) => scoutProspect(g, openProspect.player.id, focus))}
           onFollow={() => run((g) => toggleShortlist(g, openProspect.player.id))}
           onAsk={(topic) => run((g) => interviewProspect(g, openProspect.player.id, topic))}
           onPick={() => {
@@ -489,7 +491,7 @@ function ProspectProfile({
   canScout: boolean;
   canPick: boolean;
   onClose: () => void;
-  onScout: () => void;
+  onScout: (focus?:ScoutFocus) => void;
   onFollow: () => void;
   onAsk: (topic: InterviewTopic) => void;
   onPick: () => void;
@@ -538,7 +540,7 @@ function ProspectProfile({
               {following ? <EyeOff size={15} /> : <Eye size={15} />} {following ? tr("Не следить", "Unfollow") : tr("Следить", "Follow")}
             </button>
             {canScout && (
-              <button onClick={onScout}>
+              <button onClick={()=>onScout()}>
                 <Radar size={15} /> {tr("Изучить", "Scout")}
               </button>
             )}
@@ -590,6 +592,7 @@ function ProspectProfile({
                 </span>
               )}
             </div>
+            <Observations p={p} counts={report.observations} ru={ru} observe={onScout} available={canScout}/>
             <div className="prospect-report">
               <div>
                 <h4>{tr("Сильные стороны", "Strengths")}</h4>

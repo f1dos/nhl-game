@@ -1,3 +1,4 @@
+import { rosterCharge } from "./cap";
 import type { Game, Player, Position } from "./types";
 import { RNG, clamp } from "./random";
 import { overall } from "./ratings";
@@ -19,16 +20,25 @@ interface DevelopmentContext {
 }
 
 /** Share of a full season's development the player's minutes allow. */
-function iceTimeFactor(p: Player, context: DevelopmentContext) {
-  if (context.kind === "free-agent") return 0.75;
-  if (context.kind !== "nhl") return 0.95; // regular minutes in AHL/junior
-  const gp = p.stats.gp;
+export function annualGamesPlayed(p: Player, season: number) {
+  return p.stats.gp + (p.history.find((h) => h.year === season)?.stats.gp ?? 0);
+}
+function iceTimeFactor(p: Player, context: DevelopmentContext, season: number) {
+  if (context.kind === "free-agent") return 0.35;
+  if (context.kind !== "nhl") {
+    // Junior and affiliate minutes vary. Only a minority of prospects
+    // develop as quickly as established NHL regulars.
+    return 0.30 + 0.65 * hashUnit(`development-opportunity:${p.id}`);
+  }
+  const gp = annualGamesPlayed(p, season);
   return gp >= 60 ? 1.15 : gp >= 30 ? 1 : gp >= 10 ? 0.9 : 0.8;
 }
 
 /** Age at which this player starts to decline (30–33, goalies a year later). */
 export function declineAge(p: Player) {
-  return 30 + Math.floor(hashUnit(`decline:${p.id}`) * 4) + (p.pos === "G" ? 1 : 0);
+  return (
+    30 + Math.floor(hashUnit(`decline:${p.id}`) * 4) + (p.pos === "G" ? 1 : 0)
+  );
 }
 
 /**
@@ -53,8 +63,8 @@ export function annualGrowth(
     return clamp(-decline + Math.max(0, modifier), -6, 0);
   }
   // Prime years: small swings; a good season can still add a point.
-  if (a > 26) return clamp(r.int(-1, 1) + modifier, -3, Math.max(gap, 1));
-  const rate = a <= 20 ? 0.26 : a <= 23 ? 0.32 : 0.45;
+  if (a > 26) return clamp(r.int(-1, 1) + modifier, -3, gap);
+  const rate = a <= 20 ? 0.24 : a <= 23 ? 0.22 : 0.16;
   const intensity = team?.trainingSchedule?.intensity;
   const training = intensity === "high" ? 0.1 : intensity === "low" ? -0.1 : 0;
   const morale = p.morale >= 75 ? 0.1 : p.morale <= 40 ? -0.15 : 0;
@@ -68,11 +78,15 @@ export function ageWorld(g: Game, r: RNG) {
     const before = p.ovr;
     const potentialBefore = p.potential;
     const season = prepareAnnualDevelopment(p, g.language);
-    const iceTime = iceTimeFactor(p, context);
+    const iceTime = iceTimeFactor(p, context, g.year - 1);
     p.age++;
+    const trained = Math.max(0, p.ovr - (p.trainingStartOverall ?? p.ovr));
     const growth = annualGrowth(p, season.modifier, iceTime, context.team, r);
+    // Do not award the same development twice in the season and at rollover.
+    const remaining = growth > 0 ? Math.max(0, growth - trained) : growth;
+    p.trainingStartOverall = undefined;
     for (const key of Object.keys(p.attributes))
-      p.attributes[key] = clamp(p.attributes[key] + growth, 30, 99);
+      p.attributes[key] = clamp(p.attributes[key] + remaining, 30, 99);
     p.ovr = overall(p.pos, p.attributes, p.archetype);
     p.potential = Math.max(p.potential, Math.min(99, p.ovr));
     revisePotential(p, g.year, season.modifier);
@@ -97,6 +111,7 @@ export function ageWorld(g: Game, r: RNG) {
   };
   const retired = (p: Player) =>
     p.age >= 40 || (p.age >= 36 && r.next() < 0.12 + (p.age - 36) * 0.08);
+  const priorFreeAgents = [...g.freeAgents];
   for (const t of g.teams) {
     t.players.forEach((p) => age(p, { kind: "nhl", team: t }));
     const retiring = t.players.filter(retired);
@@ -111,9 +126,9 @@ export function ageWorld(g: Game, r: RNG) {
     t.prospects.forEach((p) => age(p, { kind: "prospect", team: t }));
     const promoted: Player[] = [];
     for (const p of [...t.prospects].sort((a, b) => b.ovr - a.ovr)) {
-      const payroll = t.players.reduce((n, x) => n + x.salary, 0);
+      const payroll = rosterCharge(t.players);
       if (
-        (p.age >= 21 || p.ovr >= 74) &&
+        p.ovr >= 74 &&
         t.players.length < 30 &&
         payroll + 0.8 <= g.rules.cap
       ) {
@@ -124,6 +139,20 @@ export function ageWorld(g: Game, r: RNG) {
         p.contractStatus = p.age < 27 ? "RFA" : "UFA";
         p.contractRemainingValue = 3.2;
         t.players.push(p);
+        promoted.push(p);
+      } else if (
+        p.age >= 20 &&
+        p.age < 23 &&
+        t.farm.filter((x) => x.years > 1).length < 26
+      ) {
+        p.contractType = "ELC";
+        p.contractSource = "generated";
+        p.salary = 0.8;
+        p.years = 3;
+        p.contractExpiryYear = g.year + 3;
+        p.contractRemainingValue = 2.4;
+        p.contractStatus = "RFA";
+        t.farm.push(p);
         promoted.push(p);
       }
     }
@@ -137,12 +166,11 @@ export function ageWorld(g: Game, r: RNG) {
     }
     t.prospects = t.prospects.filter((p) => !released.includes(p));
   }
-  g.freeAgents.forEach((p) => age(p, { kind: "free-agent" }));
+  priorFreeAgents.forEach((p) => age(p, { kind: "free-agent" }));
   const retiring = g.freeAgents.filter(retired);
   g.retired.push(...retiring.map((player) => ({ year: g.year, player })));
   g.freeAgents = g.freeAgents.filter((p) => !retiring.includes(p));
-  for (const player of g.juniorPlayers ?? [])
-    age(player, { kind: "prospect" });
+  for (const player of g.juniorPlayers ?? []) age(player, { kind: "prospect" });
   g.juniorPlayers = (g.juniorPlayers ?? []).filter((p) => p.age <= 20);
   // Undrafted and overage players keep the open market supplied. Drafted players
   // now develop separately inside each club's prospect pipeline.
@@ -152,9 +180,12 @@ export function ageWorld(g: Game, r: RNG) {
       r,
       `entrant-${g.year}-${i}`,
       positions[i % positions.length],
-      66,
+      // Undrafted depth shares the junior talent scale. The top draft picks
+      // should not be outnumbered by NHL-ready unsigned teenagers each year.
+      53,
     );
-    p.age = r.int(18, 21);
+    // The unsigned pool includes older junior and college graduates.
+    p.age = r.int(20, 25);
     assignPotential(p);
     p.years = 0;
     p.salary = 0;

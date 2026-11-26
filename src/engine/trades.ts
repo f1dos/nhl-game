@@ -1,3 +1,4 @@
+import { rosterCharge as payroll } from "./cap";
 import { tx } from "./text";
 import type { Game, Player, Team } from "./types";
 import { autoLines } from "./database";
@@ -6,8 +7,14 @@ export interface TradeAssets {
   givePicks?: string[];
   takePicks?: string[];
 }
-export const payroll = (players: Player[]) =>
-  players.reduce((s, p) => s + p.salary, 0);
+export { rosterCharge as payroll } from "./cap";
+export function tradeWindowOpen(g: Game) {
+  if (g.phase === "offseason") return true;
+  const date = g.calendar?.date;
+  if (g.phase === "playoffs" || (date && date > g.year + 1 + "-03-05"))
+    return false;
+  return !date || date < g.year + "-12-19" || date > g.year + "-12-27";
+}
 export function tradeValue(p: Player) {
   return Math.max(
     1,
@@ -43,6 +50,8 @@ export function evaluateTrade(
     threshold: 1.08,
     rivalry: undefined as string | undefined,
   });
+  if (!tradeWindowOpen(g))
+    return reject(tx(g, "Окно обменов закрыто", "Trade window is closed"));
   if (!b || a === b)
     return reject(tx(g, "Выберите другой клуб", "Select another club"));
   if (
@@ -109,7 +118,8 @@ export function evaluateTrade(
     value(outgoing, b) -
     outgoing
       .filter((p) => listed.has(p.id))
-      .reduce((sum, p) => sum + tradeValue(p) * 0.1, 0) + givePicks.reduce((sum, pick) => sum + pick.value, 0);
+      .reduce((sum, p) => sum + tradeValue(p) * 0.1, 0) +
+    givePicks.reduce((sum, pick) => sum + pick.value, 0);
   const incomingValue =
     value(incoming, b) + takePicks.reduce((sum, pick) => sum + pick.value, 0);
   const ratio = outgoingValue / Math.max(1, incomingValue);

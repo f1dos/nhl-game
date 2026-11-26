@@ -1,3 +1,4 @@
+import benchMotion from "../assets/match-night/bench-motion.json";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
@@ -135,6 +136,7 @@ export class MatchNightFactory {
   private readonly drivers = new RigFactory();
   private readonly loader = new GLTFLoader();
   private readonly palettes = new Map<string, Map<THREE.Material, THREE.Material>>();
+  whenLoaded(){return Promise.allSettled(this.models.values());}
   private readonly models = new Map<Role, Promise<GLTF>>();
   private readonly uniforms = new Map<string, THREE.Texture>();
   private disposed = false;
@@ -222,6 +224,62 @@ class MatchNightPlayer implements RigLike {
   private gliding = false;
   private motionTime=0;
   private saveSide=1;
+  private saveHeight=0;
+  private officialRelease=0;
+  private drawTime=0;
+  private drawWinner=false;
+  private drawDot=new THREE.Vector3();
+  private drawYaw=0;
+  private impact=0;
+  private wristCuff?: THREE.CylinderGeometry;
+  private wristFabric?: THREE.MeshStandardMaterial;
+  private overlay?: keyof typeof benchMotion;
+  private overlayTime=0;
+  private overlayWeight=1;
+  private fadeRemaining=0;
+  private overlayRotation=new THREE.Quaternion();
+  private overlayNext=new THREE.Quaternion();
+  signalLine(){this.startOverlay("lineCall")}
+  private startOverlay(name:keyof typeof benchMotion,weight=1){
+    this.overlay=name;
+    this.overlayTime=0;
+    this.overlayWeight=weight;
+    this.fadeRemaining=0;
+  }
+  finishSave(direction?: {x:number;z:number}, height=this.saveHeight){
+    if(!direction){
+      this.startOverlay(height<.35?"coverLow":"cradle");
+      return;
+    }
+    const lateral=direction.x*Math.cos(this.motion.yaw)-direction.z*Math.sin(this.motion.yaw);
+    this.startOverlay(lateral>0?"pushLeft":"pushRight",.18+.82*Math.min(1,Math.abs(lateral)));
+  }
+  private updateOverlay(dt:number){
+    if(!this.overlay)return;
+    const clip=benchMotion[this.overlay];
+    this.overlayTime+=dt;
+    const frame=this.overlayTime*clip.fps;
+    if(frame>=clip.frames-1){this.overlay=undefined;return}
+    let weight=this.overlayWeight;
+    if(this.fadeRemaining>0){
+      this.fadeRemaining=Math.max(0,this.fadeRemaining-dt);
+      weight*=this.fadeRemaining/.14;
+      if(!this.fadeRemaining){this.overlay=undefined;return}
+    }
+    const index=Math.floor(frame)*4;
+    for(const [name,keys] of Object.entries(clip.bones)){
+      const bone=this.bones.get(name);
+      if(!bone)continue;
+      if(!this.previousRotations.has(bone))this.previousRotations.set(bone,bone.quaternion.clone());
+      this.overlayRotation.fromArray(keys,index).slerp(this.overlayNext.fromArray(keys,index+4),frame%1);
+      this.overlayNext.identity().slerp(this.overlayRotation,weight);
+      bone.quaternion.multiply(this.overlayNext);
+    }
+  }
+  private impactSide=1;
+  private identity?: RigIdentity;
+  private lettering?: THREE.MeshStandardMaterial;
+  private letteringMap?: THREE.CanvasTexture;
   private catchTime=0;
   private shotTime = 0;
   private shotLength = .45;
@@ -234,7 +292,7 @@ class MatchNightPlayer implements RigLike {
   constructor(
     private driver: HockeyRig,
     private role: Role,
-    kit: TeamKit,
+    private kit: TeamKit,
     model: Promise<GLTF>,
     fabric: (kind: string) => THREE.Texture,
     palette: Map<THREE.Material, THREE.Material>,
@@ -274,6 +332,12 @@ class MatchNightPlayer implements RigLike {
             this.bladeMesh=o;
           }
           const tint = (m: THREE.MeshStandardMaterial) => {
+            if (m.name.endsWith("Roster lettering")) {
+              this.lettering = m.clone();
+              this.lettering.opacity = 1;
+              this.paintLettering();
+              return this.lettering;
+            }
             let copy = palette.get(m);
             if (!copy) {
               const local = m.clone();
@@ -330,6 +394,35 @@ class MatchNightPlayer implements RigLike {
           o.frustumCulled = !(o instanceof THREE.SkinnedMesh);
           o.userData.shared = true;
         });
+        if(role==="goalie"){
+          // Anchor the underglove to the distal forearm so extension cannot
+          // expose daylight between the jersey sleeve and the catching cuff.
+          this.wristCuff=new THREE.CylinderGeometry(.059,.073,.25,16);
+          this.wristFabric=new THREE.MeshStandardMaterial({color:0x222e39,roughness:.93});
+          for(const side of ["L","R"]){
+            const fore=this.bones.get("Forearm."+side), hand=this.bones.get("Hand."+side);
+            if(!fore||!hand)continue;
+            const cuff=new THREE.Mesh(this.wristCuff,this.wristFabric);
+            cuff.position.copy(hand.position).multiplyScalar(.85);
+            cuff.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),hand.position.clone().normalize());
+            fore.add(cuff);
+          }
+        }
+        if(role==="coach"){
+          // The coach uses rigid GLB pivots. The free hand is opposite the tablet.
+          this.visual.traverse(node=>{
+            const name:string=node.userData.name??node.name;
+            if(name.startsWith("Coach head pivot"))this.bones.set("Head",node);
+            if(name.startsWith("Coach shoulder") && node.position.x>0){
+              this.bones.set("UpperArm.R",node);
+              node.traverse(child=>{
+                const label:string=child.userData.name??child.name;
+                if(label.startsWith("Coach elbow"))this.bones.set("Forearm.R",child);
+                if(label.startsWith("Coach hand"))this.bones.set("Hand.R",child);
+              });
+            }
+          });
+        }
         driver.useModelJoints();
         this.root.add(this.visual);
         this.mixer = new THREE.AnimationMixer(this.visual);
@@ -447,7 +540,7 @@ class MatchNightPlayer implements RigLike {
   }
   alignBlade(target: THREE.Vector3) {
     const visual = this.visual;
-    if (!visual || this.role !== "skater" || (this.currentState !== "play" && this.currentState !== "faceoff-stance")) return;
+    if (!visual || this.role !== "skater" || (this.currentState !== "play" && this.currentState !== "faceoff-stance" && !this.drawTime)) return;
     const blade = new THREE.Vector3();
     if (!this.bladePoint(blade)) return;
     const delta = visual.worldToLocal(target.clone()).sub(visual.worldToLocal(blade)).clampLength(0,.29);
@@ -495,11 +588,44 @@ class MatchNightPlayer implements RigLike {
       yaw: s.yaw,
     };
   }
+  private paintLettering() {
+    const material=this.lettering, id=this.identity;
+    if (!material) return;
+    material.visible=!!id;
+    if (!id) return;
+    const canvas=this.letteringMap?.image ?? document.createElement("canvas");
+    canvas.width=canvas.height=256;
+    const ctx=canvas.getContext("2d")!;
+    const light=new THREE.Color(this.kit.jersey).getHSL({h:0,s:0,l:0}).l>.62;
+    ctx.fillStyle=light ? this.kit.pants : "#f8f5eb";
+    ctx.strokeStyle=light ? "#f8f5eb" : this.kit.pants;
+    ctx.lineJoin="round"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    const surname=id.name.trim().split(/\s+/).at(-1)!.toUpperCase();
+    ctx.font="bold 28px Arial";ctx.lineWidth=2;
+    ctx.strokeText(surname,128,30,236);ctx.fillText(surname,128,30,236);
+    ctx.font="bold 158px Arial";ctx.lineWidth=7;
+    ctx.strokeText(String(id.number),128,144,194);ctx.fillText(String(id.number),128,144,194);
+    if (!this.letteringMap) {
+      this.letteringMap=new THREE.CanvasTexture(canvas);
+      this.letteringMap.colorSpace=THREE.SRGBColorSpace;
+      this.letteringMap.flipY=false;
+      material.map=this.letteringMap;
+      material.needsUpdate=true;
+    }
+    const mirrored=this.role==="skater" && this.driver.hs<0;
+    this.letteringMap.repeat.x=mirrored ? -1 : 1;
+    this.letteringMap.offset.x=mirrored ? 1 : 0;
+    this.letteringMap.needsUpdate=true;
+  }
   setIdentity(id: RigIdentity, pos: string) {
     if (this.root.userData.playerId === id.id) return;
     this.driver.setIdentity(id, pos);
+    this.identity=id;
+    this.paintLettering();
+    this.drawTime=this.impact=0;
     this.mixer?.stopAllAction();
     this.active = undefined;
+    this.overlay=undefined;
     this.shotTime = this.busy = this.catchTime = this.passTime = this.glide = 0;
     this.gliding = false;
     this.offset = (id.number * 0.61803398875) % 1;
@@ -519,6 +645,17 @@ class MatchNightPlayer implements RigLike {
     toward?: { x: number; z: number },
     height?: number,
   ) {
+    if(this.role==="skater" && (kind==="draw" || kind==="tie-up")){
+      if(toward) this.drawDot.set(toward.x,.038,toward.z);
+      this.drawTime=.44;
+      this.drawWinner=kind==="draw";
+      this.drawYaw=this.motion.yaw;
+      return;
+    }
+    if(this.role==="official" && kind==="drop"){
+      this.officialRelease=.55;
+      return;
+    }
     this.driver.trigger(kind, toward, height);
     if (["wrist","shot","slap","snap"].includes(kind) && this.role === "skater") {
       this.shotLength = kind === "slap" ? .65 : kind === "snap" ? .3 : .47;
@@ -532,21 +669,32 @@ class MatchNightPlayer implements RigLike {
       return;
     }
     if(kind==="receive"){this.catchTime=.36;return;}
-    if(kind==="save") this.saveSide=Math.sign((toward?.z??0)*Math.sin(this.motion.yaw) || 1);
+    if(kind==="check" || kind==="checked"){
+      const yaw=this.motion.yaw;
+      const lateral=(toward?.x??0)*Math.cos(yaw)-(toward?.z??0)*Math.sin(yaw);
+      this.impactSide=Math.sign(lateral || 1)*(kind==="check" ? 1 : -1);
+      this.impact=kind==="check" ? .42 : .55;
+    }
+    if(this.overlay && (kind==="save" || kind==="beaten"))this.fadeRemaining=.14;
+    if(kind==="save"){
+      this.saveHeight=height??0;
+      const yaw=this.motion.yaw;
+      this.saveSide=Math.sign((toward?.x??0)*Math.cos(yaw)-(toward?.z??0)*Math.sin(yaw) || 1);
+      if(this.busy>0 && ["Glove sweep","Butterfly"].includes(this.active?.getClip().name??"")) return;
+    }
     const clip =
       this.role === "goalie"
         ? kind === "save" && (height ?? 0) > 0.48
           ? "Glove sweep"
           : "Butterfly"
         : shotClips[kind];
-    if (this.role === "official" && kind === "drop") {
-      this.play("Draw", true);
-      return;
-    }
     if (clip) this.play(clip, true);
   }
   update(dt: number, animDt: number, input: RigInput) {
-    this.driver.update(dt, animDt, input);
+    this.officialRelease=Math.max(0,this.officialRelease-animDt);
+    this.drawTime=Math.max(0,this.drawTime-animDt);
+    const drawing=this.drawTime>0;
+    this.driver.update(dt, animDt, drawing ? {...input,face:this.drawYaw} : input);
     if (!this.visual || !this.mixer || !this.root.visible) return;
     const source = this.driver.skeletonSource();
     const speedChange = (source.speed-this.previousSpeed) / Math.max(dt, .016);
@@ -588,11 +736,19 @@ class MatchNightPlayer implements RigLike {
           clip = "Celebrate";
         else if (state === "bench-cheer" || state === "bench-stand")
           clip = "Rise at goal";
-        else if (state === "faceoff-stance") clip = "Brace";
+        else if (state === "faceoff-stance" || drawing) clip = "Brace";
         else if (state === "play" && source.stopping) clip = "Brake";
         else if (state === "play" && source.speed > 0.45 && !this.gliding) clip = "Stride";
       }
-      if (clip) this.play(clip);
+      if (clip==="Brace" && (state==="faceoff-stance" || drawing)){
+        if(this.active!==this.actions.get(clip) || !this.active?.paused){
+          this.play(clip);
+          if(this.active){
+            this.active.time=this.active.getClip().duration*.32;
+            this.active.paused=true;
+          }
+        }
+      } else if (clip) this.play(clip);
       else if (this.active) {
         this.active.fadeOut(0.18);
         this.active = undefined;
@@ -621,13 +777,28 @@ class MatchNightPlayer implements RigLike {
     };
     this.shotTime = Math.max(0,this.shotTime-animDt);
     if (this.shotTime>0) {
-      const follow=Math.sin(Math.PI*(1-this.shotTime/this.shotLength));
+      const t=1-this.shotTime/this.shotLength;
+      const follow=Math.sin(Math.PI*t);
+      const weight=THREE.MathUtils.smoothstep(t,0,.45)*(1-THREE.MathUtils.smoothstep(t,.58,1));
+      pose("Pelvis",0,.09*source.hs*weight,.075*source.hs*weight);
+      pose("Forearm.R",-.10*weight,0,.055*source.hs*weight);
       pose("Chest",-.08*follow,(this.shotTurn*.24+source.hs*.12)*follow,0);
       pose("Spine",0,0,source.hs*.09*follow);
+    }
+    this.impact=Math.max(0,this.impact-animDt);
+    if(this.impact>0){
+      const brace=Math.sin(Math.PI*Math.min(1,this.impact/.56));
+      pose("Chest",.12*brace,0,.18*this.impactSide*brace);
+      pose("Head",-.08*brace,0,-.10*this.impactSide*brace);
     }
     const vault = input.vault ?? 0;
     const lift = Math.sin(Math.PI*vault);
     this.visual.position.y = lift * .91;
+    // The helmet projects beyond the hips in the crouch. Set the skates
+    // back on approach, then carry the weight forward through the draw.
+    const setBack=this.currentState==="faceoff-stance" ? 1 : drawing ?
+      THREE.MathUtils.smoothstep(this.drawTime,0,.44) : 0;
+    this.visual.position.z=THREE.MathUtils.damp(this.visual.position.z,-.14*setBack,18,dt);
     if (lift>.001) {
       for (const [side,offset] of [["L",.12],["R",-.12]] as const) {
         const knee=Math.sin(Math.PI*THREE.MathUtils.clamp(vault+offset,0,1))*lift;
@@ -652,11 +823,11 @@ class MatchNightPlayer implements RigLike {
       pose("Spine",0,0,shift*source.hs);
       const towardStick = this.passDirection.x*Math.cos(source.yaw)-this.passDirection.z*Math.sin(source.yaw);
       pose("Chest", .08*load, .16*load*towardStick*source.hs, 0);
-      if (age >= .22 && !input.hasPuck) {
+      if (age >= .20 && !input.hasPuck) {
         const blade = new THREE.Vector3();
         if (this.bladePoint(blade)) {
           blade.addScaledVector(this.passDirection, .18*load);
-          blade.y = .045 + .11*load;
+          blade.y = .032 + .046*load;
           this.alignBlade(blade);
         }
       }
@@ -666,7 +837,7 @@ class MatchNightPlayer implements RigLike {
       pose("Forearm.L",.18*give,0,.14*give);pose("Forearm.R",.14*give,0,.10*give);
     }
     const st=this.currentState;
-    if (this.role === "skater" && st === "play" && this.busy <= 0) {
+    if (this.role === "skater" && st === "play" && !drawing && this.busy <= 0) {
       if (lift < .001) this.adjustHipHeight(.14*this.glide);
       const cross = THREE.MathUtils.clamp(angularSpeed,-2,2)*Math.min(1,source.speed/4);
       pose("Chest",0,-cross*.055,0);
@@ -678,17 +849,36 @@ class MatchNightPlayer implements RigLike {
       this.reachArm("R",new THREE.Vector3(holding?-.035:-.17,holding?1.28:1.54,.43),new THREE.Vector3(-.50,1.09,.32));
       if(holding)this.reachArm("L",new THREE.Vector3(.046,1.26,.42),new THREE.Vector3(.48,1.07,.31));
       pose("Head",.035*Math.sin(this.motionTime*5),0,0);
-    } else if(st==="official-drop" || st==="faceoff-stance"){
+    } else if(st==="official-drop" || st==="faceoff-stance" || drawing){
       if(st==="official-drop"){
         pose("Spine",.23,0,-.045);
-        if(this.busy<=0) this.reachArm("R",new THREE.Vector3(-.09,1.01,.54),new THREE.Vector3(-.35,1.16,.30));
+        const release=this.officialRelease>0 ? 1-this.officialRelease/.55 : 0;
+        const down=Math.sin(Math.PI*release);
+        this.reachArm("R",new THREE.Vector3(-.09,1.01-.16*down,.54+.07*down),new THREE.Vector3(-.35,1.16,.30));
       } else {
-        this.adjustHipHeight(-.085);
-        pose("Spine",.23,0,0);
-        pose("Chest",.09,source.hs*.14,0);
-        pose("Head",-.12,0,0);
-        this.alignBlade(new THREE.Vector3(input.puckX,(.038),input.puckZ));
+        if(!drawing) this.drawDot.set(input.puckX,.038,input.puckZ);
+        const phase=drawing ? 1-this.drawTime/.44 : 0;
+        const pull=THREE.MathUtils.smoothstep(phase,.08,.64);
+        const recover=THREE.MathUtils.smoothstep(phase,.62,1);
+        const load=1-recover;
+        this.adjustHipHeight(-.085*load);
+        pose("Spine",.23*load,0,0);
+        pose("Chest",.09*load,source.hs*(.14+.23*pull)*load,0);
+        pose("Head",-.12*load,0,0);
+        const yaw=drawing ? this.drawYaw : source.yaw;
+        const across=source.hs*(.045+(this.drawWinner ? .18 : .075)*pull);
+        const back=drawing && this.drawWinner ? -.25*pull : 0;
+        const blade=this.drawDot.clone();
+        blade.x+=Math.cos(yaw)*across+Math.sin(yaw)*back;
+        blade.z+=-Math.sin(yaw)*across+Math.cos(yaw)*back;
+        blade.y+=.035*recover;
+        this.alignBlade(blade);
       }
+    } else if(st==="faceoff-ready" && this.role==="skater"){
+      const near=1-THREE.MathUtils.smoothstep(Math.hypot(input.puckX-input.x,input.puckZ-input.z),3,10);
+      pose("Spine",.12*near,0,0);
+      pose("Chest",0,.09*source.hs*near,0);
+      pose("Head",-.08*near,0,0);
     } else if(this.role==="skater" && st==="seated"){
       const track=Math.atan2(input.puckX-input.x,Math.max(2,input.puckZ-input.z));
       const breath=Math.sin(this.motionTime*1.4+this.offset*9);
@@ -705,17 +895,26 @@ class MatchNightPlayer implements RigLike {
       pose("UpperArm.R",-.05*set,0,-.07*set);
     } else if(this.role==="goalie" && this.busy>0){
       const a=this.active, u=a ? a.time/a.getClip().duration : 0;
-      pose("Spine",0,0,this.saveSide*.24*Math.sin(Math.PI*u));
+      const extension=Math.sin(Math.PI*THREE.MathUtils.clamp(u,0,1));
+      pose("Spine",.06*extension,0,this.saveSide*.19*extension);
+      const reaching=this.saveSide>0 ? "L" : "R";
+      pose("UpperArm."+reaching,-(.07+.17*this.saveHeight)*extension,0,this.saveSide*.13*extension);
+      pose("Head",-.08*extension,.10*this.saveSide*extension,0);
     } else if(this.role==="skater" && st==="play" && input.pressure!==undefined && input.pressure<2.2){
       pose("Chest",.1, .16*this.driver.skeletonSource().hs,0);
     }
-    if (this.role === "skater" && st === "play" && this.busy <= 0) {
+    this.updateOverlay(animDt);
+    if (this.role === "skater" && st === "play" && !drawing && this.busy <= 0) {
       const look = Math.atan2(input.puckX-input.x, input.puckZ-input.z)-source.yaw;
       pose("Head", .1*this.glide, input.hasPuck ? 0 : Math.sin(look)*.36, 0);
     }
   }
   dispose() {
     this.released = true;
+    this.wristCuff?.dispose();
+    this.wristFabric?.dispose();
+    this.letteringMap?.dispose();
+    this.lettering?.dispose();
     if (this.visual) {
       this.mixer?.stopAllAction();
       this.mixer?.uncacheRoot(this.visual);

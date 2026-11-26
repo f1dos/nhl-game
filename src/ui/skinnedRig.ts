@@ -971,6 +971,8 @@ const luminance = (hex: string) => {
 /* ------------------------------------------------------------- the rig */
 
 export interface RigLike {
+  signalLine?():void;
+  finishSave?(direction?: {x:number;z:number},height?:number):void;
   updateRenderBounds?(): void;
   alignBlade?(target: THREE.Vector3): void;
   handPoint?(target:THREE.Vector3):boolean;

@@ -1,10 +1,11 @@
+import { trainTeam } from "../src/engine/training";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { newGame } from "../src/engine/database";
 import { nextSeason } from "../src/engine/season";
 import { validateSave } from "../src/engine/saves";
 import { ensureDraft } from "../src/engine/draft";
-import { recordPlayerPerformance } from "../src/engine/performance";
+import { prepareAnnualDevelopment, recordPlayerPerformance } from "../src/engine/performance";
 import {
   POTENTIAL_MODEL,
   allPlayers,
@@ -123,6 +124,25 @@ test("hot form never shows OVR above POT", () => {
   assert(veteran.potential >= veteran.ovr);
 });
 
+test("temporary form cannot be trained into permanent upside after save and reload", () => {
+  const g = newGame("TOR", 77);
+  const team = g.teams[0];
+  const player = team.players.find(p => p.age >= 23 && p.age <= 29 && p.ovr < 85)!;
+  player.injury = 0;
+  player.potential = player.ovr;
+  const baseline = player.ovr;
+  for (let i = 0; i < 12; i++) recordPlayerPerformance(player, 45);
+  assert(player.ovr > baseline);
+  const loaded = validateSave(JSON.parse(JSON.stringify(g))).teams[0];
+  const p = loaded.players.find(p => p.id === player.id)!;
+  for (let i = 0; i < 24; i++) recordPlayerPerformance(p, -45);
+  assert(p.ovr < baseline);
+  for (let i = 0; i < 180; i++) trainTeam(loaded);
+  prepareAnnualDevelopment(p);
+  assert.equal(p.potential, baseline);
+  assert.equal(p.ovr, baseline);
+});
+
 test("scouted range contains the true value and narrows with knowledge", () => {
   const g = newGame("TOR", 260027, "en");
   const young = allPlayers(g).filter((p) => p.age <= 20).slice(0, 300);
@@ -167,4 +187,23 @@ test("old saves with flat potentials are recomputed on load", () => {
   assert.throws(() =>
     validateSave({ ...JSON.parse(JSON.stringify(loaded)), potentialModel: -1 }),
   );
+});
+
+test("five offseason recruiting cycles keep the league on the opening rating scale", () => {
+  const game = newGame("TOR", 349);
+  const average = () => {
+    const roster = nhl(game);
+    return roster.reduce((sum, p) => sum + p.ovr, 0) / roster.length;
+  };
+  const opening = average();
+  for (let season = 0; season < 5; season++) {
+    for (let day = 0; day < 200; day++)
+      for (const team of game.teams) trainTeam(team);
+    game.phase = "offseason";
+    nextSeason(game);
+    assert(Math.abs(average() - opening) < 5, String(game.year));
+  }
+  const roster = nhl(game);
+  const share = roster.filter(p => p.ovr >= 80).length / roster.length;
+  assert(share > 0.08 && share < 0.4, String(share));
 });

@@ -36,6 +36,7 @@
 /* Two-row scorebug keeps the playing surface visible on the weak side. */
 .match-strip {
   position:absolute; top:clamp(8px,2vh,22px); left:clamp(8px,2vw,32px);
+  transform:scale(1.5); transform-origin:top left;
   color:#f7f7f6; font:normal 18px/1 Impact,"Arial Narrow",sans-serif;
   font-variant-numeric:tabular-nums; pointer-events:none;
   filter:drop-shadow(0 1px 2px #0006);
@@ -586,3 +587,20 @@
   .transport-state {padding:0 9px}
 }
 @media(max-width:380px){.transport-state{display:none}.transport-speed{border:0}}
+
+.coach-report {border:1px solid #394e5c;border-radius:8px;padding:14px;background:#15212b;color:#dfe8ed;min-width:0}
+.coach-report h3 {font-size:15px;margin:0 0 10px;color:#fff}
+.coach-report p,.coach-report small {font-size:13px;line-height:1.5;margin:8px 0}
+.coach-report table {border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.coach-report th,.coach-report td {text-align:center;padding:4px 7px;border-bottom:1px solid #354953}
+.coach-report label {display:flex;gap:8px;align-items:center;justify-content:space-between}
+.coach-report button,.coach-replay button,.bw-events button {border:1px solid #597789;background:#223847;color:#effaff;padding:5px 9px;border-radius:4px;cursor:pointer}
+.coach-report button:disabled {opacity:.5;cursor:default}
+.coach-report button[aria-pressed=true] {background:#215e58}
+.shift-entry {padding:5px 0;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #304453;font-size:12px}
+.coach-replay {position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:10px;background:#12202df2;border:1px solid #517080;color:white;padding:12px 16px;border-radius:8px;width:max-content;max-width:95%}
+.match-strip[hidden]{display:none}
+.scout-film svg{display:block;width:100%;max-width:350px;margin:8px 0}
+.coach-report details>summary{cursor:pointer;padding:5px 0}
+.bw-bench .coach-report label:has(input[type=checkbox]) {display:flex;justify-content:flex-start;gap:8px}
+.bw-bench .coach-report input[type=checkbox] {width:16px;flex:0 0 16px}

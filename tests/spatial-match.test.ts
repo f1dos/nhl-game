@@ -18,6 +18,23 @@ test("spatial scoring stays in hockey-scale ranges across thirty seeded games", 
   console.log("SPATIAL BALANCE",{games:30,goals:goals/30,shots:shots/30});
 });
 
+test("opening draw can travel to support or break loose between the centres", () => {
+  const game=newGame();
+  let clean=false, contested=false;
+  for(let seed=1;seed<=12;seed++){
+    const m=new SpatialMatch(game.teams[0],game.teams[1],seed);
+    const taker=m.frame.cues.find(c=>c.kind==="faceoff")!.id;
+    const tied=!m.frame.carrierId;
+    for(let i=0;i<10;i++){
+      m.step();
+      if(tied && !m.frame.carrierId && Math.hypot(m.frame.puck.x,m.frame.puck.z)>.08) contested=true;
+      if(!tied && !m.frame.carrierId && m.frame.passTarget && m.frame.passTarget!==taker) clean=true;
+    }
+  }
+  assert(clean,"a clean win must leave the centre's stick and travel to support");
+  assert(contested,"a tied draw must produce a moving, recoverable loose puck");
+});
+
 test("loose puck is recovered instead of players parking outside pickup radius", () => {
   const g = newGame();
   const m = new SpatialMatch(g.teams[0], g.teams[1], 5);
@@ -168,6 +185,25 @@ test("broadcast stoppages show celebrations and faceoffs without changing the ma
       assert.deepEqual([...phases.get("goal")!].filter(p=>p!=="review"), ["celebrate", "lineup", "drop"]);
     assert.deepEqual([...(phases.get("save") ?? new Set())].filter(p=>p!=="review").sort(), ["drop", "lineup", "whistle"]);
   }
+});
+
+test("centres hold their planted opening stance through puck release", () => {
+  const game=newGame();
+  const match=new SpatialMatch(game.teams[0],game.teams[1],4,false,{presentation:true,openingDraw:true});
+  const feet=match.frame.bodies.filter(b=>!b.goalie && Math.hypot(b.x,b.z)<1)
+    .map(({id,x,z})=>({id,x,z}));
+  assert.equal(feet.length,2);
+  let ticks=0;
+  do {
+    match.step();
+    for(const foot of feet){
+      const player=match.frame.bodies.find(b=>b.id===foot.id)!;
+      assert(Math.hypot(player.x-foot.x,player.z-foot.z)<.001);
+      assert(Math.hypot(player.vx,player.vz)<.001);
+    }
+    ticks++;
+  } while(match.frame.stoppage && ticks<100);
+  assert(!match.frame.stoppage && ticks>1);
 });
 
 test("faceoffs line both teams up on the dot, and saves restart in that zone", () => {

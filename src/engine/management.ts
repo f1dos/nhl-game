@@ -1,9 +1,15 @@
+import { archiveMatch } from "./season";
+import {registerRoster,salaryTotal} from "./contracts";
+import { capCharge } from "./cap";
+import { publishMedia } from "./media";
+import { reviewCareerPlans } from "./careerDesk";
 import { ensurePotentialModel } from "./potential";
 import { autoLines } from "./database";
 import { advance, dateForRound } from "./season";
-import { simulateMatch } from "./match";
+import { scoutBrief } from "./coaching";
+import { nextClubFixture, quickClubMatch } from "./careerMatch";
 import { RNG } from "./random";
-import { payroll, tradeValue } from "./trades";
+import { payroll, tradeValue, tradeWindowOpen } from "./trades";
 import { processFreeAgentOffers } from "./freeAgency";
 import { ensureTrainingSchedule, trainTeam } from "./training";
 import { ensureSpecialTeams } from "./tactics";
@@ -312,14 +318,6 @@ function processDeadlines(g: Game, date: string) {
         "Last chance to strengthen the roster or move assets before the playoffs.",
       ),
     ],
-    [`${g.year + 1}-04-18`]: [
-      "league",
-      t("Финиш регулярного чемпионата", "Regular season finish"),
-      t(
-        "Клубы подводят итоги и готовятся к плей-офф.",
-        "Clubs take stock and prepare for the playoffs.",
-      ),
-    ],
   };
   const item = dates[date];
   if (!item) return;
@@ -387,7 +385,7 @@ function aiContractDay(g: Game) {
     player.salary,
     Number(((player.ovr - 68) * 0.55).toFixed(2)),
   );
-  if (payroll(team.players) - player.salary + salary > g.rules.cap) return;
+  if (payroll(team.players) - capCharge(player) + capCharge(player,salary) > g.rules.cap) return;
   player.salary = salary;
   player.years = years;
   player.contractExpiryYear = g.year + years;
@@ -396,6 +394,7 @@ function aiContractDay(g: Game) {
     date: g.calendar!.date,
     category: "contract",
     priority: player.ovr >= 84 ? "high" : "normal",
+    publicNewsClubs:[team.id],
     title: textFor(g)(
       `${team.id} продлил контракт с ${player.name}`,
       `${team.id} extended ${player.name}`,
@@ -419,13 +418,13 @@ function legalSwap(
   const pa = a.players.find((player) => player.id === aPlayerId)!;
   const pb = b.players.find((player) => player.id === bPlayerId)!;
   return (
-    payroll(a.players) - pa.salary + pb.salary <= cap &&
-    payroll(b.players) - pb.salary + pa.salary <= cap
+    payroll(a.players) - capCharge(pa) + capCharge(pb) <= cap &&
+    payroll(b.players) - capCharge(pb) + capCharge(pa) <= cap
   );
 }
 
 function aiTradeDay(g: Game) {
-  if (!g.calendar!.day || g.calendar!.day % 17) return;
+  if (!tradeWindowOpen(g) || g.phase==="offseason" || !g.calendar!.day || g.calendar!.day % 17) return;
   const clubs = g.teams.filter((team) => team.id !== g.user);
   const a = clubs[g.calendar!.day % clubs.length];
   const b = clubs[(g.calendar!.day * 7 + 3) % clubs.length];
@@ -464,6 +463,7 @@ function aiTradeDay(g: Game) {
     date: g.calendar!.date,
     category: "trade",
     priority: Math.max(pa.ovr, pb.ovr) >= 84 ? "high" : "normal",
+    publicNewsClubs:[a.id,b.id],
     title: t(`Сделка между ${a.id} и ${b.id}`, `Trade between ${a.id} and ${b.id}`),
     body: `${message}. ${t(
       "Оба клуба сохранили допустимую зарплатную ведомость.",
@@ -472,10 +472,12 @@ function aiTradeDay(g: Game) {
   });
 }
 
+
 function processCurrentDay(g: Game, completed?: import("./types").Result) {
   const date = g.calendar!.date;
   processDeadlines(g, date);
   const preseason = processPreseasonDay(g, date, completed);
+  const gameNight = (g.preseasonFixtures ?? []).flatMap(f => f.date === date && f.result ? [f.result] : []);
   processInternationalDay(g, date);
   const hasGames =
     g.phase === "playoffs"
@@ -483,7 +485,8 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
       : g.phase === "regular" && fixtureDate(g, g.round) === date;
   if (hasGames) {
     const before = g.round;
-    advance(g, completed);
+    const regular=g.phase==="regular";
+    advance(g, completed, result => gameNight.push(result));
     pushEvent(g, {
       date,
       category: "game",
@@ -497,6 +500,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
         "Results, statistics, form and player condition have been updated.",
       ),
     });
+    if(regular&&g.phase==="playoffs")pushEvent(g,{date,category:"league",priority:"high",title:textFor(g)("Финиш регулярного чемпионата","Regular season finish"),body:textFor(g)("Сетка первого раунда определена.","The first-round playoff field is set.")});
     if (g.phase === "offseason") finishInternationalSeason(g);
   } else if (g.phase === "regular" && !preseason) {
     for (const team of g.teams) trainTeam(team);
@@ -533,43 +537,38 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   aiContractDay(g);
   aiTradeDay(g);
   generateInboxEvents(g);
+  for(const t of g.teams)if(salaryTotal(t)>g.rules.cap){registerRoster(t,g.rules.cap);autoLines(t)}
   processPlayerRequests(g);
+  publishMedia(g,date,gameNight);
   g.calendar!.lastProcessedDate = date;
 }
 
 export function advanceDay(g: Game, completed?: import("./types").Result) {
   ensureManagementState(g);
-  processCurrentDay(g, completed);
+  const fixture = nextClubFixture(g);
+  const result = completed ?? (fixture && fixture.date === g.calendar!.date ? quickClubMatch(g, fixture) : undefined);
+  if (result) {
+    result.date = g.calendar!.date;
+    const opponent = g.teams.find(t=>t.id===(result.home===g.user ? result.away : result.home));
+    const target = opponent && scoutBrief(opponent)?.target;
+    if(opponent && target) result.scoutTarget = {id:target.id,name:target.name,
+      marked:g.matchCoverage?.date===result.date && g.matchCoverage.target===target.id,
+      priorShots:(opponent.scoutGames ?? []).reduce((n,game)=>n+game.examples.filter(e=>e.id===target.id).length,0),
+      games:opponent.scoutGames?.length ?? 0};
+  }
+  processCurrentDay(g, result);
+  reviewCareerPlans(g, result, fixture?.kind==="regular" || fixture?.kind==="playoffs");
+  if (result && fixture?.date === g.calendar!.date && g.last === result) {
+    const { home, away, goals, ot, so } = result;
+    (g.clubMatchHistory ??= []).push({ date: fixture.date, home, away, goals: [...goals], ot, so,events:archiveMatch(result,true).events });
+  }
   g.calendar!.date = addDays(g.calendar!.date, 1);
   g.calendar!.day++;
 }
 
 export function isUserMatchday(g: Game) {
   ensureManagementState(g);
-  const date = g.calendar!.date;
-  if (
-    g.preseasonFixtures?.some(
-      (fixture) => fixture.date === date && !fixture.result,
-    )
-  )
-    return true;
-  if (
-    g.phase === "playoffs" &&
-    g.calendar!.day % 2 === 0 &&
-    g.bracket[g.playoffRound]?.some(
-      (series) => !series.winner && [series.a, series.b].includes(g.user),
-    )
-  )
-    return true;
-  return (
-    g.phase === "regular" &&
-    fixtureDate(g, g.round) === date &&
-    g.schedule.some(
-      (fixture) =>
-        fixture.round === g.round &&
-        [fixture.home, fixture.away].includes(g.user),
-    )
-  );
+  return nextClubFixture(g)?.date === g.calendar!.date;
 }
 
 export type ContinueMode = "day" | "next-game" | "next-event" | "week";

@@ -1,3 +1,4 @@
+import { rosterCharge } from "../engine/cap";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -72,7 +73,7 @@ export default function ClubCenter({
     team.id === game.user && game.franchiseStrategy
       ? game.franchiseStrategy
       : (team.aiProfile?.strategy ?? likelyStrategy(team));
-  const payroll = team.players.reduce((sum, p) => sum + p.salary, 0);
+  const payroll = rosterCharge(team.players);
   const capSpace = game.rules.cap - payroll;
   const byId = new Map(
     [...team.players, ...(team.farm ?? [])].map((p) => [p.id, p]),

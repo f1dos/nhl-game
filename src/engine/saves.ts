@@ -1,3 +1,5 @@
+import {registerRoster,salaryTotal} from "./contracts";
+import {autoLines} from "./database";
 import { isIceTimePlan } from "./iceTime";
 import type { Game } from "./types";
 import { isLocale } from "../i18n/locales";
@@ -217,7 +219,7 @@ export function validateSave(value: unknown): Game {
     !Number.isInteger(g.year) ||
     !Number.isInteger(g.round) ||
     g.round < 0 ||
-    g.round > 82 ||
+    g.round > 84 ||
     !["regular", "playoffs", "offseason"].includes(g.phase) ||
     !isLocale(g.language)
   )
@@ -227,7 +229,7 @@ export function validateSave(value: unknown): Game {
     ids.size !== 32 ||
     !ids.has(g.user) ||
     !Array.isArray(g.schedule) ||
-    g.schedule.length !== 1312 ||
+    (![1312,1344].includes(g.schedule.length)||g.round>g.schedule.length/16) ||
     !Array.isArray(g.history) ||
     !Array.isArray(g.news)
   )
@@ -725,6 +727,7 @@ export function validateSave(value: unknown): Game {
   // Older careers stored POT with a flat youth bonus (often POT == OVR);
   // recompute with the current model and repair POT < OVR.
   ensurePotentialModel(g);
+  for(const t of g.teams)if(salaryTotal(t)>g.rules.cap){registerRoster(t,g.rules.cap);autoLines(t)}
   return g;
 }
 // NHL Manager 27 uses a new database name, but legacy 26 careers are

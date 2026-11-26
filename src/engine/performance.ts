@@ -2,7 +2,6 @@ import { textFor } from "./text";
 import { overall } from "./ratings";
 import { clamp } from "./random";
 import type { Player, Stats, Team } from "./types";
-import { enforcePotentialFloor } from "./potential";
 
 export type StatSnapshot = Record<string, Stats>;
 
@@ -19,7 +18,6 @@ function shiftOverall(player: Player, delta: number) {
   for (const key of Object.keys(player.attributes))
     player.attributes[key] = clamp(player.attributes[key] + delta, 30, 99);
   player.ovr = overall(player.pos, player.attributes, player.archetype);
-  enforcePotentialFloor(player);
 }
 
 export function recordPlayerPerformance(player: Player, score: number) {
@@ -31,7 +29,10 @@ export function recordPlayerPerformance(player: Player, score: number) {
   const injuryPenalty = player.injury >= 10 ? 1 : 0;
   const desired = clamp(Math.round(form / 18) - injuryPenalty, -3, 3);
   const previous = player.formAdjustment ?? 0;
+  const ceiling = player.potentialBeforeForm ?? player.potential;
   shiftOverall(player, desired - previous);
+  player.potential = Math.max(ceiling, player.ovr);
+  player.potentialBeforeForm = player.ovr > ceiling ? ceiling : undefined;
   player.performanceForm = Math.round(form * 10) / 10;
   player.formAdjustment = desired;
   return desired - previous;
@@ -76,6 +77,8 @@ export function prepareAnnualDevelopment(player: Player, language?: string) {
   const t = textFor({ language });
   shiftOverall(player, -(player.formAdjustment ?? 0));
   player.formAdjustment = 0;
+  player.potential = Math.max(player.potentialBeforeForm ?? player.potential, player.ovr);
+  player.potentialBeforeForm = undefined;
   const form = player.performanceForm ?? 0;
   const burden = player.injuryBurden ?? 0;
   const performance = form >= 25 ? 1 : form <= -25 ? -1 : 0;

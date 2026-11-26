@@ -1,3 +1,5 @@
+import BenchDesk from "./BenchDesk";
+import { stamp } from "./CoachBench";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
@@ -13,8 +15,9 @@ import {
 } from "lucide-react";
 import type { Game, Team } from "../engine/types";
 import { RINK } from "../engine/rink";
-import { SpatialMatch, type SpatialFrame } from "../engine/spatialMatch";
+import type { SpatialFrame } from "../engine/spatialMatch";
 import { englishDynamic } from "../i18n/englishMatch";
+import { createClubMatch, applyClubMatch } from "../engine/careerMatch";
 import { advanceDay } from "../engine/management";
 import broadcastCrests from "../assets/scoreboard-crests.json";
 const clubMarks: Record<string,string> = broadcastCrests;
@@ -86,6 +89,7 @@ export default function SpatialMatchCenter({
   edit,
   onComplete,
   finishLabel,
+  eliminationRules = game.phase === "playoffs",
 }: {
   game: Game;
   home: Team;
@@ -94,20 +98,35 @@ export default function SpatialMatchCenter({
   onComplete: () => void;
   /** Text of the button shown after the final siren. */
   finishLabel?: string;
+  eliminationRules?: boolean;
 }) {
   const ru = game.language !== "en";
   const tr = (a: string, b: string) => (ru ? a : b);
   const [match] = useState(
     () =>
-      new SpatialMatch(home, away, game.seed, game.phase === "playoffs", {
-        presentation: true, openingDraw:true, recordReplay:true, clockRate:2,
-      }),
+      createClubMatch(home, away, game.seed, eliminationRules, true),
   );
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [camera, setCamera] = useState<CameraMode>("broadcast");
   const [drawer, setDrawer] = useState<Drawer>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [pauseDraw,setPauseDraw]=useState(false);
+  const [reviewId,setReviewId]=useState<number|null>(null);
+  const [reviewIndex,setReviewIndex]=useState(0);
+  const [reviewPlaying,setReviewPlaying]=useState(false);
+  const clip=reviewId===null ? undefined : match.clips.get(reviewId);
+  const review=(id:number)=>{
+    if(!match.clips.has(id))return;
+    setRunning(false);setReviewId(id);setReviewIndex(0);setReviewPlaying(true);setDrawer(null);
+  };
+  const closeReview=()=>{setReviewId(null);setReviewPlaying(false);};
+  useEffect(()=>{
+    if(!clip || !reviewPlaying)return;
+    if(reviewIndex>=clip.length-1){setReviewPlaying(false);return;}
+    const timer=setTimeout(()=>setReviewIndex(reviewIndex+1),Math.max(50,(clip[reviewIndex+1].tick-clip[reviewIndex].tick)*100));
+    return ()=>clearTimeout(timer);
+  },[clip,reviewIndex,reviewPlaying]);
   const [fullscreen, setFullscreen] = useState(false);
   const [, redraw] = useState(0);
   const committed = useRef(false);
@@ -164,6 +183,9 @@ export default function SpatialMatchCenter({
         // manager chose a fast simulation.
         if (n > 0 && match.stopped) break;
         match.step();
+        if(pauseDraw && match.canMatchHomeLine && side===0){
+          setRunning(false);setPauseDraw(false);setDrawer("bench");break;
+        }
         if (match.done || match.intermission) break;
       }
       if (match.done || match.intermission) setRunning(false);
@@ -171,13 +193,14 @@ export default function SpatialMatchCenter({
       redraw((n) => n + 1);
     }, 100);
     return () => clearInterval(timer);
-  }, [running, speed, match]);
+  }, [running, speed, match, pauseDraw, side]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(target.tagName) && e.code === "Space") return;
       if (target && ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName)) return;
+      if(reviewId!==null){if(e.key==="Escape")closeReview();return;}
       if (e.code === "Space") {
         e.preventDefault();
         if (!match.done) {
@@ -194,7 +217,7 @@ export default function SpatialMatchCenter({
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("fullscreenchange", onFs);
     };
-  }, [match]);
+  }, [match,reviewId]);
 
   const update = (fn: () => void) => {
     fn();
@@ -213,13 +236,7 @@ export default function SpatialMatchCenter({
       const preseason = current.preseasonFixtures?.some(
         (f) => f.date === current.calendar?.date && !f.result,
       );
-      if (!preseason)
-        match.teams.forEach((team) => {
-          const index = current.teams.findIndex((t) => t.id === team.id);
-          if (index >= 0) current.teams[index] = structuredClone(team);
-        });
-      current.seed = match.rng.seed;
-      advanceDay(current, structuredClone(match.result));
+      advanceDay(current, applyClubMatch(current, match, !!preseason));
       saved = true;
     });
     if (saved) {
@@ -239,7 +256,8 @@ export default function SpatialMatchCenter({
   };
 
   const result = match.result;
-  const frame = match.frame;
+  const reviewFrame=clip?.[reviewIndex];
+  const frame:SpatialFrame=reviewFrame ? {...match.frame,...reviewFrame,tick:-(reviewIndex+1)} : match.frame;
   const power = frame.penaltyBox.length
     ? (() => {
         const p = [...frame.penaltyBox].sort((a, b) => a.until - b.until)[0];
@@ -263,23 +281,30 @@ export default function SpatialMatchCenter({
           <Arena
             home={home}
             away={away}
-            running={running || match.done || match.intermission}
-            playback={effective}
+            running={reviewFrame ? reviewPlaying : running || match.done || match.intermission}
+            playback={reviewFrame ? 1 : effective}
             spatial={frame}
-            camera={camera}
+            reviewMode={!!reviewFrame}
+            camera={reviewFrame ? "overhead" : camera}
             height="100%"
             language={ru ? "ru" : "en"}
             scoreboard={{
-              home: result.goals[0],
-              away: result.goals[1],
-              clock: clock(match.time),
+              home: (reviewFrame?.score ?? result.goals)[0],
+              away: (reviewFrame?.score ?? result.goals)[1],
+              clock: clock(reviewFrame?.at ?? match.time),
               period: match.time >= 3600 ? "OT" : `P${period}`,
             }}
           />
         </Suspense>
       </div>
 
-      <div className="match-strip">
+      {clip && <section className="coach-replay" aria-label={tr("Разбор эпизода","Shift review")}>
+        <b>{tr("Разбор сверху","Overhead review")} · {stamp(clip[reviewIndex].at)}</b>
+        <input type="range" aria-label={tr("Кадр повтора","Replay frame")} min={0} max={clip.length-1} value={reviewIndex} onChange={e=>{setReviewPlaying(false);setReviewIndex(+e.target.value)}}/>
+        <button onClick={()=>{if(reviewIndex===clip.length-1)setReviewIndex(0);setReviewPlaying(!reviewPlaying)}}>{reviewPlaying?tr("Пауза повтора","Pause replay"):tr("Смотреть","Play replay")}</button>
+        <button onClick={closeReview}>{tr("Вернуться к матчу","Back to match")}</button>
+      </section>}
+      <div className="match-strip" hidden={!!clip}>
         <div className="match-strip-main" aria-label={tr("Табло матча", "Match scoreboard")}>
           <div className="strip-time">
             <strong>{match.done ? (result.so ? "SO" : result.ot ? "OT" : tr("Итог","Final")) : clock(match.time)}</strong>
@@ -318,7 +343,7 @@ export default function SpatialMatchCenter({
       )}
 
       {/* Top right: camera and window controls */}
-      <div className="bw-top">
+      <div className="bw-top" style={clip?{display:"none"}:undefined}>
         <div className="bw-chips" role="radiogroup" aria-label={tr("Камера", "Camera")}>
           {CAMERA_MODES.map((c, i) => (
             <button key={c.value} role="radio" aria-checked={camera === c.value} className={camera === c.value ? "on" : ""} onClick={() => setCamera(c.value)} title={`${ru ? c.ru : c.en} (${i + 1})`}>
@@ -332,7 +357,7 @@ export default function SpatialMatchCenter({
       </div>
 
       {/* Lower-third plaques */}
-      <div className="bw-toasts">
+      <div className="bw-toasts" style={clip?{display:"none"}:undefined}>
         {toasts.map((t) => (
           <div key={t.id} className={`bw-toast ${t.kind}`} style={{ ["--team" as string]: t.color }}>
             <b>{t.title}</b>
@@ -342,7 +367,7 @@ export default function SpatialMatchCenter({
       </div>
 
       {/* Period break and final siren */}
-      {(match.intermission || match.done) && (
+      {!clip && (match.intermission || match.done) && (
         <div className="bw-center-card">
           <span className="eyebrow">{match.done ? tr("ФИНАЛЬНАЯ СИРЕНА", "FINAL SIREN") : tr("ПЕРЕРЫВ", "INTERMISSION")}</span>
           <h2>
@@ -374,12 +399,12 @@ export default function SpatialMatchCenter({
       )}
 
       {/* Radar, bottom left */}
-      <div className="bw-radar-card">
+      <div className="bw-radar-card" style={clip?{display:"none"}:undefined}>
         <MiniRink frame={frame} teams={teams} />
       </div>
 
       {/* Control bar */}
-      <div className="match-controls">
+      <div className="match-controls" style={clip?{display:"none"}:undefined}>
         <div className="transport-panel">
           <button className="bw-play transport-toggle" onClick={toggle} disabled={match.done}
             aria-label={running ? tr("Пауза", "Pause") : tr("Играть", "Play")} title={tr("Пробел", "Space")}>
@@ -432,6 +457,9 @@ export default function SpatialMatchCenter({
             )}
             {drawer === "bench" && (
               <div className="bw-bench">
+                <BenchDesk match={match} side={side} tr={tr} review={review} refresh={()=>redraw(n=>n+1)}
+                  pauseDraw={pauseDraw} setPauseDraw={setPauseDraw}/>
+                <details className="bench-team"><summary>{tr("Командные настройки","Team settings")}</summary>
                 <label>
                   {tr("Форчек", "Forecheck")}
                   <Select value={managed.tactics.forecheck} onChange={(e) => update(() => { managed.tactics.forecheck = e.target.value as typeof managed.tactics.forecheck; })}>
@@ -462,6 +490,7 @@ export default function SpatialMatchCenter({
                 <button className={match.pullGoalie[side] ? "primary" : ""} onClick={() => update(() => { match.pullGoalie[side] = !match.pullGoalie[side]; })}>
                   {match.pullGoalie[side] ? tr("Вернуть вратаря", "Put the goalie back") : tr("Снять вратаря (6×5)", "Pull the goalie (6-on-5)")}
                 </button>
+                </details>
               </div>
             )}
             {drawer === "stats" && (
@@ -497,12 +526,11 @@ export default function SpatialMatchCenter({
             )}
             {drawer === "events" && (
               <ol className="bw-events">
-                {result.events
-                  .filter((e) => e.type !== "faceoff")
-                  .slice(-40)
+                {result.events.map((e,index)=>({e,index}))
+                  .filter(({e}) => e.type !== "faceoff")
                   .reverse()
-                  .map((e, i) => (
-                    <li key={`${e.time}-${i}`} className={e.type}>
+                  .map(({e,index}) => (
+                    <li key={index} className={e.type}>
                       <time>{Math.floor(e.time / 60)}′</time>
                       <span>
                         <b>{e.player}</b>
@@ -510,6 +538,7 @@ export default function SpatialMatchCenter({
                           {e.team} · {ru ? e.text : englishDynamic(e.text)}
                         </small>
                       </span>
+                      {match.clips.has(index) && <button onClick={()=>review(index)}>{tr("Разобрать","Review")}</button>}
                     </li>
                   ))}
               </ol>

@@ -1,3 +1,5 @@
+import { registerRoster, salaryTotal } from "./contracts";
+import { autoLines } from "./database";
 import { tx } from "./text";
 import { RNG, clamp } from "./random";
 import { overall } from "./ratings";
@@ -26,28 +28,75 @@ import {
   type Result,
   type Series,
 } from "./types";
-export function makeSchedule(teams: Team[]): Fixture[] {
-  let ring = teams.map((t) => t.id);
-  const first: { home: string; away: string }[][] = [];
-  for (let n = 0; n < 31; n++) {
-    first.push(
-      Array.from({ length: 16 }, (_, i) => ({
-        home: ring[n % 2 ? 31 - i : i],
-        away: ring[n % 2 ? i : 31 - i],
-      })),
-    );
-    ring = [ring[0], ring[31], ...ring.slice(1, 31)];
-  }
-  const reverse = (xs: typeof first) =>
-    xs.map((r) => r.map((g) => ({ home: g.away, away: g.home })));
-  return [
-    ...first,
-    ...reverse(first),
-    ...first.slice(0, 10),
-    ...reverse(first.slice(0, 10)),
-  ].flatMap((games, round) =>
-    games.map((g, i) => ({ ...g, id: `${round}-${i}`, round })),
+export function makeSchedule(teams: Team[], year = 2026): Fixture[] {
+  type Pair = { home: string; away: string };
+  const roundRobin = (ids: string[]) => {
+    let ring = [...ids];
+    const rounds: Pair[][] = [];
+    for (let n = 0; n < ids.length - 1; n++) {
+      rounds.push(
+        Array.from({ length: ids.length / 2 }, (_, i) => ({
+          home: ring[n % 2 ? ids.length - 1 - i : i],
+          away: ring[n % 2 ? i : ids.length - 1 - i],
+        })),
+      );
+      ring = [ring[0], ring.at(-1)!, ...ring.slice(1, -1)];
+    }
+    return rounds;
+  };
+  const reverse = (round: Pair[]) =>
+    round.map(({ home, away }) => ({ home: away, away: home }));
+  const all = roundRobin(teams.map((t) => t.id));
+  const divisions = [...new Set(teams.map((t) => t.division))].map((d) =>
+    teams.filter((t) => t.division === d),
   );
+  const local = divisions.map((d) => roundRobin(d.map((t) => t.id)));
+  const extra: Pair[][] = Array.from({ length: 7 }, (_, i) =>
+    local.flatMap((d) => d[i]),
+  );
+  const conference: Pair[][] = Array.from({ length: 8 }, (_, k) =>
+    ["East", "West"].flatMap((c) => {
+      const [left, right] = divisions.filter((d) => d[0].conference === c);
+      return left.map((t, i) => {
+        const rival = right[(i + k) % 8];
+        return (k + year) % 2
+          ? { home: t.id, away: rival.id }
+          : { home: rival.id, away: t.id };
+      });
+    }),
+  );
+  const half = [...all, ...extra];
+  const rounds = [
+    ...half,
+    ...conference.slice(0, 4),
+    ...half.map(reverse),
+    ...conference.slice(4),
+  ];
+  return rounds.flatMap((games, round) =>
+    games.map((g, i) => ({ ...g, id: round + "-" + i, round })),
+  );
+}
+export function archiveMatch(res: Result, own: boolean, date?: string): Result {
+  const events = res.events
+    .filter((e) => e.type === "goal" || e.type === "shootout")
+    .map((e) => ({
+      time: e.time,
+      type: e.type,
+      team: e.team,
+      player: e.player,
+      playerId: e.playerId,
+      assists: e.assists,
+      text: e.text,
+      x: e.x,
+      y: e.y,
+      score: [...e.score],
+    }));
+  return {
+    ...res,
+    date: res.date ?? date,
+    events,
+    ratings: own ? res.ratings : undefined,
+  };
 }
 export function standings(teams: Team[]) {
   return [...teams].sort(
@@ -60,9 +109,12 @@ export function standings(teams: Team[]) {
       a.id.localeCompare(b.id),
   );
 }
+import { rememberOpponent } from "./coaching";
 function recordResult(g: Game, res: Result) {
   [res.home, res.away].forEach((id, i) => {
-    const s = g.teams.find((t) => t.id === id)!.record;
+    const club = g.teams.find((t) => t.id === id)!;
+    rememberOpponent(club, res);
+    const s = club.record;
     const won = res.goals[i] > res.goals[1 - i];
     s.gp++;
     s.gf += res.goals[i];
@@ -87,7 +139,8 @@ function seedConference(teams: Team[]): Series[] {
   );
   const ids = top.flat().map((t) => t.id);
   const wc = standings(teams.filter((t) => !ids.includes(t.id))).slice(0, 2);
-  const order = top[0][0].record.pts >= top[1][0].record.pts ? [0, 1] : [1, 0];
+  const betterWinner = standings([top[0][0], top[1][0]])[0];
+  const order = betterWinner === top[0][0] ? [0, 1] : [1, 0];
   return order
     .flatMap((d, i) => [
       [top[d][0], wc[1 - i]],
@@ -95,31 +148,47 @@ function seedConference(teams: Team[]): Series[] {
     ])
     .map(([a, b]) => ({ a: a.id, b: b.id, wins: [0, 0], games: [] }));
 }
-export function advance(g: Game, completed?: Result) {
+export function advance(
+  g: Game,
+  completed?: Result,
+  onMatch?: (result: Result) => void,
+) {
   if (g.phase === "offseason") return;
   const previousResult = g.last;
   const r = new RNG(g.seed);
-  g.teams.forEach(trainTeam);
+  g.teams.forEach((t) => {
+    trainTeam(t);
+    if (salaryTotal(t) > g.rules.cap) {
+      registerRoster(t, g.rules.cap);
+      autoLines(t);
+    }
+  });
   const play = (home: string, away: string, po: boolean) =>
-    completed?.home === home && completed.away === away ? completed : simulateMatch(
-      g.teams.find((t) => t.id === home)!,
-      g.teams.find((t) => t.id === away)!,
-      r,
-      po,
-    );
+    completed?.home === home && completed.away === away
+      ? completed
+      : simulateMatch(
+          g.teams.find((t) => t.id === home)!,
+          g.teams.find((t) => t.id === away)!,
+          r,
+          po,
+        );
   if (g.phase === "regular") {
     for (const f of g.schedule.filter((f) => f.round === g.round)) {
       const res = play(f.home, f.away, false);
+      onMatch?.(res);
       recordResult(g, res);
       const own = [f.home, f.away].includes(g.user);
       if (own) g.last = res;
-      // Per-player ratings are kept only for the managed club's games.
-      f.result = { ...res, events: [], ratings: own ? res.ratings : undefined };
+      f.result = archiveMatch(
+        res,
+        own,
+        dateForRound(g, f.round).toISOString().slice(0, 10),
+      );
     }
     g.round++;
     resolveInternationalOffers(g);
     progressScouting(g);
-    if (g.round === 82) {
+    if (g.round === g.schedule.length / 16) {
       g.phase = "playoffs";
       g.bracket = [
         [
@@ -152,7 +221,8 @@ export function advance(g: Game, completed?: Result) {
       const winner = res.goals[0] > res.goals[1] ? home : away;
       s.wins[winner === s.a ? 0 : 1]++;
       const own = [s.a, s.b].includes(g.user);
-      s.games.push({ ...res, events: [], ratings: own ? res.ratings : undefined });
+      onMatch?.(res);
+      s.games.push(archiveMatch(res, own, g.calendar?.date));
       if (own) g.last = res;
       if (s.wins.includes(4)) s.winner = winner;
     }
@@ -180,13 +250,19 @@ export function advance(g: Game, completed?: Result) {
         openDraft(g, r);
       } else {
         const winners = series.map((s) => s.winner!);
+        const rank = standings(g.teams).map((t) => t.id);
         g.bracket.push(
-          Array.from({ length: winners.length / 2 }, (_, i) => ({
-            a: winners[2 * i],
-            b: winners[2 * i + 1],
-            wins: [0, 0],
-            games: [],
-          })),
+          Array.from({ length: winners.length / 2 }, (_, i) => {
+            const [a, b] = winners
+              .slice(2 * i, 2 * i + 2)
+              .sort((x, y) => rank.indexOf(x) - rank.indexOf(y));
+            return {
+              a,
+              b,
+              wins: [0, 0],
+              games: [],
+            };
+          }),
         );
         g.playoffRound++;
       }
@@ -231,7 +307,7 @@ function rollover(g: Game) {
   g.bracket = [];
   g.playoffRound = 0;
   g.last = undefined;
-  g.schedule = makeSchedule(g.teams);
+  g.schedule = makeSchedule(g.teams, g.year);
   if (g.draftAssets) {
     const newYear = g.year + 3;
     const known = new Set(g.draftAssets.map((asset) => asset.id));

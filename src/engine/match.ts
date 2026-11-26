@@ -395,12 +395,12 @@ export function simulateMatch(
       res.goals[side]++;
       p.stats.g++;
       goalie.stats.ga++;
+      const helpers:string[]=[];
       const assist = ice[side].filter((a) => a.id !== p.id);
       if (r.next() < 0.87) {
         const a = r.pick(assist);
-        a.stats.a++;
-        if (r.next() < 0.69)
-          r.pick(assist.filter((b) => b.id !== a.id)).stats.a++;
+        a.stats.a++;helpers.push(a.name);
+        if (r.next() < 0.69){const b=r.pick(assist.filter((b) => b.id !== a.id));b.stats.a++;helpers.push(b.name);}
       }
       if (pp) {
         res.pp[side]++;
@@ -418,6 +418,7 @@ export function simulateMatch(
         pp ? "Гол в большинстве / Power play goal" : "ГОЛ / GOAL",
         xg,
       );
+      res.events.at(-1)!.assists=helpers;
     } else emit(time, "shot", side, p, "Бросок — сейв / Shot saved", xg);
   }
   for (

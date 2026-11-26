@@ -1,3 +1,4 @@
+import { rosterCharge } from "./cap";
 import { clamp } from "./random";
 import type {
   FanState,
@@ -92,7 +93,7 @@ function unitAverage(team: Team, position: Position) {
 
 export function calculateTeamNeeds(game: Game, team: Team): TeamNeed[] {
   const positions: Position[] = ["C", "LW", "RW", "D", "G"];
-  const payroll = team.players.reduce((sum, player) => sum + player.salary, 0);
+  const payroll = rosterCharge(team.players);
   const capSpace = Math.max(0, game.rules.cap - payroll);
   return positions
     .map((position) => ({ position, rating: unitAverage(team, position) }))

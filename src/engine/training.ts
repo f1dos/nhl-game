@@ -1,6 +1,6 @@
 import type { Team, TrainingSchedule, TrainingSession } from "./types";
 import { overall } from "./ratings";
-import { developmentAge, enforcePotentialFloor } from "./potential";
+import { baseOverall, developmentAge } from "./potential";
 import {
   coachBoost,
   conditioningRelief,
@@ -113,6 +113,15 @@ export function trainTeam(team: Team) {
       developmentTick % developmentEvery(player, lineup.has(player.id)) !== 0
     )
       continue;
+    const ability = baseOverall(player);
+    const ceiling = player.potentialBeforeForm ?? player.potential;
+    const start = player.trainingStartOverall ?? ability;
+    const age = developmentAge(player.age, player.pos);
+    // Targeted practice supplies part of the annual gain. A cold streak
+    // cannot create new headroom for a player already at his ceiling.
+    const budget = age <= 21 ? 2 : 1;
+    if (ability >= Math.min(ceiling, start + budget)) continue;
+    player.trainingStartOverall = start;
     const focuses = sessions.flatMap((session) => skillFocus[session] ?? []);
     const keys =
       player.pos === "G"
@@ -136,7 +145,8 @@ export function trainTeam(team: Team) {
     for (const key of [...new Set(keys)].slice(0, 3 + extraKeys))
       player.attributes[key] = Math.min(99, player.attributes[key] + gain);
     player.ovr = overall(player.pos, player.attributes, player.archetype);
-    enforcePotentialFloor(player);
+    player.potential = Math.max(ceiling, player.ovr);
+    player.potentialBeforeForm = player.ovr > ceiling ? ceiling : undefined;
   }
 }
 

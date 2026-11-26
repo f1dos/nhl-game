@@ -1,6 +1,7 @@
+import { counterOffer, marketBrief } from "../engine/careerDesk";
 import { useState } from "react";
 import { RequestBadge } from "./PlayerRequests";
-import { Check, IdCard, MessageSquare, Plus, Send, X } from "lucide-react";
+import { Check, IdCard, Plus, Send, X } from "lucide-react";
 import type { Game, Player, Team } from "../engine/types";
 import {
   evaluateTrade,
@@ -40,6 +41,11 @@ export default function TradeCenter({
   const rival = rivalryBetween(game, game.user, other);
   const assets = { givePicks, takePicks };
   const evaluation = evaluateTrade(game, other, give, take, assets);
+  const [counter, setCounter] = useState<ReturnType<typeof counterOffer>>();
+  const [pick, setPick] = useState<ReturnType<typeof counterOffer>>();
+  const [quoted, setQuoted] = useState("");
+  const signature = JSON.stringify([other, give, take, givePicks, takePicks]);
+  const brief = marketBrief(game, partner);
   const toggle = (
     id: string,
     selected: string[],
@@ -196,9 +202,13 @@ export default function TradeCenter({
             clear();
           }}
           extra={(team) => {
-            const needs = (game.teamNeeds?.[team.id] ?? []).map((need) => need.position).slice(0, 3);
+            const needs = (game.teamNeeds?.[team.id] ?? [])
+              .map((need) => need.position)
+              .slice(0, 3);
             const rec = `${team.record.w}-${team.record.l}-${team.record.otl}`;
-            return needs.length ? `${rec} · ${tr("ищет", "needs")} ${needs.join("/")}` : rec;
+            return needs.length
+              ? `${rec} · ${tr("ищет", "needs")} ${needs.join("/")}`
+              : rec;
           }}
         />
       </div>
@@ -221,32 +231,71 @@ export default function TradeCenter({
             </span>
           </div>
         </div>
-        <div className="gm-dialogue">
-          <MessageSquare size={18} />
-          <p>
-            {rival ? (
-              <>
-                <b>
-                  {tr(
-                    "Переговоры будут тяжёлыми.",
-                    "This will be a tough negotiation.",
-                  )}
-                </b>{" "}
-                {rival.label}:{" "}
-                {tr(
-                  "за сделку с принципиальным соперником потребуется существенная премия.",
-                  "a deal with a rival will require a significant premium.",
+        <div className="desk-card trade-brief">
+          <header>
+            <small>
+              {partner.city} · {partner.name}
+            </small>
+            <h3>{tr("Позиция партнёра", "Across the table")}</h3>
+          </header>
+          <div className="desk-pair">
+            <div>
+              <small>{tr("Приоритет усиления", "Target position")}</small>
+              <strong>{brief.need.position}</strong>
+              <span>
+                {brief.youth
+                  ? tr("Молодой актив", "Developing asset")
+                  : tr("Усиление основы", "Immediate contributor")}
+              </span>
+            </div>
+            <div>
+              <small>{tr("Свобода под потолком", "Cap room")}</small>
+              <strong>
+                ${brief.space.toFixed(2)}
+                <em>M</em>
+              </strong>
+              <span>
+                {partner.record.pts} PTS / {partner.record.gp} GP
+              </span>
+            </div>
+          </div>
+          <p className="desk-insight">
+            {brief.need.reason}
+            {rival &&
+              " · " +
+                rival.label +
+                " · " +
+                tr(
+                  "Соперник потребует премию за обмен.",
+                  "A rival will demand a premium.",
                 )}
-              </>
-            ) : (
-              tr(
-                "Покажите структуру предложения. Я оценю ценность, контрактный баланс и наши потребности.",
-                "Show me the structure of the offer. I will weigh value, contract balance and our needs.",
-              )
-            )}
           </p>
+          {(game.gmDiscussions ?? []).some((v) => v.club === other) && (
+            <details>
+              <summary>
+                {tr("История переговоров", "Negotiation history")}
+              </summary>
+              {(game.gmDiscussions ?? [])
+                .filter((v) => v.club === other)
+                .slice(-5)
+                .reverse()
+                .map((v, i) => (
+                  <p key={i}>
+                    <b>
+                      {v.date} ·{" "}
+                      {v.accepted
+                        ? tr("Согласовано", "Approved")
+                        : tr("Отказ", "Declined")}
+                    </b>
+                    <br />
+                    {v.offered.join(", ") || "—"} ⇄{" "}
+                    {v.requested.join(", ") || "—"}
+                  </p>
+                ))}
+            </details>
+          )}
         </div>
-        {reply && (
+        {reply && quoted === signature && (
           <div
             className={`gm-reply ${evaluation.accepted ? "accepted" : "rejected"}`}
           >
@@ -256,6 +305,43 @@ export default function TradeCenter({
                 : tr("GM отклонил предложение", "The GM rejected the offer")}
             </b>
             <span>{reply}</span>
+            <p>
+              {tr("Приоритет позиции", "Position priority")} ·{" "}
+              {brief.need.position}.{" "}
+              {brief.youth
+                ? tr(
+                    "Ищем молодого игрока с запасом развития.",
+                    "We favour a younger player who can grow with this roster.",
+                  )
+                : tr(
+                    "Ценим игрока, который уже сейчас усилит ротацию.",
+                    "We favour a player who can step straight into the rotation.",
+                  )}
+            </p>
+            <p>
+              {brief.need.reason} · {tr("Возраст состава", "Roster age")}{" "}
+              {brief.age.toFixed(1)} · {partner.record.pts} PTS /{" "}
+              {partner.record.gp} GP · {tr("Под потолком", "Cap room")} $
+              {brief.space.toFixed(2)}M
+            </p>
+            {[counter, pick].map(
+              (c, i) =>
+                c && (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (c.player) setGive([...give, c.player]);
+                      else if (c.pick) setGivePicks([...givePicks, c.pick]);
+                      setReply(undefined);
+                    }}
+                  >
+                    {i
+                      ? tr("Добавить пик", "Include pick")
+                      : tr("Добавить игрока", "Include player")}{" "}
+                    · {c.name}
+                  </button>
+                ),
+            )}
           </div>
         )}
       </section>
@@ -301,12 +387,31 @@ export default function TradeCenter({
             <button
               className="primary"
               disabled={!outgoing.length || !incoming.length}
-              onClick={() => setReply(evaluation.reason)}
+              onClick={() => {
+                setReply(evaluation.reason);
+                setQuoted(signature);
+                setCounter(
+                  counterOffer(game, other, give, take, assets, "player"),
+                );
+                setPick(counterOffer(game, other, give, take, assets, "pick"));
+                edit((g) => {
+                  const log = (g.gmDiscussions ??= []);
+                  const entry = {
+                    club: other,
+                    date: g.calendar?.date ?? String(g.year),
+                    offered: outgoing,
+                    requested: incoming,
+                    accepted: evaluation.accepted,
+                  };
+                  if (JSON.stringify(log.at(-1)) !== JSON.stringify(entry))
+                    log.push(entry);
+                });
+              }}
             >
               <Send size={15} /> {tr("Отправить GM", "Send to GM")}
             </button>
             <button
-              disabled={!evaluation.accepted || !reply}
+              disabled={!evaluation.accepted || !reply || quoted !== signature}
               onClick={() => {
                 edit((current) =>
                   executeTrade(current, other, give, take, assets),
