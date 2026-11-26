@@ -35,7 +35,7 @@ export default function PressCenter({
     <div className="press-center">
       <div className="page-intro">
         <div>
-          <span className="eyebrow">MEDIA ROOM</span>
+          <span className="eyebrow">{ru ? "Медиа клуба" : "Club media"}</span>
           <h1>{ru ? "Пресс-центр" : "Press room"}</h1>
           <p>
             {ru
@@ -78,7 +78,7 @@ export default function PressCenter({
             </h2>
           </div>
           <span>
-            <Mic2 size={16} /> LIVE
+            <Mic2 size={16} /> {date}
           </span>
         </header>
         <div className="press-room-body">

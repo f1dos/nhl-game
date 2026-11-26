@@ -1,5 +1,5 @@
 import {registerRoster,salaryTotal} from "./contracts";
-import {autoLines} from "./database";
+import {autoLines, setPlayerOverall, migrateOpeningRatings, restoreOpeningPotentials} from "./database";
 import { isIceTimePlan } from "./iceTime";
 import type { Game } from "./types";
 import { isLocale } from "../i18n/locales";
@@ -207,7 +207,7 @@ function validatePreseasonAndInternational(g: Game, ids: Set<string>) {
       )
         throw Error("Invalid international career");
 }
-import { ensurePotentialModel } from "./potential";
+import { ensurePotentialModel, POTENTIAL_MODEL } from "./potential";
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -654,6 +654,17 @@ export function validateSave(value: unknown): Game {
       )
     )
       throw Error("Invalid draft assets");
+    // Older careers kept exercised picks on the trade market and saved the
+    // original club on the draft board even after a pick changed hands.
+    const slots = new Map(g.draft?.picks.map(pick => [
+      `${pick.year}/${pick.round}/${pick.originalTeam}`, pick,
+    ]));
+    g.draftAssets = g.draftAssets.filter(asset => {
+      const slot = slots.get(`${asset.year}/${asset.round}/${asset.originalTeam}`);
+      if (asset.year <= g.year || slot?.prospectId) return false;
+      if (slot) slot.team = asset.currentTeam;
+      return true;
+    });
   }
   if (
     g.fans &&
@@ -726,7 +737,27 @@ export function validateSave(value: unknown): Game {
     throw Error("Invalid potential model");
   // Older careers stored POT with a flat youth bonus (often POT == OVR);
   // recompute with the current model and repair POT < OVR.
+  // Bring the original season's 74-rated snapshot onto the new scale once.
+  // Keep any form, practice gains and games already played in that season.
+  if (g.year === 2026) {
+    const goalie = [...g.teams.flatMap(t => [...t.players, ...(t.farm ?? [])]), ...(g.freeAgents ?? [])]
+      .find(p => p.externalId === 8476945);
+    if (goalie && goalie.startingRatingOverride === undefined && goalie.ratingSource === "nhl-stats-model") {
+      const delta = 14;
+      setPlayerOverall(goalie, Math.min(99, goalie.ovr + delta));
+      goalie.potential = Math.max(goalie.ovr, Math.min(99, goalie.potential + delta));
+      if (goalie.trainingStartOverall !== undefined) goalie.trainingStartOverall += delta;
+      if (goalie.potentialBeforeForm !== undefined) goalie.potentialBeforeForm = Math.min(99, goalie.potentialBeforeForm + delta);
+      goalie.startingRatingOverride = 88;
+    }
+  }
+  const rebuiltPotential = g.potentialModel !== POTENTIAL_MODEL;
   ensurePotentialModel(g);
+  if (rebuiltPotential && g.openingRatingsSeed !== undefined) {
+    // Potential migration must not overwrite an authored ceiling.
+    restoreOpeningPotentials(g);
+  }
+  migrateOpeningRatings(g);
   for(const t of g.teams)if(salaryTotal(t)>g.rules.cap){registerRoster(t,g.rules.cap);autoLines(t)}
   return g;
 }

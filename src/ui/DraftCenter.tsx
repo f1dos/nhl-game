@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import {
   advanceDraftToUser,
+  autoCompleteDraft,
   ensureDraft,
   INTERVIEW_TOPIC_LABEL,
   INTERVIEW_TOPICS,
@@ -231,6 +232,7 @@ export default function DraftCenter({
               {tr("Раунд", "Round")} {current.round} · #{current.overall}
             </small>
           </div>
+          <button onClick={() => run(autoCompleteDraft)}>{tr("Доверить оставшиеся выборы скаутам", "Delegate remaining picks to scouts")}</button>
           {current.team === game.user ? (
             <strong>{tr("ВАШ ВЫБОР", "YOUR PICK")}</strong>
           ) : (

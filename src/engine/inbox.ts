@@ -210,7 +210,8 @@ function iceTimeComplaints(
     );
     byOvr.forEach((player, ovrRank) => {
       const toiRank = byToi.indexOf(player);
-      const benched = ovrRank < top && toiRank >= ovrRank + 4;
+      const reviewingMinutes = g.iceAgreements?.some(a => a.player === player.id && a.status === "open");
+      const benched = !reviewingMinutes && ovrRank < top && toiRank >= ovrRank + 4;
       if (
         (benched && player.morale < 55) ||
         (ovrRank < 12 && player.morale < 30)

@@ -1254,7 +1254,7 @@ function collectCandidates(g: Game, team: Team, s: PlayerRequestState, gameDay: 
         const toiRank = byToi.indexOf(player);
         const avg = player.stats.toi / player.stats.gp;
         const expected = group === "F" ? [18, 15.5, 13][Math.floor(rank / per)] : [22, 19][Math.floor(rank / per)];
-        if (expected === undefined) return;
+        if (expected === undefined || g.iceAgreements?.some(a => a.player === player.id && a.status === "open")) return;
         if (toiRank >= rank + per && avg < expected - 2.5 && player.morale < 72)
           out.push({ type: "ice-time", player, context: { group, unit: Math.floor(rank / per), nowUnit: unitIndex(at(player.id, 1)), toi: avg }, weight: 4 + (expected - avg) / 2 });
       });

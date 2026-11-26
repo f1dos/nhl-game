@@ -1,5 +1,5 @@
 import { registerRoster, salaryTotal } from "./contracts";
-import { autoLines } from "./database";
+import { autoLines, advanceOpeningAgeing } from "./database";
 import { tx } from "./text";
 import { RNG, clamp } from "./random";
 import { overall } from "./ratings";
@@ -132,7 +132,7 @@ function recordResult(g: Game, res: Result) {
   });
   applyWorldMatchReaction(g, res);
 }
-function seedConference(teams: Team[]): Series[] {
+export function seedConference(teams: Team[]): Series[] {
   const divisions = [...new Set(teams.map((t) => t.division))];
   const top = divisions.map((d) =>
     standings(teams.filter((t) => t.division === d)).slice(0, 3),
@@ -186,6 +186,7 @@ export function advance(
       );
     }
     g.round++;
+    advanceOpeningAgeing(g);
     resolveInternationalOffers(g);
     progressScouting(g);
     if (g.round === g.schedule.length / 16) {
@@ -309,6 +310,7 @@ function rollover(g: Game) {
   g.last = undefined;
   g.schedule = makeSchedule(g.teams, g.year);
   if (g.draftAssets) {
+    g.draftAssets = g.draftAssets.filter(p => p.year > g.year);
     const newYear = g.year + 3;
     const known = new Set(g.draftAssets.map((asset) => asset.id));
     for (const team of g.teams)

@@ -12,7 +12,7 @@ import {
 } from "../src/engine/tactics";
 import { validateSave } from "../src/engine/saves";
 
-test("2026/27 identity dataset covers 32 clubs and 794 verified roster entries", () => {
+test("2026/27 identity dataset covers 32 clubs and 795 verified roster entries", () => {
   const g = newGame("TOR", 202627);
   const organizationPlayers = g.teams.flatMap((team) => [
     ...team.players,
@@ -21,8 +21,8 @@ test("2026/27 identity dataset covers 32 clubs and 794 verified roster entries",
   const players = organizationPlayers.filter(
     (player) => player.identitySource === "nhl-api",
   );
-  assert.equal(players.length, 794);
-  assert.equal(new Set(players.map((player) => player.externalId)).size, 794);
+  assert.equal(players.length, 795);
+  assert.equal(new Set(players.map((player) => player.externalId)).size, 795);
   assert(players.every((player) => player.identitySource === "nhl-api"));
   assert.equal(
     organizationPlayers.filter(

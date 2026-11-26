@@ -1,3 +1,4 @@
+import { agreementReply, expectedMinutes } from "./careerDesk";
 import { tx } from "./text";
 import { clamp } from "./random";
 import type { ConversationLine, Game, Player, Team } from "./types";
@@ -196,6 +197,7 @@ const ruGames = (n: number) =>
 export function conversationContext(
   player: Player,
   team?: Team,
+  game?: Game,
 ): ConversationCtx {
   const goalie = player.pos === "G";
   const defense = player.pos === "D";
@@ -300,6 +302,8 @@ export function conversationContext(
           en: "no games played yet this season",
         };
   }
+  const agreement = game?.iceAgreements?.find(a => a.player === player.id && a.status === "open");
+  if (agreement) usage = {ru:`обещанные ${agreement.target} мин за матч`, en:`the agreed ${agreement.target} minutes a night`};
   const years = player.years;
   const contract: L =
     years <= 1
@@ -371,10 +375,22 @@ function openingLine(
   player?: Player,
   game?: Game,
 ): L {
+  const active = topic === "ice-time" && game?.iceAgreements?.find(a => a.player === player?.id && a.status === "open");
+  if (active) {
+    const opening = {
+      supportive: ["Я помню нашу договорённость.", "I remember our agreement."],
+      calm: ["Давай сверим план.", "Let's review our plan."],
+      direct: ["Подтверждаю наше соглашение.", "I'm confirming the agreement."],
+      demanding: ["Мне нужна дисциплина в каждой смене.", "I need discipline on every shift."],
+      challenge: ["Готов сыграть против лидеров соперника?", "Ready to face their top line?"],
+      promise: ["Моё слово в силе.", "My word stands."],
+    }[tone];
+    return {ru:`${opening[0]} Твоя цель — ${active.target} мин в среднем за десять матчей.`, en:`${opening[1]} Your target is ${active.target} minutes per game over ten games.`};
+  }
   const variants = MANAGER_OPENINGS[topic][tone];
   if (!player) return render(variants[0], placeholderCtx);
   const team = game ? findPlayer(game, player.id)?.team : undefined;
-  const ctx = conversationContext(player, team);
+  const ctx = conversationContext(player, team, game);
   return render(
     pickBy(variants, seedFor(game, player, "open", topic, tone)),
     ctx,
@@ -591,11 +607,18 @@ export function openConversation(
   const { player, team } = found;
   if (player.lastConversationRound === game.round)
     throw Error(tx(game, "С этим игроком уже говорили в текущем туре", "You have already spoken with this player this round"));
-  const ctx = conversationContext(player, team);
-  const score = openingFit(player, ctx, topic, tone);
+  const ctx = conversationContext(player, team, game);
+  const agreement = topic === "ice-time" && game.iceAgreements?.find(a => a.player === playerId && a.status === "open");
+  const expected = agreement ? agreement.expected ?? expectedMinutes(team, player) : 0;
+  const score = agreement ? (agreement.target >= expected ? 65 : 35) : openingFit(player, ctx, topic, tone);
   const mood = moodFor(score);
   const managerText = openingLine(topic, tone, player, game);
-  const reply = playerReply(
+  const reply = agreement ? agreementReply(agreement.target, expected)
+    : topic === "ice-time" && tone === "challenge"
+      ? mood === "negative"
+        ? {ru:"Я готов сыграть против их лидеров. Но хочу понимать, какую роль вы мне отведёте.", en:"I'll take their top line. But I want to know what role you see for me."}
+        : {ru:"Дайте мне эту смену. С кого начнём и что нужно перекрыть?", en:"Give me that shift. Who do I take and which lane should I close?"}
+      : playerReply(
     game,
     player,
     ctx,
@@ -660,7 +683,7 @@ export function conversationFollowUps(
         : ["reassure", "hold-line", "ultimatum", "wrap-up"];
   kinds = kinds.filter((kind) => kind === "wrap-up" || fresh(kind));
   if (!kinds.includes("wrap-up") && kinds.length < 3) kinds.push("wrap-up");
-  const ctx = conversationContext(found.player, found.team);
+  const ctx = conversationContext(found.player, found.team, game);
   return kinds.slice(0, 4).map((kind) => ({
     kind,
     label: FOLLOW_UP_LABELS[kind].label,
@@ -771,7 +794,7 @@ export function continueConversation(
   );
   if (!option) throw Error(`Follow-up ${kind} is not available`);
   const found = findPlayer(game, state.playerId)!;
-  const ctx = conversationContext(found.player, found.team);
+  const ctx = conversationContext(found.player, found.team, game);
   const impact = followUpImpact(kind, state.mood, found.player, ctx);
   const score = state.score + impact.fit;
   const mood = moodFor(score);

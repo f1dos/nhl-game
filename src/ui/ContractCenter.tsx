@@ -291,8 +291,8 @@ export default function ContractCenter({
       </Panel>
       <p className="note">
         {ru
-          ? "Источник проверенных значений: публичные таблицы PuckPedia. Покрытие стартовых составов лиги — 766 из 794 (96,5%). Несовпавшие и будущие сделки помечены как игровые."
-          : "Verified values use public PuckPedia tables. Opening-roster coverage is 766 of 794 (96.5%). Unmatched and future deals are marked as game-generated."}
+          ? "Источник проверенных значений: публичные таблицы PuckPedia. Покрытие стартовых составов лиги — 767 из 795 (96,5%). Несовпавшие и будущие сделки помечены как игровые."
+          : "Verified values use public PuckPedia tables. Opening-roster coverage is 767 of 795 (96.5%). Unmatched and future deals are marked as game-generated."}
       </p>
     </>
   );

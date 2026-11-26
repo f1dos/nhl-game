@@ -1,10 +1,12 @@
+import { resolveIceTime, normalizeShares } from "../engine/iceTime";
 import ScoringSummary from "./ScoringSummary";
 import { rosterCharge } from "../engine/cap";
 import {CapStudio,DevelopmentDesk} from "./CareerDesk";
+import LeagueStandings from "./LeagueStandings";
 import TacticalCenter from "./TacticalCenter";
 import { LOCALES, LOCALE_NAMES, type Locale } from "../i18n/locales";
 import { setDocumentLocale } from "../i18n/runtime";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -67,7 +69,7 @@ import { TrainingCenter } from "./TrainingCalendar";
 import PlayerCard from "./PlayerCard";
 import { ClubLink, EntityLinkProvider, PlayerLink, findPlayer } from "./links";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
-import { ensureDraft } from "../engine/draft";
+import { ensureDraft, openDraft } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
@@ -318,7 +320,7 @@ export default function App() {
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [filter, setFilter] = useState("all"),
-    [seed, setSeed] = useState(260027),
+    [seed, setSeed] = useState(""),
     [language, setLanguage] = useState<Locale>("ru"),
     [continueMode, setContinueMode] = useState<ContinueMode>("day"),
     [splashDone, setSplashDone] = useState(false),
@@ -331,6 +333,18 @@ export default function App() {
     [inboxFocus, setInboxFocus] = useState<InboxFocus | null>(null),
     [standingsOpen, setStandingsOpen] = useState(false),
     [selectedClub, setSelectedClub] = useState<string>();
+  const previousStage = useRef<{id:string; year:number; phase:Game["phase"]} | undefined>(undefined);
+  const showSeasonResults = useRef(false);
+  useEffect(() => {
+    if (!g) return;
+    const prev = previousStage.current;
+    if (prev?.id !== g.id || prev.year !== g.year) showSeasonResults.current = false;
+    else if (prev.phase !== g.phase && g.phase !== "regular") {
+      if (page === "match") showSeasonResults.current = true;
+      else setPage("league");
+    }
+    previousStage.current = {id:g.id,year:g.year,phase:g.phase};
+  }, [g?.id,g?.year,g?.phase,page]);
   const [database] = useState(() => newGame());
   const ru = (g?.language || language) === "ru";
   const tr = (a: string, b: string) => (ru ? a : b);
@@ -432,7 +446,7 @@ export default function App() {
     setTimeAdvance({ from, to, days, urgent: false });
     const completeProgress = () => {
       setTimeAdvance(undefined);
-      if (reachedMatchday) setPage("match");
+      if (reachedMatchday && g?.phase === useGame.getState().game?.phase) setPage("match");
     };
     if (navigator.userAgent.includes("HappyDOM")) completeProgress();
     else window.setTimeout(completeProgress, Math.min(2200, 900 + days * 120));
@@ -672,17 +686,20 @@ export default function App() {
                 ))}
             </div>
             <label>
-              SEED
+              {tr("Код карьеры (необязательно)", "Career seed (optional)")}
               <input
                 type="number"
                 value={seed}
-                onChange={(e) => setSeed(+e.target.value)}
+                placeholder={tr("Случайный при создании", "Random on creation")}
+                onChange={(e) => setSeed(e.target.value)}
               />
             </label>
             <button
               className="primary"
               onClick={() => {
-                const career = newGame(selected, seed, language);
+                const careerSeed = seed.trim() ? Number(seed) : crypto.getRandomValues(new Uint32Array(1))[0];
+                const career = newGame(selected, careerSeed, language);
+                setSeed("");
                 career.language = language;
                 ensureDraft(career);
                 ensureManagementState(career);
@@ -1152,7 +1169,7 @@ export default function App() {
       <MatchdayHub
         game={g}
         edit={edit}
-        onExit={() => go("overview")}
+        onExit={() => {go(showSeasonResults.current ? "league" : "overview");showSeasonResults.current=false;}}
         onChooseCaptain={() => go("leadership")}
         onPlayer={setProfile}
       />
@@ -1165,33 +1182,10 @@ export default function App() {
   else if (page === "strategy")
     content = <StrategyCenter game={g} edit={edit} />;
   else if (page === "leadership")
-    content = <LeadershipCenter game={g} edit={edit} />;
+    content = <LeadershipCenter key={g.id + ":" + g.year} game={g} edit={edit} />;
   else if (page === "league")
     content = (
-      <>
-        <PageTitle
-          title={tr("Лига и плей-офф", "League & playoffs")}
-          sub={tr(
-            "Три лидера каждого дивизиона + две wild card в конференции",
-            "Top three per division + two wild cards per conference",
-          )}
-        />
-        <div className="tabs">
-          {["all", "East", "West"].map((f) => (
-            <button
-              key={f}
-              className={filter === f ? "active" : ""}
-              onClick={() => setFilter(f)}
-            >
-              {f === "all"
-                ? tr("Вся лига", "Entire league")
-                : f === "East"
-                  ? tr("Восток", "East")
-                  : tr("Запад", "West")}
-            </button>
-          ))}
-        </div>
-        {g.teams.some((club) => club.strengthRating) && (
+      <LeagueStandings key={g.id} game={g} rankings={g.teams.some(club => club.strengthRating) && (
           <Panel
             title={tr(
               g.year === 2026
@@ -1271,52 +1265,7 @@ export default function App() {
                   )}
             </p>
           </Panel>
-        )}
-        <Panel title={tr("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ", "REGULAR SEASON")}>
-          {teamTable(
-            filter === "all"
-              ? sorted
-              : standings(g.teams.filter((t) => t.conference === filter)),
-          )}
-        </Panel>
-        {g.bracket.length > 0 && (
-          <Panel
-            title={tr(
-              "КУБОК СТЭНЛИ · СЕРИИ ДО 4 ПОБЕД",
-              "STANLEY CUP · BEST OF SEVEN",
-            )}
-          >
-            <div className="bracket">
-              {g.bracket.map((round, i) => (
-                <div key={i}>
-                  <h4>
-                    {
-                      [
-                        tr("Первый раунд", "First round"),
-                        tr("Второй раунд", "Second round"),
-                        tr("Финалы конференций", "Conference finals"),
-                        tr("Финал Кубка", "Stanley Cup final"),
-                      ][i]
-                    }
-                  </h4>
-                  {round.map((s) => (
-                    <div className="series" key={s.a}>
-                      <span className={s.winner === s.a ? "winner" : ""}>
-                        <ClubLink id={s.a} crest={20} label="id" />
-                        <b>{s.wins[0]}</b>
-                      </span>
-                      <span className={s.winner === s.b ? "winner" : ""}>
-                        <ClubLink id={s.b} crest={20} label="id" />
-                        <b>{s.wins[1]}</b>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </Panel>
-        )}
-      </>
+      )}/>
     );
   else if (page === "stats") {
     const ratingLeaders = g.teams
@@ -2023,6 +1972,11 @@ export default function App() {
                     ),
                   );
                 } else if (g.phase === "offseason") {
+                  if (g.draft?.status !== "complete") {
+                    if (g.draft?.status !== "draft") edit(world => openDraft(world));
+                    go("draft");
+                    return;
+                  }
                   if (
                     (g.freeAgentOffers ?? []).some(
                       (offer) => offer.status === "pending",
@@ -2043,7 +1997,7 @@ export default function App() {
               }}
             >
               {g.phase === "offseason"
-                ? tr("Новый сезон", "New season")
+                ? (g.draft?.status === "complete" ? tr("Новый сезон", "New season") : tr("Перейти к драфту", "Go to draft"))
                 : tr("Продолжить", "Continue")}
               <ChevronRight size={18} />
             </button>
@@ -2068,7 +2022,7 @@ export default function App() {
               · v0.9.0
             </span>
             <span>
-              SEED {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
+              {tr("Код карьеры (необязательно)", "Career seed (optional)")} {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
             </span>
             {g.phase !== "offseason" && (
               <button disabled={busy} className="text-button" onClick={finish}>
@@ -2120,7 +2074,7 @@ export default function App() {
                 <X size={18} />
               </button>
             </header>
-            {teamTable(sorted, false)}
+            <LeagueStandings key={g.id} game={g} compact/>
             <button
               className="primary"
               onClick={() => {
@@ -2287,6 +2241,15 @@ function TacticsView({
   onSelect: (p: Player) => void;
 }) {
   const [drag, setDrag] = useState("");
+  const [previewLine, setPreviewLine] = useState(0);
+  const [previewPair, setPreviewPair] = useState(0);
+  const onBoard = [...(team.lines[previewLine] ?? []), ...(team.defense[previewPair] ?? [])]
+    .map(id => team.players.find(p => p.id === id));
+  const deployment = resolveIceTime(team);
+  const forwardShares = normalizeShares(deployment.forwards);
+  const forecheck = team.tactics.forecheck;
+  const markerX = forecheck === "1-2-2" ? [76,52,52,30,30] : forecheck === "2-1-2" ? [76,76,52,30,30] : [76,53,53,53,28];
+  const markerY = forecheck === "1-2-2" ? [50,28,72,28,72] : forecheck === "2-1-2" ? [30,70,50,28,72] : [50,22,50,78,50];
   const assessment = tacticalAssessment(team.tactics);
   const chemistry = (ids: string[]) =>
     lineChemistry(
@@ -2377,8 +2340,8 @@ function TacticsView({
             {team.lines.map((line, i) => (
               <div className="line-row" key={i}>
                 <span className="line-index">
-                  0{i + 1}
-                  <small>{[30, 30, 20, 20][i]}%</small>
+                  <button className="unit-preview" title={tr("Показать звено на схеме","Preview line")} aria-pressed={previewLine === i} onClick={() => setPreviewLine(i)}>0{i+1}</button>
+                  <small>{Math.round(forwardShares[i])}%</small>
                   <b
                     className={`chemistry ${chemistry(line) >= 80 ? "elite" : chemistry(line) < 65 ? "warning" : ""}`}
                   >
@@ -2393,7 +2356,7 @@ function TacticsView({
             {team.defense.map((line, i) => (
               <div className="line-row defense" key={i}>
                 <span className="line-index">
-                  0{i + 1}
+                  <button className="unit-preview" title={tr("Показать пару на схеме","Preview pair")} aria-pressed={previewPair === i} onClick={() => setPreviewPair(i)}>0{i+1}</button>
                   <b
                     className={`chemistry ${chemistry(line) >= 80 ? "elite" : chemistry(line) < 65 ? "warning" : ""}`}
                   >
@@ -2411,11 +2374,14 @@ function TacticsView({
         <div>
           <Panel title={tr("ПЛАН НА ИГРУ", "GAME PLAN")}>
             <Rink>
-              <span className="ice-word">{team.tactics.forecheck}</span>
+              {markerX.map((x,i) => <span key={i} className="forecheck-marker" title={onBoard[i]?.name} style={{left:x+"%",top:markerY[i]+"%"}}>{onBoard[i]?.number ?? ["F1","F2","F3","D1","D2"][i]}</span>)}
+              <span className="forecheck-caption">{forecheck} · {tr("Атака →","Attack →")}</span>
             </Rink>
+            <div className="deployment-legend"><b>{tr("Звено","Line")} {previewLine+1} · {tr("Пара","Pair")} {previewPair+1}</b>
+              {onBoard.map((p,i) => p && <button key={i} onClick={()=>onSelect(p)}><strong>{p.number}</strong> {p.name.split(" ").at(-1)}</button>)}</div>
             <div className="tactic-controls">
               <label>
-                FORECHECK
+                {tr("Схема форчека","Forecheck")}
                 <Select
                   value={team.tactics.forecheck}
                   onChange={(e) =>
@@ -2498,8 +2464,8 @@ function TacticsView({
                       "There are injured players. Auto select prioritizes healthy skaters.",
                     )
                   : tr(
-                      "Все игроки здоровы. Проверьте баланс первых двух звеньев: они проводят на льду 60% времени.",
-                      "Everyone is healthy. Balance the top two lines: they receive 60% of ice time.",
+                      "Все игроки здоровы. Проверьте баланс первых двух звеньев: их нагрузка зависит от плана игрового времени.",
+                      "Everyone is healthy. Balance the top two lines: their workload follows your ice-time plan.",
                     )}
               </p>
             </div>

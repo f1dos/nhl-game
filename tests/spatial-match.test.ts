@@ -181,8 +181,12 @@ test("broadcast stoppages show celebrations and faceoffs without changing the ma
       plain.teams.map((t) => t.players.map((p) => p.stats)),
     );
     assert(frozen > 0, "the clock stands still during stoppages");
-    if (shown.result.goals[0] + shown.result.goals[1] > 0)
-      assert.deepEqual([...phases.get("goal")!].filter(p=>p!=="review"), ["celebrate", "lineup", "drop"]);
+    const goals = shown.result.events.filter(event => event.type === "goal");
+    // A 0-0 regulation game ends on the overtime winner without another draw.
+    const suddenDeathOnly = shown.result.ot && !shown.result.so && goals.length === 1;
+    const expectedGoalPhases = suddenDeathOnly ? ["celebrate"] : ["celebrate", "lineup", "drop"];
+    if (goals.length)
+      assert.deepEqual([...(phases.get("goal") ?? [])].filter(p => p !== "review"), expectedGoalPhases);
     assert.deepEqual([...(phases.get("save") ?? new Set())].filter(p=>p!=="review").sort(), ["drop", "lineup", "whistle"]);
   }
 });

@@ -56,7 +56,7 @@ const strategyCopy: Record<
   { ru: string; en: string; ruText: string; enText: string }
 > = {
   "draft-lottery": {
-    ru: "Draft Lottery Team",
+    ru: "Перестройка через драфт",
     en: "Draft Lottery Team",
     ruText:
       "Осознанная перестройка: высокий пик, молодёжь и финансовая гибкость.",
@@ -64,26 +64,45 @@ const strategyCopy: Record<
       "A deliberate rebuild built around lottery odds, youth and cap flexibility.",
   },
   "wild-card-hunt": {
-    ru: "Wild Card Hunt",
+    ru: "Борьба за уайлд-кард",
     en: "Wild Card Hunt",
     ruText:
       "Борьба за 7–8 место конференции без продажи главных активов будущего.",
     enText: "Chase 7th–8th in the conference without selling the core future.",
   },
   "playoff-breakthrough": {
-    ru: "Playoff Breakthrough",
+    ru: "Выход во второй раунд",
     en: "Playoff Breakthrough",
     ruText:
       "Команда обязана выйти в плей-офф и впервые пройти стартовый раунд.",
     enText: "Make the playoffs and prove the club can win its opening series.",
   },
   "stanley-cup": {
-    ru: "Stanley Cup Contender",
+    ru: "Борьба за Кубок Стэнли",
     en: "Stanley Cup Contender",
     ruText: "Конкурентное окно открыто: цель сезона — Кубок Стэнли.",
     enText:
       "The competitive window is open: the Stanley Cup is the season goal.",
   },
+};
+
+const rivalryNamesRu: Record<string,string> = {
+  "Original Six: Montréal — Boston": "Классика оригинальной шестёрки: Монреаль — Бостон",
+  "Original Six: Toronto — Montréal": "Классика оригинальной шестёрки: Торонто — Монреаль",
+  "Battle of Alberta": "Битва за Альберту",
+  "Battle of New York": "Нью-йоркское дерби",
+  "Battle of Pennsylvania": "Битва за Пенсильванию",
+  "Central Division Classic": "Классика Центрального дивизиона",
+  "California Rivalry": "Калифорнийское дерби",
+  "Colorado — Detroit": "Колорадо — Детройт",
+  "Pacific Northwest": "Северо-западное дерби",
+  "Battle of Florida": "Дерби Флориды",
+  "Metropolitan Clash": "Дерби Столичного дивизиона",
+  "Hudson River Rivalry": "Дерби Гудзона",
+  "QEW Rivalry": "Дерби на шоссе королевы Елизаветы",
+  "Southern Hockey Rivalry": "Южное дерби",
+  "Central North Rivalry": "Северное дерби Центрального дивизиона",
+  "Western Power Rivalry": "Дерби Западной конференции"
 };
 
 const categoryNames: Record<string, [string, string]> = {
@@ -574,9 +593,9 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
                     <ClubLink id={opponentId} crest={20} />
                   </b>
                   <br />
-                  {rivalry.label} · {ru ? "накал" : "heat"} {rivalry.heat}
+                  {ru ? rivalryNamesRu[rivalry.label] ?? rivalry.label : rivalry.label} · {ru ? "накал" : "heat"} {rivalry.heat}
                   <br />
-                  {rivalry.seasonWins[game.user] ?? 0} W
+                  {rivalry.seasonWins[game.user] ?? 0} {ru ? "поб." : "W"}
                 </p>
               );
             })}
@@ -595,7 +614,7 @@ export function StrategyCenter({ game, edit }: { game: Game; edit: Edit }) {
             {needs.map((need) => (
               <p key={need.position}>
                 <b>
-                  {need.position} · {need.priority}
+                  {need.position} · {ru ? ({critical:"Критический",high:"Высокий",medium:"Средний",low:"Низкий"}[need.priority]) : need.priority}
                 </b>
                 <br />
                 {need.reason}

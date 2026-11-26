@@ -8,6 +8,8 @@ import {
   englishCompetitionLegacyPatterns,
 } from "./englishCompetitionLegacy";
 
+import { STRATEGY_LABELS } from "../engine/strategy";
+
 const cyrillic = /[А-Яа-яЁё]/;
 const legacyPatterns = [
   ...englishCompetitionLegacyPatterns,
@@ -16,6 +18,10 @@ const legacyPatterns = [
 ];
 
 export const englishMatch: Record<string, string> = {
+  "Зонтик · розыгрыш через вершину": "Umbrella · high point",
+  "Перегруз сильного фланга": "Strong-side overload",
+  "Экран на пятаке": "Net-front screen",
+  "Позиционный розыгрыш": "Possession setup",
   ...englishLegacy,
   ...englishInboxLegacy,
   ...englishCompetitionLegacy,
@@ -350,6 +356,9 @@ export const englishMatch: Record<string, string> = {
 export function englishDynamic(value: string): string {
   if (englishMatch[value]) return englishMatch[value];
   if (!cyrillic.test(value)) return value;
+  for (const label of Object.values(STRATEGY_LABELS)) {
+    if (value.includes(label.ru)) return englishDynamic(value.replaceAll(label.ru, label.en));
+  }
   for (const [pattern, english] of legacyPatterns)
     if (pattern.test(value)) {
       const result = value.replace(pattern, english as string);

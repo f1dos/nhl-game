@@ -1,4 +1,5 @@
-import type {Position} from './types';
+import {clamp} from './random';
+import type {Player, Position} from './types';
 export const archetypes = {
  Sniper:['accuracy','shooting','offensivePosition'],
  Playmaker:['passing','puckControl','decisions'],
@@ -24,4 +25,25 @@ export function overall(pos:Position,a:Record<string,number>,role?:Archetype){
  :{accuracy:3,shooting:2,passing:3,puckControl:3,speed:2,offensivePosition:3,teamwork:2,...(pos==='C'?{faceoffs:2}:{})};
  if(role&&rolesFor(pos).includes(role))for(const key of archetypes[role])weights[key]=(weights[key]||0)+2;
  return Math.round(Object.entries(weights).reduce((sum,[key,w])=>sum+a[key]*w,0)/Object.values(weights).reduce((a,b)=>a+b,0));
+}
+
+export function setPlayerOverall(player: Player, target: number) {
+  for (let pass = 0; pass < 6; pass++) {
+    const delta =
+      target - overall(player.pos, player.attributes, player.archetype);
+    if (!delta) break;
+    for (const key of Object.keys(player.attributes))
+      player.attributes[key] = clamp(player.attributes[key] + delta, 30, 99);
+  }
+  player.ovr = overall(player.pos, player.attributes, player.archetype);
+}
+
+export function resolveOpeningInjury(player: Player) {
+  if (!player.openingInjuryReturn || player.openingInjuryResolved) return;
+  setPlayerOverall(player, player.openingInjuryReturn);
+  player.formAdjustment = 0;
+  player.performanceForm = 0;
+  player.potential = Math.max(player.ovr, player.potentialBeforeForm ?? player.potential);
+  player.potentialBeforeForm = undefined;
+  player.openingInjuryResolved = true;
 }

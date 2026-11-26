@@ -1,10 +1,11 @@
 import { rosterCharge } from "./cap";
 import type { Game, Player, Position } from "./types";
 import { RNG, clamp } from "./random";
-import { overall } from "./ratings";
+import { seasonReviews } from "./seasonReview";
+import { setPlayerOverall, resolveOpeningInjury } from "./ratings";
 import { createPlayer } from "./database";
 import { emptyStats } from "./types";
-import { prepareAnnualDevelopment } from "./performance";
+import { clearMatchForm } from "./performance";
 import { tx } from "./text";
 import {
   assignPotential,
@@ -34,17 +35,17 @@ function iceTimeFactor(p: Player, context: DevelopmentContext, season: number) {
   return gp >= 60 ? 1.15 : gp >= 30 ? 1 : gp >= 10 ? 0.9 : 0.8;
 }
 
-/** Age at which this player starts to decline (30–33, goalies a year later). */
+/** Age at which this player starts to decline (34–35). */
 export function declineAge(p: Player) {
   return (
-    30 + Math.floor(hashUnit(`decline:${p.id}`) * 4) + (p.pos === "G" ? 1 : 0)
+    34 + Math.floor(hashUnit(`decline:${p.id}`) * 2)
   );
 }
 
 /**
  * Yearly OVR change. Young players close a share of the gap to POT
  * (faster with minutes, intense training and good morale); veterans
- * decline from 30–33 at a per-player rate.
+ * decline from 34–35 at a per-player rate.
  */
 export function annualGrowth(
   p: Player,
@@ -74,26 +75,43 @@ export function annualGrowth(
 export function ageWorld(g: Game, r: RNG) {
   g.freeAgents ??= [];
   g.retired ??= [];
+  const reviewSeason = seasonReviews(g);
   const age = (p: Player, context: DevelopmentContext) => {
     const before = p.ovr;
     const potentialBefore = p.potential;
-    const season = prepareAnnualDevelopment(p, g.language);
+    clearMatchForm(p);
     const iceTime = iceTimeFactor(p, context, g.year - 1);
+    const review = reviewSeason(p, context.team, context.kind === "nhl");
+    const young = developmentAge(p.age, p.pos) <= 25;
+    const ageing = p.age >= declineAge(p);
+    const baseline = p.trainingStartOverall ?? p.ovr;
+    const modifier = review.protectedSeason ? 1 : review.poor || review.injured ? -1 : 0;
+    let growth = annualGrowth(p, modifier, iceTime, context.team, r);
+    if (review.protectedSeason) {
+      // Exceptional results can establish a new ceiling, including for prime-age stars.
+      growth = Math.max(growth, ageing ? 0 : review.elite ? (young ? 3 : 1) : young ? 2 : 0);
+      if (young && review.elite && review.regular && growth < p.potential - baseline) growth++;
+    } else if (review.poor || review.limited || review.injured) {
+      growth = Math.min(growth, review.injured && review.limited ? -2 : -1);
+    } else if (young && review.regular) {
+      growth = Math.max(growth, Math.min(1, p.potential - baseline));
+    }
+    const archived = p.history.find(h => h.year === g.year - 1);
+    let target = baseline + growth;
+    if (growth >= 0) target = Math.max(p.ovr, target);
+    if (review.protectedSeason) target = Math.max(target, before, archived?.ovr ?? 0);
+    else if (review.poor || review.limited || review.injured) target = Math.min(target, before - 1);
+    setPlayerOverall(p, clamp(target, 30, 99));
     p.age++;
-    const trained = Math.max(0, p.ovr - (p.trainingStartOverall ?? p.ovr));
-    const growth = annualGrowth(p, season.modifier, iceTime, context.team, r);
-    // Do not award the same development twice in the season and at rollover.
-    const remaining = growth > 0 ? Math.max(0, growth - trained) : growth;
     p.trainingStartOverall = undefined;
-    for (const key of Object.keys(p.attributes))
-      p.attributes[key] = clamp(p.attributes[key] + remaining, 30, 99);
-    p.ovr = overall(p.pos, p.attributes, p.archetype);
     p.potential = Math.max(p.potential, Math.min(99, p.ovr));
-    revisePotential(p, g.year, season.modifier);
+    if (p.injury > 0) resolveOpeningInjury(p);
+    p.openingAgeingTarget = undefined;
+    revisePotential(p, g.year, modifier);
     (p.developmentLog ??= []).unshift({
       year: g.year,
       delta: p.ovr - before,
-      reason: season.reason,
+      reason: [review.reason || tx(g,"Обычный сезон","Steady season"), ageing && tx(g,"возрастная кривая","age curve")].filter(Boolean).join(" · "),
       ovrBefore: before,
       ovrAfter: p.ovr,
       ...(p.potential !== potentialBefore

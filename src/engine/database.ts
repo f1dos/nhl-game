@@ -1,9 +1,11 @@
+import { barzal, openingRatings } from "../data/opening-ratings";
 import { registerRoster } from "./contracts";
 import type { Locale } from "../i18n/locales";
 import { tx } from "./text";
 import { RULES } from "./rules";
-import { archetypes, rolesFor, overall } from "./ratings";
-import { assignPotential, ensurePotentialModel } from "./potential";
+export { setPlayerOverall } from './ratings';
+import { archetypes, rolesFor, overall, setPlayerOverall } from "./ratings";
+import { allPlayers, assignPotential, ensurePotentialModel, stableHash } from "./potential";
 import { RNG, clamp } from "./random";
 import {
   emptyRecord,
@@ -246,6 +248,11 @@ function calibrateRosterHierarchy(players: Player[]) {
       setPlayerOverall(goalie, starter.ovr - 4);
   }
 }
+function openingRoster(team: string) {
+  const roster = NHL_ROSTERS[team] ?? [];
+  return team === "NYI" && !roster.some(p => p.id === barzal.id) ? [barzal, ...roster] : roster;
+}
+
 export function newGame(
   user = "TOR",
   seed = 260027,
@@ -254,11 +261,12 @@ export function newGame(
   const r = new RNG(seed);
   const teams: Team[] = clubs.map(([id, city, name, division, color], i) => {
     const level = r.int(69, 79);
-    const identities = NHL_ROSTERS[id];
+    const identities = openingRoster(id);
     const roster = identities.map((identity, j) =>
-      createOfficialPlayer(r, id, identity, level, j),
+      createOfficialPlayer(identity.id === 8478445 ? new RNG(seed ^ identity.id) : r, id, identity, level, j),
     );
     calibrateRosterHierarchy(roster);
+    for (const player of roster) applyOpeningRating(player, seed);
     const ahlIdentities = AHL_ROSTERS.filter((p) => p.affiliate === id);
     const knownNames = new Set(roster.map((p) => contractName(p.name)));
     const ahl = ahlIdentities
@@ -348,6 +356,7 @@ export function newGame(
   game.internationalMarket = createInternationalMarket(r);
   game.internationalOffers = [];
   ensurePotentialModel(game);
+  applyOpeningRatings(game, seed);
   ensureUserIceTime(game);
   return game;
 }
@@ -381,22 +390,76 @@ function createOfficialPlayer(
   return player;
 }
 
-function hash(value: string) {
-  let result = 2166136261;
-  for (const char of value)
-    result = Math.imul(result ^ char.charCodeAt(0), 16777619);
-  return result >>> 0;
+function applyOpeningRating(p: Player, seed: number, round = 0, revisedOnly = false) {
+  const id = p.externalId;
+  if (!id || !openingRatings[id]) return;
+  const entry = openingRatings[id];
+  if (revisedOnly && !entry.revision2) return;
+  // Include both identity and career in the draw, independently of roster order.
+  const roll = stableHash(`${seed}:${id}:opening`);
+  if (id === 8478048) {
+    p.openingInjuryReturn ??= roll % 20 === 0 ? 87 : 88;
+    if (!p.injury) p.openingInjuryResolved = true;
+  }
+  if (id === 8475683) {
+    p.openingAgeingTarget = roll % 2 === 0 ? 73 : 74;
+    p.formAdjustment = 0;
+  }
+  let base = entry.overall;
+  if (p.openingAgeingTarget) base = ageingOverall(round, p.openingAgeingTarget);
+  if (p.openingInjuryResolved) base = p.openingInjuryReturn;
+  if (base !== undefined && !(revisedOnly && entry.revision2 === "potential")) {
+    const trainingGain = p.trainingStartOverall === undefined ? 0
+      : Math.max(0, p.ovr - (p.formAdjustment ?? 0) - p.trainingStartOverall);
+    if (p.trainingStartOverall !== undefined) p.trainingStartOverall = base;
+    setPlayerOverall(p, clamp(base + trainingGain + (p.formAdjustment ?? 0), 30, 99));
+  }
+  if (entry.potential) {
+    const [low, high] = entry.potential;
+    const ceiling = low + roll % (high - low + 1);
+    p.potential = Math.max(p.ovr, ceiling);
+    p.potentialBeforeForm = p.ovr > ceiling && (p.formAdjustment ?? 0) > 0 ? ceiling : undefined;
+  } else assignPotential(p, { league: "NHL" });
 }
 
-export function setPlayerOverall(player: Player, target: number) {
-  for (let pass = 0; pass < 6; pass++) {
-    const delta =
-      target - overall(player.pos, player.attributes, player.archetype);
-    if (!delta) break;
-    for (const key of Object.keys(player.attributes))
-      player.attributes[key] = clamp(player.attributes[key] + delta, 30, 99);
+function ageingOverall(round: number, target: 73 | 74) {
+  return round < 32 ? 75 : round < 68 ? 74 : target;
+}
+
+export function advanceOpeningAgeing(g: Game) {
+  if (g.year !== 2026 || (g.round !== 32 && g.round !== 68)) return;
+  const player = allPlayers(g).find(p => p.externalId === 8475683);
+  if (player?.openingAgeingTarget) setPlayerOverall(player, ageingOverall(g.round, player.openingAgeingTarget));
+}
+
+export function applyOpeningRatings(g: Game, seed: number) {
+  if (g.year !== 2026) return;
+  g.openingRatingsRevision = 2;
+  g.openingRatingsSeed = seed;
+  for (const player of allPlayers(g)) applyOpeningRating(player, seed, g.round);
+}
+
+export function restoreOpeningPotentials(g: Game) {
+  if (g.year !== 2026 || g.openingRatingsSeed === undefined) return;
+  for (const p of allPlayers(g)) {
+    const range = openingRatings[p.externalId ?? 0]?.potential;
+    if (range) p.potential = Math.max(p.ovr, range[0] + stableHash(`${g.openingRatingsSeed}:${p.externalId}:opening`) % (range[1]-range[0]+1));
   }
-  player.ovr = overall(player.pos, player.attributes, player.archetype);
+}
+
+export function migrateOpeningRatings(g: Game) {
+  if (g.year !== 2026 || (g.openingRatingsRevision ?? 0) >= 2) return;
+  if (g.openingRatingsSeed !== undefined) {
+    for (const player of allPlayers(g)) applyOpeningRating(player, g.openingRatingsSeed, g.round, true);
+    g.openingRatingsRevision = 2;
+    return;
+  }
+  const islanders = g.teams.find(t => t.id === "NYI");
+  if (islanders && !allPlayers(g).some(p => p.externalId === barzal.id)) {
+    const p = createOfficialPlayer(new RNG(g.seed ^ barzal.id), "NYI", barzal, 83, 0);
+    (islanders.farm ??= []).push(p);
+  }
+  applyOpeningRatings(g, g.seed);
 }
 
 function ageOn(date: string, year = 2026) {
@@ -431,8 +494,8 @@ function createMinorPlayer(
   player.contractType = league === "AHL" ? "AHL" : undefined;
   const target =
     league === "AHL"
-      ? 54 + (hash(identity.id) % 16)
-      : 48 + (hash(identity.id) % 18);
+      ? 54 + (stableHash(identity.id) % 16)
+      : 48 + (stableHash(identity.id) % 18);
   setPlayerOverall(player, target);
   assignPotential(player, { league });
   player.salary = league === "AHL" ? 0.15 : 0;
@@ -508,7 +571,7 @@ function createInternationalMarket(
         ? template[3]
         : `${firstName} ${internationalAlternates[(i + Math.floor(i / internationalNames.length)) % internationalAlternates.length]}`;
     player.nation = template[0];
-    player.age = 18 + (hash(player.id) % 10);
+    player.age = 18 + (stableHash(player.id) % 10);
     player.league = template[1];
     assignPotential(player);
     player.currentClub = template[2];
@@ -533,9 +596,9 @@ function createInternationalMarket(
       desiredYears: 1 + (i % 3),
       desiredRole:
         player.ovr >= 75 ? "top-six" : player.ovr >= 70 ? "rotation" : "depth",
-      adaptationRisk: 20 + (hash(player.name) % 61),
-      agentLeverage: 30 + (hash(player.id) % 61),
-      competingOffers: hash(player.name + player.id) % 5,
+      adaptationRisk: 20 + (stableHash(player.name) % 61),
+      agentLeverage: 30 + (stableHash(player.id) % 61),
+      competingOffers: stableHash(player.name + player.id) % 5,
       scouted: 15,
     };
   });
@@ -595,6 +658,7 @@ function applyPlayerRating(player: Player) {
   }
   player.ovr = overall(player.pos, player.attributes, player.archetype);
   if (player.ovr !== target) player.ovr = target;
+  if (player.externalId === 8476945) player.startingRatingOverride = 88;
   player.ratingRank = rating.rank;
   assignPotential(player, { league: "NHL" });
   player.ratingSource = "nhl-stats-model";
@@ -608,7 +672,7 @@ export function applyOfficialIdentitySnapshot(g: Game) {
   if (g.dataSource?.kind === "official-identities-modeled-ratings")
     throw Error("Official identity snapshot is already active");
   for (const team of g.teams) {
-    const available = [...(NHL_ROSTERS[team.id] ?? [])];
+    const available = [...openingRoster(team.id)];
     const targets = [...team.players, ...(team.farm ?? [])].filter(
       (player) => !player.externalId,
     );
@@ -640,6 +704,7 @@ export function applyOfficialIdentitySnapshot(g: Game) {
     for (const team of g.teams)
       for (const player of [...team.players, ...(team.farm ?? [])])
         applyPlayerRating(player);
+  if (g.year === 2026) applyOpeningRatings(g, g.openingRatingsSeed ?? g.seed);
   applyTeamRatings(g);
   g.dataSource = {
     kind: "official-identities-modeled-ratings",
@@ -687,6 +752,7 @@ export function applyOfficialRatingsSnapshot(g: Game) {
         applyPlayerRating(player);
         updated++;
       }
+  if (g.year === 2026) applyOpeningRatings(g, g.openingRatingsSeed ?? g.seed);
   applyTeamRatings(g);
   g.dataSource = {
     kind: "official-identities-modeled-ratings",

@@ -12,13 +12,13 @@ export const STRATEGY_LABELS: Record<
   FranchiseStrategy,
   { ru: string; en: string }
 > = {
-  "draft-lottery": { ru: "Draft Lottery Team", en: "Draft Lottery Team" },
-  "wild-card-hunt": { ru: "Wild Card Hunt", en: "Wild Card Hunt" },
+  "draft-lottery": { ru: "Перестройка через драфт", en: "Draft Lottery Team" },
+  "wild-card-hunt": { ru: "Борьба за уайлд-кард", en: "Wild Card Hunt" },
   "playoff-breakthrough": {
-    ru: "Playoff Breakthrough",
+    ru: "Выход во второй раунд",
     en: "Playoff Breakthrough",
   },
-  "stanley-cup": { ru: "Stanley Cup Contender", en: "Stanley Cup Contender" },
+  "stanley-cup": { ru: "Борьба за Кубок Стэнли", en: "Stanley Cup Contender" },
 };
 
 export const STRATEGY_POLICIES: Record<

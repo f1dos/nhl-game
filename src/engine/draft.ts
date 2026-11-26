@@ -673,7 +673,8 @@ function weightedLottery(pool: Team[], r: RNG) {
 export function openDraft(g: Game, r = new RNG(g.seed)) {
   const draft = ensureDraft(g);
   if (draft.status !== "scouting") return;
-  const reverse = rankedTeams(g.teams).reverse();
+  const field = new Set(g.bracket[0]?.flatMap(s => [s.a,s.b]));
+  const reverse = rankedTeams(g.teams).reverse().sort((a,b) => Number(field.has(a.id)) - Number(field.has(b.id)));
   const lotteryPool = reverse.slice(0, 16);
   const lottery: Team[] = [];
   while (lottery.length < 3) {
@@ -686,7 +687,7 @@ export function openDraft(g: Game, r = new RNG(g.seed)) {
       year: draft.year,
       round: round + 1,
       overall: round * 32 + index + 1,
-      team: team.id,
+      team: g.draftAssets?.find(p=>p.year===draft.year && p.round===round+1 && p.originalTeam===team.id)?.currentTeam ?? team.id,
       originalTeam: team.id,
     })),
   ).flat();
@@ -729,6 +730,8 @@ function assignPick(g: Game, prospectId: string) {
   prospect.draftedBy = pick.team;
   prospect.draftedOverall = pick.overall;
   pick.prospectId = prospectId;
+  if (g.draftAssets) g.draftAssets = g.draftAssets.filter(p =>
+    p.year !== pick.year || p.round !== pick.round || p.originalTeam !== pick.originalTeam);
   const team = g.teams.find((t) => t.id === pick.team)!;
   team.prospects ??= [];
   const drafted = structuredClone(prospect.player);

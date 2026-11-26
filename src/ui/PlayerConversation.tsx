@@ -1,3 +1,4 @@
+import { agreementReply } from "../engine/careerDesk";
 import {IceAgreementPanel} from "./CareerDesk";
 import { useState } from "react";
 import {
@@ -635,7 +636,13 @@ export default function PlayerConversation({
               })}
             </section>
           )}
-          <IceAgreementPanel game={game} edit={edit} player={player}/>
+          <IceAgreementPanel game={game} edit={edit} player={player} onAgreement={(target,expected) => {
+            if (!session || result || session.finished) return;
+            const mood = target < expected ? "negative" : "positive";
+            setSession({...session, mood, score: target < expected ? 35 : 65, turns: [...session.turns,
+              {speaker:"manager",text:{ru:`Обещаю в среднем ${target} мин за следующие десять матчей.`,en:`I promise an average of ${target} minutes over our next ten games.`}},
+              {speaker:"player",mood,text:agreementReply(target,expected)}]});
+          }}/>
         </main>
       </div>
     </div>

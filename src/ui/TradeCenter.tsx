@@ -1,5 +1,6 @@
 import { counterOffer, marketBrief } from "../engine/careerDesk";
-import { useState } from "react";
+import clubMarks from "../assets/scoreboard-crests.json";
+import { useState, type CSSProperties } from "react";
 import { RequestBadge } from "./PlayerRequests";
 import { Check, IdCard, Plus, Send, X } from "lucide-react";
 import type { Game, Player, Team } from "../engine/types";
@@ -212,64 +213,24 @@ export default function TradeCenter({
           }}
         />
       </div>
-      <section className="trade-gm-room">
-        <div className="gm-identity">
-          <ClubLink team={partner} crest={52}>
-            {""}
-          </ClubLink>
-          <div>
-            <small>{tr("ЛИНИЯ СВЯЗИ ОТКРЫТА", "LINE OPEN")}</small>
-            <b>
-              {tr("Генеральный менеджер", "General manager")} · {partner.id}
-            </b>
-            <span>
-              {tr("Ищет:", "Looking for:")}{" "}
-              {(game.teamNeeds?.[other] ?? [])
-                .map((need) => need.position)
-                .join(", ") ||
-                tr("лучший доступный актив", "best available asset")}
-            </span>
+      <section className="partner-sheet" style={{"--partner":partner.color} as CSSProperties}>
+        <header className="partner-club">
+          <img alt="" src={(clubMarks as Record<string,string>)[partner.id] ?? partner.logoUrl} width={72} height={72}/>
+          <div><small>{tr("Партнёр по обмену","Trade partner")}</small>
+            <h2><ClubLink team={partner}/></h2>
+            <span>{partner.record.pts} {tr("очк.","PTS")} · {partner.record.gp} {tr("матч.","GP")} · {tr("Средний возраст","Average age")} {brief.age.toFixed(1)}</span>
           </div>
+        </header>
+        <div className="partner-priority"><small>{tr("Приоритет усиления","Target position")}</small>
+          <h3><b>{brief.need.position}</b>{brief.youth ? tr("Молодой игрок","Developing player") : tr("Игрок основы","Immediate contributor")}</h3>
+          <p>{brief.need.reason}</p>
+          {(game.teamNeeds?.[other] ?? []).length > 1 && <p>{tr("Также ищут","Also seeking")} · {(game.teamNeeds?.[other] ?? []).filter(v=>v.position!==brief.need.position).map(v=>v.position).join(", ")}</p>}
         </div>
-        <div className="desk-card trade-brief">
-          <header>
-            <small>
-              {partner.city} · {partner.name}
-            </small>
-            <h3>{tr("Позиция партнёра", "Across the table")}</h3>
-          </header>
-          <div className="desk-pair">
-            <div>
-              <small>{tr("Приоритет усиления", "Target position")}</small>
-              <strong>{brief.need.position}</strong>
-              <span>
-                {brief.youth
-                  ? tr("Молодой актив", "Developing asset")
-                  : tr("Усиление основы", "Immediate contributor")}
-              </span>
-            </div>
-            <div>
-              <small>{tr("Свобода под потолком", "Cap room")}</small>
-              <strong>
-                ${brief.space.toFixed(2)}
-                <em>M</em>
-              </strong>
-              <span>
-                {partner.record.pts} PTS / {partner.record.gp} GP
-              </span>
-            </div>
-          </div>
-          <p className="desk-insight">
-            {brief.need.reason}
-            {rival &&
-              " · " +
-                rival.label +
-                " · " +
-                tr(
-                  "Соперник потребует премию за обмен.",
-                  "A rival will demand a premium.",
-                )}
-          </p>
+        <div className="partner-budget"><small>{tr("Свободно под потолком","Available cap space")}</small><strong>${brief.space.toFixed(2)}<em>M</em></strong>
+          <meter aria-label={tr("Использовано под потолком","Cap used")} min={0} max={game.rules.cap} value={game.rules.cap-brief.space}/>
+          <p>{tr("Потолок зарплат","Salary cap")} · ${game.rules.cap.toFixed(1)}M</p>
+        </div>
+        {rival && <p className="partner-rival">{rival.label} · {tr("Соперник потребует премию за обмен.","A rival will demand a premium.")}</p>}
           {(game.gmDiscussions ?? []).some((v) => v.club === other) && (
             <details>
               <summary>
@@ -294,36 +255,12 @@ export default function TradeCenter({
                 ))}
             </details>
           )}
-        </div>
         {reply && quoted === signature && (
           <div
             className={`gm-reply ${evaluation.accepted ? "accepted" : "rejected"}`}
           >
-            <b>
-              {evaluation.accepted
-                ? tr("Предложение принято", "Offer accepted")
-                : tr("GM отклонил предложение", "The GM rejected the offer")}
-            </b>
-            <span>{reply}</span>
-            <p>
-              {tr("Приоритет позиции", "Position priority")} ·{" "}
-              {brief.need.position}.{" "}
-              {brief.youth
-                ? tr(
-                    "Ищем молодого игрока с запасом развития.",
-                    "We favour a younger player who can grow with this roster.",
-                  )
-                : tr(
-                    "Ценим игрока, который уже сейчас усилит ротацию.",
-                    "We favour a player who can step straight into the rotation.",
-                  )}
-            </p>
-            <p>
-              {brief.need.reason} · {tr("Возраст состава", "Roster age")}{" "}
-              {brief.age.toFixed(1)} · {partner.record.pts} PTS /{" "}
-              {partner.record.gp} GP · {tr("Под потолком", "Cap room")} $
-              {brief.space.toFixed(2)}M
-            </p>
+            {evaluation.accepted ? <Check size={21}/> : <X size={21}/>}
+            <div role="status"><b>{evaluation.accepted ? tr("Предложение принято","Offer accepted") : tr("Партнёр отклонил предложение","Offer declined")}</b><p>{evaluation.accepted ? tr("Условия согласованы. Обмен можно оформить.", "Terms agreed. The trade is ready to complete.") : reply}</p></div>
             {[counter, pick].map(
               (c, i) =>
                 c && (
