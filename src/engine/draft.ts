@@ -254,12 +254,19 @@ export function createDraftState(year: number, r: RNG, count = 224): DraftState 
       ...profileFor(id, c.pos, c.league),
     });
   });
+  const generatedTiers = Array.from({ length: count - realCount }, (_, i) => i);
+  const tierRng = new RNG(year);
+  for (let i = generatedTiers.length - 1; i > 0; i--) {
+    const j = tierRng.int(0, i);
+    [generatedTiers[i], generatedTiers[j]] = [generatedTiers[j], generatedTiers[i]];
+  }
   for (let i = prospects.length; i < count; i++) {
     const [nation, region] = GENERATED_NATIONS[i % GENERATED_NATIONS.length];
     const pos = positions[i % positions.length];
     // Draft-eligible teenagers: a few near NHL-ready, most years away.
-    const tier = (i * 7) % count;
-    const level = tier < 12 ? 64 : tier < 64 ? 59 : tier < 160 ? 54 : 50;
+    const percentile = (generatedTiers[i - realCount] + 0.5) / generatedTiers.length;
+    const level = percentile < 0.015 ? 68 : percentile < 0.06 ? 61
+      : percentile < 0.22 ? 55 : percentile < 0.60 ? 50 : 46;
     const id = `draft-${year}-${i}-${r.int(1000, 9999)}`;
     const player = createPlayer(r, id, pos, level);
     player.nation = nation;
@@ -330,7 +337,7 @@ export function toggleShortlist(g: Game, prospectId: string) {
     : [...draft.shortlist, prospectId];
 }
 
-export function scoutProspect(g: Game, prospectId: string) {
+export function scoutProspect(g: Game, prospectId: string, requestedFocus?:import("./careerDesk").ScoutFocus) {
   const draft = ensureDraft(g);
   if (draft.status !== "scouting") throw Error("Scouting period is closed");
   if (draft.scoutingPoints < 1) throw Error("No scouting capacity available");
@@ -338,11 +345,15 @@ export function scoutProspect(g: Game, prospectId: string) {
   if (!prospect) throw Error("Prospect unavailable");
   const user = g.teams.find((t) => t.id === g.user);
   const current = draft.reports[prospectId];
+  const fields=["release","stride","pressure"] as const;
+  const focus=requestedFocus??fields.reduce((least,key)=>(current.observations?.[key]??0)<(current.observations?.[least]??0)?key:least);
+  if(requestedFocus && (current.observations?.[focus]??0)>=3)return;
   const regionalBonus = (prospect.region === draft.assignment ? 14 : 7) + Math.max(0, scoutAccuracy(user));
   const confidence = clamp(current.confidence + regionalBonus, 0, 100);
-  const next = reportFor(prospect.player, confidence, g.round);
+  const next:import("./types").ScoutingReport = reportFor(prospect.player, confidence, g.round);
   next.estimatedOvr = Math.round((current.estimatedOvr + prospect.player.ovr) / 2);
   next.estimatedPotential = Math.round((current.estimatedPotential + prospect.player.potential) / 2);
+  next.observations={...current.observations,[focus]:Math.min(3,(current.observations?.[focus]??0)+1)};
   draft.reports[prospectId] = next;
   draft.scoutingPoints--;
 }
@@ -356,7 +367,7 @@ export function progressScouting(g: Game) {
     .sort((a, b) => draft.reports[b.player.id].estimatedPotential - draft.reports[a.player.id].estimatedPotential)[0];
   if (target && g.round % 4 === 0) {
     const current = draft.reports[target.player.id];
-    draft.reports[target.player.id] = reportFor(target.player, clamp(current.confidence + 4, 0, 100), g.round);
+    draft.reports[target.player.id] = {...reportFor(target.player, clamp(current.confidence + 4, 0, 100), g.round),observations:current.observations};
   }
   // Followed prospects: the staff watches their games every other round.
   if (g.round % 2 === 0)
@@ -364,7 +375,7 @@ export function progressScouting(g: Game) {
       const prospect = draft.prospects.find((p) => p.player.id === id);
       const current = draft.reports[id];
       if (!prospect || prospect.draftedBy || !current || current.confidence >= 70) continue;
-      draft.reports[id] = reportFor(prospect.player, clamp(current.confidence + 2, 0, 70), g.round);
+      draft.reports[id] = {...reportFor(prospect.player, clamp(current.confidence + 2, 0, 70), g.round),observations:current.observations};
     }
 }
 

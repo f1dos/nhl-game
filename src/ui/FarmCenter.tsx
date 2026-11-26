@@ -1,3 +1,4 @@
+import {DevelopmentDesk} from "./CareerDesk";
 import { useState } from "react";
 import { callUpFromFarm, sendToFarm } from "../engine/roster";
 import { salaryTotal } from "../engine/contracts";
@@ -29,6 +30,7 @@ export default function FarmCenter({
       </div>
       <div className="farm-finance"><span>{ru ? "ПОТОЛОК NHL" : "NHL CAP"}</span><b>${salaryTotal(team).toFixed(1)}M / ${game.rules.cap.toFixed(1)}M</b></div>
     </div>
+    <DevelopmentDesk game={game} edit={edit}/>
     <Panel title={ru ? "ИГРОКИ AHL И ОРГАНИЗАЦИОННОГО РЕЗЕРВА" : "AHL & ORGANIZATIONAL RESERVE"}>
       <div className="scout-league-filters">
         <input aria-label="Farm player search" placeholder={ru ? "Поиск по фарму…" : "Search farm…"} value={query} onChange={(e) => setQuery(e.target.value)}/>

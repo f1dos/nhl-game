@@ -36,14 +36,18 @@ test("32 franchises, unique players, 30 valid attributes and legal lineups", () 
     }
   }
 });
-test("82 games per club, 41 home games, no round conflicts or self matches", () => {
+test("84 games per club, 42 home games, no round conflicts or self matches", () => {
   const g = newGame();
-  assert.equal(g.schedule.length, 1312);
+  assert.equal(g.schedule.length, 1344);
   for (const t of g.teams) {
-    assert.equal(g.schedule.filter((f) => f.home === t.id).length, 41);
-    assert.equal(g.schedule.filter((f) => f.away === t.id).length, 41);
+    for(const other of g.teams.filter(x=>x!==t)){
+      const pairs=g.schedule.filter(f=>f.home===t.id&&f.away===other.id||f.home===other.id&&f.away===t.id);
+      assert.equal(pairs.length,other.division===t.division?4:other.conference===t.conference?3:2);
+    }
+    assert.equal(g.schedule.filter((f) => f.home === t.id).length, 42);
+    assert.equal(g.schedule.filter((f) => f.away === t.id).length, 42);
   }
-  for (let round = 0; round < 82; round++) {
+  for (let round = 0; round < 84; round++) {
     const fixtures = g.schedule.filter((f) => f.round === round);
     assert.equal(fixtures.length, 16);
     assert.equal(new Set(fixtures.flatMap((f) => [f.home, f.away])).size, 32);
@@ -89,12 +93,12 @@ test("event and individual statistics reconcile, shootout goal excluded from pla
 });
 test("full regular season → 16-team playoffs → champion → next season", () => {
   const g = newGame();
-  for (let i = 0; i < 82; i++) advance(g);
+  for (let i = 0; i < 84; i++) advance(g);
   assert.equal(g.phase, "playoffs");
-  assert(g.teams.every((t) => t.record.gp === 82));
+  assert(g.teams.every((t) => t.record.gp === 84));
   assert.equal(
     g.teams.reduce((n, t) => n + t.record.w, 0),
-    1312,
+    1344,
   );
   assert.equal(
     g.teams.reduce((n, t) => n + t.record.gf, 0),
@@ -133,12 +137,12 @@ test("full regular season → 16-team playoffs → champion → next season", ()
   assert.equal(g.phase, "regular");
   assert(g.teams.every((t) => t.record.gp === 0));
   const original = [
-    ...g.teams.flatMap((t) => t.players),
+    ...g.teams.flatMap((t) => [...t.players,...(t.farm??[])]),
     ...(g.freeAgents || []),
   ].find((p) => p.id === playerId)!;
   assert.equal(original.age, age + 1);
   assert.equal(original.history.length, 1);
-  assert.equal(g.schedule.length, 1312);
+  assert.equal(g.schedule.length, 1344);
   assert.equal(validateSave(JSON.parse(JSON.stringify(g))).year, 2027);
 });
 test("save validation rejects corrupt/unsupported files", () => {

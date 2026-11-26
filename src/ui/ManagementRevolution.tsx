@@ -1,3 +1,7 @@
+import ScoringSummary from "./ScoringSummary";
+import { nextClubFixture } from "../engine/careerMatch";
+import {InboxWork} from "./CareerDesk";
+import {canDelegate,deadlineGroup} from "../engine/careerDesk";
 import { isBreakDay, tournamentOnDate } from "../engine/tournaments";
 import { useMemo, useState } from "react";
 import {
@@ -281,6 +285,7 @@ function AgendaRow({
         ) : (
           <p>{body}</p>
         )}
+        {game && <InboxWork game={game} edit={edit} event={event}/>}
         {!request && <EventLinks
           playerId={event.playerId}
           teamId={event.teamId}
@@ -748,7 +753,7 @@ export function DailyCalendar({ game }: { game: Game }) {
           const trainingIndex =
             ((((team.trainingTicks ?? 0) + dayOffset) % 7) + 7) % 7;
           const trainingDay = training.days[trainingIndex];
-          const round = Array.from({ length: 82 }, (_, index) => index).find(
+          const round = Array.from({ length: game.schedule.length/16 }, (_, index) => index).find(
             (index) => fixtureDate(game, index) === date,
           );
           const fixture =
@@ -763,6 +768,9 @@ export function DailyCalendar({ game }: { game: Game }) {
           const preseason = game.preseasonFixtures?.find(
             (item) => item.date === date,
           );
+          const playoff = game.bracket.flat().flatMap(series => series.games).find(result =>
+            result.date === date && [result.home, result.away].includes(game.user));
+          const played = preseason?.result ?? fixture?.result ?? playoff;
           const isCurrent = date === game.calendar!.date;
           return (
             <div
@@ -820,6 +828,11 @@ export function DailyCalendar({ game }: { game: Game }) {
                   />
                 </p>
               )}
+              {played && <p className="calendar-game">
+                {played.away} {played.goals[1]} : {played.goals[0]} {played.home}
+                {played.so ? " SO" : played.ot ? " OT" : ""}
+              </p>}
+              <ScoringSummary events={played?.events} ru={ru}/>
               <div
                 className="calendar-training"
                 title={ru ? "План тренировки" : "Training plan"}
@@ -895,6 +908,7 @@ export function DecisionInbox({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState(focus && !focus.allEvents ? "important" : "all");
   const focused = useMemo(() => new Set(focus?.ids ?? []), [focus]);
+  const matchToday=nextClubFixture(game)?.date===game.calendar!.date;
   const counts = useMemo(() => {
     const open = game.events!.filter((event) => !event.resolved);
     return {
@@ -908,6 +922,7 @@ export function DecisionInbox({
     const list = game.events!.filter(
       (event) =>
         (filter === "all" ||
+          (filter==="today"&&deadlineGroup(event,game.calendar!.date,matchToday)===0) || (filter==="week"&&deadlineGroup(event,game.calendar!.date,matchToday)===1) || (filter==="assistant"&&canDelegate(event)) ||
           (filter === "important" && isImportantEvent(game, event)) ||
           (filter === "open" && !event.resolved) ||
           (filter === "players" && !!requestForEvent(game, event.id)) ||
@@ -926,9 +941,9 @@ export function DecisionInbox({
           : 2;
     return list
       .map((event, index) => ({ event, index }))
-      .sort((a, b) => rank(a.event) - rank(b.event) || a.index - b.index)
+      .sort((a, b) => rank(a.event) - rank(b.event) || deadlineGroup(a.event,game.calendar!.date,matchToday)-deadlineGroup(b.event,game.calendar!.date,matchToday) || (a.event.responseDue??"9999").localeCompare(b.event.responseDue??"9999") || a.index - b.index)
       .map(({ event }) => event);
-  }, [game, filter, query, focused]);
+  }, [game, filter, query, focused,matchToday]);
   const unreadVisible = events.filter(
     (event) => !event.read && !event.resolved,
   );
@@ -983,7 +998,7 @@ export function DecisionInbox({
       )}
       <div className="inbox-toolbar">
         <div className="tabs">
-          {["all", "important", "open", "players", "trade", "contract", "medical"].map(
+          {["all", "important", "today", "week", "assistant","open", "players", "trade", "contract", "medical"].map(
             (item) => (
               <button
                 key={item}
@@ -1007,7 +1022,7 @@ export function DecisionInbox({
                         ? ru
                           ? "Игроки"
                           : "Players"
-                        : categoryNames[item]?.[ru ? 0 : 1]}
+                        : item==="today"?(ru?"Сегодня":"Today"):item==="week"?(ru?"На неделе":"This week"):item==="assistant"?(ru?"Помощнику":"Delegable"):categoryNames[item]?.[ru ? 0 : 1]}
                 {item === "important" && counts.important > 0 && (
                   <em
                     className="tab-count important"
@@ -1050,6 +1065,7 @@ export function DecisionInbox({
           </label>
         </div>
       </div>
+      {filter==="assistant" && game.events!.some(e=>e.assistantReviewed)&&<Panel title={ru?"Сводка помощника":"Assistant digest"}>{game.events!.filter(e=>e.assistantReviewed).slice(0,8).map(e=><details key={e.id}><summary>{e.date} · {e.i18n?.title[ru?"ru":"en"]??e.title}</summary><p>{e.i18n?.body[ru?"ru":"en"]??e.body}</p></details>)}</Panel>}
       {(filter === "players" || filter === "all" || filter === "open") && (
         <PromisesPanel game={game} />
       )}

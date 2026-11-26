@@ -335,7 +335,7 @@ function boardWarning(
   const date = g.calendar!.date;
   const severe =
     position >= expected + 6 || g.managerEmployment?.status === "final-warning";
-  const pace = Math.round((team.record.pts / team.record.gp) * 82);
+  const pace = Math.round((team.record.pts / team.record.gp) * (g.schedule.length/16));
   out.push({
     cooldowns: [["type:board", 28]],
     event: {

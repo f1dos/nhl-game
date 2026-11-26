@@ -42,6 +42,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert(document.querySelector(".top-club-record"));
   assert(screen.getAllByText("РАБОЧИЙ СТОЛ").length > 0);
   assert(screen.getByText("Штаб генерального менеджера"));
+  fireEvent.click(screen.getByText("Матч-центр", { selector: "nav *" }));
+  assert(screen.getByText("Сегодня у клуба нет матча"));
+  assert.equal(screen.queryByRole("button", { name: "Пропустить матч и получить результат" }), null);
+  fireEvent.click(screen.getByRole("button", { name: "Вернуться в кабинет" }));
   fireEvent.click(screen.getByText("Стратегия клуба"));
   fireEvent.click(screen.getByText("Wild Card Hunt"));
   assert(screen.getByRole("dialog"));

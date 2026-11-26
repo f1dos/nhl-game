@@ -1,3 +1,4 @@
+import {capCharge} from "./cap";
 /**
  * Preseason training camp for the managed club: camp phases, roster battles
  * for the last forward / defence spots, staff cuts to the farm or junior,
@@ -8,6 +9,7 @@
  * are deterministic (FNV hashing), cup games use the career RNG like the
  * older exhibition games did.
  */
+import { rememberOpponent } from "./coaching";
 import { simulateMatch } from "./match";
 import { RNG, clamp } from "./random";
 import { ensureSpecialTeams } from "./tactics";
@@ -446,7 +448,7 @@ function lineScores(result: Result, clone?: Team, before?: Map<string, [number, 
  * the top of the lineup, competing candidates rotate through the bottom six
  * and the third pair (fewest games first).
  */
-function campLineup(g: Game, state: PreseasonState): Team {
+export function campLineup(g: Game, state: PreseasonState): Team {
   const team = structuredClone(userTeam(g));
   const invited = state.candidates
     .filter((c) => c.status === "competing" && c.source !== "nhl")
@@ -654,7 +656,7 @@ function finalCuts(g: Game, state: PreseasonState, date: string) {
       if (
         !up ||
         !down ||
-        salaryTotal(team) - down.salary + salary > g.rules.cap + 1e-8
+        salaryTotal(team) - capCharge(down) + capCharge(up,salary) > g.rules.cap + 1e-8
       ) {
         riser.status = riser.source === "prospect" ? "junior" : "farm";
         if (faller) faller.status = "made";
@@ -908,6 +910,7 @@ export function processPreseasonDay(g: Game, date: string, completed?: Result) {
       lines = lineScores(fixture.result, own, before);
     }
     g.seed = rng.seed;
+    for (const id of [fixture.home, fixture.away]) rememberOpponent(g.teams.find(t => t.id === id)!, fixture.result);
     g.last = fixture.result;
     if (state) {
       creditCandidates(state, lines);
@@ -948,6 +951,7 @@ export function processPreseasonDay(g: Game, date: string, completed?: Result) {
         f.stage !== "group",
       );
       g.seed = rng.seed;
+      for (const id of [f.home,f.away]) rememberOpponent(g.teams.find(team=>team.id===id)!,result);
       storeCupScore(f, result);
     }
     if (!fixture && date >= d.open && date < d.opener) campPractice(g, state, date);

@@ -74,6 +74,7 @@ export class BroadcastDirector {
   private focus = new Damped();
   private shot: Shot = "intro";
   private shotSince = 0;
+  private drawCloseUntil = 0;
   private clock = 0;
   private started = false;
   private history: Snapshot[] = [];
@@ -236,7 +237,10 @@ export class BroadcastDirector {
     } else {
       // Broadcast: automatic director.
       let next: Shot = "main";
-      if (s && (s.phase === "lineup" || s.phase === "drop")) next = "faceoff";
+      if (s && (s.phase === "lineup" || s.phase === "drop")){
+        next="faceoff";
+        this.drawCloseUntil=this.clock+.52;
+      } else if(!s && this.shot==="faceoff" && this.clock<this.drawCloseUntil) next="faceoff";
       else if (s?.kind === "goal" && s.phase === "celebrate") next = "celebrate";
       else if (s && (s.kind === "penalty" || s.kind === "icing") && s.phase === "whistle") next = "bench";
       else if (s?.kind === "save") next = "over-net";
@@ -269,11 +273,12 @@ export class BroadcastDirector {
         lookAt.set(0, 1.0, -14);
         fov = 34;
         dof = 19;
-      } else if (shot === "faceoff" && s) {
+      } else if (shot === "faceoff" && frame) {
         // Cut-scene: low close-up of the puck on the dot.
-        want.set(s.dot.x + 2.6, 0.75, s.dot.z + 3.4);
-        lookAt.set(s.dot.x, 0.55, s.dot.z);
-        fov = 34;
+        const dot=s?.dot ?? frame.dot;
+        want.set(dot.x+.65,2.12,dot.z+2.95);
+        lookAt.set(dot.x,.84,dot.z);
+        fov=42;
         dof = want.distanceTo(lookAt);
         smooth = 0.5;
       } else if (shot === "celebrate" && s) {

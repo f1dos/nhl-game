@@ -113,8 +113,9 @@ test("default plan reproduces the old event-engine TOI split", () => {
 });
 
 test("spatial engine honours the plan without breaking determinism", () => {
-  const top = lineToi(4, (t) => applyIceTimePreset(t, "top"), "spatial");
-  const roll = lineToi(4, (t) => applyIceTimePreset(t, "roll"), "spatial");
+  // Average across twelve opponents so a single penalty-heavy game cannot dominate pair usage.
+  const top = lineToi(12, (t) => applyIceTimePreset(t, "top"), "spatial");
+  const roll = lineToi(12, (t) => applyIceTimePreset(t, "roll"), "spatial");
   assert(top.F[3] < roll.F[3] - 2, `4th line: top ${top.F[3]} vs roll ${roll.F[3]}`);
   assert(top.F[0] > roll.F[0] + 2, `1st line: top ${top.F[0]} vs roll ${roll.F[0]}`);
   assert(top.D[2] < roll.D[2] - 1, `3rd pair: top ${top.D[2]} vs roll ${roll.D[2]}`);

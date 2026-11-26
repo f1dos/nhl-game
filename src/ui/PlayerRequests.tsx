@@ -193,9 +193,11 @@ export function PromisesPanel({ game }: { game: Game }) {
   const listed = state.listed
     .map((item) => ({ item, player: findPlayer(game, item.playerId) }))
     .filter((entry) => entry.player);
-  if (!active.length && !recent.length && !listed.length) return null;
-  const kept = state.promises.filter((item) => item.status === "kept").length;
-  const broken = state.promises.filter((item) => item.status === "broken").length;
+  const agreements=game.iceAgreements??[];
+  const openIce=agreements.filter(a=>a.status==="open");
+  if (!active.length && !recent.length && !listed.length && !agreements.length) return null;
+  const kept = state.promises.filter((item) => item.status === "kept").length + agreements.filter(a=>a.status==="kept").length;
+  const broken = state.promises.filter((item) => item.status === "broken").length + agreements.filter(a=>a.status==="broken").length;
   return (
     <section className="promises-panel" aria-label={ru ? "Обещания игрокам" : "Promises to players"}>
       <header>
@@ -212,7 +214,8 @@ export function PromisesPanel({ game }: { game: Game }) {
         {active.map((promise) => (
           <PromiseRow key={promise.id} game={game} promise={promise} />
         ))}
-        {!active.length && (
+        {openIce.map(a=><p key={a.player}><b>{a.name}</b> · {a.target} min/GP · {a.games}/10 · {ru?"фактически":"actual"} {a.games?(a.minutes/a.games).toFixed(1):"—"} min/GP</p>)}
+        {!active.length && !openIce.length && (
           <p className="muted">{ru ? "Активных обещаний нет." : "No active promises."}</p>
         )}
         {recent.map((promise) => (

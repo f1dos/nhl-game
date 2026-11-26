@@ -242,6 +242,10 @@ export default function ModelLab() {
       });
       camera.position.set(0, 1.3, 4.2);
       look.set(0, 1.0, 0);
+    } else if(view==="coach"){
+      add(models.coach(blue.jersey),"coach-preview","Head coach",0,"C",{x:0,z:0,yaw:0,state:"coach-idle"});
+      camera.position.set(.8,1.35,3.7);
+      look.set(0,1.0,0);
     } else if (view === "goalie") {
       add(models.goalie(blue), "nhl-NYR-8478048", "Igor Shesterkin", 31, "G", {
         x: 0,
@@ -360,7 +364,8 @@ export default function ModelLab() {
     observer.observe(el);
     let frame = 0,
       elapsed = 0,
-      nextAction = 0.5;
+      nextAction = 0.5, followAt = Infinity;
+    const follow = view === "goalie" && ["cover", "low-cover", "rebound-left", "rebound-right"].includes(action);
     let last = performance.now();
     let frames = 0,
       fpsT = 0;
@@ -373,12 +378,19 @@ export default function ModelLab() {
             a.variant ?? 0.2,
             1,
           );
-        if (!skating && action !== "pose" && elapsed >= nextAction)
+        if(view==="coach" && action==="line-call" && elapsed>=nextAction)
+          a.rig.signalLine?.();
+        else if (!skating && action !== "pose" && elapsed >= nextAction)
           a.rig.trigger(
-            action as RigActionKind,
+            follow ? "save" : action as RigActionKind,
             { x: a.x + 0.5, z: a.z + 3 },
-            0.65,
+            action==="low-cover"?.14:.65,
           );
+        if(follow && elapsed >= nextAction) followAt=elapsed+.16;
+        if(follow && elapsed >= followAt){
+          a.rig.finishSave?.(action==="cover" || action==="low-cover" ? undefined : {x:action==="rebound-left"?-.8:.8,z:.6});
+          followAt=Infinity;
+        }
         a.rig.update(dt, dt, {
           x: a.x,
           z: a.z,
@@ -392,8 +404,8 @@ export default function ModelLab() {
               ? 0
               : (pursuit ? 7 : 4) * Math.cos(a.yaw)
             : 0,
-          puckX: 0.5,
-          puckZ: pursuit ? 10 : 2,
+          puckX: view === "faceoff" ? 0 : 0.5,
+          puckZ: view === "faceoff" ? 0 : pursuit ? 10 : 2,
           hasPuck: action === "skate",
           face: a.yaw,
         });
@@ -406,7 +418,9 @@ export default function ModelLab() {
         240,
         Math.max(0, Math.round(Number(options.get("sample")) * 60)),
       );
-      for (let i = 0; i < steps; i++) advance(1 / 60);
+      const sample=()=>{if(!closed)for(let i=0;i<steps;i++)advance(1/60)};
+      if(factory instanceof MatchNightFactory)void factory.whenLoaded().then(sample);
+      else sample();
     }
     const tick = (now: number) => {
       const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
@@ -462,6 +476,7 @@ export default function ModelLab() {
           side: "Profile",
           back: "Jersey",
           goalie: "Goaltender",
+          coach: "Head coach",
           faceoff: "Faceoff",
           celebrate: "Celebration",
           lineup: "Line-up",
@@ -486,11 +501,15 @@ export default function ModelLab() {
             {select(
               "motion",
               "Movement",
-              params.get("view") === "goalie"
+              params.get("view")==="coach" ? {pose:"At the bench","line-call":"Call the line"} as Record<string,string> : params.get("view") === "goalie"
                 ? ({
                     pose: "Set",
                     skate: "Shuffle",
                     save: "Save",
+                    cover: "Cradle a high catch",
+                    "low-cover": "Cover a low puck",
+                    "rebound-left": "Rebound left",
+                    "rebound-right": "Rebound right",
                     conceded: "Recovery",
                   } as Record<string, string>)
                 : {

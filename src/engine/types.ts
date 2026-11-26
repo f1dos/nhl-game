@@ -52,6 +52,10 @@ export interface Player {
   contractRemainingValue?: number;
   performanceForm?: number;
   formAdjustment?: number;
+  /** Permanent ceiling while a hot streak temporarily lifts displayed POT. */
+  potentialBeforeForm?: number;
+  /** Base OVR before the first skill session of this season. */
+  trainingStartOverall?: number;
   injuryBurden?: number;
   motivation?: number;
   relationship?: number;
@@ -106,6 +110,8 @@ export interface Player {
   international?: import("./tournaments").InternationalCareerLine[];
 }
 export interface Tactics {
+  benchOpening?: { plan?: "wide" | "slot" | "high"; message?: "attack" | "safe" | "support" };
+  markPlayer?: string;
   forecheck: "1-2-2" | "2-1-2" | "1-3-1";
   pace: number;
   physical: number;
@@ -176,6 +182,7 @@ export interface RecordStats {
   form: string[];
 }
 export interface Team {
+  scoutGames?: import("./coaching").ScoutGame[];
   aiProfile?: AiGeneralManagerProfile;
   ahlAffiliate?: string;
   ahlLogoUrl?: string;
@@ -288,6 +295,7 @@ export interface ProspectInterview {
   round: number;
 }
 export interface ScoutingReport {
+  observations?: Partial<Record<import("./careerDesk").ScoutFocus,number>>;
   confidence: number;
   estimatedOvr: number;
   estimatedPotential: number;
@@ -412,6 +420,8 @@ export type ManagementEventCategory =
   | "organization"
   | "league";
 export interface ManagementEvent {
+  publicNewsClubs?: string[];
+  assistantReviewed?: boolean;
   id: string;
   date: string;
   category: ManagementEventCategory;
@@ -502,6 +512,8 @@ export interface Fixture {
   result?: Result;
 }
 export interface Event {
+  assists?:string[];
+  scoutFilm?: import("./coaching").ScoutFrame[];
   playerId?: string;
   skaters?: string[][];
   time: number;
@@ -524,6 +536,11 @@ export interface Event {
   xg?: number;
 }
 export interface Result {
+  startingUnits?: Record<string,number>;
+  iceMinutes?: Record<string,number>;
+  scoutTarget?: { id: string; name: string; marked: boolean; priorShots: number; games: number };
+  matchups?: import("./coaching").LineMatchup[];
+  date?: string;
   home: string;
   away: string;
   goals: number[];
@@ -596,6 +613,12 @@ export interface LeadershipLogEntry {
   letterEventId?: string;
 }
 export interface Game {
+  mediaArchive?: import("./media").MediaStory[];
+  gmDiscussions?: {club:string;date:string;offered:string[];requested:string[];accepted:boolean}[];
+  iceAgreements?: import("./careerDesk").IceAgreement[];
+  developmentPlans?: import("./careerDesk").DevelopmentPlan[];
+  matchPreparation?: { date: string; opponent: string; plan?: "wide" | "slot" | "high"; talk?: { tone: "trust" | "challenge"; message: "attack" | "safe" | "support" } };
+  matchCoverage?: { date: string; opponent: string; target: string };
   freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
   preseasonFixtures?: PreseasonFixture[];
@@ -674,6 +697,7 @@ export interface Game {
   bracket: Series[][];
   playoffRound: number;
   last?: Result;
+  clubMatchHistory?: (Pick<Result, "home" | "away" | "goals" | "ot" | "so"> & { date: string; events?:Event[] })[];
   news: string[];
   history: { year: number; champion: string; points: number }[];
   awards?: import("./awards").SeasonAward[];

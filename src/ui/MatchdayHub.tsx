@@ -1,3 +1,5 @@
+import MatchPreparation from "./MatchPreparation";
+import { MatchupReport, OpponentBrief } from "./CoachBench";
 import TacticalCenter from "./TacticalCenter";
 import { useState } from "react";
 import {
@@ -14,6 +16,7 @@ import {
   pressConferenceComplete,
 } from "../engine/press";
 import PressConference from "./PressConference";
+import { nextClubFixture, clubMatchTeams } from "../engine/careerMatch";
 import { advanceDay, openingGameNeedsCaptain } from "../engine/management";
 import { MatchRatingsPanel } from "./MatchRatings";
 import { clamp } from "../engine/random";
@@ -52,35 +55,9 @@ export default function MatchdayHub({
   const team = game.teams.find((club) => club.id === game.user)!;
   const captainRequired = openingGameNeedsCaptain(game);
   ensureSpecialTeams(team);
-  const preseason = game.preseasonFixtures?.find(
-    (fixture) => fixture.date === game.calendar?.date && !fixture.result,
-  );
-  const fixture =
-    preseason ??
-    game.schedule.find(
-      (item) =>
-        item.round === game.round && [item.home, item.away].includes(game.user),
-    );
-  const playoffSeries =
-    game.phase === "playoffs"
-      ? game.bracket[game.playoffRound]?.find(
-          (series) =>
-            !series.winner && [series.a, series.b].includes(game.user),
-        )
-      : undefined;
-  const opponentId = fixture
-    ? fixture.home === game.user
-      ? fixture.away
-      : fixture.home
-    : playoffSeries
-      ? playoffSeries.a === game.user
-        ? playoffSeries.b
-        : playoffSeries.a
-      : game.last
-        ? game.last.home === game.user
-          ? game.last.away
-          : game.last.home
-        : "";
+  const fixture = nextClubFixture(game);
+  const preseason = fixture?.kind === "preseason";
+  const opponentId = fixture?.home === game.user ? fixture.away : fixture?.home;
   const opponent = game.teams.find((club) => club.id === opponentId);
   const preDone = pressConferenceComplete(
     game,
@@ -134,40 +111,34 @@ export default function MatchdayHub({
         ))}
     </Select>
   );
-  if (stage === "live")
+  if (stage === "pre" && (!fixture || fixture.date !== matchDate))
+    return (
+      <div className="matchday-window">
+        <header className="matchday-top"><button onClick={onExit}><ArrowLeft size={16} />
+          {ru ? "Вернуться в кабинет" : "Back to the office"}</button></header>
+        <main className="matchday-press-stage">
+          <h1>{ru ? "Сегодня у клуба нет матча" : "No club game today"}</h1>
+          {fixture && opponent
+            ? <p>{ru ? "Ближайший матч" : "Next game"} · {fixture.date} · {fixture.away} @ {fixture.home}</p>
+            : <p>{ru ? "Следующий соперник пока не определён." : "The next opponent is yet to be scheduled."}</p>}
+        </main>
+      </div>
+    );
+  if (stage === "live" && fixture) {
+    const [home, away] = clubMatchTeams(game, fixture);
     return (
       <div className="matchday-window">
         <SpatialMatchCenter
           game={game}
-          home={game.teams.find(
-            (t) =>
-              t.id ===
-              (preseason?.home ??
-                (playoffSeries
-                  ? [0, 1, 4, 6].includes(
-                      playoffSeries.wins[0] + playoffSeries.wins[1],
-                    )
-                    ? playoffSeries.a
-                    : playoffSeries.b
-                  : fixture?.home)),
-          )!}
-          away={game.teams.find(
-            (t) =>
-              t.id ===
-              (preseason?.away ??
-                (playoffSeries
-                  ? [0, 1, 4, 6].includes(
-                      playoffSeries.wins[0] + playoffSeries.wins[1],
-                    )
-                    ? playoffSeries.b
-                    : playoffSeries.a
-                  : fixture?.away)),
-          )!}
+          home={home}
+          away={away}
+          eliminationRules={fixture.eliminationRules}
           edit={edit}
           onComplete={() => setStage("post")}
         />
       </div>
     );
+  }
   if (stage === "post" || stage === "result")
     return (
       <div className="matchday-window">
@@ -181,11 +152,12 @@ export default function MatchdayHub({
               ? (ru ? "ИТОГ МАТЧА" : "MATCH RESULT")
               : (ru ? "ПОСЛЕМАТЧЕВЫЕ МЕДИА" : "POST-MATCH MEDIA")}</span>
             <b>
-              {game.last?.away} {game.last?.goals[1]} : {game.last?.goals[0]}{" "}
+              {matchDate} · {game.last?.away} {game.last?.goals[1]} : {game.last?.goals[0]}{" "}
               {game.last?.home}
             </b>
           </div>
         </header>
+        {game.last && <MatchupReport result={game.last} tr={(a,b)=>ru?a:b}/>}
         {game.last && <MatchRatingsPanel game={game} result={game.last} />}
         {stage === "post" && (
         <div className="matchday-press-stage">
@@ -307,6 +279,12 @@ export default function MatchdayHub({
                     : "Lineup, tactics and public expectations are locked in before the game."}
               </p>
             </div>
+            {opponent && fixture && <OpponentBrief opponent={opponent} tr={(a,b)=>ru?a:b}
+              marked={game.matchCoverage?.date===matchDate ? game.matchCoverage.target : undefined}
+              change={target=>edit(current=>{current.matchCoverage=target?{target,date:matchDate,opponent:opponent.id}:undefined;})}/>}
+            {opponent && fixture && <MatchPreparation opponent={opponent} ru={ru}
+              prep={game.matchPreparation?.date===matchDate && game.matchPreparation.opponent===opponent.id ? game.matchPreparation : {date:matchDate,opponent:opponent.id}}
+              save={p=>edit(current=>{current.matchPreparation=p})}/>}
             <div className="matchup-card">
               <ClubLink team={team} crest={72}>
                 {""}
@@ -511,11 +489,18 @@ export default function MatchdayHub({
           className="press-skip"
           disabled={captainRequired}
           onClick={() => {
+            let saved = false;
             edit((current) => {
+              const due = nextClubFixture(current);
+              if (!due || due.date !== matchDate || current.calendar?.date !== matchDate ||
+                  due.home !== fixture?.home || due.away !== fixture?.away || openingGameNeedsCaptain(current)) return;
               if (!preDone && !prePressSkipped) recordSkippedPress(current);
               advanceDay(current);
+              if (current.last?.date !== matchDate || current.last.home !== due.home || current.last.away !== due.away)
+                throw Error(ru ? "Не удалось записать результат этой встречи" : "The fixture result could not be recorded");
+              saved = true;
             });
-            setStage("result");
+            if (saved) setStage("result");
           }}
         >
           {ru ? "Пропустить матч и получить результат" : "Skip match and get result"}

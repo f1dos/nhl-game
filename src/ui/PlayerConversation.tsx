@@ -1,3 +1,4 @@
+import {IceAgreementPanel} from "./CareerDesk";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -322,7 +323,8 @@ export default function PlayerConversation({
                 </div>
               </section>
             )}
-          </main>
+            <IceAgreementPanel game={game} edit={edit} player={player}/>
+        </main>
         </div>
       </div>
     );
@@ -633,6 +635,7 @@ export default function PlayerConversation({
               })}
             </section>
           )}
+          <IceAgreementPanel game={game} edit={edit} player={player}/>
         </main>
       </div>
     </div>

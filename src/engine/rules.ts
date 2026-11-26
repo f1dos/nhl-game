@@ -1,6 +1,6 @@
 /** Configurable demonstration rules, not a verified 2026/27 CBA dataset. */
 export const RULES = {
-  gamesPerSeason: 82,
+  gamesPerSeason: 84,
   regulationSeconds: 3600,
   regularOvertimeSeconds: 300,
   eventStepSeconds: 20,

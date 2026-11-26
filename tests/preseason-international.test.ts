@@ -126,11 +126,11 @@ test("the February break leaves a gap in the NHL schedule", () => {
   assert.equal(g.internationalSeason?.breakStart, "2027-02-06");
   assert.equal(fixtureDate(g, 60), "2027-02-04");
   assert.equal(fixtureDate(g, 61), "2027-02-18");
-  const dates = Array.from({ length: 82 }, (_, r) => fixtureDate(g, r));
+  const dates = Array.from({ length: 84 }, (_, r) => fixtureDate(g, r));
   assert(dates.every((d) => d < "2027-02-06" || d >= "2027-02-18"));
   assert(isBreakDay(g, "2027-02-10"));
   assert(!isBreakDay(g, "2027-02-18"));
-  assert.equal(new Set(dates).size, 82);
+  assert.equal(new Set(dates).size, 84);
 });
 
 test("old saves load: mid-season careers past the break simply skip it", () => {
@@ -202,7 +202,7 @@ test("best-on-best: national rosters by nationality, deterministic, NHL stats un
 test("World Championship takes only players from clubs out of the playoffs", () => {
   const g = career("ru");
   g.phase = "playoffs";
-  g.round = 82;
+  g.round = 84;
   g.bracket = [[{ a: "TOR", b: "BOS", wins: [0, 0], games: [] }]];
   g.playoffRound = 0;
   processDates(g, "2027-05-05", "2027-05-21");

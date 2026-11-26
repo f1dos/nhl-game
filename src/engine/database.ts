@@ -1,3 +1,4 @@
+import { registerRoster } from "./contracts";
 import type { Locale } from "../i18n/locales";
 import { tx } from "./text";
 import { RULES } from "./rules";
@@ -300,6 +301,7 @@ export function newGame(
       tactics: { forecheck: "1-2-2", pace: 50, physical: 50, shooting: 50 },
       record: emptyRecord(),
     };
+    registerRoster(t,RULES.defaultSalaryCapMillions);
     autoLines(t);
     return t;
   });
@@ -429,7 +431,7 @@ function createMinorPlayer(
   player.contractType = league === "AHL" ? "AHL" : undefined;
   const target =
     league === "AHL"
-      ? 59 + (hash(identity.id) % 15)
+      ? 54 + (hash(identity.id) % 16)
       : 48 + (hash(identity.id) % 18);
   setPlayerOverall(player, target);
   assignPotential(player, { league });
