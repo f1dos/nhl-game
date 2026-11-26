@@ -16,7 +16,8 @@ import { RINK } from "../engine/rink";
 import { SpatialMatch, type SpatialFrame } from "../engine/spatialMatch";
 import { englishDynamic } from "../i18n/englishMatch";
 import { advanceDay } from "../engine/management";
-import { Crest } from "./components";
+import broadcastCrests from "../assets/scoreboard-crests.json";
+const clubMarks: Record<string,string> = broadcastCrests;
 import TacticalCenter from "./TacticalCenter";
 import { CAMERA_MODES, type CameraMode } from "./cameraModes";
 import Select from "./Select";
@@ -38,8 +39,10 @@ const clock = (time: number) => {
   const s = Math.max(0, Math.round(left));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
-const periodLabel = (time: number, ru: boolean) =>
-  time >= 3600 ? "OT" : ru ? `${Math.floor(time / 1200) + 1}-й пер.` : `P${Math.floor(time / 1200) + 1}`;
+function periodMark(time: number) {
+  const period = Math.floor(time / 1200);
+  return period >= 3 ? "OT" : <>{period+1}<sup>{["ST","ND","RD"][period]}</sup></>;
+}
 
 /** Bird's-eye radar of the rink, like the 2D pitch in football-manager games. */
 function MiniRink({ frame, teams }: { frame: SpatialFrame; teams: Team[] }) {
@@ -182,7 +185,7 @@ export default function SpatialMatchCenter({
           setRunning((r) => !r);
         }
       } else if (e.key === "Escape") setDrawer(null);
-      else if (["1", "2", "3", "4"].includes(e.key)) setCamera(CAMERA_MODES[+e.key - 1].value);
+      else if (["1", "2", "3", "4", "5"].includes(e.key)) setCamera(CAMERA_MODES[+e.key - 1].value);
     };
     window.addEventListener("keydown", onKey);
     const onFs = () => setFullscreen(!!document.fullscreenElement);
@@ -276,26 +279,22 @@ export default function SpatialMatchCenter({
         </Suspense>
       </div>
 
-      {/* Score bug, top left */}
-      <div className="bw-bug" aria-live="polite">
-        {[1, 0].map((s) => (
-          <div key={s} className="bw-bug-team" style={{ ["--team" as string]: teams[s].color }}>
-            <Crest team={s ? away : home} size={26} />
-            <b>{teams[s].id}</b>
-            <strong>{result.goals[s]}</strong>
+      <div className="match-strip">
+        <div className="match-strip-main" aria-label={tr("Табло матча", "Match scoreboard")}>
+          <div className="strip-time">
+            <strong>{match.done ? (result.so ? "SO" : result.ot ? "OT" : tr("Итог","Final")) : clock(match.time)}</strong>
+            <span className={match.done ? "is-final" : undefined}>{match.done ? tr("ФИНАЛ","FINAL") : periodMark(match.time)}</span>
           </div>
-        ))}
-        <div className="bw-bug-clock">
-          <span>{match.done ? tr("ФИНАЛ", "FINAL") : periodLabel(match.time, ru)}</span>
-          <b>{match.done ? (result.so ? "SO" : result.ot ? "OT" : "—") : clock(match.time)}</b>
+          {[1,0].map(side => <div key={side} className={side ? "strip-side visiting" : "strip-side hosting"}>
+            <img className="strip-mark" src={clubMarks[teams[side].id] ?? teams[side].logoUrl} alt="" /><b>{teams[side].id}</b>
+            <strong aria-label={teams[side].id+" "+result.goals[side]}>{result.goals[side]}</strong>
+          </div>)}
+          <div className="strip-shots"><b>{result.shots[1]}</b><small title={tr("Броски в створ","Shots on goal")}>SOG</small><b>{result.shots[0]}</b></div>
         </div>
-        {frame.delayedOffside !== undefined && <div className="bw-bug-pp">{tr("Отложенное вне игры", "Delayed offside")} · {teams[frame.delayedOffside].id}</div>}
-        {power && <div className="bw-bug-pp">{power}</div>}
-        <div className="bw-bug-sog">
-          {tr("БРОСКИ", "SOG")} {result.shots[1]} — {result.shots[0]}
-        </div>
-        <div className="bw-bug-man" title={tr("Составы на льду", "Skaters on the ice")}>
-          {manpower[1]}×{manpower[0]}
+        <div className="strip-notes">
+          {(manpower[0] !== 5 || manpower[1] !== 5) && <span title={tr("Составы на льду","Skaters on the ice")}>{manpower[1]} × {manpower[0]}</span>}
+          {power && <b>{power}</b>}
+          {frame.delayedOffside !== undefined && <b>{tr("Отложенное вне игры","Delayed offside")} · {teams[frame.delayedOffside].id}</b>}
         </div>
       </div>
       {/* Penalty box: who is serving and how long is left */}

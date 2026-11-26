@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { BENCH, RINK } from "../engine/rink";
 import bowlData from "../assets/match-night.json";
 import fanData from "../assets/match-night/fans.json";
+import architectureData from "../assets/match-night/architecture.json";
 import rinkData from "../assets/match-night/rink.json";
 
 export function unpack<T>(encoded: string): T {
@@ -87,7 +88,7 @@ export function buildMatchNight(
     new THREE.MeshBasicMaterial({
       map: atlas,
       alphaTest: 0.38,
-      color: 0xcacbd0,
+      color: 0x96929c,
     }),
   );
   crowdMaterial.onBeforeCompile = (shader) => {
@@ -146,8 +147,47 @@ export function buildMatchNight(
     tiles[distant++] = a[j + 3];
   }
   fans.count = distant;
+  // Follow the glass through the corners. Build in source-bowl metres.
+  const railSeats: THREE.Matrix4[] = [], decks: THREE.Matrix4[] = [];
+  for (let row = 0; row < 2; row++) {
+    const radius = 8.4 + .96 + row * .89;
+    let section = 0;
+    const sectionSeats = (length: number, sample: (t:number) => number[]) => {
+      const count = Math.floor(length / .67);
+      for (let i = 0; i < count; i++) {
+        const [x,z,nx,nz] = sample((i+.5)/count);
+        if ((z < -12 && Math.abs(x)<16.4) || (z>12 && Math.abs(x)<7.8)) continue;
+        const height = .24 + .26*row;
+        dummy.rotation.y = Math.atan2(-nx,-nz);
+        dummy.position.set(x,height/2,z);
+        dummy.scale.set(length/count+.018,height,.92);
+        dummy.updateMatrix();
+        decks.push(dummy.matrix.clone());
+        dummy.scale.setScalar(1);
+        if (i===0 || i%19===18) continue;
+        dummy.position.y = height;
+        dummy.updateMatrix();
+        railSeats.push(dummy.matrix.clone());
+        const seed = (i*37+row*17+section*13)%97;
+        if (seed%17 !== 0) lower[seed%lower.length].push(dummy.matrix.clone());
+      }
+      section++;
+    };
+    for (const sign of [-1,1]) {
+      sectionSeats(43.2,t=>[(t-.5)*43.2,sign*(4.6+radius),0,sign]);
+      sectionSeats(9.2,t=>[sign*(21.6+radius),(t-.5)*9.2,sign,0]);
+      for (const end of [-1,1]) sectionSeats(radius*Math.PI/2,t=>{
+        const nx=sign*Math.cos(t*Math.PI/2), nz=end*Math.sin(t*Math.PI/2);
+        return [sign*21.6+nx*radius,end*4.6+nz*radius,nx,nz];
+      });
+    }
+  }
+  const risers = new THREE.InstancedMesh(own(new THREE.BoxGeometry()),own(new THREE.MeshStandardMaterial({color:0x454951,roughness:.96})),decks.length);
+  decks.forEach((m,i)=>risers.setMatrixAt(i,m));
+  risers.layers.set(1);
+  bowl.add(risers);
   const nearMat = own(
-    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }),
+    new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xb4adb4, roughness: 0.85 }),
   );
   unpack<[number[], number[], number[]][]>(fanData).forEach(
     ([positions, colors, indices], i) => {
@@ -199,7 +239,7 @@ export function buildMatchNight(
         roughness: 0.9,
       }),
     ),
-    data.seat.length / 4,
+    data.seat.length / 4 + railSeats.length,
   );
   let empty = 0;
   for (let i = 0; i < data.seat.length; i += 4) {
@@ -216,6 +256,7 @@ export function buildMatchNight(
     dummy.updateMatrix();
     chairs.setMatrixAt(empty++, dummy.matrix);
   }
+  for (const matrix of railSeats) chairs.setMatrixAt(empty++,matrix);
   chairs.count = empty;
   chairs.layers.set(1);
   bowl.add(chairs);
@@ -268,8 +309,53 @@ export function buildMatchNight(
     });
     panel(rink,left,22.367,strip.z);
   }
+  const architecture = unpack<Record<string,[number[],number[],string[]]>>(architectureData);
+  const overhead = new THREE.Group(), gallery = new THREE.Group();
+  const palette = new Map<string,THREE.Color>();
+  for (const [name,[positions,indices,swatches]] of Object.entries(architecture)) {
+    const vertices = new Float32Array(indices.length*3), colors = new Float32Array(vertices.length);
+    indices.forEach((index,i)=>{
+      const swatch = swatches[Math.floor(i/3)];
+      let color = palette.get(swatch);
+      if (!color) { color = new THREE.Color(swatch); palette.set(swatch,color); }
+      color.toArray(colors,i*3);
+      for (let axis=0;axis<3;axis++) vertices[i*3+axis]=positions[index*3+axis];
+    });
+    const geo=own(new THREE.BufferGeometry());
+    geo.setAttribute("position",new THREE.BufferAttribute(vertices,3));
+    geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
+    geo.computeVertexNormals();
+    const parameters={vertexColors:true,side:THREE.DoubleSide};
+    const material=name==="concourse"
+      ? new THREE.MeshStandardMaterial({...parameters,roughness:.88})
+      : new THREE.MeshBasicMaterial(parameters);
+    if (name==="soffit" || name==="suite lights") {
+      const roof=name==="soffit";
+      material.onBeforeCompile=shader=>{
+        shader.vertexShader="varying vec3 buildingPoint;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nbuildingPoint=position;");
+        const light=roof ? `
+          vec2 q=buildingPoint.xz/vec2(68.,51.);
+          float radial=length(q);
+          float seam=cos(atan(q.y,q.x)*64.);
+          float bounce=.22+.48*exp(-12.*pow(radial-.48,2.))+.10*(1.-seam);
+          diffuseColor.rgb *= vec3(.80,.73,.86)*bounce;
+        ` : `
+          float along=buildingPoint.x*.81+buildingPoint.z*.43;
+          float mullion=smoothstep(.05,.14,fract(along));
+          float sill=smoothstep(.05,.20,fract(buildingPoint.y*1.8));
+          float interior=.30+.70*smoothstep(-.5,.75,sin(floor(along)*7.81));
+          diffuseColor.rgb *= (.25+.75*mullion)*(.28+.72*sill)*interior;
+        `;
+        shader.fragmentShader="varying vec3 buildingPoint;\n"+shader.fragmentShader.replace("#include <color_fragment>","#include <color_fragment>\n"+light);
+      };
+      material.customProgramCacheKey=()=>name;
+    }
+    const mesh=new THREE.Mesh(geo,own(material));
+    mesh.name=name;
+    (name==="soffit" || name==="luminaires" ? overhead : gallery).add(mesh);
+  }
   return {
-    doors,
+    doors, overhead, gallery,
     bowl,
     ceiling,
     rink,

@@ -100,14 +100,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     if (quality === "high") enableShadows(renderer, scene);
     const iceFx = buildIceFx(scene, arena.ice, quality);
     let lastPeriod = "";
-    let frameNo = 0, slowFor = 0, reflections = quality === "high";
-    let directRender = quality === "low";
-    const warmupUntil = performance.now()+4500;
+    let frameNo = 0;
+    const directRender = quality === "low";
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 260);
     camera.layers.enable(1);
     const kits = [kitFor(home, false), kitFor(away, true)];
     const teams = [home, away];
-    const playerOf = (side: number, id: string) => teams[side].players.find(p => p.id === id);
+    const rosters = teams.map(team => new Map(team.players.map(player => [player.id, player])));
+    const playerOf = (side: number, id: string) => rosters[side].get(id);
 
     // --- on-ice actors: up to six skaters (6v5 with the goalie pulled) + goalie
     const actors: { rig: RigLike; side: number; slot: number }[] = [];
@@ -164,6 +164,15 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       scene.add(rig.root);
       return o;
     });
+    const figures: RigLike[] = [...actors, ...bench, ...officials, ...coaches].map(({rig}) => rig);
+    let boundsFrame = -1;
+    scene.onBeforeRender = () => {
+      // World matrices are now current. The reflection camera and shadow pass
+      // reuse these camera-independent bounds for the same animation frame.
+      if (boundsFrame === frameNo) return;
+      for (const rig of figures) rig.updateRenderBounds?.();
+      boundsFrame = frameNo;
+    };
     const [refA, refB, lineA, lineB] = officials;
     if(data0?.stoppage?.phase==="lineup"){
       lineA.x=data0.stoppage.dot.x;lineA.z=data0.stoppage.dot.z-.64;
@@ -177,7 +186,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
     let penaltyRoute:{stop:SpatialStoppage;x:number;z:number;wingX:number;wingZ:number}|undefined;
     let calledPenalty:SpatialStoppage|undefined;
     const dropFrom=new THREE.Vector3();
-    let releasedAt:SpatialStoppage|undefined;
+    let dropReleased = false;
     const bladePosition=new THREE.Vector3(),lastBlade=new THREE.Vector3(),releaseError=new THREE.Vector3();
     let bladeOwner:string|undefined,releaseAge=1;
     let lastSave: "glove" | "other" = "other";
@@ -229,6 +238,11 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
 
     const skaterState = (body: SkaterBody, s: SpatialStoppage | undefined, frameData: SpatialFrame): { state: RigState; variant?: number; side?: number; face?: number } => {
       if (!s) {
+        if (body.goalie) {
+          const forward=attack(frameData,body.side);
+          const angle=Math.atan2(frameData.puck.z-body.z,Math.max(1.4,forward*(frameData.puck.x-body.x)));
+          return {state:"play",face:forward*(Math.PI/2-THREE.MathUtils.clamp(angle,-1.15,1.15))};
+        }
         // A defender giving ground inside the rush stays square to the carrier.
         const carrier = frameData.bodies.find(p => p.id === frameData.carrierId);
         if (carrier && carrier.side !== body.side && !body.goalie) {
@@ -242,9 +256,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       if (s.phase === "lineup" || s.phase === "drop") {
         const takers = drawTakers(frameData, s.dot);
         const dirX = attack(frameData, body.side);
-        if (s.phase === "drop" && takers.includes(body.id))
+        if (takers.includes(body.id) && Math.hypot(body.x-s.dot.x,body.z-s.dot.z)<2.1)
           return { state: "faceoff-stance", face: Math.atan2(s.dot.x - body.x, s.dot.z - body.z) };
-        return { state: "faceoff-ready", face: dirX > 0 ? Math.PI / 2 : -Math.PI / 2 };
+        return { state: "faceoff-ready", face: Math.atan2(s.dot.x-body.x+dirX*1.5,s.dot.z-body.z) };
       }
       if (s.phase === "review") return {state:"faceoff-ready"};
       if (s.kind === "goal") {
@@ -284,6 +298,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       // During a goal replay the figures show recorded frames.
       const frameData = director.frameFor(liveFrame, data.running ? Math.min(wallDt,.4) : 0);
       const stoppage = frameData?.stoppage;
+      if (stoppage?.phase === "lineup") dropReleased = false;
       const liveStop = liveFrame?.stoppage;
       const review = liveStop?.review;
       const showReview = review && liveStop?.phase !== "lineup" && liveStop?.phase !== "drop";
@@ -313,9 +328,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         }
         puckTrack.sample(stamp);
         // --- skaters on the ice
+        const skaters: SkaterBody[][] = [[], []];
+        const goalies: (SkaterBody | undefined)[] = [];
+        for (const body of frameData.bodies) {
+          if (body.goalie) goalies[body.side] = body;
+          else skaters[body.side].push(body);
+        }
         actors.forEach(({ rig, side, slot }) => {
-          const bodies = frameData.bodies.filter(b => b.side === side);
-          const body = slot === 6 ? bodies.find(b => b.goalie) : bodies.filter(b => !b.goalie)[slot];
+          const body = slot === 6 ? goalies[side] : skaters[side][slot];
           rig.setVisible(!!body);
           if (!body) return;
           const player = playerOf(side, body.id);
@@ -356,10 +376,9 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           lastIce.set(body.id, safe);
           const carrying = frameData.carrierId === body.id;
           const pressure = carrying || Math.hypot(frameData.puck.x-body.x, frameData.puck.z-body.z) < 3
-            ? Math.min(...frameData.bodies.filter(o => o.side !== side && !o.goalie)
-                .map(o => Math.hypot(o.x - body.x, o.z - body.z)), 20)
+            ? skaters[1-side].reduce((gap,o) => Math.min(gap, Math.hypot(o.x-body.x,o.z-body.z)),20)
             : undefined;
-          rig.update(dt, stoppage ? showDt : animDt, { x: safe.x, z: safe.z, vx: body.vx, vz: body.vz, puckX: frameData.puck.x, puckZ: frameData.puck.z, hasPuck: carrying, vault: enter?.vaultX !== undefined ? Math.min(1,enter.t/.78) : undefined, face: enter?.vaultX !== undefined && enter.t<.78 ? 0 : look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
+          rig.update(dt, stoppage ? showDt : animDt, { x: safe.x, z: safe.z, vx: body.vx, vz: body.vz, puckX: stoppage?.dot.x ?? frameData.puck.x, puckZ: stoppage?.dot.z ?? frameData.puck.z, hasPuck: carrying, vault: enter?.vaultX !== undefined ? Math.min(1,enter.t/.78) : undefined, face: enter?.vaultX !== undefined && enter.t<.78 ? 0 : look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
           const mo = rig.motion;
           if (mo?.stopping && running(data)) spray.emit(inside.x, inside.z, mo.yaw, dt);
         });
@@ -411,7 +430,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           else if (cue.kind === "faceoff") {
             actor?.trigger("draw");
             other?.trigger("tie-up");
-            if(!releasedAt)lineA.rig.trigger("drop");
+            if(!dropReleased)lineA.rig.trigger("drop");
           } else if (cue.kind === "save") {
             const keeper = at(cue.id);
             const toward = keeper && cue.x !== undefined ? { x: cue.x - keeper.x, z: (cue.z ?? 0) - keeper.z } : undefined;
@@ -426,14 +445,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           const atDot = Math.hypot(lineA.x - stoppage.dot.x, lineA.z - stoppage.dot.z + .64) < 2.5;
           if (atDot) {
             const t=stoppage.phase==="drop"?Math.max(0,stoppage.t-(stoppage.length-.45)):0;
-            if(t===0 || releasedAt!==stoppage){
+            if(!dropReleased){
               if(!lineA.rig.handPoint?.(dropFrom))dropFrom.set(lineA.x+.12,.99,lineA.z+.45);
             }
             const f=Math.min(1,t/.45);
             px=THREE.MathUtils.lerp(dropFrom.x,stoppage.dot.x,f);
             pz=THREE.MathUtils.lerp(dropFrom.z,stoppage.dot.z,f);
             py=Math.max(.018,dropFrom.y*(1-f*f));
-            if(t>0 && releasedAt!==stoppage){lineA.rig.trigger("drop");releasedAt=stoppage;}
+            if(t>0 && !dropReleased){lineA.rig.trigger("drop");dropReleased=true;}
           }
           else { px = stoppage.dot.x; pz = stoppage.dot.z; py = 0.04; }
         }
@@ -673,19 +692,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         label.style.borderLeftColor = teams[labelled.side].color;
       }
       frameNo++;
-      // Measure presentation time in wall seconds; the animation clock is capped.
-      if (now > warmupUntil && !document.hidden) {
-        slowFor = Math.max(0,slowFor + (wallDt > 1/42 ? Math.min(.5,wallDt) : -wallDt*.7));
-      }
-      if (reflections && slowFor > 3) { reflections = false; iceFx.setReflections(false); }
-      if (slowFor > 6 && !directRender) {
-        directRender = true;
-        renderer.shadowMap.enabled = false;
-      }
       tickShadows(renderer, frameNo);
       if (directRender) renderer.render(scene,camera);
       else post.render();
-      (window as unknown as { __arena3d?: object }).__arena3d = {reflections, directRender, shot:shotOut.shot, characters:byBody.size, geometries:renderer.info.memory.geometries, textures:renderer.info.memory.textures};
+      (window as unknown as { __arena3d?: object }).__arena3d = {reflections: quality === "high", directRender, shot:shotOut.shot, characters:byBody.size, geometries:renderer.info.memory.geometries, textures:renderer.info.memory.textures};
       frame = requestAnimationFrame(animate);
     };
     camera.position.set(0, 16, 34); frame = requestAnimationFrame(animate);
@@ -693,7 +703,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       microphone.pause();
       leaveArena(); gameAudio.setRunning(false); spray.dispose(); iceFx.dispose(); post.dispose();
       cancelAnimationFrame(frame); observer.disconnect();
-      [...actors, ...bench, ...officials, ...coaches].forEach(({ rig }) => rig.dispose());
+      figures.forEach(rig => rig.dispose());
       arena.dispose();
       scene.traverse(object => { if (object instanceof THREE.Mesh && !object.userData.shared) { object.geometry.dispose(); const materials = Array.isArray(object.material) ? object.material : [object.material]; materials.forEach(material => material.dispose()); } });
       factory.dispose();

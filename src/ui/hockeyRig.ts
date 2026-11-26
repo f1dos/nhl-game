@@ -1385,6 +1385,18 @@ export class HockeyRig {
       P.headYaw += clamp(-lat * 0.06, -0.5, 0.5);
     }
 
+    // --- root placement
+    const stopYaw = stop * this.stopDir * 1.2;
+    this.root.rotation.y = this.yaw + stopYaw + P.yawOff;
+    this.root.position.set(this.px + fx * P.offF, this.root.position.y, this.pz + fz * P.offF);
+    // --- ragdoll-style tilt from a hit (spring back with damping)
+    const tl = this.tilt;
+    tl.vp += (-tl.p * 18 - tl.vp * 5.5) * animDt;
+    tl.vr += (-tl.r * 18 - tl.vr * 5.5) * animDt;
+    tl.p = clamp(tl.p + tl.vp * animDt, -0.7, 0.7);
+    tl.r = clamp(tl.r + tl.vr * animDt, -0.6, 0.6);
+    this.build.rotation.set(tl.p, 0, tl.r);
+    if (this.modelDrivesJoints) return;
     const amp = (this.goalie ? this.amp * 0.55 : this.amp) * (1 - P.legW) * (1 - P.seat);
     const idleSway = Math.sin(this.clock * 1.7 + this.phase * 6) * 0.025 * (1 - this.amp);
     const gk = this.goalie;
@@ -1450,17 +1462,6 @@ export class HockeyRig {
     this.pelvis.rotation.y = -twist * 0.25;
     const look = clamp(wrap(toLook - this.yaw - P.yawOff), -1.1, 1.1) * 0.55;
     this.head.rotation.set(-lean * 0.7 + P.headPitch, look - twist * 0.6 + P.headYaw * this.hs, -this.bank * 0.4 - strideLoad * .05);
-    // --- root placement
-    const stopYaw = stop * this.stopDir * 1.2;
-    this.root.rotation.y = this.yaw + stopYaw + P.yawOff;
-    this.root.position.set(this.px + fx * P.offF, this.root.position.y, this.pz + fz * P.offF);
-    // --- ragdoll-style tilt from a hit (spring back with damping)
-    const tl = this.tilt;
-    tl.vp += (-tl.p * 18 - tl.vp * 5.5) * animDt;
-    tl.vr += (-tl.r * 18 - tl.vr * 5.5) * animDt;
-    tl.p = clamp(tl.p + tl.vp * animDt, -0.7, 0.7);
-    tl.r = clamp(tl.r + tl.vr * animDt, -0.6, 0.6);
-    this.build.rotation.set(tl.p, 0, tl.r);
     // --- ground contact (or the bench seat)
     this.pelvis.position.y = 0;
     this.root.updateMatrixWorld(true);
@@ -1567,6 +1568,15 @@ export class HockeyRig {
       stopping: this.stopT > 0,
       yaw: this.yaw,
     };
+  }
+  private modelDrivesJoints = false;
+  /** The imported rig animates its own joints. Keep motion and action state
+   * in this driver, including the body scale, root offset and hit reaction. */
+  useModelJoints() {
+    this.modelDrivesJoints = true;
+    this.build.removeFromParent();
+    this.shaft?.removeFromParent();
+    this.blade.removeFromParent();
   }
   /** Hides the primitive figure (the skinned model draws instead). */
   hidePrimitives() {
