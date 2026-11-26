@@ -1,5 +1,5 @@
 import type { Team, TrainingSchedule, TrainingSession } from "./types";
-import { overall } from "./ratings";
+import { overall, resolveOpeningInjury } from "./ratings";
 import { baseOverall, developmentAge } from "./potential";
 import {
   coachBoost,
@@ -97,6 +97,7 @@ export function trainTeam(team: Team) {
     const unavailable = player.injury > 0;
     player.injury = Math.max(0, player.injury - (extraHeal ? 2 : 1));
     if (unavailable && player.injury === 0) {
+      resolveOpeningInjury(player);
       player.injuryStatus = undefined;
       player.injuryReason = undefined;
       player.injuryTimeline = undefined;

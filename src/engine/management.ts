@@ -426,17 +426,16 @@ function legalSwap(
 function aiTradeDay(g: Game) {
   if (!tradeWindowOpen(g) || g.phase==="offseason" || !g.calendar!.day || g.calendar!.day % 17) return;
   const clubs = g.teams.filter((team) => team.id !== g.user);
-  const a = clubs[g.calendar!.day % clubs.length];
-  const b = clubs[(g.calendar!.day * 7 + 3) % clubs.length];
-  if (!a || !b || a === b) return;
+  const market = new RNG(g.seed ^ Math.imul(g.calendar!.day, 0x9e3779b1) ^ g.year);
+  const a = market.pick(clubs);
+  const b = market.pick(clubs.filter(club => club !== a));
   const aProfile = a.aiProfile!;
-  const bProfile = b.aiProfile!;
-  const aTargets = [...a.players].filter((player) => player.injury <= 0);
-  const pa = aTargets.sort((x, y) =>
+  const candidates = a.players.filter(p => p.injury <= 0).sort((x, y) =>
     aProfile.strategy === "draft-lottery"
       ? y.age - x.age || y.salary - x.salary
       : tradeValue(x) - tradeValue(y),
-  )[0];
+  );
+  const pa = market.pick(candidates.slice(0, 4));
   if (!pa) return;
   const pb = [...b.players]
     .filter((player) => player.pos === pa.pos && player.injury <= 0)

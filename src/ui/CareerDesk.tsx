@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Game, Player, ManagementEvent } from "../engine/types";
 import {
   focusKey,
-  agreeMinutes,
+  agreeMinutes, expectedMinutes, agreementReply,
   beginDevelopment,
   projectedPayroll,
   evidenceRange,
@@ -37,8 +37,8 @@ function focusName(p: Player, k: ScoutFocus, ru: boolean) {
 export function IceAgreementPanel({
   game,
   edit,
-  player: p,
-}: Props & { player: Player }) {
+  player: p, onAgreement,
+}: Props & { player: Player; onAgreement?: (target:number, expected:number) => void }) {
   const [target, set] = useState(19),
     [unit, setUnit] = useState(0),
     ru = game.language === "ru";
@@ -47,6 +47,7 @@ export function IceAgreementPanel({
   if (p.pos === "G" || (!rostered && !records.length)) return null;
   const tr = (r: string, e: string) => (ru ? r : e);
   const forecast = forecastIceTime(club(game)).get(p.id)?.minutes ?? 0;
+  const expected = expectedMinutes(club(game), p);
   const options = [9, 14, 19, 22];
   const closest = options.reduce((a, b) =>
     Math.abs(b - forecast) < Math.abs(a - forecast) ? b : a,
@@ -80,6 +81,9 @@ export function IceAgreementPanel({
           </strong>
         </div>
       </div>
+      <p className="agreement-reply"><b>{p.name}</b> · {active
+        ? agreementReply(active.target, active.expected ?? expected)[ru ? "ru" : "en"]
+        : tr(`Рассчитываю на ${expected} мин за матч.`, `I expect ${expected} minutes a night.`)}</p>
       {active ? (
         <>
           <p>
@@ -160,9 +164,10 @@ export function IceAgreementPanel({
             </label>
             <button
               className="desk-primary"
-              onClick={() =>
-                edit((g) => agreeMinutes(g, p.id, target, unit || undefined))
-              }
+              onClick={() => {
+                edit((g) => agreeMinutes(g, p.id, target, unit || undefined));
+                onAgreement?.(target, expected);
+              }}
             >
               {tr("Дать слово игроку", "Make commitment")}
             </button>
@@ -302,7 +307,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
     <section className="career-decision desk-card dev-plan">
       <header>
         <small>
-          {p.name} · {p.pos} · {p.age}
+          {ru ? "Отдел развития" : "Player development"} · {t.id}
         </small>
         <h3>
           {ru
@@ -310,6 +315,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
             : "30-day development assignment"}
         </h3>
       </header>
+      <div className="dev-profile"><span className="dev-monogram">{p.number}</span><div><small>{p.pos} · {nhl ? "NHL" : "AHL"}</small><h4>{p.name}</h4></div><div className="dev-rating"><strong>{p.ovr}</strong><small>OVR</small></div></div>
       <select
         aria-label={ru ? "Выбор проспекта" : "Development prospect"}
         value={p.id}
@@ -332,7 +338,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
               ? forecastTeam.goalie === p.id
                 ? "G1"
                 : "G2"
-              : (forecast?.minutes ?? 0).toFixed(1) + " min"}
+              : (forecast?.minutes ?? 0).toFixed(1) + (ru ? " мин" : " min")}
           </strong>
           <span>
             {peer
@@ -344,7 +350,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
         </div>
         <div>
           <small>AHL · {ru ? "План нагрузки" : "Projected usage"}</small>
-          <strong>{p.pos === "G" ? "2 / 3" : "19 min"}</strong>
+          <strong>{p.pos === "G" ? "2 / 3" : (ru ? "19 мин" : "19 min")}</strong>
           <span>
             {p.pos === "G"
               ? ru
@@ -401,7 +407,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
               {plan.league} · {ru ? "Практика" : "Workload"}
             </small>
             <b>
-              {plan.games} GP · {plan.minutes.toFixed(0)} min
+              {ru ? "Матчей" : "Games"}: {plan.games} · {plan.minutes.toFixed(0)} {ru ? "мин" : "min"}
             </b>
           </div>
           {plan.outcome && (
@@ -419,6 +425,7 @@ export function DevelopmentDesk({ game: g, edit }: Props) {
       )}
       {(!plan || plan.outcome) && (
         <>
+          <div className="dev-focus-label">{ru ? "Навык для работы" : "Training focus"} · {p.attributes[focusKey(p,focus)]} / 99</div>
           <select
             aria-label={ru ? "Цель развития" : "Development focus"}
             value={focus}

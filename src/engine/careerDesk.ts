@@ -7,7 +7,21 @@ import { evaluateTrade, payroll, tradeValue, type TradeAssets } from "./trades";
 import { tx } from "./text";
 
 export type ScoutFocus = "release" | "stride" | "pressure";
+export function expectedMinutes(team: Team, player: Player) {
+  const defense = player.pos === "D";
+  const peers = team.players.filter(p => p.pos !== "G" && (p.pos === "D") === defense)
+    .sort((a,b) => b.ovr-a.ovr || a.id.localeCompare(b.id));
+  const rank = Math.max(0, peers.findIndex(p => p.id === player.id));
+  const tier = Math.floor(rank / (defense ? 2 : 3));
+  return (defense ? [22,19,15] : [19,16,13,10])[tier] ?? 9;
+}
+export function agreementReply(target: number, expected: number) {
+  return target < expected
+    ? {ru:`Я рассчитывал на ${expected} мин за матч. ${target} — меньше, чем я ожидал. Хочу вернуться к этому после десяти игр.`,en:`I expected ${expected} minutes a night. ${target} is less than I hoped for. Let's revisit this after ten games.`}
+    : {ru:`Договорились: ${target} мин в среднем за десять матчей. Такая роль меня устраивает.`,en:`Agreed: ${target} minutes a night over ten games. I'm happy with that role.`};
+}
 export interface IceAgreement {
+  expected?: number;
   log?: { date: string; opponent: string; minutes: number; unit?: number }[];
   player: string;
   name: string;
@@ -51,7 +65,13 @@ export function agreeMinutes(
     g.iceAgreements?.some((a) => a.player === id && a.status === "open")
   )
     return;
+  const expected = expectedMinutes(own(g), p);
+  if (target < expected) {
+    p.morale = Math.max(0, p.morale - Math.min(6, expected-target));
+    syncMoraleBonus(p);
+  }
   (g.iceAgreements ??= []).push({
+    expected,
     player: id,
     name: p.name,
     start: g.calendar!.date,

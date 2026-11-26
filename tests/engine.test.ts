@@ -18,7 +18,7 @@ test("32 franchises, unique players, 30 valid attributes and legal lineups", () 
   );
   assert.equal(
     organizationPlayers.filter((p) => p.identitySource === "nhl-api").length,
-    794,
+    795,
   );
   for (const t of g.teams) {
     assert.equal(t.lines.flat().length, 12);

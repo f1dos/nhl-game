@@ -39,3 +39,4 @@ import "./ui/polish.css";
 import "./ui/select.css";
 
 import "./ui/frontOffice.css";
+import "./ui/league-center.css";

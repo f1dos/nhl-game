@@ -30,7 +30,7 @@ test("accepted trade transfers ownership, refreshes lines and survives save/load
   );
   assert.equal(
     organizationPlayers.filter((p) => p.identitySource === "nhl-api").length,
-    794,
+    795,
   );
   assert.equal(
     validateSave(JSON.parse(JSON.stringify(g))).transactions?.length,

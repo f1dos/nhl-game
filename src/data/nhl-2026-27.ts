@@ -10060,7 +10060,7 @@ export const NHL_PLAYER_RATINGS: Record<number, NhlPlayerRating> = {
     savePct: 0.899,
   },
   "8476945": {
-    ovr: 74,
+    ovr: 88,
     rank: 24,
     group: "goalie",
     score: 7.3923,

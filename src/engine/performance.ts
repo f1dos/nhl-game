@@ -27,7 +27,7 @@ export function recordPlayerPerformance(player: Player, score: number) {
     60,
   );
   const injuryPenalty = player.injury >= 10 ? 1 : 0;
-  const desired = clamp(Math.round(form / 18) - injuryPenalty, -3, 3);
+  const desired = player.openingAgeingTarget !== undefined ? 0 : clamp(Math.round(form / 18) - injuryPenalty, -3, 3);
   const previous = player.formAdjustment ?? 0;
   const ceiling = player.potentialBeforeForm ?? player.potential;
   shiftOverall(player, desired - previous);
@@ -72,13 +72,17 @@ export function updateMatchPerformance(
     }
 }
 
-/** Removes short-term form, then returns the season-long development modifier. */
-export function prepareAnnualDevelopment(player: Player, language?: string) {
-  const t = textFor({ language });
+/** Return to permanent ability before applying a season review. */
+export function clearMatchForm(player: Player) {
   shiftOverall(player, -(player.formAdjustment ?? 0));
   player.formAdjustment = 0;
   player.potential = Math.max(player.potentialBeforeForm ?? player.potential, player.ovr);
   player.potentialBeforeForm = undefined;
+}
+
+export function prepareAnnualDevelopment(player: Player, language?: string) {
+  clearMatchForm(player);
+  const t = textFor({ language });
   const form = player.performanceForm ?? 0;
   const burden = player.injuryBurden ?? 0;
   const performance = form >= 25 ? 1 : form <= -25 ? -1 : 0;

@@ -43,6 +43,12 @@ export interface Player {
   birthDate?: string;
   identitySource?: "nhl-api" | "hockeytech" | "generated";
   ratingRank?: number;
+  /** Applied editorial starting rating, retained when a career is saved. */
+  startingRatingOverride?: number;
+  /** Target drawn once for Shesterkin's opening knee injury. */
+  openingInjuryReturn?: 87 | 88;
+  openingInjuryResolved?: boolean;
+  openingAgeingTarget?: 73 | 74;
   /** Overall pick number when drafted in this career. */
   draftOverall?: number;
   ratingSource?: "nhl-stats-model" | "generated";
@@ -686,6 +692,8 @@ export interface Game {
   version: 1;
   /** Potential model the player ceilings were computed with. */
   potentialModel?: number;
+  openingRatingsSeed?: number;
+  openingRatingsRevision?: number;
   id: string;
   seed: number;
   year: number;

@@ -109,7 +109,7 @@ export default function LeadershipCenter({
           ...preferred.filter((id) => id !== incumbent.captainId),
         ]
       : preferred;
-  const [group, setGroup] = useState<string[]>(initial.slice(0, 3));
+  const [group, setGroup] = useState<string[]>([...new Set([...initial, ...preferred, ...candidates.map(c=>c.player.id)])].filter(id => candidates.some(c=>c.player.id===id)).slice(0, 3));
   const [slot, setSlot] = useState<Slot>(0);
   const [lastResult, setLastResult] = useState<{
     verdict: LeadershipVerdict;
@@ -159,7 +159,7 @@ export default function LeadershipCenter({
       verdict: evaluation.verdict,
       approval: evaluation.approval,
       letter: !!result.letterEventId,
-      applied: result.applied,
+      applied: result.applied || firstThisSeason,
     });
     if (result.applied && firstThisSeason) setCaptainDialogue(true);
   };
@@ -466,7 +466,7 @@ export default function LeadershipCenter({
                   </div>
                 ) : (
                   <p className="muted-note">
-                    {tr(
+                    {!assigned ? tr("Сохраните эту тройку или выберите новых лидеров на сезон.", "Confirm these three for this season or choose new leaders.") : tr(
                       "Это текущий состав лидеров. Повторное сохранение ничего не изменит.",
                       "This is the current group. Saving it again changes nothing.",
                     )}
@@ -509,10 +509,10 @@ export default function LeadershipCenter({
                 <button
                   className="primary leadership-confirm"
                   onClick={confirm}
-                  disabled={!evaluation.changed}
+                  disabled={assigned && !evaluation.changed}
                 >
                   <Crown size={17} />
-                  {verdictTone(evaluation.verdict) === "bad"
+                  {!assigned && !evaluation.changed ? tr("Подтвердить на этот сезон", "Confirm for this season") : verdictTone(evaluation.verdict) === "bad"
                     ? tr("Всё равно утвердить", "Confirm anyway")
                     : tr("Утвердить лидерскую группу", "Confirm leadership group")}
                 </button>

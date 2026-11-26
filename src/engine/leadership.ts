@@ -555,6 +555,16 @@ export function applyLeadershipChoice(
       alternateIds,
     );
   if (alreadySet) {
+    if (g.leadershipSeason !== g.year) {
+      (g.leadershipLog ??= []).unshift({
+        year:g.year, date:g.calendar?.date ?? `${g.year}-09-15`, captainId, alternateIds:[...alternateIds],
+        verdict:evaluation.verdict, approval:evaluation.approval,
+      });
+      g.leadershipLog = g.leadershipLog.slice(0,30);
+    }
+    for (const event of g.events ?? []) {
+      if (event.action === "leadership" && !event.replies) { event.read=true; event.resolved=true; }
+    }
     g.leadershipSeason = g.year;
     return { applied: false, evaluation };
   }

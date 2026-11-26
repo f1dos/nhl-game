@@ -185,6 +185,12 @@ export function executeTrade(
     g.draftAssets?.filter((pick) => assets.takePicks?.includes(pick.id)) ?? [];
   givePicks.forEach((pick) => (pick.currentTeam = other));
   takePicks.forEach((pick) => (pick.currentTeam = g.user));
+  if (g.draft?.status === "draft") {
+    for (const asset of [...givePicks,...takePicks]) {
+      const slot = g.draft.picks.find(p=>p.year===asset.year && p.round===asset.round && p.originalTeam===asset.originalTeam && !p.prospectId);
+      if (slot) slot.team = asset.currentTeam;
+    }
+  }
   autoLines(a);
   autoLines(b);
   const describe = (players: Player[], picks: typeof givePicks) =>

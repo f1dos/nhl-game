@@ -14,6 +14,12 @@ import type { Game } from "../engine/types";
 
 type Edit = (fn: (game: Game) => void) => void;
 
+const topics: Record<string, [string,string]> = {
+  opponent:["Соперник","Opponent"], rivalry:["Дерби","Rivalry"], streak:["Серия команды","Team form"],
+  injury:["Лазарет","Injuries"], "star-form":["Форма лидеров","Player form"], goalie:["Вратарская бригада","Goaltending"],
+  standings:["Турнирное положение","Standings"], series:["Серия плей-офф","Playoff series"], preseason:["Предсезонка","Training camp"],
+  message:["Обращение к команде","Team message"], result:["Итог игры","Game result"], hero:["Игрок матча","Player of the game"]
+};
 const signed = (value: number) => `${value > 0 ? "+" : ""}${value}`;
 const initials = (name: string) =>
   name
@@ -105,10 +111,12 @@ export default function PressConference({
       </div>
     );
   return (
-    <div className="presser">
+    <div className="presser press-studio">
+      <header className="press-mast"><div><small>{game.user} · {ru ? "Пресс-служба клуба" : "Club media"}</small>
+      <h3>{type === "pre-match" ? (ru ? "Перед стартовым вбрасыванием" : "Before puck drop") : (ru ? "После финальной сирены" : "After the final horn")}</h3></div><time>{date}</time></header>
       <div className="presser-progress">
         <span>
-          <Mic2 size={14} /> LIVE
+          <Mic2 size={14} /> {complete ? (ru ? "Архив" : "Archive") : (ru ? "В эфире" : "Live")}
         </span>
         {conference.questions.map((question, index) => (
           <i
@@ -133,6 +141,8 @@ export default function PressConference({
               : `Question ${answered.length + 1} of ${conference.questions.length}`}
         </small>
       </div>
+      {!complete && answered.length > 0 && <p className="press-last-reaction" aria-live="polite">{pressAppearanceText(entries.find(e=>e.questionId === answered.at(-1)!.id)!,game.language).reaction}</p>}
+      {answered.length > 0 && <details className="press-record" open={complete}><summary>{ru ? "Стенограмма встречи" : "Conference transcript"} · {answered.length}</summary>
       {answered.map((question) => {
         const entry = entries.find((item) => item.questionId === question.id)!;
         const text = pressAppearanceText(entry, game.language);
@@ -173,6 +183,7 @@ export default function PressConference({
           </div>
         );
       })}
+      </details>}
       {current && (
         <div className="presser-exchange current">
           <div className="presser-question">
@@ -181,6 +192,7 @@ export default function PressConference({
               <small>
                 {current.journalist.name[lang]} · {current.journalist.outlet[lang]}
               </small>
+              {topics[current.topic] && <b className="press-topic">{topics[current.topic][ru ? 0 : 1]}</b>}
               <p className="press-prompt">{current.text[lang]}</p>
             </div>
           </div>

@@ -47,7 +47,7 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert.equal(screen.queryByRole("button", { name: "Пропустить матч и получить результат" }), null);
   fireEvent.click(screen.getByRole("button", { name: "Вернуться в кабинет" }));
   fireEvent.click(screen.getByText("Стратегия клуба"));
-  fireEvent.click(screen.getByText("Wild Card Hunt"));
+  fireEvent.click(screen.getByText("Борьба за уайлд-кард"));
   assert(screen.getByRole("dialog"));
   assert.equal(useGame.getState().game?.franchiseStrategy, undefined);
   fireEvent.click(screen.getByText("Утвердить стратегию"));
@@ -150,7 +150,10 @@ test("UI flow: club selection, roster, lineup edits, match, replay, league, save
   assert.notEqual(useGame.getState().game?.calendar?.date, matchDate);
   assert(useGame.getState().game?.last);
   fireEvent.click(screen.getByText("Таблица лиги"));
-  assert(screen.getByText("РЕГУЛЯРНЫЙ ЧЕМПИОНАТ"));
+  assert(screen.getByRole("heading", {name:"Лига и плей-офф"}));
+  fireEvent.click(screen.getByRole("button", {name:"Дивизионы"}));
+  assert.equal(document.querySelectorAll(".league-table tbody").length, 2);
+  fireEvent.click(screen.getByText("Рейтинг силы команд"));
   assert(screen.getByText("РЕЙТИНГ СИЛЫ · NHL 2026/27"));
   fireEvent.click(screen.getByText("Клубы NHL"));
   assert(screen.getByText("Профили клубов"));

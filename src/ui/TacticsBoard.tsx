@@ -9,17 +9,35 @@ import {
 } from "../engine/tactics";
 import Select from "./Select";
 const styleNames: Record<string, string> = {
-  umbrella: "Зонт",
-  overload: "Перегруз фланга",
-  "net-front": "Трафик перед воротами",
+  umbrella: "Зонтик · розыгрыш через вершину",
+  overload: "Перегруз сильного фланга",
+  "net-front": "Экран на пятаке",
   diamond: "Ромб",
   box: "Квадрат",
   wedge: "Клин",
   triangle: "Треугольник",
   aggressive: "Агрессивное давление",
-  possession: "Контроль шайбы",
+  possession: "Позиционный розыгрыш",
   "protect-lead": "Удержание преимущества",
 };
+
+// Slots follow the roster order: forwards first, then defenders.
+type Spots = number[][];
+const shapes: Record<string, Record<number, Spots>> = {
+  umbrella: {4:[[50,17],[23,36],[77,36],[50,57]],5:[[31,17],[68,17],[23,42],[77,42],[50,57]],6:[[30,17],[70,17],[50,31],[19,45],[81,45],[50,60]]},
+  overload: {4:[[28,17],[22,37],[53,27],[40,59]],5:[[27,17],[22,37],[53,28],[32,60],[73,51]],6:[[27,16],[20,37],[52,31],[75,21],[32,60],[77,52]]},
+  "net-front": {4:[[50,15],[26,28],[57,40],[73,58]],5:[[50,15],[22,32],[78,32],[32,53],[68,53]],6:[[50,15],[20,32],[80,32],[50,40],[29,59],[71,59]]},
+  possession: {3:[[22,27],[76,38],[45,57]],4:[[21,26],[74,21],[68,47],[31,55]],5:[[22,25],[74,21],[50,38],[22,55],[77,55]],6:[[20,27],[48,17],[80,27],[50,39],[26,58],[74,58]]},
+  box: {4:[[30,40],[70,40],[31,66],[69,66]],5:[[26,38],[74,38],[50,52],[28,68],[72,68]]},
+  diamond: {3:[[50,41],[29,62],[71,62]],4:[[50,35],[23,53],[77,53],[50,69]],5:[[50,32],[22,48],[78,48],[35,68],[65,68]]},
+  triangle: {3:[[24,47],[74,47],[50,68]]},
+  wedge: {3:[[50,38],[35,64],[66,64]]},
+  aggressive: {3:[[23,29],[64,43],[45,64]],4:[[23,29],[63,35],[34,55],[69,67]],5:[[23,27],[66,34],[48,45],[26,63],[72,66]]},
+  "protect-lead": {3:[[50,50],[28,68],[72,68]],4:[[35,48],[65,48],[27,69],[73,69]],5:[[50,42],[23,53],[77,53],[34,69],[66,69]]},
+};
+export function unitSpots(style: string, count: number): Spots {
+  return shapes[style]?.[count] ?? (shapes.possession[count] ?? []);
+}
 
 export default function TacticsBoard({
   team,
@@ -43,37 +61,9 @@ export default function TacticsBoard({
   const ids = unit
     ? [...unit.players, ...(situation === "6v5" ? [] : [team.goalie])]
     : [...team.lines[line], ...team.defense[pair], team.goalie];
-  const spots =
-    unit?.players.length === 3
-      ? [
-          [30, 35],
-          [70, 35],
-          [50, 64],
-        ]
-      : unit?.players.length === 4
-        ? [
-            [30, 30],
-            [70, 30],
-            [30, 62],
-            [70, 62],
-          ]
-        : unit?.players.length === 6
-          ? [
-              [23, 25],
-              [50, 18],
-              [77, 25],
-              [23, 52],
-              [77, 52],
-              [50, 70],
-            ]
-          : [
-              [23, 30],
-              [50, 23],
-              [77, 30],
-              [32, 61],
-              [68, 61],
-              [50, 86],
-            ];
+  const spots = unit ? unitSpots(unit.style, unit.players.length) : [[23,30],[50,23],[77,30],[32,61],[68,61]];
+  const zone = !unit || situation === "3v3" ? "full"
+    : Number(situation[0]) > Number(situation[2]) ? "attack" : "defend";
   const slot = selected ?? 0;
   const goalie = ids[slot] === team.goalie && slot === ids.length - 1;
   const candidates = team.players.filter(
@@ -216,6 +206,7 @@ export default function TacticsBoard({
               fill="#cfe1e8"
               stroke="#7694a3"
             />
+            {zone === "full" ? <>
             <path
               d="M2 50H98 M8 15H92 M8 85H92"
               stroke="#c55665"
@@ -241,6 +232,13 @@ export default function TacticsBoard({
               fill="none"
               stroke="#c55665"
             />
+            </> : <g transform={zone === "defend" ? "translate(0 100) scale(1 -1)" : undefined}>
+              <path d="M4 12H96" stroke="#c55665" strokeWidth=".6"/>
+              <path d="M2 71H98" stroke="#5b96b6" strokeWidth="1.4"/>
+              <path d="M44 12V8H56V12 M44 12a6 6 0 0 0 12 0" fill="none" stroke="#c55665" strokeWidth=".65"/>
+              {[26,74].map(x=><g key={x}><circle cx={x} cy={38} r={13} fill="none" stroke="#c55665" strokeWidth=".5"/><circle cx={x} cy={38} r={1} fill="#c55665"/></g>)}
+            </g>}
+            {unit && <polyline points={spots.map(([x,y]) => x+","+y).join(" ")} fill="none" stroke="#216778" strokeWidth=".65" strokeDasharray="2 1.1" opacity=".75" />}
           </svg>
           {ids.map((id, index) => {
             const p = team.players.find((p) => p.id === id);
