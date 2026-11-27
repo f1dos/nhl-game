@@ -279,8 +279,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       if (s.kind === "goal") {
         if (body.side === s.side) {
           if (body.goalie) return { state: "play" };
-          if (s.t >= 3.9) return { state: "fist-bump", side: benchSide(body.vx, body.vz) };
-          if (s.t >= 2.2) return { state: "hug" };
+          const scorer=frameData.bodies.find(b=>b.id===s.actor);
+          if(s.variant>=1/3 && s.t>=4.4) {
+            const atRail=body.z < -RINK.boardsZ+1 && Math.abs(body.x-BENCH.centerX[s.side])<BENCH.halfLength;
+            return atRail ? {state:"fist-bump",side:benchSide(body.vx,body.vz)} : {state:"play"};
+          }
+          const partner = scorer===body ? frameData.bodies.find(b=>b.side===body.side && b!==body && !b.goalie && Math.hypot(b.x-body.x,b.z-body.z)<1.4) : scorer;
+          if (s.t >= 2.2 && partner && Math.hypot(body.x-partner.x,body.z-partner.z)<1.55)
+            return { state:"hug", face:Math.atan2(partner.x-body.x,partner.z-body.z) };
           return body.id === s.actor ? { state: "celebrate", variant: s.variant } : { state: "play" };
         }
         return body.goalie ? { state: "goalie-beaten", variant: s.variant } : { state: "dejected" };
@@ -390,10 +396,14 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (swapped) rig.place(safe.x, safe.z, look.face ?? Math.atan2(body.vx, body.vz || .01));
           lastIce.set(body.id, safe);
           const carrying = frameData.carrierId === body.id;
-          const pressure = carrying || Math.hypot(frameData.puck.x-body.x, frameData.puck.z-body.z) < 3
-            ? skaters[1-side].reduce((gap,o) => Math.min(gap, Math.hypot(o.x-body.x,o.z-body.z)),20)
-            : undefined;
-          rig.update(dt, stoppage ? showDt : animDt, { x: safe.x, z: safe.z, vx: body.vx, vz: body.vz, puckX: stoppage?.dot.x ?? frameData.puck.x, puckZ: stoppage?.dot.z ?? frameData.puck.z, hasPuck: carrying, vault: enter?.vaultX !== undefined ? Math.min(1,enter.t/.78) : undefined, face: enter?.vaultX !== undefined && enter.t<.78 ? 0 : look.face, pressure, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
+          let pressure: number | undefined, pressureBearing: number | undefined;
+          if(carrying || Math.hypot(frameData.puck.x-body.x,frameData.puck.z-body.z)<3){
+            for(const rival of skaters[1-side]){
+              const dx=rival.x-body.x, dz=rival.z-body.z, gap=Math.hypot(dx,dz);
+              if(pressure===undefined || gap<pressure){pressure=gap; pressureBearing=Math.atan2(dx,dz);}
+            }
+          }
+          rig.update(dt, stoppage ? showDt : animDt, { x: safe.x, z: safe.z, vx: body.vx, vz: body.vz, puckX: stoppage?.dot.x ?? frameData.puck.x, puckZ: stoppage?.dot.z ?? frameData.puck.z, hasPuck: carrying, vault: enter?.vaultX !== undefined ? Math.min(1,enter.t/.78) : undefined, face: enter?.vaultX !== undefined && enter.t<.78 ? 0 : look.face, pressure, pressureBearing, nearBoards: carrying && (Math.abs(body.z) > 10.3 || Math.abs(body.x) > 26.5) });
           const mo = rig.motion;
           if (mo?.stopping && running(data)) spray.emit(inside.x, inside.z, mo.yaw, dt);
         });
@@ -419,7 +429,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           if (data.running && !director.replaying && !data.reviewMode) {
             const shooter = cue.kind === "shot" ? at(cue.id) : undefined;
             const danger = shooter ? Math.max(0, 1 - Math.hypot(Math.abs(shooter.x) - 26, shooter.z) / 18) : 0;
-            if (shooter && danger > 0.45) { benchUp[0] = benchUp[1] = now + 2600; }
+            if (shooter && danger > 0.45) { benchUp[shooter.side] = now+2600; benchUp[1-shooter.side]=now+1550; }
             gameAudio.react(cue.kind, { home: cue.kind === "goal" ? at(cue.id)?.side !== 1 : homeActs, danger });
           }
           if (cue.kind === "shot") {
@@ -442,8 +452,8 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
             else {
               const hitter=at(cue.id), opponent=at(cue.target);
               const toward=hitter && opponent ? {x:opponent.x-hitter.x,z:opponent.z-hitter.z} : undefined;
-              actor?.trigger("check",toward);
-              other?.trigger("checked",toward && {x:-toward.x,z:-toward.z});
+              actor?.trigger("check",toward,cue.contact==="pin" ? .48 : 1);
+              other?.trigger("checked",toward && {x:-toward.x,z:-toward.z},cue.contact==="pin" ? .48 : 1);
             }
           }
           else if (cue.kind === "block") actor?.trigger("block");
@@ -549,7 +559,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
           const target = skaterNetRoute(m, destination);
           const dx = target.x - m.x, dz = target.z - m.z, d = Math.hypot(dx, dz);
           const crossing = !inBox && Math.abs(m.z+RINK.boardsZ)<1.4;
-          if (crossing && !m.vault && Math.abs(m.x-BENCH.centerX[side])<1.3) gateOpen[side]=true;
+          if (!inBox && !m.vault && Math.abs(m.z+RINK.boardsZ)<2.6 && Math.abs(m.x-BENCH.centerX[side])<1.5) gateOpen[side]=true;
           const speed = Math.min(crossing ? (m.vault ? 1.45 : 2.1) : 7, d * 3 + 1.5);
           m.vx = d > 0.01 ? (dx / d) * speed : 0; m.vz = d > 0.01 ? (dz / d) * speed : 0;
           const step = Math.min(d, speed * moveDt);
@@ -561,12 +571,22 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         }
         let state: RigState = m.mode === "box" ? "box" : "seated";
         if (m.mode === "moving") state = "play";
-        else if (m.mode === "seat" && !stoppage && now < benchUp[side]) state = "bench-stand";
+        else if (m.mode === "seat" && !stoppage && now < benchUp[side]) {
+          const reaction=Math.abs(Math.sin(seatX*4.7));
+          if(reaction>.22 && now < benchUp[side]-reaction*680) state="bench-stand";
+        }
         else if (m.mode === "seat" && stoppage?.kind === "goal" && stoppage.phase === "celebrate") {
           if (side === stoppage.side) {
-            const near = scorer && stoppage.t >= 3.9 && Math.abs(scorer.x - seatX) < 3.2;
-            state = near ? "bench-reach" : stoppage.t < 3.9 ? "bench-cheer" : "bench-stand";
+            const atRail=stoppage.variant>=1/3 && stoppage.t>=4.4;
+            const near = atRail && scorer && scorer.z < -RINK.boardsZ+1.15 && Math.abs(scorer.x-seatX)<1.35;
+            const delay=.16+Math.abs(Math.sin(seatX*7.1))*.78;
+            state = near ? "bench-reach" : stoppage.t < delay ? "seated" : stoppage.t < 3.9+delay ? "bench-cheer" : "bench-stand";
           } else state = "bench-dejected";
+        }
+        if(m.mode==="seat"){
+          const meetLine=scorer && stoppage?.side===side && stoppage.variant>=1/3 && stoppage.t>=3.4;
+          m.z=THREE.MathUtils.damp(m.z,meetLine ? -RINK.boardsZ-.45 : BENCH.seatZ,2.8,moveDt);
+          if(!meetLine && state==="seated" && Math.abs(m.z-BENCH.seatZ)>.2) state="bench-stand";
         }
         rig.setState(state, rig.currentState === state ? undefined : (seatX * 0.37 + 5) % 1);
         const face = m.mode === "seat" ? 0 : m.mode === "box" ? Math.PI : undefined;
@@ -589,10 +609,10 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
         else if (stoppage?.kind === "goal" && stoppage.phase === "celebrate") state = own ? (c.head ? "coach-clap" : "coach-point") : c.head ? "coach-despair" : "coach-idle";
         else if (stoppage?.kind === "penalty" && stoppage.phase === "whistle" && own && c.head) state = "coach-point";
         else if (!stoppage && c.head && Math.floor((now / 1000 + c.side * 5) / 9) % 3 === 0) { variant = 0.8; }
-        else if (!stoppage && !c.head && Math.floor((now / 1000 + c.side * 3) / 11) % 4 === 1) state = "coach-point";
+        else if (!stoppage && !c.head && bench.some(m=>m.side===c.side && m.mode==="moving")) state = "coach-point";
         c.rig.setState(state, variant);
         // Every so often the assistant and the head coach turn to talk.
-        const talk = Math.floor((now / 1000 + c.side * 7) / 6) % 3 === 0;
+        const talk = state==="coach-idle" && !!stoppage && stoppage.phase==="lineup";
         const partner = coaches.find(o => o.side === c.side && o !== c);
         c.rig.update(dt, data.running ? dt : dt * 0.5, { x: c.x, z: BENCH.seatZ - 1.35, vx: 0, vz: 0, puckX: puck.position.x, puckZ: puck.position.z, hasPuck: false, face: 0, lookX: talk && partner ? partner.x : undefined, lookZ: talk && partner ? BENCH.seatZ - 1.35 : undefined });
       });
@@ -702,7 +722,7 @@ export default function MatchArena3D({ home, away, event, running, spatial, play
       if (frameData && data.running) iceFx.skate(actors.filter(a => a.rig.root.visible).map(a => { const m = a.rig.motion; return { x: m?.x ?? 0, z: m?.z ?? 0, speed: m?.speed ?? 0, stopping: !!m?.stopping }; }), dt);
       const period = scoreRef.current?.period ?? "";
       if (period !== lastPeriod) { if (lastPeriod) iceFx.resurface(); lastPeriod = period; }
-      arena.update(dt, { playing: data.running && !liveStop, danger: now < benchUp[0], goalSide: liveStop?.kind === "goal" && liveStop.phase === "celebrate" ? Math.sign(liveFrame?.puck.x ?? 0) : 0, homeScored: liveStop?.kind === "goal" && liveStop.side === 0 && liveStop.phase === "celebrate", score: scoreRef.current });
+      arena.update(dt, { playing: data.running && !liveStop, danger: now < Math.max(benchUp[0],benchUp[1]), goalSide: liveStop?.kind === "goal" && liveStop.phase === "celebrate" ? Math.sign(liveFrame?.puck.x ?? 0) : 0, homeScored: liveStop?.kind === "goal" && liveStop.side === 0 && liveStop.phase === "celebrate", score: scoreRef.current });
 
       // --- cameras: damped springs, automatic broadcast director, replays and cut-scenes
       const m = mode.current;

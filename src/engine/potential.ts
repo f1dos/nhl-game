@@ -148,7 +148,7 @@ export function enforcePotentialFloor(player: Player) {
  * the gap for players past their development window.
  * `form` is the season development modifier (-3..+1).
  */
-export function revisePotential(player: Player, year: number, form = 0) {
+export function revisePotential(player: Player, year: number, form = 0, seasonDelta = 0) {
   const before = player.potential;
   let potential = before;
   const a = developmentAge(player.age, player.pos);
@@ -161,6 +161,11 @@ export function revisePotential(player: Player, year: number, form = 0) {
     else if (roll > 1 - bust) potential -= size;
     else if (form > 0 && roll < 0.35) potential += 1;
     else if (form < 0 && roll > 0.65) potential -= 1;
+  }
+  if (seasonDelta < 0) {
+    potential = Math.min(potential, before - Math.min(3, -seasonDelta));
+  } else if (seasonDelta > 0 && a <= 27 && (form > 0 || before - player.ovr <= 2)) {
+    potential = Math.max(potential, before + Math.min(2, Math.ceil(seasonDelta / 2)));
   }
   potential = clamp(
     potential,
@@ -324,9 +329,10 @@ export function scoutedPotential(
 export function reportPotential(report: {
   confidence: number;
   estimatedPotential: number;
-}): ScoutedPotential {
+  estimatedOvr?: number;
+}, knownOverall = report.estimatedOvr ?? 40): ScoutedPotential {
   const spread = Math.max(1, Math.ceil((100 - report.confidence) / 12));
-  const low = clamp(report.estimatedPotential - spread, 40, 99);
+  const low = clamp(report.estimatedPotential - spread, Math.min(99, knownOverall), 99);
   const high = clamp(report.estimatedPotential + spread, low, 99);
   const mid = Math.round((low + high) / 2);
   return { low, high, mid, stars: potentialStars(mid), exact: low === high };
@@ -335,7 +341,7 @@ export function reportPotential(report: {
 export function scoutedPotentialFor(g: Game | undefined, player: Player) {
   const report = g?.draft?.reports[player.id];
   const prospect = g?.draft?.prospects.find((p) => p.player.id === player.id);
-  if (report && prospect && !prospect.draftedBy) return reportPotential(report);
+  if (report && prospect && !prospect.draftedBy) return reportPotential(report, player.ovr);
   return scoutedPotential(player, potentialKnowledge(g, player), g?.user ?? "");
 }
 

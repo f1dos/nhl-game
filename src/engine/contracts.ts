@@ -1,3 +1,4 @@
+import {recordContract} from "./contractLedger";
 import { capCharge, rosterCharge } from "./cap";
 import type { Game, Player, Team, Position } from "./types";
 import { autoLines } from "./database";
@@ -64,13 +65,7 @@ export function signContract(
     g.freeAgents = g.freeAgents!.filter((x) => x.id !== p.id);
     t.players.push(p);
   }
-  (g.contractHistory ??= []).push({
-    year: g.year,
-    team: teamId,
-    player: p.name,
-    years,
-    salary: p.salary,
-  });
+  recordContract(g,t.id,p,owned ? "extend" : "sign");
   g.news.unshift(`${teamId}: ${p.name} — ${years} yr / $${p.salary}M`);
 }
 export function expireContracts(g: Game) {
@@ -96,6 +91,7 @@ export function expireContracts(g: Game) {
         .sort(rank)
         .slice(0, Math.max(0, affiliate[unit] - signed))) {
         affiliateContract(p, g.year);
+        recordContract(g,t.id,p,"extend");
       }
     }
     g.freeAgents.push(...t.farm.filter((p) => !p.years));
@@ -189,6 +185,7 @@ export function expireContracts(g: Game) {
         .slice(0, slots)) {
         g.freeAgents.splice(g.freeAgents.indexOf(p), 1);
         affiliateContract(p, g.year);
+        recordContract(g,t.id,p,"sign");
         t.farm!.push(p);
       }
     }

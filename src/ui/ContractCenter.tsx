@@ -1,9 +1,10 @@
-import { useState } from "react";
+import PlayerDirectory from "./PlayerDirectory";
+import { useRef, useState } from "react";
 import type { Game, Player } from "../engine/types";
 import { askingSalary, salaryTotal, signContract } from "../engine/contracts";
 import { advanceDay, ensureManagementState, openingGameNeedsCaptain } from "../engine/management";
 import {
-  OFFER_ROLES, desiredFreeAgentRole, desiredFreeAgentYears, freeAgentInterest,
+  hasMetFreeAgent, meetFreeAgent, OFFER_ROLES, desiredFreeAgentRole, desiredFreeAgentYears, freeAgentInterest,
   proposeFreeAgentContract, withdrawFreeAgentOffer,
   type PromisedRole, type FreeAgentOffer,
 } from "../engine/freeAgency";
@@ -20,6 +21,7 @@ export default function ContractCenter({
   edit: (fn: (g: Game) => void) => void;
 }) {
   const team = game.teams.find((t) => t.id === game.user)!;
+  const negotiation = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState("");
   const [years, setYears] = useState(2);
   const [salary, setSalary] = useState(1);
@@ -99,6 +101,11 @@ export default function ContractCenter({
           <b>${(game.rules.cap - salaryTotal(team)).toFixed(2)}M</b>
         </div>
       </div>
+      <PlayerDirectory game={game} onNegotiate={p=>{
+        choose(p);
+        negotiation.current?.scrollIntoView({block:"start"});
+      }}/>
+      <div ref={negotiation}/>
       <Panel title={ru ? "КОНТРАКТНЫЕ ПЕРЕГОВОРЫ" : "CONTRACT NEGOTIATIONS"}>
         <p className="free-agent-intro">{ru
           ? "Свободный агент отвечает через несколько дней. Он может отказать, выдвинуть встречные условия или выбрать другой клуб."
@@ -144,9 +151,19 @@ export default function ContractCenter({
           <span>{ru ? "Желаемый срок" : "Desired term"}: <b>{desiredFreeAgentYears(player)} {ru ? "г." : "yrs"}</b></span>
           {!renewing && <>
             <span>{ru ? "Желаемая роль" : "Preferred role"}: <b>{desiredFreeAgentRole(player)}</b></span>
-            <span>{ru ? "Интерес к клубу" : "Club interest"}: <b>{freeAgentInterest(game, player, team)}/100</b></span>
+            {hasMetFreeAgent(game,player.id) && <span>{ru ? "Интерес к клубу" : "Club interest"}: <b>{freeAgentInterest(game, player, team)}/100</b></span>}
           </>}
         </div>}
+        {player && !renewing && <section className="agent-meeting">
+          <strong>{player.name}</strong>
+          {hasMetFreeAgent(game,player.id) ? <p>{freeAgentInterest(game,player,team)>=60
+            ? (ru?"«Мне интересен ваш клуб. Готов обсудить контракт».":"“I like what your club has to offer. Let's talk terms.”")
+            : freeAgentInterest(game,player,team)>=40
+              ? (ru?"«Готов выслушать условия. Для меня важно место в составе».":"“I'll listen. Where I fit in the lineup matters to me.”")
+              : (ru?"«У меня есть сомнения насчёт перехода. Посмотрю, какую роль вы предложите».":"“I have reservations about joining. I'd like to see what role you offer.”")}
+            {" "}{ru?"Желаемый срок":"Preferred term"} · {desiredFreeAgentYears(player)} {ru?"г.":"yr"}</p>
+            : <button onClick={()=>edit(g=>meetFreeAgent(g,player.id))}>{ru?"Спросить игрока об интересе к клубу":"Ask about interest in joining"}</button>}
+        </section>}
         {latest && <div className="free-agent-response">
           <strong>{ruStatus[latest.status][ru?0:1]} · {offerName(latest)}</strong>
           <p>{agentExplanation(latest)}</p>
@@ -162,7 +179,7 @@ export default function ContractCenter({
           </div>}
         </div>}
         <div className="free-agent-actions">
-          <button disabled={!player || latest?.status==="pending"}
+          <button disabled={!player || (!renewing && !hasMetFreeAgent(game,player.id)) || latest?.status==="pending"}
             onClick={()=>{
               if(!player) return;
               try{

@@ -223,6 +223,7 @@ class MatchNightPlayer implements RigLike {
   private glide = 0;
   private gliding = false;
   private motionTime=0;
+  private shieldLean=0;
   private saveSide=1;
   private saveHeight=0;
   private officialRelease=0;
@@ -231,6 +232,8 @@ class MatchNightPlayer implements RigLike {
   private drawDot=new THREE.Vector3();
   private drawYaw=0;
   private impact=0;
+  private absorbingHit=false;
+  private contactWeight=1;
   private wristCuff?: THREE.CylinderGeometry;
   private wristFabric?: THREE.MeshStandardMaterial;
   private overlay?: keyof typeof benchMotion;
@@ -628,6 +631,7 @@ class MatchNightPlayer implements RigLike {
     this.overlay=undefined;
     this.shotTime = this.busy = this.catchTime = this.passTime = this.glide = 0;
     this.gliding = false;
+    this.shieldLean=0;
     this.offset = (id.number * 0.61803398875) % 1;
     this.root.userData.playerId = id.id;
   }
@@ -673,7 +677,9 @@ class MatchNightPlayer implements RigLike {
       const yaw=this.motion.yaw;
       const lateral=(toward?.x??0)*Math.cos(yaw)-(toward?.z??0)*Math.sin(yaw);
       this.impactSide=Math.sign(lateral || 1)*(kind==="check" ? 1 : -1);
-      this.impact=kind==="check" ? .42 : .55;
+      this.absorbingHit=kind==="checked";
+      this.contactWeight=height ?? 1;
+      this.impact=this.absorbingHit ? .68 : .5;
     }
     if(this.overlay && (kind==="save" || kind==="beaten"))this.fadeRemaining=.14;
     if(kind==="save"){
@@ -702,11 +708,14 @@ class MatchNightPlayer implements RigLike {
     const turnRate = Math.abs(angularSpeed);
     this.previousSpeed = source.speed;
     this.previousYaw = source.yaw;
+    const longitudinal=input.vx*Math.sin(source.yaw)+input.vz*Math.cos(source.yaw);
+    const retreat=input.face!==undefined && this.role==="skater" && this.currentState==="play"
+      ? THREE.MathUtils.smoothstep(-longitudinal,.45,2.4) : 0;
     const settled = 1-THREE.MathUtils.smoothstep(speedChange, .3, 3.3);
     const straight = 1-THREE.MathUtils.smoothstep(turnRate, .35, 2.15);
     const clearIce = THREE.MathUtils.smoothstep(input.pressure ?? 8, 1.2, 3.4);
     const upright = this.role === "skater" && this.currentState === "play" && !source.stopping
-      ? settled * straight * clearIce * (input.hasPuck ? .58 : 1)
+      ? settled * straight * clearIce * (1-.68*retreat) * (input.hasPuck ? .58 : 1)
       : 0;
     this.glide += (upright-this.glide) * (1-Math.exp(-dt*6));
     this.gliding = this.glide > (this.gliding ? .47 : .66);
@@ -755,10 +764,10 @@ class MatchNightPlayer implements RigLike {
       }
       if (clip === "Stride" && this.active)
         this.active.timeScale = THREE.MathUtils.clamp(
-          source.speed / 4.8 * (1-.52*this.glide),
+          source.speed / 4.8 * (1-.52*this.glide)*(1-.22*retreat),
           0.32,
           1.65,
-        );
+        ) * (retreat>.5 ? -1 : 1);
     }
     for(const [bone,q] of this.previousRotations) bone.quaternion.copy(q);
     this.previousRotations.clear();
@@ -787,7 +796,12 @@ class MatchNightPlayer implements RigLike {
     }
     this.impact=Math.max(0,this.impact-animDt);
     if(this.impact>0){
-      const brace=Math.sin(Math.PI*Math.min(1,this.impact/.56));
+      const elapsed=1-this.impact/(this.absorbingHit ? .68 : .5);
+      const brace=this.contactWeight*THREE.MathUtils.smoothstep(elapsed,0,.22)*(1-THREE.MathUtils.smoothstep(elapsed,.32,1));
+      const recovery=Math.sin(Math.PI*THREE.MathUtils.smoothstep(elapsed,.45,1));
+      pose("Pelvis",.06*brace,-.09*this.impactSide*brace,this.impactSide*(.07*brace-.055*recovery));
+      pose("Spine",this.absorbingHit ? .12*brace : -.055*brace,.12*this.impactSide*brace,0);
+      pose("Thigh."+(this.impactSide>0 ? "L" : "R"),-.14*brace,0,.055*this.impactSide*recovery);
       pose("Chest",.12*brace,0,.18*this.impactSide*brace);
       pose("Head",-.08*brace,0,-.10*this.impactSide*brace);
     }
@@ -840,9 +854,29 @@ class MatchNightPlayer implements RigLike {
     if (this.role === "skater" && st === "play" && !drawing && this.busy <= 0) {
       if (lift < .001) this.adjustHipHeight(.14*this.glide);
       const cross = THREE.MathUtils.clamp(angularSpeed,-2,2)*Math.min(1,source.speed/4);
-      pose("Chest",0,-cross*.055,0);
+      const stride=this.active?.getClip();
+      const edge=stride && stride.name.endsWith("Stride") && this.active
+        ? Math.sin(2*Math.PI*this.active.time/stride.duration)*(1-this.glide)*Math.min(1,source.speed/3) : 0;
+      pose("Pelvis",.045*retreat,.055*edge,.065*edge);
+      if(retreat>.01) {
+        // Keep the knees out in a backward C-cut, with one skate recovering under the hip.
+        const arc=.065*retreat;
+        pose("Thigh.L",-.11*retreat,-arc*(1+edge),arc);
+        pose("Thigh.R",-.11*retreat,arc*(1-edge),-arc);
+        pose("Head",-.055*retreat,0,0);
+      }
+      pose("Chest",0,-cross*.055-.04*edge,-.045*edge);
       pose("Head",-.045*this.glide, cross*.08,0);
       pose("Spine", -.23*this.glide, 0, THREE.MathUtils.clamp(angularSpeed*.035,-.12,.12)*Math.min(1,source.speed/3));
+    }
+    const crowding=1-THREE.MathUtils.smoothstep(input.pressure??4,.85,2.5);
+    const shield=input.hasPuck && st==="play" && input.pressureBearing!==undefined
+      ? -Math.sin(input.pressureBearing-source.yaw)*crowding*(input.nearBoards?1:.64) : 0;
+    this.shieldLean=THREE.MathUtils.damp(this.shieldLean,shield,9,animDt);
+    if(Math.abs(this.shieldLean)>.008 && this.role==="skater" && this.busy<=0){
+      pose("Pelvis",0,.08*this.shieldLean,.07*this.shieldLean);
+      pose("Chest",.085*Math.abs(this.shieldLean),-.17*this.shieldLean,-.12*this.shieldLean);
+      pose("Head",-.055*Math.abs(this.shieldLean),.12*this.shieldLean,.045*this.shieldLean);
     }
     if(st==="official-holding" || st==="official-roughing"){
       const holding=st==="official-holding";
@@ -879,6 +913,13 @@ class MatchNightPlayer implements RigLike {
       pose("Spine",.12*near,0,0);
       pose("Chest",0,.09*source.hs*near,0);
       pose("Head",-.08*near,0,0);
+    } else if(this.role==="skater" && (st==="bench-reach" || st==="fist-bump")){
+      const rail=this.visual.worldToLocal(new THREE.Vector3(input.x,1.24,-13.2));
+      const side=rail.x>0 ? "L" : "R";
+      this.reachArm(side,rail,new THREE.Vector3(side==="L" ? .56 : -.56,1.03,.21));
+    } else if(this.role==="skater" && st==="hug"){
+      this.reachArm("L",new THREE.Vector3(.24,1.52,.49),new THREE.Vector3(.5,1.39,.16));
+      pose("Chest",.075,0,0);
     } else if(this.role==="skater" && st==="seated"){
       const track=Math.atan2(input.puckX-input.x,Math.max(2,input.puckZ-input.z));
       const breath=Math.sin(this.motionTime*1.4+this.offset*9);
@@ -886,10 +927,29 @@ class MatchNightPlayer implements RigLike {
       pose("Head",-.08,.34*track,0);
       pose("UpperArm.L",-.08-.04*this.offset,0,.04);
       pose("Forearm.R",.10+.035*breath,0,0);
+    } else if(this.role==="coach" && st!=="coach-review"){
+      const scan=Math.atan2((input.lookX??input.puckX)-input.x,Math.max(1,(input.lookZ??input.puckZ)-input.z));
+      pose("Head",.025,.48*scan,0);
+      pose("Chest",.045,.15*scan,0);
+      if(st==="coach-point"){
+        this.reachArm("R",new THREE.Vector3(-.22+.28*Math.sin(scan),1.32,.55),new THREE.Vector3(-.48,1.08,.12));
+      }else if(st==="coach-clap"){
+        const apart=.055+.095*(.5+.5*Math.cos(this.motionTime*11));
+        for(const hand of ["L","R"] as const){
+          const sign=hand==="L"?1:-1;
+          this.reachArm(hand,new THREE.Vector3(sign*apart,1.29,.36),new THREE.Vector3(sign*.42,1.06,.11));
+        }
+      }
     } else if(this.role==="goalie" && this.busy<=0){
       const depth=Math.hypot(input.puckX-input.x,input.puckZ-input.z);
       const set=1-THREE.MathUtils.smoothstep(depth,6,21);
       const slide=THREE.MathUtils.clamp((input.vx*Math.cos(source.yaw)-input.vz*Math.sin(source.yaw))/3,-1,1);
+      const weight=Math.abs(slide)*set;
+      const square=Math.sin(Math.atan2(input.puckX-input.x,input.puckZ-input.z)-source.yaw);
+      pose("Head",-.06*set,.32*square,0);
+      pose("Forearm.L",-.09*set,.045*square,.075*set);
+      pose("Pelvis",.04*set,0,-.065*slide*set);
+      pose("Thigh."+(slide>0 ? "R" : "L"),-.12*weight,0,.065*slide*set);
       pose("Spine",.12*set,0,-.09*slide);
       pose("UpperArm.L",-.07*set,0,.09*set);
       pose("UpperArm.R",-.05*set,0,-.07*set);

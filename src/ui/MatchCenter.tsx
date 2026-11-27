@@ -51,10 +51,7 @@ export default function MatchCenter({
           const nextPeriod = Math.floor(
             (result.events[current]?.time ?? 0) / 1200,
           );
-          if (current > 0 && nextPeriod > previousPeriod) {
-            setRunning(false);
-            return current;
-          }
+          if (current > 0 && nextPeriod > previousPeriod) setRunning(false);
           return current + 1;
         }),
       900 / speed,
@@ -162,6 +159,13 @@ export default function MatchCenter({
                 {running ? <Pause size={15} /> : <Play size={15} />}{" "}
                 {running ? "Пауза" : cursor ? "Продолжить" : "Начать матч"}
               </button>
+              <button disabled={complete} onClick={()=>{
+                setRunning(false);
+                const next=result.events[cursor]?.time ?? result.duration;
+                const boundary=(Math.floor(next/1200)+1)*1200;
+                const first=result.events.findIndex((e,i)=>i>=cursor && e.time>=boundary);
+                setCursor(first<0 ? result.events.length : first);
+              }}>{ru?"До конца периода":"Sim to period end"}</button>
               <Select
                 value={speed}
                 onChange={(change) => setSpeed(+change.target.value)}

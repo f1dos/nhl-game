@@ -34,9 +34,13 @@
 }
 
 /* Two-row scorebug keeps the playing surface visible on the weak side. */
-.match-strip {
+.score-stack {
+  display:grid; justify-items:start; gap:4px; pointer-events:none;
   position:absolute; top:clamp(8px,2vh,22px); left:clamp(8px,2vw,32px);
-  transform:scale(1.5); transform-origin:top left;
+}
+.score-stack[hidden]{display:none}
+.match-strip {
+  zoom:1.5;
   color:#f7f7f6; font:normal 18px/1 Impact,"Arial Narrow",sans-serif;
   font-variant-numeric:tabular-nums; pointer-events:none;
   filter:drop-shadow(0 1px 2px #0006);
@@ -512,9 +516,6 @@
   flex-wrap: wrap;
 }
 .bw-box {
-  position: absolute;
-  top: 104px;
-  left: 18px;
   display: grid;
   gap: 4px;
 }
@@ -533,12 +534,15 @@
   color: var(--bw-gold);
   font-variant-numeric: tabular-nums;
 }
-@media (max-width: 860px) {
-  .bw-box {
-    top: 92px;
-    left: 10px;
-  }
+.transport-panel .period-skip {
+  display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; margin-right:4px;
+  border:0; border-radius:6px; box-shadow:none; background:transparent; color:#b9c6cf;
+  font:500 12px "Segoe UI",Arial,sans-serif; white-space:nowrap;
 }
+.period-skip svg {width:13px;height:13px;stroke-width:1.65;color:currentColor}
+.transport-panel .period-skip:hover:enabled {background:#ffffff0c;color:#edf2f5}
+.transport-panel .period-skip:focus-visible {outline:2px solid #a0d8d9;outline-offset:2px}
+.transport-panel .period-skip:disabled {opacity:.52}
 
 .bw-bar {bottom:0;left:0;right:0;border-radius:0;border:0;border-top:1px solid #717781;padding:6px clamp(10px,2vw,34px);background:linear-gradient(#222a33f5,#111821fa);gap:12px;}
 .broadcast-window .bw-play,.broadcast-window .bw-play:hover {width:34px;height:32px;background:#dce2e7;border-radius:2px;color:#17212a;}

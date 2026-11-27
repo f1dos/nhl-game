@@ -1,3 +1,4 @@
+import { processRoundTrades, pushEvent } from "./management";
 import { registerRoster, salaryTotal } from "./contracts";
 import { autoLines, advanceOpeningAgeing } from "./database";
 import { tx } from "./text";
@@ -8,7 +9,7 @@ import { ageWorld } from "./lifecycle";
 import { trainTeam } from "./training";
 import {
   autoCompleteDraft,
-  openDraft,
+  prepareLottery,
   prepareNextDraft,
   progressScouting,
 } from "./draft";
@@ -185,6 +186,7 @@ export function advance(
         dateForRound(g, f.round).toISOString().slice(0, 10),
       );
     }
+    processRoundTrades(g, dateForRound(g).toISOString().slice(0, 10));
     g.round++;
     advanceOpeningAgeing(g);
     resolveInternationalOffers(g);
@@ -248,7 +250,12 @@ export function advance(
           series[0].winner!,
           series[0].winner === series[0].a ? series[0].b : series[0].a,
         );
-        openDraft(g, r);
+        prepareLottery(g, r);
+        pushEvent(g,{
+          date:g.calendar?.date ?? `${g.year+1}-06-20`, category:"scouting", priority:"high", action:"draft",
+          title:tx(g,"Драфт-лотерея готова к жеребьёвке","Draft lottery ready"),
+          body:tx(g,"Откройте конверты жеребьёвки перед первым раундом драфта.","Reveal the draw results before the first round of the draft."),
+        });
       } else {
         const winners = series.map((s) => s.winner!);
         const rank = standings(g.teams).map((t) => t.id);

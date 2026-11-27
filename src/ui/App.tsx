@@ -1,3 +1,4 @@
+import { portraitUrl } from "./portrait";
 import { resolveIceTime, normalizeShares } from "../engine/iceTime";
 import ScoringSummary from "./ScoringSummary";
 import { rosterCharge } from "../engine/cap";
@@ -64,12 +65,13 @@ import {
 } from "./components";
 import MatchdayHub from "./MatchdayHub";
 import TradeCenter from "./TradeCenter";
+import PlayerDirectory from "./PlayerDirectory";
 import ContractCenter from "./ContractCenter";
 import { TrainingCenter } from "./TrainingCalendar";
 import PlayerCard from "./PlayerCard";
 import { ClubLink, EntityLinkProvider, PlayerLink, findPlayer } from "./links";
 import { lineChemistry, tacticalAssessment } from "../engine/tactics";
-import { ensureDraft, openDraft } from "../engine/draft";
+import { ensureDraft, prepareLottery } from "../engine/draft";
 import DraftCenter from "./DraftCenter";
 import FarmCenter from "./FarmCenter";
 import { sendToFarm } from "../engine/roster";
@@ -126,6 +128,7 @@ const nav = [
     groupRu: "РАБОЧИЙ СТОЛ",
     groupEn: "WORKSPACE",
   },
+  { key:"player-search", ru:"Поиск игроков", en:"Player search", Icon:Search, groupRu:"РАБОЧИЙ СТОЛ", groupEn:"WORKSPACE" },
   {
     key: "clubs",
     ru: "Клубы NHL",
@@ -458,7 +461,7 @@ export default function App() {
         ),
       );
   };
-  async function finish() {
+  async function finish(target: "end" | "deadline" | "playoffs" = "end") {
     if (!g) return;
     if (needsOpeningCaptain(g)) {
       go("leadership");
@@ -478,14 +481,16 @@ export default function App() {
     setBusy(true);
     const copy = structuredClone(g);
     try {
-      while (String(copy.phase) !== "offseason") {
-        for (let i = 0; i < 4 && String(copy.phase) !== "offseason"; i++)
-          continueGame(copy, "week");
+      const advancing = () => target === "end" ? copy.phase !== "offseason" :
+        copy.phase === "regular" && (target === "playoffs" || gameDate(copy) < `${copy.year+1}-03-05`);
+      while (advancing()) {
+        for (let i = 0; i < 4 && advancing(); i++) advanceDay(copy);
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
       setGame(copy);
-      go("league");
-      setNotice(tr("Сезон завершён", "Season complete"));
+      go(target === "deadline" ? "trades" : "league");
+      setNotice(target === "deadline" ? tr("Дедлайн обменов · рынок открыт сегодня","Trade deadline · market open today") :
+        target === "playoffs" ? tr("Первый раунд плей-офф","First playoff round") : tr("Сезон завершён", "Season complete"));
     } catch (e) {
       setNotice((e as Error).message);
     } finally {
@@ -499,6 +504,7 @@ export default function App() {
       const imported = validateSave(JSON.parse(await file.text()));
       imported.id = `career-${Date.now()}`;
       setGame(imported);
+      setNotice("");
       setCreating(false);
       go("overview");
     } catch (e) {
@@ -674,7 +680,7 @@ export default function App() {
                 .slice(0, 3)
                 .map((p) => (
                   <div key={p.id}>
-                    {p.headshot ? <img src={p.headshot} alt="" /> : <i>{p.pos}</i>}
+                    {portraitUrl(p) ? <img src={portraitUrl(p)} alt="" /> : <i>{p.pos}</i>}
                     <span>
                       <b>{p.name}</b>
                       <small>
@@ -871,6 +877,7 @@ export default function App() {
     content = <LeagueCenter game={g} onPlayer={setProfile} />;
   else if (page === "injuries")
     content = <InjuryCenter game={g} onPlayer={setProfile} />;
+  else if (page === "player-search") content = <PlayerDirectory game={g}/>;
   else if (page === "contracts")
     content = <ContractCenter game={g} edit={edit} />;
   else if (page === "trades") content = <TradeCenter game={g} edit={edit} />;
@@ -1973,7 +1980,7 @@ export default function App() {
                   );
                 } else if (g.phase === "offseason") {
                   if (g.draft?.status !== "complete") {
-                    if (g.draft?.status !== "draft") edit(world => openDraft(world));
+                    if (g.draft?.status !== "draft") edit(world => prepareLottery(world));
                     go("draft");
                     return;
                   }
@@ -1997,7 +2004,7 @@ export default function App() {
               }}
             >
               {g.phase === "offseason"
-                ? (g.draft?.status === "complete" ? tr("Новый сезон", "New season") : tr("Перейти к драфту", "Go to draft"))
+                ? (g.draft?.status === "complete" ? tr("Новый сезон", "New season") : g.draft?.status === "draft" ? tr("Перейти к драфту", "Go to draft") : tr("Драфт-лотерея","Draft lottery"))
                 : tr("Продолжить", "Continue")}
               <ChevronRight size={18} />
             </button>
@@ -2024,8 +2031,12 @@ export default function App() {
             <span>
               {tr("Код карьеры (необязательно)", "Career seed (optional)")} {g.seed} · {g.year}/{String(g.year + 1).slice(2)}
             </span>
+            {g.phase === "regular" && <>
+              {gameDate(g) < `${g.year+1}-03-05` && <button disabled={busy} onClick={()=>finish("deadline")}>{tr("До дедлайна обменов","Sim to trade deadline")}</button>}
+              <button disabled={busy} onClick={()=>finish("playoffs")}>{tr("До плей-офф","Sim to playoffs")}</button>
+            </>}
             {g.phase !== "offseason" && (
-              <button disabled={busy} className="text-button" onClick={finish}>
+              <button disabled={busy} className="text-button" onClick={()=>finish()}>
                 {busy
                   ? tr("Симуляция…", "Simulating…")
                   : tr(

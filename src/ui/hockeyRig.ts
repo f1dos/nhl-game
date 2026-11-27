@@ -96,6 +96,7 @@ export interface RigInput {
   face?: number;
   /** Distance to the nearest opponent (puck carrier context). */
   pressure?: number;
+  pressureBearing?: number;
   /** Carrier is along the boards. */
   nearBoards?: boolean;
   /** Where the head looks (defaults to the puck). */

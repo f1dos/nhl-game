@@ -1,3 +1,4 @@
+import { regenPortraitIndex } from "./regenPortraitIndex";
 import { barzal, openingRatings } from "../data/opening-ratings";
 import { registerRoster } from "./contracts";
 import type { Locale } from "../i18n/locales";
@@ -161,6 +162,7 @@ export function createPlayer(
   id: string,
   pos: Position,
   level = 73,
+  usedSurnames?: Set<string>,
 ): Player {
   const base = clamp(level + r.int(-10, 10), 48, 91);
   const attrs = Object.fromEntries(
@@ -193,7 +195,8 @@ export function createPlayer(
     stats: emptyStats(),
     history: [],
   };
-  player.name = nationalName(player.nation, id);
+  player.name = nationalName(player.nation, `${id}:${r.seed}`, usedSurnames);
+  player.portraitIndex = regenPortraitIndex(id);
   assignPotential(player);
   return player;
 }
@@ -357,6 +360,7 @@ export function newGame(
   game.internationalOffers = [];
   ensurePotentialModel(game);
   applyOpeningRatings(game, seed);
+  for (const p of allPlayers(game)) p.seasonOpeningOverall = p.ovr;
   ensureUserIceTime(game);
   return game;
 }
@@ -528,49 +532,32 @@ function applyPlayerInjury(player: Player, teamId: string) {
   return true;
 }
 
-const internationalNames = [
-  ["SWE", "SHL", "Växjö Lakers", "Emil Sundström"],
-  ["SWE", "SHL", "Frölunda HC", "Viktor Nyberg"],
-  ["FIN", "Liiga", "Tappara", "Eetu Laaksonen"],
-  ["FIN", "Liiga", "Ilves", "Jere Mäkinen"],
-  ["CHE", "NL", "ZSC Lions", "Luca Meier"],
-  ["CHE", "NL", "SC Bern", "Noah Bühler"],
-  ["DEU", "DEL", "Eisbären Berlin", "Felix Wagner"],
-  ["DEU", "DEL", "Adler Mannheim", "Moritz Keller"],
-  ["CZE", "Czech", "HC Sparta Praha", "Jakub Dvořák"],
-  ["CZE", "Czech", "HC Kometa Brno", "Matěj Novotný"],
-  ["RUS", "KHL", "SKA Saint Petersburg", "Ivan Sokolov"],
-  ["RUS", "KHL", "Lokomotiv Yaroslavl", "Mikhail Volkov"],
+const internationalClubs = [
+  ["SWE", "SHL", "Växjö Lakers"],
+  ["SWE", "SHL", "Frölunda HC"],
+  ["FIN", "Liiga", "Tappara"],
+  ["FIN", "Liiga", "Ilves"],
+  ["CHE", "NL", "ZSC Lions"],
+  ["CHE", "NL", "SC Bern"],
+  ["DEU", "DEL", "Eisbären Berlin"],
+  ["DEU", "DEL", "Adler Mannheim"],
+  ["CZE", "Czech", "HC Sparta Praha"],
+  ["CZE", "Czech", "HC Kometa Brno"],
+  ["RUS", "KHL", "SKA Saint Petersburg"],
+  ["RUS", "KHL", "Lokomotiv Yaroslavl"],
 ] as const;
-const internationalAlternates = [
-  "Lindberg",
-  "Korhonen",
-  "Keller",
-  "Vogel",
-  "Horák",
-  "Morozov",
-  "Bergström",
-  "Laine",
-  "Schmid",
-  "Fischer",
-  "Kovář",
-  "Petrov",
-];
 
 function createInternationalMarket(
   r: RNG,
   year = 2026,
 ): NonNullable<Game["internationalMarket"]> {
+  const usedSurnames = new Set<string>();
   return Array.from({ length: 36 }, (_, i) => {
-    const template = internationalNames[i % internationalNames.length];
+    const template = internationalClubs[i % internationalClubs.length];
     const pos = (["LW", "C", "RW", "D", "D", "G"] as Position[])[i % 6];
     const player = createPlayer(r, `intl-${year}-${i}`, pos, 68 + (i % 5));
-    const [firstName] = template[3].split(" ");
-    player.name =
-      i < internationalNames.length
-        ? template[3]
-        : `${firstName} ${internationalAlternates[(i + Math.floor(i / internationalNames.length)) % internationalAlternates.length]}`;
     player.nation = template[0];
+    player.name = nationalName(player.nation, `${player.id}:${r.seed}`, usedSurnames);
     player.age = 18 + (stableHash(player.id) % 10);
     player.league = template[1];
     assignPotential(player);

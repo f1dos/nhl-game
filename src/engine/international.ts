@@ -1,3 +1,4 @@
+import {recordContract} from "./contractLedger";
 import { autoLines } from "./database";
 import { salaryTotal } from "./contracts";
 import { clamp } from "./random";
@@ -217,6 +218,7 @@ export function resolveInternationalOffers(g: Game) {
       player.contractType = "ELC";
       player.league = "NHL";
       player.currentClub = team.id;
+        recordContract(g,team.id,player,"sign");
       if (
         team.players.length < 30 &&
         salaryTotal(team) + player.salary <= g.rules.cap

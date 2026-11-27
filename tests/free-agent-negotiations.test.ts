@@ -5,7 +5,7 @@ import { RNG } from "../src/engine/random";
 import { askingSalary } from "../src/engine/contracts";
 import {
   proposeFreeAgentContract, processFreeAgentOffers, withdrawFreeAgentOffer,
-  desiredFreeAgentRole, freeAgentInterest,
+  meetFreeAgent, desiredFreeAgentRole, freeAgentInterest,
 } from "../src/engine/freeAgency";
 import { ensureManagementState, advanceDay } from "../src/engine/management";
 import { validateSave } from "../src/engine/saves";
@@ -16,6 +16,8 @@ function world() {
   const p = createPlayer(new RNG(1001), "test-free-agent-001", "C", 73);
   p.age=24;p.ovr=76;p.potential=86;p.years=0;p.salary=0;
   g.freeAgents=[p];
+  assert.throws(()=>proposeFreeAgentContract(g,p.id,2,2,"depth"), /интерес|interest/);
+  meetFreeAgent(g,p.id);
   return {g,p};
 }
 test("free-agent offers are not signed immediately and persist across save/import",()=>{

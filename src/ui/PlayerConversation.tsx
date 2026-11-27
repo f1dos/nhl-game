@@ -1,3 +1,4 @@
+import { portraitUrl } from "./portrait";
 import { agreementReply } from "../engine/careerDesk";
 import {IceAgreementPanel} from "./CareerDesk";
 import { useState } from "react";
@@ -164,10 +165,10 @@ export default function PlayerConversation({
         <div className="external-contact-layout">
           <aside className="conversation-player">
             <div
-              className={`conversation-photo ${player.headshot ? "has-photo" : ""}`}
+              className={`conversation-photo ${portraitUrl(player) ? "has-photo" : ""}`}
             >
-              {player.headshot ? (
-                <img src={player.headshot} alt={player.name} />
+              {portraitUrl(player) ? (
+                <img src={portraitUrl(player)} alt={player.name} />
               ) : (
                 <span>{player.number}</span>
               )}
@@ -394,10 +395,10 @@ export default function PlayerConversation({
       <div className="conversation-layout">
         <aside className="conversation-player">
           <div
-            className={`conversation-photo ${player.headshot ? "has-photo" : ""}`}
+            className={`conversation-photo ${portraitUrl(player) ? "has-photo" : ""}`}
           >
-            {player.headshot ? (
-              <img src={player.headshot} alt={player.name} />
+            {portraitUrl(player) ? (
+              <img src={portraitUrl(player)} alt={player.name} />
             ) : (
               <span>{player.number}</span>
             )}

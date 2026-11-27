@@ -8,9 +8,8 @@ export interface TradeAssets {
   takePicks?: string[];
 }
 export { rosterCharge as payroll } from "./cap";
-export function tradeWindowOpen(g: Game) {
+export function tradeWindowOpen(g: Game, date = g.calendar?.date) {
   if (g.phase === "offseason") return true;
-  const date = g.calendar?.date;
   if (g.phase === "playoffs" || (date && date > g.year + 1 + "-03-05"))
     return false;
   return !date || date < g.year + "-12-19" || date > g.year + "-12-27";
@@ -201,6 +200,6 @@ export function executeTrade(
       ),
     ].join(", ");
   const message = `${a.id} → ${b.id}: ${describe(outgoing, givePicks)}; ${b.id} → ${a.id}: ${describe(incoming, takePicks)}`;
-  (g.transactions ??= []).push({ year: g.year, round: g.round, message });
+  (g.transactions ??= []).push({ year: g.year, round: g.round, date: g.calendar?.date, kind: "trade", playerIds: [...outgoing,...incoming].map(p=>p.id), message });
   g.news.unshift(message);
 }

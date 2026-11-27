@@ -82,7 +82,7 @@ export default function LeagueNews({ game: g }: { game: Game }) {
     ...(g.transactions ?? [])
       .slice(-12)
       .reverse()
-      .map((x) => x.year + " · " + (ru ? x.message : englishText(x.message))),
+      .map((x) => (x.date ?? x.year) + " · " + (ru ? x.message : englishText(x.message))),
     ...(g.contractHistory ?? [])
       .slice(-8)
       .reverse()
