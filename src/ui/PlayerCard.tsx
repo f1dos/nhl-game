@@ -1,3 +1,5 @@
+import { playerTrades } from "../engine/playerTrades";
+import { portraitUrl } from "./portrait";
 import { useEffect, useState } from "react";
 import {
   Activity,
@@ -80,10 +82,10 @@ export function PlayerPortrait({
   size?: number;
 }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [player.headshot]);
+  useEffect(() => setFailed(false), [portraitUrl(player)]);
   return (
     <span
-      className={`player-portrait ${player.headshot && !failed ? "photo" : "silhouette"}`}
+      className={`player-portrait ${portraitUrl(player) && !failed ? "photo" : "silhouette"}`}
       style={
         {
           "--club": color ?? "#48a9df",
@@ -92,9 +94,9 @@ export function PlayerPortrait({
         } as React.CSSProperties
       }
     >
-      {player.headshot && !failed ? (
+      {portraitUrl(player) && !failed ? (
         <img
-          src={player.headshot}
+          src={portraitUrl(player)}
           alt={player.name}
           loading="lazy"
           onError={() => setFailed(true)}
@@ -307,8 +309,12 @@ export default function PlayerCard({
   const external = !!club && club.id !== game.user;
   const contact = externalContactEligibility(game, p.id);
   const groups = p.pos === "G" ? GOALIE_GROUPS : SKATER_GROUPS;
-  const previous = p.history.at(-1)?.ovr ?? p.ovr;
-  const trend = p.ovr - previous;
+  const ability = p.ovr - (p.formAdjustment ?? 0);
+  const previous = p.seasonOpeningOverall ?? p.trainingStartOverall ?? p.developmentLog?.[0]?.ovrAfter ?? ability;
+  const completed = game.round === 0 && p.developmentLog?.[0];
+  const trend = completed ? completed.delta : ability - previous;
+  const from = completed ? completed.ovrBefore : previous;
+  const to = completed ? completed.ovrAfter : ability;
   const condition = Math.round(100 - p.fatigue);
   const form = p.performanceForm ?? 0;
   const awards = (game.awards ?? []).filter((award) => award.playerId === p.id);
@@ -442,7 +448,8 @@ export default function PlayerCard({
             </div>
             <span className={`pc-trend ${trend >= 0 ? "up" : "down"}`}>
               {trend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-              {signed(trend)} {tr("за сезон", "this season")}
+              {signed(trend)} {completed ? tr("за прошлый сезон", "last season") : tr("за сезон", "this season")}
+              <small>{from} → {to} · {tr("база", "base")}</small>
             </span>
             {p.ratingSource === "nhl-stats-model" && p.ratingRank && (
               <span className="rating-provenance">
@@ -537,6 +544,18 @@ export default function PlayerCard({
               </div>
             </section>
 
+            <section className="pc-section">
+              <h2>{tr("Обмены и контракты", "Trades and contracts")}</h2>
+              {(() => {
+                const contracts = (game.contractHistory ?? []).filter(h => h.playerId ? h.playerId === p.id : h.player === p.name);
+                const trades = playerTrades(game,p);
+                const rows = [
+                  ...contracts.map(h => ({date:h.date ?? String(h.year),title:h.action === "extend" ? tr("Продление","Extension") : tr("Контракт","Contract"), detail:`${h.team} · ${h.years} ${tr("г.","yr")} · $${h.salary.toFixed(2)}M AAV · $${(h.years*h.salary).toFixed(2)}M ${tr("всего","total")}`})),
+                  ...trades.map(h => ({date:h.date ?? String(h.year),title:tr("Обмен","Trade"),detail:h.message})),
+                ].reverse().sort((a,b)=>b.date.localeCompare(a.date));
+                return rows.length ? rows.map((row,i)=><div className="pc-deal" key={i}><time>{row.date}</time><strong>{row.title}</strong><span>{row.detail}</span></div>) : <p>{tr("В этой карьере пока нет записанных сделок игрока.","No recorded deals for this player in this career.")}</p>;
+              })()}
+            </section>
             {/* ---------------- Season stats & history ---------------- */}
             <section className="pc-section">
               <h2>{tr("Статистика по сезонам", "Season statistics")}</h2>

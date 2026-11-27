@@ -427,3 +427,25 @@
 
 .dev-plan .dev-review {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:14px;padding:14px 18px}
 .dev-plan .dev-review b {font-size:15px}
+
+.player-directory { margin: 1.25rem 0; padding: clamp(14px,2vw,28px); background:var(--panel,#151f29); border:1px solid #304352; border-radius:12px }
+.directory-tools { display:flex; flex-wrap:wrap; align-items:end; gap:12px }
+.directory-tools label {display:grid;gap:5px;color:#a5b8c7;font-size:.85rem}
+.directory-tools label:first-child {flex:1 1 230px}
+.directory-tools input,.directory-tools select {width:100%;min-height:38px;color:#eaf1f6;background:#101922;border:1px solid #415768;border-radius:5px;padding:6px 10px}
+.player-directory tbody small {display:inline-block;width:26px;color:#9cbed2}
+.agent-meeting {display:grid;gap:10px;justify-items:start;padding:16px;margin:12px 0;border-left:3px solid #64c4b1;background:#1a2931}
+.agent-meeting p {margin:0}
+
+.draft-lottery { max-width:1050px;margin:0 auto;padding:clamp(14px,3vw,40px);background:linear-gradient(130deg,#152b3d,#101820 65%);border:1px solid #314857;border-radius:16px;color:#ebf3fa }
+.draft-lottery header p,.lottery-stage small {letter-spacing:.14em;color:#dfc28d;font-weight:700}
+.draft-lottery header h1 {font-size:clamp(30px,4vw,56px);margin:5px 0}
+.lottery-stage,.lottery-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.lottery-stage article {background:linear-gradient(160deg,#1f3548,#16222c);display:grid;justify-items:center;align-content:center;gap:8px;min-height:180px;border:1px solid #476071;border-radius:10px}
+.lottery-stage article[data-open=true] {border-color:#d7b77c;background:radial-gradient(ellipse at 50% 0%,#484237,#172632 80%)}
+.lottery-stage article h2 {margin:0}.lottery-stage article>b {font-size:44px;color:#7a92a2}
+.lottery-grid {gap:1px 18px}.lottery-grid>div {display:flex;align-items:center;gap:9px;border-bottom:1px solid #30404d;padding:9px 3px}.lottery-grid strong {margin-left:auto;white-space:nowrap;color:#d5bf97}.lottery-grid small{display:block}.lottery-grid [data-own=true]{background:#203d48}
+.pc-deal{display:grid;grid-template-columns:7rem 6rem 1fr;gap:12px;border-bottom:1px solid #313e48;padding:10px 0}.pc-deal time{color:#91a6b4}
+@media(max-width:660px){.lottery-grid{grid-template-columns:1fr}.pc-deal{grid-template-columns:6rem 1fr}.pc-deal span{grid-column:1/-1}}
+
+.draft-lottery>.primary {margin-bottom:18px}.draft-lottery img{object-fit:contain}.draft-lottery .lottery-stage article h2{font-size:1.4rem}

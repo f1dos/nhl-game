@@ -61,7 +61,7 @@ export interface SpatialCue {
   screened?: boolean;
   reboundDirection?: {x:number;z:number};
   saveOutcome?: "held" | "rebound";
-  contact?: "stick" | "body";
+  contact?: "stick" | "body" | "pin";
 }
 /**
  * A stoppage in play, shown only in presentation mode: the clock is stopped
@@ -93,6 +93,7 @@ export interface SpatialStoppage {
   actor: string;
   /** Faceoff dot that play restarts from. */
   dot: Dot;
+  gatheringOrder?: string[];
   /** Deterministic variety for celebrations. */
   variant: number;
 }
@@ -127,7 +128,7 @@ export interface SpatialMatchOptions {
 }
 
 const STOPPAGE_LENGTH = {
-  celebrate: 6.2,
+  celebrate: 9.4,
   whistle: { trapped: 1.7, save: 1.7, penalty: 10.8, goal: 0, icing: 1.9, offside: 1.6 },
   lineup: 2.8,
   drop: 0.9,
@@ -206,6 +207,7 @@ export class SpatialMatch {
   private penalties: { id: string; side: number; until: number }[] = [];
   private decision = 0;
   private nextChallenge = 0;
+  private boardContact?: { hitter: string; carrier: string; until: number };
   private lastRelease?: { id: string; until: number };
   private pickup?: { point: Dot; since: number };
   private netBattle?: Dot & {since:number};
@@ -786,8 +788,9 @@ export class SpatialMatch {
         const plan=this.attackPlan(s,this.actualLine[s]);
         const priority=plan==="high"?"pass":plan==="wide"?"finish":"screen";
         const lead=forwards.find(b=>this.roleFor(s,this.actualLine[s],b.id)===priority)??forwards[0];
+        const support = forwards.filter(f => f!==lead);
         forwards.forEach((b, i) => {
-          const role = plan==="auto" ? i%3 : b===lead ? 0 : 1;
+          const role = plan==="auto" ? i%3 : b===lead ? 0 : 1+support.indexOf(b);
           let spot = ozone
             ? role === 0
               ? at(d * 23.6, -strong * 1.3) // net-front screen
@@ -812,12 +815,23 @@ export class SpatialMatch {
             ? at(puck.x+d*6,-strong*(lane+1.8)) : at(puck.x+d*6,-strong*2.2);
           if (ozone && identity==="cycle" && role===0) spot=at(d*24.2,-strong*1.1);
           if (ozone && identity==="skill" && role===1) spot=at(d*19,-strong*5.2);
-          if(plan==="wide") spot=at(ozone ? d*(role===0?21:17) : puck.x+d*(role===0?6:3), (role===0?-strong:strong)*8.4);
-          if(plan==="slot" && ozone) spot=at(d*(role===0?24:19.2), (role===0?-strong:strong)*(role===0?1.2:4));
-          if(plan==="high" && role===0) spot=at(ozone?d*14:puck.x-d*2,-strong*3.2);
-          if(plan==="wide") spot=ozone ? at(d*(role===0?20:17), (role===0?-strong:strong)*8) : at(puck.x+d*(role===0?6:3), (role===0?-strong:strong)*9);
-          if(plan==="slot" && ozone) spot=role===0 ? at(d*24.1,-strong*1.1) : at(d*19.2,strong*3.2);
+          if(plan==="wide") {
+            spot=role===2 ? at(ozone ? d*14.8 : puck.x-d*2.8,puck.z*.35)
+              : at(ozone ? d*(role===0?20:17) : puck.x+d*(role===0?6:3),(role===0?-strong:strong)*(ozone?8:9));
+          }
+          if(plan==="slot" && ozone) {
+            spot=role===0 ? at(d*24.1,-strong*1.1) : role===1 ? at(d*19.2,strong*3.2) : at(d*15.6,-strong*3.8);
+          }
           if(plan==="high" && role===0) spot=ozone ? at(d*14.2,-strong*3.6) : at(puck.x-d*3.5,puck.z*.5);
+          // When the puck drops below the circle, separate the cut to the far post
+          // from the higher return lane. Keep the short wall outlet available.
+          if(plan==="auto" && wallPlay && adv>RINK.dotX && b===insideForward)
+            spot=at(d*(RINK.goalLine-2.8),-strong*2.4);
+          if (wallPlay && ozone && b === outlet && this.frame.bodies.some(o =>
+            o.side !== s && !o.goalie && Math.hypot(o.x-attacking.x,o.z-attacking.z)<2.3)) {
+            // Stay within one short pass of a pinned carrier, on the inside shoulder.
+            spot=at(attacking.x-d*2.4, attacking.z-strong*2.2);
+          }
           // Step off a marked lane to show the carrier a passing option.
           const marker = this.frame.bodies.find(o => o.side !== s && !o.goalie && Math.hypot(o.x-spot.x,o.z-spot.z)<2.6);
           spots.set(b.id, marker ? at(spot.x-d*.6, spot.z+(spot.z >= marker.z ? 2 : -2)) : spot);
@@ -875,7 +889,9 @@ export class SpatialMatch {
           const threat = this.frame.bodies.filter(o => o.side !== s && !o.goalie && o !== owner &&
             (i % 2 ? o.z >= 0 : o.z < 0)).sort((a,b) => Math.hypot(a.x-net.x,a.z)-Math.hypot(b.x-net.x,b.z))[0];
           const mark = threat && Math.hypot(threat.x-net.x, threat.z)<11 ? threat : puck;
-          spots.set(b.id, at(net.x+(mark.x-net.x)*.53, mark.z*.53+(i % 2 ? .95 : -.95)));
+          const farPost = Math.abs(puck.z)>7 && mark!==puck && puck.z*mark.z<0;
+          const laneFraction = farPost ? .32 : .53;
+          spots.set(b.id, at(net.x+(mark.x-net.x)*laneFraction, mark.z*laneFraction+(i % 2 ? .95 : -.95)));
         });
         forwards.forEach((b, i) => {
           const role = i % 3;
@@ -954,7 +970,12 @@ export class SpatialMatch {
     const distance = Math.hypot(toPuckX, toPuckZ);
     // Puck behind the goal line: hug the post on that side.
     if (toPuckX * dir < 0.3) return { x: netX + dir * 0.72, z: clamp(puck.z, -0.85, 0.85) };
-    const out = .55 + .70*clamp((distance-4)/15,0,1);
+    const carrier=this.frame.bodies.find(o=>o.id===this.owner);
+    const threat=carrier && carrier.side!==b.side && toPuckX*dir>0;
+    // Challenge a central rush, then retreat as the carrier enters the crease.
+    const centrality=1-clamp(Math.abs(toPuckZ)/8,0,1);
+    const challenge=threat ? centrality*clamp((distance-2.5)/4,0,1)*clamp((18-distance)/6,0,1) : 0;
+    const out = .55 + .70*clamp((distance-4)/15,0,1) + .65*challenge;
     return {
       x: netX + dir * Math.max(.72, toPuckX*dir / Math.max(1, distance) * out + .35),
       z: clamp((toPuckZ / Math.max(1, distance)) * out * 1.6, -1.1, 1.1),
@@ -1032,6 +1053,8 @@ export class SpatialMatch {
   }
 
   private canRecover(b: SkaterBody) {
+    const pin=this.boardContact;
+    if (pin && this.skatingTime < pin.until && (b.id===pin.hitter || b.id===pin.carrier)) return false;
     return this.lastRelease?.id !== b.id || this.skatingTime >= this.lastRelease.until;
   }
 
@@ -1042,6 +1065,7 @@ export class SpatialMatch {
     this.lastRelease = { id: b.id, until: this.skatingTime + .36 };
   }
   private faceoff(dot: Dot = CENTER_DOT) {
+    this.boardContact=undefined;
     this.reboundUntil=-1;
     this.flight = undefined;
     this.pickup = undefined;
@@ -1248,34 +1272,39 @@ export class SpatialMatch {
       const dir = this.direction(s.side);
       const t = s.t;
       if (scorer) {
-        const wall = scorer.z >= 0 ? 1 : -1;
+        const wall = s.variant < 1/3 ? 1 : -1;
         const benchX = BENCH.centerX[s.side];
-        const lane = scorer.x <= benchX ? 1 : -1;
+        const lane = -dir;
         if (t < 2.2) this.glide(scorer, dir * 18.5, wall * 9.6, 7.5, dt);
-        else if (t < 3.9) this.glide(scorer, scorer.x, scorer.z, 1, dt);
+        else if (t < 4.4 || wall > 0) this.glide(scorer, scorer.x, scorer.z, 1, dt);
         else
           this.glide(
             scorer,
-            benchX + lane * (BENCH.halfLength + 1),
-            BENCH.frontZ,
+            scorer.z > -RINK.boardsZ+1.1 ? benchX-lane*BENCH.halfLength : benchX+lane*(BENCH.halfLength+1),
+            -RINK.boardsZ + .52,
             5.5,
             dt,
           );
         const mates = bodies.filter(
           (b) => b.side === s.side && !b.goalie && b.id !== scorer.id,
         );
-        mates.forEach((b, i) => {
-          const angle = (i / Math.max(1, mates.length)) * Math.PI * 2 + 0.6;
+        // Reserve an arrival lane from the approach side once per goal.
+        // Players on opposite sides of the scorer then keep their lanes.
+        const order=s.gatheringOrder ??= [...mates].sort((a,b)=>
+          Math.atan2(a.z-scorer.z,a.x-scorer.x)-Math.atan2(b.z-scorer.z,b.x-scorer.x)).map(b=>b.id);
+        mates.forEach((b) => {
+          const i=Math.max(0,order.indexOf(b.id));
+          const angle = ((i+.5) / Math.max(1, mates.length)) * Math.PI * 2 - Math.PI;
           if (t < 2.2) {
             const r = 2.4;
             this.glide(b, scorer.x + Math.cos(angle) * r, scorer.z + Math.sin(angle) * r, 7.5, dt);
-          } else if (t < 3.9) {
+          } else if (t < 4.4 || wall > 0) {
             const r = 0.95;
             this.glide(b, scorer.x + Math.cos(angle) * r, scorer.z + Math.sin(angle) * r, 4, dt);
           } else {
             // Follow the scorer down the bench for the fist-bump line.
             const behind = 1.5 * (i + 1);
-            this.glide(b, scorer.x - lane * behind, BENCH.frontZ + (i % 2) * 0.5, 5.5, dt);
+            this.glide(b, scorer.x - lane * behind, -RINK.boardsZ + .55 + (i % 2) * .42, 5.5, dt);
           }
         });
       }
@@ -1815,8 +1844,9 @@ export class SpatialMatch {
       if(this.frame.stoppage) this.frame.stoppage.infraction=infraction;
     } else if (body || stickGap > .22) {
       // Body check: the puck squirts loose and the battle goes on.
-      this.cue("check", pressure.id, owner.id, { contact: body ? "body" : "stick" });
-      if (body) this.emit("hit", pressure, alongBoards ? "Борьба у борта" : "Силовой приём");
+      const hardHit=body && closing>4.4 && Math.hypot(pressure.vx,pressure.vz)>3.8;
+      this.cue("check", pressure.id, owner.id, { contact: hardHit ? "body" : body ? "pin" : "stick" });
+      if (hardHit) this.emit("hit", pressure, alongBoards ? "Силовой приём у борта" : "Силовой приём");
       this.releasePuck(owner);
       this.flight = {
         vx: owner.vx*.5 + (pressure.vx-owner.vx)*.18 + (this.rng.next() - 0.5) * 3,
@@ -1828,6 +1858,20 @@ export class SpatialMatch {
         shot: false,
         kind: "loose",
       };
+      if (body && alongBoards) {
+        this.boardContact={hitter:pressure.id,carrier:owner.id,until:this.skatingTime+.52};
+        const sideWall=Math.abs(owner.z)/RINK.boardsZ > Math.abs(owner.x)/30;
+        // A puck knocked out from between the skates slides along the kick plate.
+        if (sideWall) {
+          this.flight.vz=-Math.sign(owner.z)*.55;
+          this.flight.vx=Math.sign(this.flight.vx || owner.vx || 1)*Math.max(2,Math.abs(this.flight.vx));
+        } else {
+          this.flight.vx=-Math.sign(owner.x)*.55;
+          this.flight.vz=Math.sign(this.flight.vz || owner.vz || 1)*Math.max(2,Math.abs(this.flight.vz));
+        }
+        this.flight.vy=.12;
+        for(const skater of [owner,pressure]) { skater.vx*=.48; skater.vz*=.48; }
+      }
       this.player(owner.id).fatigue = clamp(this.player(owner.id).fatigue + 0.6, 0, 100);
     } else {
       this.takePuck(pressure);

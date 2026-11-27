@@ -1,3 +1,4 @@
+import { portraitUrl } from "./portrait";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { Team, Player } from "../engine/types";
@@ -194,8 +195,8 @@ export function PlayerTable({
             >
               <td className="muted">{p.number}</td>
               <td>
-                {p.headshot && (
-                  <img className="player-mini-photo" src={p.headshot} alt="" />
+                {portraitUrl(p) && (
+                  <img className="player-mini-photo" src={portraitUrl(p)} alt="" />
                 )}
                 <strong>{p.name}</strong>
                 {links && <RequestBadge game={links.game} playerId={p.id} />}

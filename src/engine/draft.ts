@@ -260,6 +260,7 @@ export function createDraftState(year: number, r: RNG, count = 224): DraftState 
     const j = tierRng.int(0, i);
     [generatedTiers[i], generatedTiers[j]] = [generatedTiers[j], generatedTiers[i]];
   }
+  const usedSurnames = new Set<string>();
   for (let i = prospects.length; i < count; i++) {
     const [nation, region] = GENERATED_NATIONS[i % GENERATED_NATIONS.length];
     const pos = positions[i % positions.length];
@@ -270,7 +271,7 @@ export function createDraftState(year: number, r: RNG, count = 224): DraftState 
     const id = `draft-${year}-${i}-${r.int(1000, 9999)}`;
     const player = createPlayer(r, id, pos, level);
     player.nation = nation;
-    player.name = nationalName(nation, id);
+    player.name = nationalName(nation, id, usedSurnames);
     player.age = r.int(17, 18);
     player.salary = 0;
     player.years = 0;
@@ -500,15 +501,16 @@ function say(transcript: ConversationLine[], speaker: ConversationLine["speaker"
 
 export function interviewsAvailable(g: Game) {
   const draft = ensureDraft(g);
-  return draft.status === "scouting" ? (draft.interviewsLeft ?? 0) : 0;
+  return draft.status !== "complete" ? (draft.interviewsLeft ?? 0) : 0;
 }
 
 /** One question of the pre-draft meeting; the first one uses an interview slot. */
 export function interviewProspect(g: Game, prospectId: string, topic: InterviewTopic) {
   const draft = ensureDraft(g);
-  if (draft.status !== "scouting") throw Error(tx(g, "Встречи проводятся только до драфта", "Interviews are held before the draft only"));
+
   const p = draft.prospects.find((item) => item.player.id === prospectId);
-  if (!p) throw Error("Prospect unavailable");
+  if (!p || p.draftedBy || draft.status === "complete")
+    throw Error(tx(g, "Игрок уже недоступен для преддрафтовой беседы", "This prospect is no longer available for an interview"));
   const team = g.teams.find((t) => t.id === g.user)!;
   let meeting = draft.interviews![prospectId];
   if (!meeting) {
@@ -665,23 +667,40 @@ export function prospectInterest(g: Game, p: DraftProspect) {
 /* Draft night                                                         */
 /* ------------------------------------------------------------------ */
 
-function weightedLottery(pool: Team[], r: RNG) {
-  const weighted = pool.flatMap((team, i) => Array.from({ length: Math.max(1, pool.length - i) }, () => team));
-  return r.pick(weighted);
+export const LOTTERY_WEIGHTS = [185,135,115,95,85,75,65,60,50,35,30,25,20,15,5,5];
+
+export function prepareLottery(g: Game, r = new RNG(g.seed)) {
+  const draft = ensureDraft(g);
+  if (draft.lottery || draft.status !== "scouting") return draft.lottery;
+  const field = new Set(g.bracket[0]?.flatMap(s => [s.a,s.b]));
+  const seeds = rankedTeams(g.teams).reverse().sort((a,b) => Number(field.has(a.id)) - Number(field.has(b.id))).map(t=>t.id);
+  const entrants = seeds.slice(0,16);
+  const fixed = new Map<number,string>();
+  const winners: string[] = [];
+  for (let draw=0; draw<2; draw++) {
+    const eligible = entrants.filter(id=>!winners.includes(id) && ![...fixed.values()].includes(id));
+    const tickets = eligible.flatMap(id=>Array<string>(LOTTERY_WEIGHTS[entrants.indexOf(id)]).fill(id));
+    const winner = r.pick(tickets);
+    winners.push(winner);
+    let slot = Math.max(draw,entrants.indexOf(winner)-10);
+    while (fixed.has(slot)) slot++;
+    fixed.set(slot,winner);
+    if (!draw && slot>0) fixed.set(0,entrants[0]);
+  }
+  const rest = seeds.filter(id=>![...fixed.values()].includes(id));
+  const order = seeds.map((_,i)=>fixed.get(i) ?? rest.shift()!);
+  draft.lottery = {seeds,winners,order,revealed:0};
+  return draft.lottery;
 }
 
 export function openDraft(g: Game, r = new RNG(g.seed)) {
   const draft = ensureDraft(g);
   if (draft.status !== "scouting") return;
-  const field = new Set(g.bracket[0]?.flatMap(s => [s.a,s.b]));
-  const reverse = rankedTeams(g.teams).reverse().sort((a,b) => Number(field.has(a.id)) - Number(field.has(b.id)));
-  const lotteryPool = reverse.slice(0, 16);
-  const lottery: Team[] = [];
-  while (lottery.length < 3) {
-    const winner = weightedLottery(lotteryPool.filter((team) => !lottery.includes(team)), r);
-    lottery.push(winner);
-  }
-  const firstRound = [...lottery, ...reverse.filter((t) => !lottery.includes(t))];
+  const lottery = prepareLottery(g,r)!;
+  lottery.revealed = 2;
+  const clubs = new Map(g.teams.map(t=>[t.id,t]));
+  const reverse = lottery.seeds.map(id=>clubs.get(id)!);
+  const firstRound = lottery.order.map(id=>clubs.get(id)!);
   draft.picks = Array.from({ length: 7 }, (_, round) =>
     (round === 0 ? firstRound : reverse).map((team, index) => ({
       year: draft.year,
@@ -696,8 +715,8 @@ export function openDraft(g: Game, r = new RNG(g.seed)) {
   g.news.unshift(
     tx(
       g,
-      `Драфт ${draft.year} открыт. Лотерея: ${lottery.map((t) => t.id).join(", ")}.`,
-      `The ${draft.year} draft is open. Lottery: ${lottery.map((t) => t.id).join(", ")}.`,
+      `Драфт ${draft.year} открыт. Лотерея: ${lottery.winners.join(", ")}.`,
+      `The ${draft.year} draft is open. Lottery: ${lottery.winners.join(", ")}.`,
     ),
   );
   advanceDraftToUser(g);

@@ -84,6 +84,7 @@ export function buildMatchNight(
   const phase = { value: 0 },
     reaction = { value: 0 },
     wave = { value: 0 };
+  let lastClock=0;
   const crowdMaterial = own(
     new THREE.MeshBasicMaterial({
       map: atlas,
@@ -111,7 +112,9 @@ export function buildMatchNight(
         float angle = atan(seat.z,seat.x);
         float distanceToWave = abs(atan(sin(angle-fanWave),cos(angle-fanWave)));
         float rise = fanWave < 5. ? max(0.,1.-distanceToWave*2.2)*.38 : 0.;
-        rise += fanReaction * (.45+.55*abs(sin(fanTime*6.+tile)));
+        float seatNoise=fract(sin(dot(seat.xz,vec2(12.9898,78.233)))*43758.5453);
+        float delay=.12+.37*(.5+.5*cos(angle))+.25*seatNoise;
+        rise += smoothstep(delay,delay+.22,fanReaction)*(.21+.14*seatNoise+.035*sin(5.*fanTime+tile));
         vec3 right = normalize(vec3(viewMatrix[0][0], 0., viewMatrix[2][0]) + vec3(.00001,0.,0.));
         vec4 mvPosition = viewMatrix * vec4(seat.xyz + right*position.x + vec3(0.,position.y+rise,0.),1.);
         gl_Position = projectionMatrix * mvPosition;
@@ -361,7 +364,8 @@ export function buildMatchNight(
     rink,
     react(clock: number, goal: boolean, danger: boolean, playing: boolean) {
       phase.value = clock;
-      reaction.value = goal ? 0.28 : danger ? 0.13 : 0;
+      reaction.value = THREE.MathUtils.damp(reaction.value, goal ? 1 : danger ? .48 : 0,goal ? 2.2 : 3.3,Math.max(0,clock-lastClock));
+      lastClock=clock;
       const t = clock % 75;
       wave.value = playing && t < 9 ? (t / 9) * Math.PI * 2 - Math.PI : 10;
     },

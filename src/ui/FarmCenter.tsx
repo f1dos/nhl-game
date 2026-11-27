@@ -1,3 +1,4 @@
+import { portraitUrl } from "./portrait";
 import {DevelopmentDesk} from "./CareerDesk";
 import { useState } from "react";
 import { callUpFromFarm, sendToFarm } from "../engine/roster";
@@ -47,7 +48,7 @@ export default function FarmCenter({
         <thead><tr><th>#</th><th>{ru ? "ИГРОК" : "PLAYER"}</th><th>POS</th><th>{ru ? "ВОЗР." : "AGE"}</th><th>OVR</th><th>POT</th><th>{ru ? "КЛУБ / КОНТРАКТ" : "CLUB / CONTRACT"}</th><th /></tr></thead>
         <tbody>{visible.map((p) => <tr key={p.id}>
           <td>{p.number}</td><td><button className="identity-cell" onClick={() => onPlayer(p)}>
-            {p.headshot && <img src={p.headshot} alt="" />}
+            {portraitUrl(p) && <img src={portraitUrl(p)} alt="" />}
             <span><b>{p.name}</b><small>{p.nation} · {p.archetype || p.league || ""}</small></span>
           </button></td><td><span className="position-pill">{p.pos}</span></td>
           <td>{p.age}</td><td><Rating value={p.ovr}/></td><td><PotentialCell player={p} game={game} compact /></td>

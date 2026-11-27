@@ -1,3 +1,4 @@
+import { nationalName } from "./names";
 /**
  * International tournaments: a February best-on-best event during a
  * two-week NHL break and a World Championship in May for players whose
@@ -153,23 +154,21 @@ interface NationInfo {
   level: number;
   color: string;
   aliases: string[];
-  first: string[];
-  last: string[];
 }
 
 export const NATIONS: NationInfo[] = [
-  { code: "CAN", ru: "Канада", en: "Canada", level: 74, color: "#d52b1e", aliases: [], first: ["Connor", "Ryan", "Tyler", "Brayden", "Cole"], last: ["MacLeod", "Fraser", "Gagnon", "Tremblay", "Campbell"] },
-  { code: "USA", ru: "США", en: "USA", level: 73, color: "#2a4b8d", aliases: [], first: ["Jack", "Logan", "Brady", "Owen", "Mason"], last: ["Walsh", "Sullivan", "Peterson", "Murphy", "Hanson"] },
-  { code: "SWE", ru: "Швеция", en: "Sweden", level: 72, color: "#f2c200", aliases: [], first: ["Elias", "Oskar", "Hugo", "Linus", "Viktor"], last: ["Lindqvist", "Sandberg", "Holm", "Ekström", "Nyqvist"] },
-  { code: "FIN", ru: "Финляндия", en: "Finland", level: 71, color: "#1d4e9e", aliases: [], first: ["Aleksi", "Eetu", "Joonas", "Kasperi", "Otto"], last: ["Virtanen", "Lehtonen", "Heikkinen", "Salonen", "Koivisto"] },
-  { code: "RUS", ru: "Россия", en: "Russia", level: 72, color: "#c8102e", aliases: [], first: ["Artyom", "Kirill", "Nikita", "Daniil", "Yegor"], last: ["Smirnov", "Kuznetsov", "Popov", "Lebedev", "Kozlov"] },
-  { code: "CZE", ru: "Чехия", en: "Czechia", level: 70, color: "#11457e", aliases: [], first: ["Jakub", "Ondřej", "Tomáš", "Lukáš", "Matěj"], last: ["Novák", "Svoboda", "Dvořák", "Černý", "Procházka"] },
-  { code: "SUI", ru: "Швейцария", en: "Switzerland", level: 69, color: "#da291c", aliases: ["CHE", "SWI"], first: ["Nico", "Luca", "Timo", "Janis", "Sven"], last: ["Meier", "Brunner", "Gerber", "Baumann", "Frehner"] },
-  { code: "GER", ru: "Германия", en: "Germany", level: 68, color: "#2b2b2b", aliases: ["DEU"], first: ["Lukas", "Moritz", "Leon", "Tobias", "Jonas"], last: ["Müller", "Schmidt", "Weber", "Hoffmann", "Krämer"] },
-  { code: "SVK", ru: "Словакия", en: "Slovakia", level: 68, color: "#0b4ea2", aliases: ["SLO"], first: ["Marek", "Adam", "Samuel", "Dávid", "Patrik"], last: ["Horváth", "Kováč", "Varga", "Tóth", "Baláž"] },
-  { code: "LAT", ru: "Латвия", en: "Latvia", level: 66, color: "#9e3039", aliases: ["LVA"], first: ["Kristians", "Rihards", "Artūrs", "Roberts", "Oskars"], last: ["Bērziņš", "Kalniņš", "Ozols", "Liepiņš", "Krūmiņš"] },
-  { code: "DEN", ru: "Дания", en: "Denmark", level: 65, color: "#c60c30", aliases: ["DNK"], first: ["Mads", "Nikolaj", "Frederik", "Mikkel", "Jesper"], last: ["Jensen", "Nielsen", "Hansen", "Larsen", "Madsen"] },
-  { code: "NOR", ru: "Норвегия", en: "Norway", level: 64, color: "#ba0c2f", aliases: [], first: ["Mathias", "Andreas", "Sander", "Eirik", "Tobias"], last: ["Olsen", "Johansen", "Berg", "Haugen", "Dahl"] },
+  { code: "CAN", ru: "Канада", en: "Canada", level: 74, color: "#d52b1e", aliases: [] },
+  { code: "USA", ru: "США", en: "USA", level: 73, color: "#2a4b8d", aliases: [] },
+  { code: "SWE", ru: "Швеция", en: "Sweden", level: 72, color: "#f2c200", aliases: [] },
+  { code: "FIN", ru: "Финляндия", en: "Finland", level: 71, color: "#1d4e9e", aliases: [] },
+  { code: "RUS", ru: "Россия", en: "Russia", level: 72, color: "#c8102e", aliases: [] },
+  { code: "CZE", ru: "Чехия", en: "Czechia", level: 70, color: "#11457e", aliases: [] },
+  { code: "SUI", ru: "Швейцария", en: "Switzerland", level: 69, color: "#da291c", aliases: ["CHE", "SWI"] },
+  { code: "GER", ru: "Германия", en: "Germany", level: 68, color: "#2b2b2b", aliases: ["DEU"] },
+  { code: "SVK", ru: "Словакия", en: "Slovakia", level: 68, color: "#0b4ea2", aliases: ["SLO"] },
+  { code: "LAT", ru: "Латвия", en: "Latvia", level: 66, color: "#9e3039", aliases: ["LVA"] },
+  { code: "DEN", ru: "Дания", en: "Denmark", level: 65, color: "#c60c30", aliases: ["DNK"] },
+  { code: "NOR", ru: "Норвегия", en: "Norway", level: 64, color: "#ba0c2f", aliases: [] },
 ];
 
 export const nationInfo = (code: string) =>
@@ -336,7 +335,7 @@ function fillerPlayer(id: string, code: string, pos: Position): Player {
   const info = nationInfo(code)!;
   const r = new RNG(hash(id));
   const player = createPlayer(r, id, pos, info.level - 6);
-  player.name = `${info.first[hash(`${id}:f`) % info.first.length]} ${info.last[hash(`${id}:l`) % info.last.length]}`;
+  player.name = nationalName(code,id);
   player.nation = code;
   player.age = 21 + (hash(`${id}:age`) % 12);
   return player;

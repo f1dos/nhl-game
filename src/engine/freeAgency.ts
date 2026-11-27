@@ -90,10 +90,21 @@ function assertOfferTerms(g: Game, team: Team, player: Player, years: number, sa
     throw Error("Player is no longer a free agent");
 }
 
+export function meetFreeAgent(g: Game, playerId: string) {
+  if (!g.freeAgents?.some(p => p.id === playerId)) throw Error("Free agent unavailable");
+  (g.freeAgentMeetings ??= {})[playerId] = { year: g.year, team: g.user };
+}
+
+export function hasMetFreeAgent(g: Game, playerId: string) {
+  const meeting = g.freeAgentMeetings?.[playerId];
+  return meeting?.year === g.year && meeting.team === g.user;
+}
+
 export function proposeFreeAgentContract(g: Game, playerId: string, years: number, salary: number, role: PromisedRole) {
   const p = g.freeAgents?.find(player => player.id === playerId);
   const team = g.teams.find(club => club.id === g.user);
   if (!p || !team) throw Error("Free agent unavailable");
+  if (!hasMetFreeAgent(g, playerId)) throw Error(g.language === "ru" ? "Сначала обсудите интерес игрока к клубу" : "Discuss the player's interest first");
   assertOfferTerms(g,team,p,years,salary,role);
   g.freeAgentOffers ??= [];
   const prior = [...g.freeAgentOffers].reverse().find(o=>o.playerId===playerId && o.teamId===g.user);

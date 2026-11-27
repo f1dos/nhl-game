@@ -1,3 +1,4 @@
+import {recordContract} from "./contractLedger";
 import { archiveMatch } from "./season";
 import {registerRoster,salaryTotal} from "./contracts";
 import { capCharge } from "./cap";
@@ -390,6 +391,7 @@ function aiContractDay(g: Game) {
   player.years = years;
   player.contractExpiryYear = g.year + years;
   player.contractRemainingValue = salary * years;
+        recordContract(g,team.id,player,"extend");
   pushEvent(g, {
     date: g.calendar!.date,
     category: "contract",
@@ -423,13 +425,21 @@ function legalSwap(
   );
 }
 
-function aiTradeDay(g: Game) {
-  if (!tradeWindowOpen(g) || g.phase==="offseason" || !g.calendar!.day || g.calendar!.day % 17) return;
+export function processRoundTrades(g: Game, date: string) {
+  if (g.phase !== "regular" || !tradeWindowOpen(g, date)) return;
+  const deadlineWeek = date >= `${g.year + 1}-02-26`;
+  if (!deadlineWeek && (g.round + 1) % 13 !== 0) return;
+  const market = new RNG(g.seed ^ Math.imul(g.round + 1, 0x9e3779b1) ^ g.year);
+  if (deadlineWeek && market.next() > 0.45) return;
+  for (let i = 0; i < 3; i++) if (tryTrade(g, date, market)) break;
+}
+
+function tryTrade(g: Game, date: string, market: RNG) {
   const clubs = g.teams.filter((team) => team.id !== g.user);
-  const market = new RNG(g.seed ^ Math.imul(g.calendar!.day, 0x9e3779b1) ^ g.year);
+
   const a = market.pick(clubs);
   const b = market.pick(clubs.filter(club => club !== a));
-  const aProfile = a.aiProfile!;
+  const aProfile = a.aiProfile ?? createProfile(a);
   const candidates = a.players.filter(p => p.injury <= 0).sort((x, y) =>
     aProfile.strategy === "draft-lottery"
       ? y.age - x.age || y.salary - x.salary
@@ -457,9 +467,9 @@ function aiTradeDay(g: Game) {
     `${a.id} получает ${pb.name}; ${b.id} получает ${pa.name}`,
     `${a.id} acquire ${pb.name}; ${b.id} acquire ${pa.name}`,
   );
-  (g.transactions ??= []).push({ year: g.year, round: g.round, message });
+  (g.transactions ??= []).push({ year: g.year, round: g.round, date, kind: "trade", playerIds: [pa.id,pb.id], message });
   pushEvent(g, {
-    date: g.calendar!.date,
+    date,
     category: "trade",
     priority: Math.max(pa.ovr, pb.ovr) >= 84 ? "high" : "normal",
     publicNewsClubs:[a.id,b.id],
@@ -469,6 +479,7 @@ function aiTradeDay(g: Game) {
       "Both clubs remain cap compliant.",
     )}`,
   });
+  return true;
 }
 
 
@@ -534,7 +545,7 @@ function processCurrentDay(g: Game, completed?: import("./types").Result) {
   adaptAiStrategies(g);
   if (g.calendar!.day % 7 === 0) applyWeeklyMood(g);
   aiContractDay(g);
-  aiTradeDay(g);
+
   generateInboxEvents(g);
   for(const t of g.teams)if(salaryTotal(t)>g.rules.cap){registerRoster(t,g.rules.cap);autoLines(t)}
   processPlayerRequests(g);

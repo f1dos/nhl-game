@@ -245,16 +245,16 @@ export class BroadcastDirector {
       else if (s && (s.kind === "penalty" || s.kind === "icing") && s.phase === "whistle") next = "bench";
       else if (s?.kind === "save") next = "over-net";
       else {
-        const deep = Math.abs(px) > 19 && Math.abs(pz) < 9;
+        const deep = Math.abs(px)>22 && Math.abs(pz)>7 && !frame?.passTarget;
         this.zoneTime = deep ? this.zoneTime + dt : 0;
-        next = this.zoneTime > 1.6 ? "low-net" : "main";
+        next = this.zoneTime > 4.8 ? "low-net" : "main";
       }
       // Hold every shot long enough to read (stoppage shots cut at once).
       const held = this.clock - this.shotSince;
       if (next !== this.shot && (held > 2.6 || s || this.shot === "faceoff" || this.shot === "celebrate")) {
         this.shot = next;
         this.shotSince = this.clock;
-        cut = next !== "main" || this.shot !== "main";
+        cut = true;
       }
       shot = this.shot;
       const side = Math.sign(px || 1);
@@ -264,10 +264,13 @@ export class BroadcastDirector {
         fov = 46;
         smooth = 0.55;
       } else if (shot === "over-net") {
-        const g = s ? Math.sign(s.dot.x || 1) * 26 : side * 26;
-        want.set(g + Math.sign(g) * 1.2, 5.2, 0.01);
-        lookAt.set(g - Math.sign(g) * 7, 0, 0);
-        fov = 50;
+        const goalie=s?.kind==="save" ? find(s.actor) : undefined;
+        const goalSide=Math.sign(goalie?.x || s?.dot.x || px || 1);
+        const netX=goalSide*26;
+        // From the circle, include the crossbar, both posts and the rebound lane.
+        want.set(netX-goalSide*8, 6.8, 10.5);
+        lookAt.set((goalie?.x ?? netX)-goalSide*1.35, .8, (goalie?.z ?? 0)*.45);
+        fov = 45;
       } else if (shot === "bench") {
         want.set(0, 3.2, 5);
         lookAt.set(0, 1.0, -14);
@@ -293,8 +296,15 @@ export class BroadcastDirector {
         smooth = 0.55;
         lookSmooth = 0.35;
       } else {
-        want.set(px * 0.85, 12, 27);
-        lookAt.set(px * 0.95, 0, pz * 0.3);
+        const owner=frame?.bodies.find(b=>b.id===frame.carrierId);
+        const receiver=frame?.bodies.find(b=>b.id===frame.passTarget);
+        const leadX=receiver ? THREE.MathUtils.clamp((receiver.x-px)*.32,-3.4,3.4)
+          : THREE.MathUtils.clamp((owner?.vx??0)*.46,-3,3);
+        const zone=THREE.MathUtils.smoothstep(Math.abs(px),11,24);
+        const focusX=THREE.MathUtils.clamp(px+leadX,-24,24);
+        want.set(focusX*.68,12.6+1.4*(1-zone),27.8);
+        lookAt.set(focusX*.94,.35,pz*.44);
+        fov=44-zone*4;
         smooth = 0.7;
         lookSmooth = 0.45;
       }

@@ -1,3 +1,4 @@
+import {recordContract} from "./contractLedger";
 import { rosterCharge } from "./cap";
 import type { Game, Player, Position } from "./types";
 import { RNG, clamp } from "./random";
@@ -85,6 +86,7 @@ export function ageWorld(g: Game, r: RNG) {
     const young = developmentAge(p.age, p.pos) <= 25;
     const ageing = p.age >= declineAge(p);
     const baseline = p.trainingStartOverall ?? p.ovr;
+    const seasonStart = p.seasonOpeningOverall ?? baseline;
     const modifier = review.protectedSeason ? 1 : review.poor || review.injured ? -1 : 0;
     let growth = annualGrowth(p, modifier, iceTime, context.team, r);
     if (review.protectedSeason) {
@@ -107,12 +109,14 @@ export function ageWorld(g: Game, r: RNG) {
     p.potential = Math.max(p.potential, Math.min(99, p.ovr));
     if (p.injury > 0) resolveOpeningInjury(p);
     p.openingAgeingTarget = undefined;
-    revisePotential(p, g.year, modifier);
+    const net = p.ovr - seasonStart;
+    revisePotential(p, g.year, modifier, net);
+    p.seasonOpeningOverall = p.ovr;
     (p.developmentLog ??= []).unshift({
-      year: g.year,
-      delta: p.ovr - before,
+      year: g.year - 1,
+      delta: net,
       reason: [review.reason || tx(g,"Обычный сезон","Steady season"), ageing && tx(g,"возрастная кривая","age curve")].filter(Boolean).join(" · "),
-      ovrBefore: before,
+      ovrBefore: seasonStart,
       ovrAfter: p.ovr,
       ...(p.potential !== potentialBefore
         ? { potentialDelta: p.potential - potentialBefore }
@@ -157,6 +161,7 @@ export function ageWorld(g: Game, r: RNG) {
         p.contractStatus = p.age < 27 ? "RFA" : "UFA";
         p.contractRemainingValue = 3.2;
         t.players.push(p);
+        recordContract(g,t.id,p,"sign");
         promoted.push(p);
       } else if (
         p.age >= 20 &&
@@ -171,6 +176,7 @@ export function ageWorld(g: Game, r: RNG) {
         p.contractRemainingValue = 2.4;
         p.contractStatus = "RFA";
         t.farm.push(p);
+        recordContract(g,t.id,p,"sign");
         promoted.push(p);
       }
     }
@@ -193,6 +199,7 @@ export function ageWorld(g: Game, r: RNG) {
   // Undrafted and overage players keep the open market supplied. Drafted players
   // now develop separately inside each club's prospect pipeline.
   const positions: Position[] = ["LW", "C", "RW", "D", "D", "G"];
+  const entrantSurnames = new Set<string>();
   for (let i = 0; i < 240; i++) {
     const p = createPlayer(
       r,
@@ -200,7 +207,7 @@ export function ageWorld(g: Game, r: RNG) {
       positions[i % positions.length],
       // Undrafted depth shares the junior talent scale. The top draft picks
       // should not be outnumbered by NHL-ready unsigned teenagers each year.
-      53,
+      53, entrantSurnames,
     );
     // The unsigned pool includes older junior and college graduates.
     p.age = r.int(20, 25);

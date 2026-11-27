@@ -1,3 +1,4 @@
+import { portraitUrl } from "./portrait";
 import { counterOffer, marketBrief } from "../engine/careerDesk";
 import clubMarks from "../assets/scoreboard-crests.json";
 import { useState, type CSSProperties } from "react";
@@ -146,8 +147,8 @@ export default function TradeCenter({
                   onClick={() => toggle(player.id, selected, setSelected)}
                 >
                   <span className="trade-avatar" aria-hidden>
-                    {player.headshot ? (
-                      <img src={player.headshot} alt="" loading="lazy" />
+                    {portraitUrl(player) ? (
+                      <img src={portraitUrl(player)} alt="" loading="lazy" />
                     ) : (
                       <i>{player.number || player.pos}</i>
                     )}
@@ -370,6 +371,13 @@ export default function TradeCenter({
           setRightTab,
         )}
       </div>
+      <details className="agent-meeting">
+        <summary>{tr("Обмены в этом сезоне","Trades this season")}</summary>
+        {(game.transactions ?? []).filter(t=>t.year===game.year && t.kind==="trade").length
+          ? (game.transactions ?? []).filter(t=>t.year===game.year && t.kind==="trade").slice().reverse().map((t,i)=>
+            <p key={i}><time>{t.date ?? t.year}</time> · {t.message}</p>)
+          : <p>{tr("В журнале пока нет зарегистрированных обменов.","No trades recorded in this log yet.")}</p>}
+      </details>
       <p className="note">
         {tr(
           "Прямые денежные выплаты не используются как обычный актив NHL. Сделка проверяется на потолок зарплат, структуру составов и права на пики.",

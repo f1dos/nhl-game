@@ -1,3 +1,4 @@
+import { regenSurnames } from "./regenSurnames";
 /**
  * Nationality-aware name and hometown generation for game-generated people
  * (draft prospects, staff). Everything here is a pure function of a string
@@ -15,53 +16,23 @@ export function seeded(text: string) {
 
 const pick = <T>(list: readonly T[], seed: string) => list[seeded(seed) % list.length];
 
-const NAMES: Record<string, [string[], string[]]> = {
-  CAN: [
-    ["Liam", "Owen", "Carter", "Brayden", "Logan", "Ethan", "Nolan", "Connor", "Tyson", "Cole", "Mason", "Jack", "Ryan", "Evan", "Dylan", "Brody", "Jaxon", "Hunter", "Mathieu", "Gabriel", "Samuel", "Olivier", "Zach", "Easton", "Cameron", "Gavin", "Riley", "Landon"],
-    ["MacDonald", "Tremblay", "Gagnon", "Campbell", "Fraser", "McKenzie", "Bouchard", "Gauthier", "Morrison", "Sinclair", "Henderson", "Leblanc", "Robertson", "Cormier", "MacLeod", "Bergeron", "Thibault", "Murray", "Sutherland", "Pelletier", "Wilson", "Kennedy", "Desjardins", "Mitchell", "Hughes", "Cyr", "Ouellette", "Foley"],
-  ],
-  USA: [
-    ["Jack", "Cole", "Gavin", "Ryan", "Will", "Charlie", "Sam", "Ben", "Brady", "Tyler", "Luke", "Danny", "Cooper", "Matt", "Nick", "Drew", "Chase", "Logan", "Wyatt", "Caden", "Trevor", "Max", "Aidan", "Mikey", "Quinn", "Patrick", "Kyle", "Colin"],
-    ["Sullivan", "O'Brien", "Johnson", "Miller", "Peterson", "Carlson", "Walsh", "Murphy", "Anderson", "Fitzgerald", "Schultz", "Brennan", "Kowalski", "Bennett", "Novak", "Hanson", "Doyle", "Riley", "Stewart", "Larkin", "Kessler", "McCarthy", "Olson", "Dunn", "Gallagher", "Reilly", "Harrington", "Barrett"],
-  ],
-  SWE: [
-    ["Oskar", "Elias", "Viktor", "Axel", "Isak", "Hugo", "Lucas", "Emil", "Filip", "Albin", "Linus", "Anton", "Måns", "Noah", "Theo", "Rasmus", "Jesper", "Gustav", "Ludvig", "Melvin", "Leo", "William"],
-    ["Lindqvist", "Andersson", "Johansson", "Karlsson", "Nilsson", "Eriksson", "Larsson", "Bergström", "Lundqvist", "Söderberg", "Holmberg", "Sandström", "Ekholm", "Wallin", "Forsberg", "Nyström", "Sjöberg", "Hedman", "Åberg", "Lindgren", "Engström", "Öhman"],
-  ],
-  FIN: [
-    ["Aleksi", "Eetu", "Joonas", "Kasper", "Ville", "Onni", "Aatu", "Niko", "Juho", "Leevi", "Konsta", "Otto", "Veeti", "Eemeli", "Topi", "Arttu", "Lauri", "Rasmus", "Jere", "Miro", "Atte", "Iiro"],
-    ["Virtanen", "Mäkinen", "Nieminen", "Heikkinen", "Koskinen", "Laine", "Lehtonen", "Hämäläinen", "Salminen", "Järvinen", "Kärkkäinen", "Rantanen", "Lindroos", "Pesonen", "Honka", "Aho", "Kokko", "Saarela", "Puljujärvi", "Vaakanainen", "Lundell", "Rissanen"],
-  ],
-  CZE: [
-    ["Jakub", "Matěj", "Ondřej", "Tomáš", "Adam", "Filip", "Vojtěch", "David", "Lukáš", "Jan", "Dominik", "Šimon", "Michal", "Martin", "Daniel", "Petr", "Jiří", "Eduard"],
-    ["Novák", "Svoboda", "Dvořák", "Černý", "Procházka", "Kučera", "Veselý", "Horák", "Němec", "Pokorný", "Marek", "Pospíšil", "Hájek", "Jelínek", "Král", "Růžička", "Beneš", "Fiala"],
-  ],
-  SVK: [
-    ["Juraj", "Šimon", "Dalibor", "Martin", "Samuel", "Adam", "Filip", "Tomáš", "Matúš", "Marek", "Peter", "Michal", "Lukáš", "Dávid"],
-    ["Slafkovský", "Nemec", "Kováč", "Horváth", "Varga", "Tóth", "Baláž", "Molnár", "Lukáč", "Benčík", "Hrivík", "Fehérváry", "Gernát", "Pekár"],
-  ],
-  RUS: [
-    ["Ivan", "Matvei", "Artem", "Kirill", "Daniil", "Nikita", "Egor", "Maksim", "Dmitri", "Alexander", "Ilya", "Mikhail", "Sergei", "Yaroslav", "Timur", "Gleb", "Arseni", "Fyodor", "Vladislav", "Semyon"],
-    ["Volkov", "Morozov", "Sokolov", "Kuznetsov", "Smirnov", "Popov", "Lebedev", "Kozlov", "Novikov", "Fedorov", "Orlov", "Belov", "Zaitsev", "Pavlov", "Romanov", "Vinogradov", "Kiselev", "Gusev", "Titov", "Medvedev"],
-  ],
-  BLR: [
-    ["Aliaksei", "Dzmitry", "Ivan", "Pavel", "Yahor", "Maksim", "Artsiom", "Vadim"],
-    ["Protas", "Sharangovich", "Kovalenko", "Lisovets", "Pashkevich", "Hrabouski", "Kalyuzhny", "Stasenka"],
-  ],
-  GER: [
-    ["Lukas", "Moritz", "Leon", "Jonas", "Tim", "Nico", "Felix", "Julian", "Maximilian", "Paul", "Niklas", "Elias"],
-    ["Müller", "Schmidt", "Wagner", "Becker", "Hoffmann", "Schneider", "Fischer", "Weber", "Krämer", "Seider", "Reichel", "Stützle"],
-  ],
-  SUI: [
-    ["Luca", "Noah", "Nico", "Janis", "Timo", "Gaëtan", "Lian", "Kevin", "Dario", "Yannick"],
-    ["Meier", "Bühler", "Fischer", "Moser", "Brunner", "Josi", "Siegenthaler", "Andrighetto", "Hischier", "Kurashev"],
-  ],
-  LAT: [["Rūdolfs", "Kristers", "Artūrs", "Eduards", "Dans", "Roberts"], ["Balcers", "Gudļevskis", "Bindulis", "Ozoliņš", "Kalniņš", "Dzierkals"]],
-  NOR: [["Mats", "Andreas", "Sander", "Magnus", "Jonas", "Tobias"], ["Zuccarello", "Olsen", "Hansen", "Johansen", "Bakke", "Solberg"]],
-  DEN: [["Nikolaj", "Frederik", "Oliver", "Mads", "Jonas", "Lasse"], ["Ehlers", "Jensen", "Nielsen", "Hansen", "Poulsen", "Sørensen"]],
-  AUT: [["Marco", "Thomas", "Vinzenz", "David", "Lukas", "Benjamin"], ["Kasper", "Raffl", "Rohrer", "Gruber", "Huber", "Pichler"]],
-  KAZ: [["Nikita", "Yerlan", "Damir", "Artur", "Ilyas"], ["Mikhailis", "Akhmetov", "Nurgaliyev", "Bekov", "Seitkali"]],
-  SLO: [["Anže", "Jan", "Žiga", "Rok", "Luka"], ["Kopitar", "Drozg", "Jeglič", "Ticar", "Pance"]],
+const FIRST_NAMES: Record<string, string[]> = {
+  CAN: ["Liam", "Owen", "Carter", "Brayden", "Logan", "Ethan", "Nolan", "Connor", "Tyson", "Cole", "Mason", "Jack", "Ryan", "Evan", "Dylan", "Brody", "Jaxon", "Hunter", "Mathieu", "Gabriel", "Samuel", "Olivier", "Zach", "Easton", "Cameron", "Gavin", "Riley", "Landon"],
+  USA: ["Jack", "Cole", "Gavin", "Ryan", "Will", "Charlie", "Sam", "Ben", "Brady", "Tyler", "Luke", "Danny", "Cooper", "Matt", "Nick", "Drew", "Chase", "Logan", "Wyatt", "Caden", "Trevor", "Max", "Aidan", "Mikey", "Quinn", "Patrick", "Kyle", "Colin"],
+  SWE: ["Oskar", "Elias", "Viktor", "Axel", "Isak", "Hugo", "Lucas", "Emil", "Filip", "Albin", "Linus", "Anton", "Måns", "Noah", "Theo", "Rasmus", "Jesper", "Gustav", "Ludvig", "Melvin", "Leo", "William"],
+  FIN: ["Aleksi", "Eetu", "Joonas", "Kasper", "Ville", "Onni", "Aatu", "Niko", "Juho", "Leevi", "Konsta", "Otto", "Veeti", "Eemeli", "Topi", "Arttu", "Lauri", "Rasmus", "Jere", "Miro", "Atte", "Iiro"],
+  CZE: ["Jakub", "Matěj", "Ondřej", "Tomáš", "Adam", "Filip", "Vojtěch", "David", "Lukáš", "Jan", "Dominik", "Šimon", "Michal", "Martin", "Daniel", "Petr", "Jiří", "Eduard"],
+  SVK: ["Juraj", "Šimon", "Dalibor", "Martin", "Samuel", "Adam", "Filip", "Tomáš", "Matúš", "Marek", "Peter", "Michal", "Lukáš", "Dávid"],
+  RUS: ["Ivan", "Matvei", "Artem", "Kirill", "Daniil", "Nikita", "Egor", "Maksim", "Dmitri", "Alexander", "Ilya", "Mikhail", "Sergei", "Yaroslav", "Timur", "Gleb", "Arseni", "Fyodor", "Vladislav", "Semyon"],
+  BLR: ["Aliaksei", "Dzmitry", "Ivan", "Pavel", "Yahor", "Maksim", "Artsiom", "Vadim"],
+  GER: ["Lukas", "Moritz", "Leon", "Jonas", "Tim", "Nico", "Felix", "Julian", "Maximilian", "Paul", "Niklas", "Elias"],
+  SUI: ["Luca", "Noah", "Nico", "Janis", "Timo", "Gaëtan", "Lian", "Kevin", "Dario", "Yannick"],
+  LAT: ["Rūdolfs", "Kristers", "Artūrs", "Eduards", "Dans", "Roberts"],
+  NOR: ["Mats", "Andreas", "Sander", "Magnus", "Jonas", "Tobias"],
+  DEN: ["Nikolaj", "Frederik", "Oliver", "Mads", "Jonas", "Lasse"],
+  AUT: ["Marco", "Thomas", "Vinzenz", "David", "Lukas", "Benjamin"],
+  KAZ: ["Nikita", "Yerlan", "Damir", "Artur", "Ilyas"],
+  SLO: ["Anže", "Jan", "Žiga", "Rok", "Luka"],
 };
 
 export const NATION_LABEL: Record<string, { ru: string; en: string; flag: string }> = {
@@ -103,12 +74,21 @@ export function flagOf(nation: string) {
 }
 
 /** A first + last name typical for the nationality; stable for a seed. */
-export function nationalName(nation: string, seed: string) {
-  const [first, last] = NAMES[normalizeNation(nation)] ?? NAMES.CAN;
-  return `${pick(first, `${seed}:f`)} ${pick(last, `${seed}:l`)}`;
+export function nationalName(nation: string, seed: string, usedSurnames?: Set<string>) {
+  const code = normalizeNation(nation);
+  const first = FIRST_NAMES[code] ?? FIRST_NAMES.CAN;
+  const last = regenSurnames[code] ?? regenSurnames.CAN;
+  const start = seeded(`${seed}:l`) % last.length;
+  let family = last[start];
+  if (usedSurnames) {
+    for (let offset = 1; offset < last.length && usedSurnames.has(family); offset++)
+      family = last[(start + offset) % last.length];
+    usedSurnames.add(family);
+  }
+  return `${pick(first, `${seed}:f`)} ${family}`;
 }
 
-export const KNOWN_NAME_NATIONS = Object.keys(NAMES);
+export const KNOWN_NAME_NATIONS = Object.keys(FIRST_NAMES);
 
 /** Hometown: `region` is a state/province code or a country region. */
 export interface Hometown {

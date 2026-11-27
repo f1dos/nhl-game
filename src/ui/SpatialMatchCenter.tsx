@@ -10,6 +10,7 @@ import {
   Pause,
   Play,
   ScrollText,
+  SkipForward,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -107,6 +108,7 @@ export default function SpatialMatchCenter({
       createClubMatch(home, away, game.seed, eliminationRules, true),
   );
   const [running, setRunning] = useState(false);
+  const [skipBoundary,setSkipBoundary]=useState<number|null>(null);
   const [speed, setSpeed] = useState(1);
   const [camera, setCamera] = useState<CameraMode>("broadcast");
   const [drawer, setDrawer] = useState<Drawer>(null);
@@ -201,7 +203,7 @@ export default function SpatialMatchCenter({
       if (target && ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(target.tagName) && e.code === "Space") return;
       if (target && ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName)) return;
       if(reviewId!==null){if(e.key==="Escape")closeReview();return;}
-      if (e.code === "Space") {
+      if (e.code === "Space" && skipBoundary===null) {
         e.preventDefault();
         if (!match.done) {
           match.resume();
@@ -217,7 +219,21 @@ export default function SpatialMatchCenter({
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("fullscreenchange", onFs);
     };
-  }, [match,reviewId]);
+  }, [match,reviewId,skipBoundary]);
+
+  useEffect(()=>{
+    if(skipBoundary===null) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const batch=()=>{
+      for(let i=0;i<160 && !match.done && !match.intermission && match.time<skipBoundary;i++) match.step();
+      seenEvents.current=match.result.events.length;
+      redraw(n=>n+1);
+      if(match.done || match.intermission || match.time>=skipBoundary) setSkipBoundary(null);
+      else timer=setTimeout(batch,0);
+    };
+    timer=setTimeout(batch,0);
+    return ()=>clearTimeout(timer);
+  },[match,skipBoundary]);
 
   const update = (fn: () => void) => {
     fn();
@@ -250,7 +266,7 @@ export default function SpatialMatchCenter({
     else void shell.current?.requestFullscreen?.().catch(() => undefined);
   };
   const toggle = () => {
-    if (match.done) return;
+    if (match.done || skipBoundary!==null) return;
     match.resume();
     setRunning(!running);
   };
@@ -304,7 +320,8 @@ export default function SpatialMatchCenter({
         <button onClick={()=>{if(reviewIndex===clip.length-1)setReviewIndex(0);setReviewPlaying(!reviewPlaying)}}>{reviewPlaying?tr("Пауза повтора","Pause replay"):tr("Смотреть","Play replay")}</button>
         <button onClick={closeReview}>{tr("Вернуться к матчу","Back to match")}</button>
       </section>}
-      <div className="match-strip" hidden={!!clip}>
+      <div className="score-stack" hidden={!!clip}>
+      <div className="match-strip">
         <div className="match-strip-main" aria-label={tr("Табло матча", "Match scoreboard")}>
           <div className="strip-time">
             <strong>{match.done ? (result.so ? "SO" : result.ot ? "OT" : tr("Итог","Final")) : clock(match.time)}</strong>
@@ -341,6 +358,7 @@ export default function SpatialMatchCenter({
           })}
         </div>
       )}
+      </div>
 
       {/* Top right: camera and window controls */}
       <div className="bw-top" style={clip?{display:"none"}:undefined}>
@@ -413,6 +431,12 @@ export default function SpatialMatchCenter({
           <span className="transport-state" data-live={running && !match.stopped}>
             <i aria-hidden="true" />{match.done ? tr("Финал","Final") : !running ? tr("Пауза","Paused") : match.stopped ? tr("Свисток","Stoppage") : tr("В эфире","Live")}
           </span>
+          <button className="period-skip" disabled={match.done || !!clip || skipBoundary!==null} onClick={()=>{
+            setRunning(false);
+            match.resume();
+            const end = (Math.floor(match.time/1200)+1)*1200;
+            setToasts([]);setPauseDraw(false);setSkipBoundary(end);
+          }}><SkipForward size={14} aria-hidden="true"/>{skipBoundary!==null ? tr("Симуляция…","Simulating…") : tr("До конца периода","Sim to period end")}</button>
           <label className="transport-speed">
             <select aria-label={tr("Скорость матча","Match speed")} value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
               {SPEEDS.map(n=><option key={n} value={n}>{n}×</option>)}

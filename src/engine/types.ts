@@ -40,6 +40,7 @@ export interface Player {
   archetype?: import("./ratings").Archetype;
   externalId?: number;
   headshot?: string;
+  portraitIndex?: number;
   birthDate?: string;
   identitySource?: "nhl-api" | "hockeytech" | "generated";
   ratingRank?: number;
@@ -62,6 +63,7 @@ export interface Player {
   potentialBeforeForm?: number;
   /** Base OVR before the first skill session of this season. */
   trainingStartOverall?: number;
+  seasonOpeningOverall?: number;
   injuryBurden?: number;
   motivation?: number;
   relationship?: number;
@@ -498,6 +500,7 @@ export interface DraftState {
   reports: Record<string, ScoutingReport>;
   picks: DraftPick[];
   currentPick: number;
+  lottery?: { seeds: string[]; winners: string[]; order: string[]; revealed: number };
   scoutingPoints: number;
   assignment: ScoutingRegion;
   shortlist: string[];
@@ -625,6 +628,7 @@ export interface Game {
   developmentPlans?: import("./careerDesk").DevelopmentPlan[];
   matchPreparation?: { date: string; opponent: string; plan?: "wide" | "slot" | "high"; talk?: { tone: "trust" | "challenge"; message: "attack" | "safe" | "support" } };
   matchCoverage?: { date: string; opponent: string; target: string };
+  freeAgentMeetings?: Record<string, { year: number; team: string }>;
   freeAgentOffers?: import("./freeAgency").FreeAgentOffer[];
   calendar?: CalendarState;
   preseasonFixtures?: PreseasonFixture[];
@@ -660,13 +664,14 @@ export interface Game {
   retired?: { year: number; player: Player }[];
   freeAgents?: Player[];
   contractHistory?: {
+    playerId?: string; date?: string; action?: "sign" | "extend";
     year: number;
     team: string;
     player: string;
     years: number;
     salary: number;
   }[];
-  transactions?: { year: number; round: number; message: string }[];
+  transactions?: { year: number; date?: string; kind?: "trade"; playerIds?: string[]; round: number; message: string }[];
   draft?: DraftState;
   draftHistory?: DraftHistory[];
   /** Specialists available for hire this season. */

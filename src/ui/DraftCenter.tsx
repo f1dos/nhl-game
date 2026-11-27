@@ -1,3 +1,4 @@
+import DraftLottery from "./DraftLottery";
 import {Observations} from "./CareerDesk";
 import type {ScoutFocus} from "../engine/careerDesk";
 import { useMemo, useState } from "react";
@@ -137,6 +138,7 @@ export default function DraftCenter({
       </div>
     );
 
+  if (draft.status === "scouting" && draft.lottery) return <DraftLottery game={game} edit={edit}/>;
   const current = draft.picks[draft.currentPick];
   const myPicks = draft.picks.filter((pick) => pick.team === game.user);
   const selected = myPicks.filter((pick) => pick.prospectId);
@@ -514,7 +516,7 @@ function ProspectProfile({
   const home = prospect.hometown;
   const nation = NATION_LABEL[p.nation];
   const left = game.draft?.interviewsLeft ?? 0;
-  const canTalk = game.draft?.status === "scouting" && (meeting ? meeting.asked.length < 3 : left > 0);
+  const canTalk = game.draft?.status !== "complete" && !prospect.draftedBy && (meeting ? meeting.asked.length < 3 : left > 0);
   return (
     <div className="scout-profile-overlay" role="presentation" onClick={onClose}>
       <section className="prospect-profile" role="dialog" aria-modal="true" aria-label={p.name} onClick={(e) => e.stopPropagation()}>
@@ -659,8 +661,8 @@ function ProspectProfile({
               {!meeting && (
                 <p className="muted talk-hint">
                   {tr(
-                    "Встреча займёт один слот из лимита до драфта. У вас будет три вопроса — выбирайте их с умом: кто-то мечтает о вашем клубе, а кто-то вырос в городе принципиального соперника.",
-                    "A meeting uses one of your pre-draft slots. You get three questions — choose wisely: some kids dream of your club, others grew up in a rival's town.",
+                    "Беседа с доступным игроком займёт один слот. У вас будет три вопроса — выбирайте их с умом: кто-то мечтает о вашем клубе, а кто-то вырос в городе принципиального соперника.",
+                    "Interviewing an available prospect uses one meeting slot. You get three questions — choose wisely: some kids dream of your club, others grew up in a rival's town.",
                   )}
                 </p>
               )}

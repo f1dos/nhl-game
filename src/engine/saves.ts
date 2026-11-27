@@ -207,7 +207,7 @@ function validatePreseasonAndInternational(g: Game, ids: Set<string>) {
       )
         throw Error("Invalid international career");
 }
-import { ensurePotentialModel, POTENTIAL_MODEL } from "./potential";
+import { allPlayers, ensurePotentialModel, POTENTIAL_MODEL } from "./potential";
 export function validateSave(value: unknown): Game {
   const g = value as Game;
   if (
@@ -443,6 +443,14 @@ export function validateSave(value: unknown): Game {
       g.draft.currentPick < 0
     )
       throw Error("Invalid draft state");
+    const lottery=g.draft.lottery;
+    if (lottery) {
+      const valid=(list: string[],size:number)=>Array.isArray(list) && list.length===size &&
+        new Set(list).size===size && list.every(id=>g.teams.some(t=>t.id===id));
+      if (!valid(lottery.seeds,g.teams.length) || !valid(lottery.order,g.teams.length) ||
+          !valid(lottery.winners,2) || !lottery.winners.every(id=>lottery.seeds.slice(0,16).includes(id)) ||
+          ![0,1,2].includes(lottery.revealed)) throw Error("Invalid draft lottery");
+    }
     for (const prospect of g.draft.prospects) {
       const p = prospect.player;
       if (!prospect.draftedBy && players.has(p.id))
@@ -758,6 +766,10 @@ export function validateSave(value: unknown): Game {
     restoreOpeningPotentials(g);
   }
   migrateOpeningRatings(g);
+  for (const p of allPlayers(g)) {
+    p.seasonOpeningOverall ??= p.trainingStartOverall ?? p.developmentLog?.[0]?.ovrAfter ??
+      (g.year === 2026 ? p.startingRatingOverride : undefined) ?? (p.ovr - (p.formAdjustment ?? 0));
+  }
   for(const t of g.teams)if(salaryTotal(t)>g.rules.cap){registerRoster(t,g.rules.cap);autoLines(t)}
   return g;
 }

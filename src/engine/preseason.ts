@@ -1,3 +1,4 @@
+import {recordContract} from "./contractLedger";
 import {capCharge} from "./cap";
 /**
  * Preseason training camp for the managed club: camp phases, roster battles
@@ -681,6 +682,7 @@ function finalCuts(g: Game, state: PreseasonState, date: string) {
         up.contractExpiryYear = g.year + up.years;
         up.contractStatus = up.age < 27 ? "RFA" : "UFA";
         up.contractRemainingValue = Math.round(up.salary * up.years * 100) / 100;
+        recordContract(g,team.id,up,"sign");
       }
       up.league = "NHL";
       up.currentClub = team.id;
