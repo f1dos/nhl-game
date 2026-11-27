@@ -57,6 +57,12 @@ export function skaterNetRoute(start: Dot, target: Dot): Dot {
   if (safe === target) return target;
   const side = Math.sign(start.x || target.x) || 1;
   const lane = Math.sign(Math.abs(start.z) > .28 ? start.z : target.z) || 1;
+  // Once abreast of the net, round the second corner. Re-targeting the
+  // first corner here strands the skater at his own waypoint.
+  if (Math.abs(start.z) >= SKATER_NET_Z+.35) {
+    const far=Math.sign(target.x*side-NET_CENTER)||1;
+    return {x:side*(NET_CENTER+far*(SKATER_NET_X+.35)),z:lane*(SKATER_NET_Z+.75)};
+  }
   return {
     x: start.x*side < NET_CENTER ? side*(NET_CENTER-SKATER_NET_X-.18) : side*(NET_CENTER+SKATER_NET_X+.18),
     z: lane*(SKATER_NET_Z+.55),

@@ -1,6 +1,10 @@
+import {WRIST_LOAD,WRIST_RELEASE,WRIST_END} from "../engine/wristShot";
+import faceData from "../assets/match-night/player-faces.json";
+import { stableHash } from "../engine/potential";
 import benchMotion from "../assets/match-night/bench-motion.json";
 import * as THREE from "three";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import {
   HockeyRig,
@@ -132,6 +136,38 @@ function jointRadii(mesh: THREE.SkinnedMesh) {
   return radii;
 }
 
+// Batch only parts authored with the same shading and motion. Do this on the
+// template so all lineup slots and bench players reuse the packed buffers.
+function batchMatchModel(model:GLTF,role:Role){
+  const groups=new Map<THREE.Object3D,Map<string,THREE.Mesh[]>>();
+  model.scene.traverse(node=>{
+    if(!(node instanceof THREE.Mesh) || !node.parent || Array.isArray(node.material))return;
+    const mat=node.material as THREE.MeshStandardMaterial;
+    const cloth=node instanceof THREE.SkinnedMesh && mat.name.startsWith(role+" Cloth ");
+    const rigid=role==="coach" && /^(Finger|Thumb|Palm|Pocket welt|Horn jacket button|Notched lapel|Trouser leg|Derby)/.test(node.name);
+    if(!cloth && !rigid)return;
+    let byMaterial=groups.get(node.parent);
+    if(!byMaterial)groups.set(node.parent,byMaterial=new Map());
+    const key=cloth ? "club cloth" : mat.uuid;
+    let siblings=byMaterial.get(key);
+    if(!siblings)byMaterial.set(key,siblings=[]);
+    siblings.push(node);
+  });
+  for(const groupsByMaterial of groups.values())for(const parts of groupsByMaterial.values()){
+    if(parts.length<2)continue;
+    const first=parts[0], skin=first instanceof THREE.SkinnedMesh;
+    if(skin && parts.some(p=>!(p instanceof THREE.SkinnedMesh) || p.skeleton!==first.skeleton ||
+      !p.bindMatrix.equals(first.bindMatrix) || !p.matrix.equals(first.matrix)))continue;
+    const geometries=parts.map(p=>skin ? p.geometry : p.geometry.clone().applyMatrix4(p.matrix));
+    const merged=mergeGeometries(geometries);
+    if(!merged)continue;
+    first.geometry=merged;
+    if(!skin){first.position.set(0,0,0);first.quaternion.identity();first.scale.setScalar(1);first.updateMatrix();}
+    for(const p of parts.slice(1))p.removeFromParent();
+  }
+  return model;
+}
+
 export class MatchNightFactory {
   private readonly drivers = new RigFactory();
   private readonly loader = new GLTFLoader();
@@ -139,11 +175,12 @@ export class MatchNightFactory {
   whenLoaded(){return Promise.allSettled(this.models.values());}
   private readonly models = new Map<Role, Promise<GLTF>>();
   private readonly uniforms = new Map<string, THREE.Texture>();
+  private faces?: THREE.Texture;
   private disposed = false;
   private player(driver: HockeyRig, kit: TeamKit, role: Role) {
     let model = this.models.get(role);
     if (!model) {
-      model = this.loader.loadAsync(urls[role]);
+      model = this.loader.loadAsync(urls[role]).then(g=>batchMatchModel(g,role));
       this.models.set(role, model);
     }
     const fabric = (kind: string) => {
@@ -158,7 +195,12 @@ export class MatchNightFactory {
     const key = [role, kit.jersey, kit.trim, kit.pants, kit.socks, kit.helmet].join("/");
     let palette = this.palettes.get(key);
     if (!palette) this.palettes.set(key, palette = new Map());
-    return new MatchNightPlayer(driver, role, kit, model, fabric, palette);
+    if (!this.faces && role!=="official") {
+      this.faces=new THREE.TextureLoader().load(new URL("../assets/match-night/player-faces.webp",import.meta.url).href);
+      this.faces.colorSpace=THREE.SRGBColorSpace;
+      this.faces.flipY=false;
+    }
+    return new MatchNightPlayer(driver, role, kit, model, fabric, palette,this.faces);
   }
   skater(kit: TeamKit) {
     return this.player(this.drivers.skater(kit), kit, "skater");
@@ -186,6 +228,7 @@ export class MatchNightFactory {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.faces?.dispose();
     this.drivers.dispose();
     this.palettes.forEach(palette => palette.forEach(material => material.dispose()));
     this.uniforms.forEach((texture) => texture.dispose());
@@ -211,13 +254,21 @@ class MatchNightPlayer implements RigLike {
   private actions = new Map<string, THREE.AnimationAction>();
   private skeletons = new Set<THREE.Skeleton>();
   private active?: THREE.AnimationAction;
-  private bladeMesh?: THREE.SkinnedMesh;
+
   private bounds = new Map<THREE.Skeleton, {meshes: THREE.SkinnedMesh[]; radii: number[]}>();
   private jointMatrix = new THREE.Matrix4();
   private heel=0;
+  private toe=0;
+  private wristAge=WRIST_END;
+  private wristAim=0;
+  private bladeRoll=0;
+  private bladeAnchors:{bone:THREE.Bone;local:THREE.Vector3;weight:number}[][]=[];
+  private bladeSample=new THREE.Vector3();
+  private bladeToe=new THREE.Vector3();
   private bones=new Map<string,THREE.Object3D>();
   private previousRotations=new Map<THREE.Object3D,THREE.Quaternion>();
-  private pelvisHeight?: number;
+  private pelvisRest?: THREE.Vector3;
+  private edgeLean = 0;
   private previousSpeed = 0;
   private previousYaw = 0;
   private glide = 0;
@@ -281,9 +332,21 @@ class MatchNightPlayer implements RigLike {
   }
   private impactSide=1;
   private identity?: RigIdentity;
+  private faceMaterial?: THREE.Material;
+  private jawAndBridge=new THREE.Vector2();
+  private cheekColor=new THREE.Color();
+  private faceProfile=new THREE.Vector4(0,0,1,1);
+  private personalMaterials:THREE.Material[]=[];
+  private jerseyInk:{value:THREE.Texture|null}={value:null};
+  private inkMirror={value:1};
   private lettering?: THREE.MeshStandardMaterial;
   private letteringMap?: THREE.CanvasTexture;
   private catchTime=0;
+  private blockTime=0;
+  private runners: {bone:THREE.Bone;points:THREE.Vector3[]}[]=[];
+  private solePoint=new THREE.Vector3();
+  private gripOffset?:THREE.Vector3;
+  private gripRotation?:THREE.Quaternion;
   private shotTime = 0;
   private shotLength = .45;
   private shotTurn = 0;
@@ -299,6 +362,7 @@ class MatchNightPlayer implements RigLike {
     model: Promise<GLTF>,
     fabric: (kind: string) => THREE.Texture,
     palette: Map<THREE.Material, THREE.Material>,
+    faces?: THREE.Texture,
   ) {
     this.root = driver.root;
     void model
@@ -330,15 +394,48 @@ class MatchNightPlayer implements RigLike {
             let best=Infinity;
             for(let i=0;i<pos.count;i++){
               const score=Math.abs(pos.getX(i)-.80)+Math.abs(pos.getY(i)-.025)*4;
+              if(pos.getY(i)<.055 && pos.getX(i)>pos.getX(this.toe))this.toe=i;
               if(score<best){best=score;this.heel=i;}
             }
-            this.bladeMesh=o;
+            const weights=o.geometry.attributes.skinWeight,indices=o.geometry.attributes.skinIndex;
+            this.bladeAnchors=[this.heel,this.toe].map(vertex=>{
+              const anchors=[];
+              for(let i=0;i<4;i++){
+                const weight=weights.getComponent(vertex,i);
+                if(weight===0)continue;
+                const joint=indices.getComponent(vertex,i);
+                anchors.push({weight,bone:o.skeleton.bones[joint],local:new THREE.Vector3()
+                  .fromBufferAttribute(pos,vertex).applyMatrix4(o.bindMatrix).applyMatrix4(o.skeleton.boneInverses[joint])});
+              }
+              return anchors;
+            });
+          }
+          if(role==="skater" && o instanceof THREE.SkinnedMesh && !Array.isArray(o.material) && o.material.name==="skater Equipment"){
+            const {position,skinWeight,skinIndex}=o.geometry.attributes;
+            for(const side of ["L","R"]){
+              const joint=o.skeleton.bones.findIndex(b=>(b.userData.name??b.name).replace(".","")==="Foot"+side);
+              if(joint<0)continue;
+              // Keep sole contacts in bone space. Four points cover both ends and the rocker.
+              const bins=new Map<number,THREE.Vector3>();
+              for(let i=0;i<position.count;i++){
+                if(skinIndex.getX(i)!==joint || skinWeight.getX(i)<.98 || position.getY(i)>.065)continue;
+                const pt=new THREE.Vector3().fromBufferAttribute(position,i), bin=Math.floor(pt.z/.055);
+                if(!bins.has(bin) || pt.y<bins.get(bin)!.y)bins.set(bin,pt);
+              }
+              const points=[...bins.values()].map(pt=>pt.applyMatrix4(o.bindMatrix).applyMatrix4(o.skeleton.boneInverses[joint]));
+              if(points.length)this.runners.push({bone:o.skeleton.bones[joint],points});
+            }
           }
           const tint = (m: THREE.MeshStandardMaterial) => {
+            if(faces && m.name.endsWith("Cornea")){
+              // The photograph already carries the catchlight from the eyes.
+              o.visible=false;
+            }
             if (m.name.endsWith("Roster lettering")) {
               this.lettering = m.clone();
               this.lettering.opacity = 1;
               this.paintLettering();
+              if(role==="skater")o.visible=false;
               return this.lettering;
             }
             let copy = palette.get(m);
@@ -355,6 +452,19 @@ class MatchNightPlayer implements RigLike {
                   shader.vertexShader = "uniform vec3 helmetPaint;\n"+shader.vertexShader.replace("#include <color_vertex>",`
                     #include <color_vertex>
                     if(position.y>1.57 && distance(color.rgb,vec3(.738,.791,.799))<.003) vColor.rgb=helmetPaint;
+                  `);
+                };
+              }
+              if(m.name.endsWith("Blade tape")){
+                local.roughness=.96;
+                local.onBeforeCompile=shader=>{
+                  shader.vertexShader="varying vec3 tapePoint;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\ntapePoint=position;");
+                  shader.fragmentShader="varying vec3 tapePoint;\n"+shader.fragmentShader.replace("#include <color_fragment>",`
+                    #include <color_fragment>
+                    float wrap=tapePoint.x*75.+tapePoint.y*20.+tapePoint.z*24.;
+                    float detail=1.-smoothstep(.08,.48,fwidth(wrap));
+                    float overlap=1.-smoothstep(.02,.14,abs(fract(wrap)-.5));
+                    diffuseColor.rgb*=1.-.19*overlap*detail;
                   `);
                 };
               }
@@ -382,6 +492,105 @@ class MatchNightPlayer implements RigLike {
               palette.set(m, copy);
 
             }
+            if(role==="skater" && m.name.includes("Cloth ")){
+              const cloth=copy.clone() as THREE.MeshStandardMaterial;
+              const base=copy.onBeforeCompile.bind(copy);
+              cloth.customProgramCacheKey=()=>"knit-with-roster";
+              cloth.onBeforeCompile=(shader,renderer)=>{
+                base(shader,renderer);
+                shader.uniforms.rosterInk=this.jerseyInk;
+                shader.uniforms.readDirection=this.inkMirror;
+                shader.vertexShader="varying float backFacing;\n"+shader.vertexShader.replace("patternPoint=position;","patternPoint=position; backFacing=-normal.z;");
+                shader.fragmentShader="uniform sampler2D rosterInk; uniform float readDirection; varying float backFacing;\n"+shader.fragmentShader.replace("diffuseColor.rgb*=dye;",`
+                  diffuseColor.rgb*=dye;
+                  vec2 uvInk=vec2(.5-(patternPoint.x+.037)*readDirection/.39,(1.52-patternPoint.y)/.42);
+                  if(all(greaterThanEqual(uvInk,vec2(0.))) && all(lessThanEqual(uvInk,vec2(1.))) && backFacing>.15 && patternPoint.z<.15){
+                    vec4 ink=texture2D(rosterInk,uvInk);
+                    diffuseColor.rgb=mix(diffuseColor.rgb,ink.rgb,ink.a);
+                  }`);
+              };
+              this.personalMaterials.push(cloth);
+              return cloth;
+            }
+            if(role==="coach"){
+              const mat=copy.clone() as THREE.MeshStandardMaterial;
+              const seed=stableHash(this.identity?.id ?? "staff");
+              const profile=faceData.profiles[("r"+seed%180) as keyof typeof faceData.profiles];
+              const skin=new THREE.Color().setRGB(profile[5],profile[6],profile[7]);
+              mat.metalness=0;
+              if(/wool|trousers|worsted lapel/.test(m.name)){
+                mat.color.set(kit.jersey);
+                mat.color.multiplyScalar(m.name.endsWith("lapel") ? 1.4 : 1);
+                mat.roughness=.92;
+              }
+              if(m.name.endsWith("teal"))mat.color.set(kit.trim);
+              if(m.name.includes("Skin |") || m.name.endsWith("hands"))mat.color.copy(skin);
+              else if(/Espresso|hair|Hair|Eyebrows|cropped/.test(m.name))mat.color.set(["#393331","#574033","#817770","#302721"][seed%4]);
+              else if(m.name.endsWith("collar") || m.name.includes("sclera"))mat.color.set("#d5dadc");
+              else if(m.name.endsWith("teal"))mat.color.set(kit.trim);
+              else mat.color.set(m.name.endsWith("wool") || m.name.endsWith("lapel") ? kit.jersey : "#262931");
+              if(m.name.includes("Corneal")){mat.transparent=true;mat.opacity=.09;mat.depthWrite=false;}
+              if(m.name.includes("Skin |") && faces){
+                mat.onBeforeCompile=shader=>{
+                  shader.uniforms.portraits={value:faces};
+                  shader.uniforms.staffTile={value:new THREE.Vector2(profile[0]%faceData.columns,Math.floor(profile[0]/faceData.columns))};
+                  shader.vertexShader="varying vec3 headPos;\n"+shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nheadPos=position;");
+                  shader.fragmentShader="varying vec3 headPos; uniform sampler2D portraits; uniform vec2 staffTile;\n"+shader.fragmentShader.replace("#include <color_fragment>",`
+                    #include <color_fragment>
+                    vec2 uv=vec2(.5+(headPos.x-.002)/.17,.354+(.21-headPos.y)/.20);
+                    float mask=(1.-smoothstep(.7,1.,length((uv-vec2(.5,.50))*vec2(2.,1.7))))*smoothstep(.025,.083,headPos.z);
+                    diffuseColor.rgb=mix(diffuseColor.rgb,texture2D(portraits,(staffTile+clamp(uv,.01,.99))/vec2(${faceData.columns}.0,${faceData.rows}.0)).rgb,mask*.9);`);
+                };
+              }
+              this.personalMaterials.push(mat);
+              return mat;
+            }
+            if(faces && (m.name==="skater Equipment" || m.name==="goalie Equipment")){
+              const material=copy.clone() as THREE.MeshStandardMaterial;
+              const base=copy.onBeforeCompile.bind(copy);
+              material.customProgramCacheKey=()=>"portrait-"+role;
+              material.onBeforeCompile=(shader,renderer)=>{
+                base(shader,renderer);
+                shader.uniforms.faceAtlas={value:faces};
+                shader.uniforms.faceProfile={value:this.faceProfile};
+                shader.uniforms.jawAndBridge={value:this.jawAndBridge};
+                shader.uniforms.cheekColor={value:this.cheekColor};
+                shader.vertexShader="uniform vec2 jawAndBridge; uniform vec3 cheekColor; uniform vec4 faceProfile; varying vec3 portraitUV; varying float skinSide; varying float iris;\n"+shader.vertexShader.replace("#include <begin_vertex>",`
+                  #include <begin_vertex>
+                  float skin=float(color.r>color.g*1.16 && color.g>color.b*1.035);
+                  // The original sclera and iris share the equipment primitive. Project
+                  // the same aligned portrait across the eye opening and its lids.
+                  float eyeZone=(1.-smoothstep(.018,.025,abs(abs(position.x+.037)-.031)))
+                    *(1.-smoothstep(.010,.016,abs(position.y-1.705)))
+                    *smoothstep(.348,.363,position.z)*(1.-smoothstep(.385,.395,position.z));
+                  iris=eyeZone*(1.-smoothstep(.02,.07,distance(color.rgb,vec3(.0194,.0232,.0232))));
+                  skin=max(skin,eyeZone);
+                  float front=smoothstep(.23,.31,position.z);
+                  float cheek=skin*front*smoothstep(1.55,1.59,position.y)*(1.-smoothstep(1.724,1.76,position.y));
+                  vec2 face=vec2(.5+(position.x+.037)/.17,.354+(1.705-position.y)/.19);
+                  portraitUV=vec3(face,cheek);
+                  skinSide=skin*smoothstep(.09,.21,color.r)*smoothstep(1.50,1.58,position.y)*(1.-smoothstep(1.73,1.76,position.y));
+                  float jaw=exp(-pow(abs(position.y-1.617)/.037,2.));
+                  float chin=exp(-pow(abs(position.y-1.601)/.026,2.)-pow(abs(position.x+.037)/.047,2.));
+                  float bridge=exp(-pow(abs(position.x+.037)/.020,2.)-pow(abs(position.y-1.672)/.034,2.));
+                  transformed.x+=(position.x+.037)*.32*jawAndBridge.x*jaw*cheek;
+                  transformed.z+=(.023*jawAndBridge.y*bridge+.013*jawAndBridge.x*jaw+.008*chin*(faceProfile.w-1.)/.14)*cheek;
+                  transformed.x+=(position.x+.037)*(faceProfile.z-1.)*cheek;
+                  transformed.y+=(position.y-1.705)*(faceProfile.w-1.)*cheek;
+                `);
+                shader.fragmentShader="uniform sampler2D faceAtlas; uniform vec2 jawAndBridge; uniform vec3 cheekColor; uniform vec4 faceProfile; varying vec3 portraitUV; varying float skinSide; varying float iris;\n"+shader.fragmentShader.replace("#include <color_fragment>",`
+                  #include <color_fragment>
+                  vec2 uvFace=portraitUV.xy;
+                  float blend=(1.-smoothstep(.77,1.,length((uvFace-vec2(.5,.49))*vec2(2.,1.7))))*portraitUV.z;
+                  vec2 tile=(faceProfile.xy+clamp(uvFace,.012,.988))/vec2(${faceData.columns}.0,${faceData.rows}.0);
+                  diffuseColor.rgb=mix(diffuseColor.rgb,cheekColor,skinSide*.78);
+                  diffuseColor.rgb=mix(diffuseColor.rgb,texture2D(faceAtlas,tile).rgb,blend*.94);
+                  diffuseColor.rgb*=1.-.74*iris;
+                `);
+              };
+              this.faceMaterial=material;
+              return material;
+            }
             return copy;
           };
           o.material = Array.isArray(o.material)
@@ -397,10 +606,10 @@ class MatchNightPlayer implements RigLike {
           o.frustumCulled = !(o instanceof THREE.SkinnedMesh);
           o.userData.shared = true;
         });
-        if(role==="goalie"){
+        if(role==="goalie" || role==="skater"){
           // Anchor the underglove to the distal forearm so extension cannot
           // expose daylight between the jersey sleeve and the catching cuff.
-          this.wristCuff=new THREE.CylinderGeometry(.059,.073,.25,16);
+          this.wristCuff=role==="goalie" ? new THREE.CylinderGeometry(.059,.073,.25,16) : new THREE.CylinderGeometry(.041,.055,.14,12);
           this.wristFabric=new THREE.MeshStandardMaterial({color:0x222e39,roughness:.93});
           for(const side of ["L","R"]){
             const fore=this.bones.get("Forearm."+side), hand=this.bones.get("Hand."+side);
@@ -415,7 +624,13 @@ class MatchNightPlayer implements RigLike {
           // The coach uses rigid GLB pivots. The free hand is opposite the tablet.
           this.visual.traverse(node=>{
             const name:string=node.userData.name??node.name;
-            if(name.startsWith("Coach head pivot"))this.bones.set("Head",node);
+            if(name.startsWith("Coach head pivot")){
+              this.bones.set("Head",node);
+              const traits=stableHash(this.identity?.id ?? "staff");
+              node.scale.multiply(new THREE.Vector3(.90+(traits&255)/1200,.94+((traits>>>8)&255)/2000,.92+((traits>>>16)&255)/1550));
+            }
+            const support=this.identity?.name==="Athletic trainer" || this.identity?.name==="Equipment manager";
+            if(support && /tablet|Woven club tie/i.test(name))node.visible=false;
             if(name.startsWith("Coach shoulder") && node.position.x>0){
               this.bones.set("UpperArm.R",node);
               node.traverse(child=>{
@@ -425,6 +640,11 @@ class MatchNightPlayer implements RigLike {
               });
             }
           });
+        }
+        const top=this.bones.get("Hand.R"), lower=this.bones.get("Hand.L");
+        if(role==="skater" && top && lower){
+          this.gripOffset=top.worldToLocal(lower.getWorldPosition(new THREE.Vector3()));
+          this.gripRotation=top.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(lower.getWorldQuaternion(new THREE.Quaternion()));
         }
         driver.useModelJoints();
         this.root.add(this.visual);
@@ -445,8 +665,18 @@ class MatchNightPlayer implements RigLike {
     if(!upper || !fore || !hand || !this.visual)return;
     const point = (bone: THREE.Object3D) => this.visual!.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
     const origin=point(upper),elbow=point(fore),end=point(hand);
+    const chest=this.bones.get("Chest");
+    if(chest && (this.role==="skater" || this.role==="goalie")){
+      const sternum=point(chest),sign=side==="L"?1:-1;
+      const clearance=THREE.MathUtils.clamp(1-Math.abs(target.y-sternum.y)/.34,0,1);
+      if(clearance>0 && Math.abs(target.x-sternum.x)<.23){
+        target.z=Math.max(target.z,sternum.z+(.19-Math.abs(target.x-sternum.x)*.28)*clearance);
+      }
+      pole.x=sternum.x+sign*Math.max(.23,sign*(pole.x-sternum.x));
+    }
     const l1=origin.distanceTo(elbow),l2=elbow.distanceTo(end),axis=target.clone().sub(origin);
     const d=THREE.MathUtils.clamp(axis.length(),Math.abs(l1-l2)+.001,l1+l2-.001);
+    if(axis.lengthSq()<1e-8)return;
     axis.normalize();
     const x=(l1*l1-l2*l2+d*d)/(2*d);
     const bend=pole.sub(origin);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
@@ -460,35 +690,80 @@ class MatchNightPlayer implements RigLike {
     };
     turn(upper,fore,joint);turn(fore,hand,target);
   }
+  private keepBladeAboveIce(){
+    const wrist=this.bones.get("Hand.R"),blade=new THREE.Vector3();
+    if(!wrist?.parent || !this.bladePoint(blade) || blade.y>=.022)return;
+    const palm=wrist.getWorldPosition(new THREE.Vector3());
+    const vector=blade.clone().sub(palm),length=vector.length();
+    if(length<.01)return;
+    const height=THREE.MathUtils.clamp(.022-palm.y,-length,length);
+    const reach=Math.sqrt(Math.max(0,length*length-height*height));
+    const horizontal=Math.hypot(vector.x,vector.z);
+    if(horizontal<.001)return;
+    const desired=new THREE.Vector3(vector.x*reach/horizontal,height,vector.z*reach/horizontal).add(palm);
+    const from=wrist.parent.worldToLocal(blade).sub(wrist.position).normalize();
+    const to=wrist.parent.worldToLocal(desired).sub(wrist.position).normalize();
+    if(!this.previousRotations.has(wrist))this.previousRotations.set(wrist,wrist.quaternion.clone());
+    wrist.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(from,to));
+  }
+  releaseWrist(){if(this.wristAge<WRIST_END)this.wristAge=Math.max(this.wristAge,WRIST_RELEASE);}
+  private followShaft() {
+    const top=this.bones.get("Hand.R"),lower=this.bones.get("Hand.L"),elbow=this.bones.get("Forearm.L");
+    if(!top || !lower || !elbow || !this.visual || !this.gripOffset || !this.gripRotation)return;
+    const target=this.visual.worldToLocal(top.localToWorld(this.gripOffset.clone()));
+    const current=this.visual.worldToLocal(lower.getWorldPosition(new THREE.Vector3()));
+    if(target.distanceToSquared(current)>.000025){
+      this.reachArm("L",target,new THREE.Vector3(.43,1.08,.24));
+    }
+    // Resolve relative rotations in model space so mirrored left shots carry the same grip.
+    const basis=this.visual.matrixWorld.clone().invert();
+    for(const bone of [top,elbow])bone.updateWorldMatrix(true,false);
+    const rotation=(bone:THREE.Object3D)=>new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().extractRotation(basis.clone().multiply(bone.matrixWorld)));
+    if(!this.previousRotations.has(lower))this.previousRotations.set(lower,lower.quaternion.clone());
+    lower.quaternion.copy(rotation(elbow).invert().multiply(rotation(top)).multiply(this.gripRotation));
+  }
   /** Move the hips while keeping each animated skate's position and edge angle. */
-  private adjustHipHeight(metres: number) {
+  private adjustHipHeight(metres: number, trail=0, stride=0, bank=0, transfer=0) {
     const pelvis = this.bones.get("Pelvis");
     const basis = pelvis?.parent;
-    if (!pelvis || !basis || Math.abs(metres) < .002) return;
+    if (!pelvis || !basis || Math.max(Math.abs(metres),trail,stride,Math.abs(bank),transfer) < .002) return;
     const point = (bone: THREE.Object3D) => basis.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));
     const rotation = (bone: THREE.Object3D) => {
       bone.updateWorldMatrix(true, false);
       const relative = basis.matrixWorld.clone().invert().multiply(bone.matrixWorld);
       return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().extractRotation(relative));
     };
+    const feet = ["Foot.L","Foot.R"].map(name => this.bones.get(name));
+    const stagger = stride && feet[0] && feet[1] ? point(feet[0]).z-point(feet[1]).z : 0;
+    const support = THREE.MathUtils.clamp(stagger/.24,-1,1);
     const legs = (["L", "R"] as const).flatMap(side => {
       const thigh = this.bones.get("Thigh."+side), shin = this.bones.get("Shin."+side), foot = this.bones.get("Foot."+side);
       if (!thigh || !shin || !foot) return [];
       const hip = point(thigh), knee = point(shin), ankle = point(foot);
       const upper = hip.distanceTo(knee), lower = knee.distanceTo(ankle);
+      const sign = side === "L" ? 1 : -1;
+      const pushing = stride*Math.max(0,-sign*support);
+      ankle.x += sign*.095*pushing;
+      ankle.z -= .11*pushing;
+      ankle.y += .035*pushing;
+      if(side==="R" && trail>0){ankle.z-=.29*trail;ankle.x-=.085*trail;ankle.y+=.045*trail;}
+
       const reach = upper + lower - .006;
       const lateral = Math.hypot(hip.x-ankle.x, hip.z-ankle.z);
       const lift = Math.sqrt(Math.max(0, reach*reach - lateral*lateral)) - (hip.y-ankle.y);
       return [{ thigh, shin, foot, knee, ankle, upper, lower, lift, edge: rotation(foot) }];
     });
     if (legs.length !== 2) return;
-    this.pelvisHeight = pelvis.position.y;
+    this.pelvisRest = pelvis.position.clone();
+    pelvis.position.x += .062*stride*support + .055*bank + .064*transfer;
+    pelvis.position.z += .082*transfer;
     pelvis.position.y += metres < 0 ? metres : Math.max(0, Math.min(metres, ...legs.map(leg => leg.lift)));
     const turn = (joint: THREE.Object3D, child: THREE.Object3D, target: THREE.Vector3) => {
       const localTarget = joint.parent!.worldToLocal(basis.localToWorld(target.clone()));
       const from = child.position.clone().applyQuaternion(joint.quaternion).normalize();
       const to = localTarget.sub(joint.position).normalize();
-      this.previousRotations.set(joint, joint.quaternion.clone());
+      if(!this.previousRotations.has(joint))this.previousRotations.set(joint, joint.quaternion.clone());
       joint.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(from, to));
     };
     for (const { thigh, shin, foot, knee, ankle, upper, lower, edge } of legs) {
@@ -503,7 +778,7 @@ class MatchNightPlayer implements RigLike {
         .addScaledVector(bend, Math.sqrt(Math.max(0, upper*upper - along*along)));
       turn(thigh, shin, joint);
       turn(shin, foot, ankle);
-      this.previousRotations.set(foot, foot.quaternion.clone());
+      if(!this.previousRotations.has(foot))this.previousRotations.set(foot, foot.quaternion.clone());
       foot.quaternion.copy(rotation(shin).invert().multiply(edge));
     }
   }
@@ -534,16 +809,21 @@ class MatchNightPlayer implements RigLike {
     hand.getWorldPosition(target);return true;
   }
   bladePoint(target:THREE.Vector3) {
-    const mesh=this.bladeMesh;
-    if(!mesh) return false;
-    this.root.updateMatrixWorld(true);
-    mesh.getVertexPosition(this.heel,target);
-    mesh.localToWorld(target);
+    if(!this.bladeAnchors.length)return false;
+    for(let i=0;i<(this.bladeRoll>0 ? 2 : 1);i++){
+      const result=i===0 ? target : this.bladeToe;
+      result.set(0,0,0);
+      for(const {bone,local,weight} of this.bladeAnchors[i]){
+        bone.updateWorldMatrix(true,false);
+        result.addScaledVector(this.bladeSample.copy(local).applyMatrix4(bone.matrixWorld),weight);
+      }
+    }
+    if(this.bladeRoll>0)target.lerp(this.bladeToe,this.bladeRoll);
     return true;
   }
   alignBlade(target: THREE.Vector3) {
     const visual = this.visual;
-    if (!visual || this.role !== "skater" || (this.currentState !== "play" && this.currentState !== "faceoff-stance" && !this.drawTime)) return;
+    if (this.wristAge<WRIST_END || !visual || this.role !== "skater" || (this.currentState !== "play" && this.currentState !== "faceoff-stance" && !this.drawTime)) return;
     const blade = new THREE.Vector3();
     if (!this.bladePoint(blade)) return;
     const delta = visual.worldToLocal(target.clone()).sub(visual.worldToLocal(blade)).clampLength(0,.29);
@@ -605,7 +885,8 @@ class MatchNightPlayer implements RigLike {
     ctx.lineJoin="round"; ctx.textAlign="center"; ctx.textBaseline="middle";
     const surname=id.name.trim().split(/\s+/).at(-1)!.toUpperCase();
     ctx.font="bold 28px Arial";ctx.lineWidth=2;
-    ctx.strokeText(surname,128,30,236);ctx.fillText(surname,128,30,236);
+    ctx.save();ctx.fillStyle="#faf8f2";ctx.strokeStyle="#17202b";ctx.lineWidth=3;
+    ctx.strokeText(surname,128,30,236);ctx.fillText(surname,128,30,236);ctx.restore();
     ctx.font="bold 158px Arial";ctx.lineWidth=7;
     ctx.strokeText(String(id.number),128,144,194);ctx.fillText(String(id.number),128,144,194);
     if (!this.letteringMap) {
@@ -619,18 +900,33 @@ class MatchNightPlayer implements RigLike {
     this.letteringMap.repeat.x=mirrored ? -1 : 1;
     this.letteringMap.offset.x=mirrored ? 1 : 0;
     this.letteringMap.needsUpdate=true;
+    this.jerseyInk.value=this.letteringMap;this.inkMirror.value=mirrored ? -1 : 1;
   }
   setIdentity(id: RigIdentity, pos: string) {
     if (this.root.userData.playerId === id.id) return;
     this.driver.setIdentity(id, pos);
     this.identity=id;
+    if(this.role==="skater" || this.role==="goalie"){
+      const seed=stableHash(id.id);
+      const nhlId=id.externalId ?? id.id.match(/^nhl-.*-(\d+)$/)?.[1];
+      const profiles:Record<string,number[]>=faceData.profiles;
+      const natural=profiles[String(nhlId)];
+      const [tile,width,length,jaw,bridge,r,g,b]=natural ?? profiles["r"+(id.portraitIndex??seed%180)] ?? profiles.r0;
+      this.jawAndBridge.set(jaw,bridge);
+      this.cheekColor.setRGB(r,g,b);
+      const variation=natural ? .012 : .065;
+      this.faceProfile.set(tile%faceData.columns,Math.floor(tile/faceData.columns),
+        width+((seed&255)/255-.5)*variation,length+((seed>>>8&255)/255-.5)*variation);
+    }
     this.paintLettering();
-    this.drawTime=this.impact=0;
+    this.wristAge=WRIST_END;this.bladeRoll=0;
+    this.blockTime=this.drawTime=this.impact=0;
     this.mixer?.stopAllAction();
     this.active = undefined;
     this.overlay=undefined;
     this.shotTime = this.busy = this.catchTime = this.passTime = this.glide = 0;
     this.gliding = false;
+    this.edgeLean = 0;
     this.shieldLean=0;
     this.offset = (id.number * 0.61803398875) % 1;
     this.root.userData.playerId = id.id;
@@ -661,6 +957,21 @@ class MatchNightPlayer implements RigLike {
       return;
     }
     this.driver.trigger(kind, toward, height);
+    if(this.role==="skater" && (kind==="wrist" || kind==="shot")){
+      this.wristAge=0;
+      this.wristAim=toward?Math.atan2(toward.x,toward.z):this.motion.yaw;
+      this.blockTime=this.catchTime=this.passTime=this.shotTime=0;
+      if(this.active){this.active.fadeOut(.12);this.active=undefined;}
+      this.busy=WRIST_END;
+      return;
+    }
+    if(this.wristAge<WRIST_END && ["checked","fall","poke","receive","pass","slap","snap"].includes(kind)){
+      this.wristAge=WRIST_END;this.bladeRoll=0;this.busy=0;
+    }
+    if (kind==="block" && this.role==="skater"){
+      this.blockTime=.98;
+      return;
+    }
     if (["wrist","shot","slap","snap"].includes(kind) && this.role === "skater") {
       this.shotLength = kind === "slap" ? .65 : kind === "snap" ? .3 : .47;
       this.shotTime = this.shotLength;
@@ -694,7 +1005,14 @@ class MatchNightPlayer implements RigLike {
           ? "Glove sweep"
           : "Butterfly"
         : shotClips[kind];
-    if (clip) this.play(clip, true);
+    if (clip) {
+      this.play(clip, true);
+      if(this.active && this.shotTime>0 && ["shot","slap","wrist","snap"].includes(kind)){
+        const duration=this.shotLength+.22;
+        this.active.timeScale=this.active.getClip().duration/duration;
+        this.busy=duration;
+      }
+    }
   }
   update(dt: number, animDt: number, input: RigInput) {
     this.officialRelease=Math.max(0,this.officialRelease-animDt);
@@ -714,8 +1032,12 @@ class MatchNightPlayer implements RigLike {
     const settled = 1-THREE.MathUtils.smoothstep(speedChange, .3, 3.3);
     const straight = 1-THREE.MathUtils.smoothstep(turnRate, .35, 2.15);
     const clearIce = THREE.MathUtils.smoothstep(input.pressure ?? 8, 1.2, 3.4);
-    const upright = this.role === "skater" && this.currentState === "play" && !source.stopping
-      ? settled * straight * clearIce * (1-.68*retreat) * (input.hasPuck ? .58 : 1)
+    this.blockTime=Math.max(0,this.blockTime-animDt);
+    this.wristAge=Math.min(WRIST_END,this.wristAge+animDt);
+    const wrist=this.wristAge<WRIST_END;
+    const handling=wrist || this.passTime>0 || this.catchTime>0 || this.blockTime>0 || this.shotTime>0;
+    const upright = this.role === "skater" && this.currentState === "play" && !source.stopping && !handling && this.busy<=0
+      ? THREE.MathUtils.smoothstep(source.speed,.65,2)* (1-THREE.MathUtils.smoothstep(source.speed,4.2,6.2))*settled * straight * clearIce * (1-.68*retreat) * (input.hasPuck ? .58 : 1)
       : 0;
     this.glide += (upright-this.glide) * (1-Math.exp(-dt*6));
     this.gliding = this.glide > (this.gliding ? .47 : .66);
@@ -725,7 +1047,7 @@ class MatchNightPlayer implements RigLike {
     this.busy -= animDt;
     if (this.busy <= 0) {
       const state = this.currentState;
-      let clip = "Watching play";
+      let clip = state==="play" && this.role==="skater" ? "" : "Watching play";
       if (this.role === "official") {
         clip =
           state === "official-washout"
@@ -771,10 +1093,10 @@ class MatchNightPlayer implements RigLike {
     }
     for(const [bone,q] of this.previousRotations) bone.quaternion.copy(q);
     this.previousRotations.clear();
-    if (this.pelvisHeight !== undefined) {
+    if (this.pelvisRest !== undefined) {
       const pelvis = this.bones.get("Pelvis");
-      if (pelvis) pelvis.position.y = this.pelvisHeight;
-      this.pelvisHeight = undefined;
+      if (pelvis) pelvis.position.copy(this.pelvisRest);
+      this.pelvisRest = undefined;
     }
     this.mixer.update(animDt);
     this.motionTime+=animDt;
@@ -784,12 +1106,31 @@ class MatchNightPlayer implements RigLike {
       if (!this.previousRotations.has(bone)) this.previousRotations.set(bone,bone.quaternion.clone());
       bone.rotateX(x);bone.rotateY(y);bone.rotateZ(z);
     };
+    const ease=THREE.MathUtils.smoothstep;
+    const age=this.wristAge;
+    const load=ease(age,0,WRIST_LOAD)*(1-ease(age,WRIST_LOAD,WRIST_RELEASE));
+    const drive=ease(age,WRIST_LOAD,WRIST_RELEASE)*(1-ease(age,.65,WRIST_END));
+    this.bladeRoll=ease(age,WRIST_LOAD,WRIST_RELEASE)*(1-ease(age,.65,WRIST_END));
+    if(wrist){
+      const finish=ease(age,WRIST_LOAD+.05,WRIST_RELEASE+.10)*(1-ease(age,.67,WRIST_END));
+      this.adjustHipHeight(-.065*load-.045*drive,.84*finish,0,0,finish);
+      pose("Pelvis",.025*load,.14*source.hs*(drive-load),source.hs*(.055*load-.085*drive));
+      pose("Chest",.085*load,source.hs*(.23*drive-.20*load),0);
+      pose("Head",-.04*load,-source.hs*.09*(drive-load),0);
+      pose("UpperArm.R",.10*load-.17*drive,0,-.065*drive);
+    }
     this.shotTime = Math.max(0,this.shotTime-animDt);
     if (this.shotTime>0) {
       const t=1-this.shotTime/this.shotLength;
       const follow=Math.sin(Math.PI*t);
       const weight=THREE.MathUtils.smoothstep(t,0,.45)*(1-THREE.MathUtils.smoothstep(t,.58,1));
       pose("Pelvis",0,.09*source.hs*weight,.075*source.hs*weight);
+      const coil=Math.sin(Math.PI*THREE.MathUtils.clamp(t/.32,0,1));
+      const drive=Math.sin(Math.PI*THREE.MathUtils.clamp((t-.22)/.78,0,1));
+      const support=source.hs>0?"L":"R";
+      pose("Thigh."+support,-.17*drive+.06*coil,0,source.hs*.055*drive);
+      pose("Shin."+support,.16*drive,0,0);
+      pose("Chest",.08*coil,source.hs*(.27*drive-.19*coil),0);
       pose("Forearm.R",-.10*weight,0,.055*source.hs*weight);
       pose("Chest",-.08*follow,(this.shotTurn*.24+source.hs*.12)*follow,0);
       pose("Spine",0,0,source.hs*.09*follow);
@@ -803,6 +1144,8 @@ class MatchNightPlayer implements RigLike {
       pose("Spine",this.absorbingHit ? .12*brace : -.055*brace,.12*this.impactSide*brace,0);
       pose("Thigh."+(this.impactSide>0 ? "L" : "R"),-.14*brace,0,.055*this.impactSide*recovery);
       pose("Chest",.12*brace,0,.18*this.impactSide*brace);
+      pose("Shin."+(this.impactSide>0?"L":"R"),.22*brace,0,0);
+      pose("UpperArm."+(this.impactSide>0?"R":"L"),-.10*brace,.10*brace,0);
       pose("Head",-.08*brace,0,-.10*this.impactSide*brace);
     }
     const vault = input.vault ?? 0;
@@ -835,13 +1178,19 @@ class MatchNightPlayer implements RigLike {
       const load = Math.sin(Math.PI*age/.46);
       const shift = age<.2 ? -Math.sin(Math.PI*age/.2)*.08 : Math.sin(Math.PI*(age-.2)/.26)*.12;
       pose("Spine",0,0,shift*source.hs);
+      pose("Pelvis",0,shift*source.hs*.85,0);
+      pose("Forearm.R",-.09*load,shift*source.hs*.62,0);
       const towardStick = this.passDirection.x*Math.cos(source.yaw)-this.passDirection.z*Math.sin(source.yaw);
       pose("Chest", .08*load, .16*load*towardStick*source.hs, 0);
-      if (age >= .20 && !input.hasPuck) {
+      const sweep=THREE.MathUtils.smoothstep(age,0,.17)*-.16+
+        THREE.MathUtils.smoothstep(age,.14,.31)*.46-THREE.MathUtils.smoothstep(age,.31,.46)*.30;
+      pose("UpperArm.R",-.12*load,.12*sweep,0);
+      pose("Hand.R",0,.35*sweep,.22*sweep);
+      if (!input.hasPuck) {
         const blade = new THREE.Vector3();
         if (this.bladePoint(blade)) {
-          blade.addScaledVector(this.passDirection, .18*load);
-          blade.y = .032 + .046*load;
+          blade.addScaledVector(this.passDirection,sweep);
+          blade.y = THREE.MathUtils.lerp(blade.y,.032+.035*Math.max(0,sweep),load);
           this.alignBlade(blade);
         }
       }
@@ -851,8 +1200,25 @@ class MatchNightPlayer implements RigLike {
       pose("Forearm.L",.18*give,0,.14*give);pose("Forearm.R",.14*give,0,.10*give);
     }
     const st=this.currentState;
+    if(this.blockTime>0 && st==="play"){
+      const age=.98-this.blockTime;
+      const seal=THREE.MathUtils.smoothstep(age,0,.29)*(1-THREE.MathUtils.smoothstep(age,.56,.98));
+      this.adjustHipHeight(-.32*seal,seal);
+      pose("Spine",.15*seal,0,-.13*seal);
+      pose("Chest",.07*seal,.16*seal,0);
+      pose("Head",-.12*seal,0,.08*seal);
+      pose("UpperArm.R",-.16*seal,.12*seal,0);
+    }
     if (this.role === "skater" && st === "play" && !drawing && this.busy <= 0) {
-      if (lift < .001) this.adjustHipHeight(.14*this.glide);
+      const forward=(1-retreat)*ease(source.speed,.7,4);
+      const stroke=this.active?.getClip().name.endsWith("Stride") ? .84*forward*(1-this.glide)*this.active.getEffectiveWeight() : 0;
+      const bank=THREE.MathUtils.clamp(angularSpeed*source.hs*.35,-1,1)*forward;
+      this.edgeLean=THREE.MathUtils.damp(this.edgeLean,bank,7,animDt);
+      if (lift < .001 && !handling) {
+        this.adjustHipHeight(.075*this.glide-.045*stroke-.07*Math.abs(this.edgeLean),0,stroke,this.edgeLean);
+        pose("Spine",.075*stroke,0,-.18*this.edgeLean);
+        pose("Head",-.055*stroke,0,.09*this.edgeLean);
+      }
       const cross = THREE.MathUtils.clamp(angularSpeed,-2,2)*Math.min(1,source.speed/4);
       const stride=this.active?.getClip();
       const edge=stride && stride.name.endsWith("Stride") && this.active
@@ -896,9 +1262,16 @@ class MatchNightPlayer implements RigLike {
         const recover=THREE.MathUtils.smoothstep(phase,.62,1);
         const load=1-recover;
         this.adjustHipHeight(-.085*load);
+        const anchor=source.hs>0?"R":"L";
+        pose("Thigh."+anchor,-.12*load,source.hs*.07*pull*load,0);
+        pose("Shin."+anchor,.13*load,0,0);
+        pose("Pelvis",0,source.hs*.12*pull*load,0);
         pose("Spine",.23*load,0,0);
         pose("Chest",.09*load,source.hs*(.14+.23*pull)*load,0);
-        pose("Head",-.12*load,0,0);
+        const readyLean=(.18+.055*this.offset)*load;
+        pose("Spine",readyLean*.55,0,source.hs*.105*pull*load);
+        pose("Head",readyLean+.08*pull*load,source.hs*(.12-.20*pull)*load,0);
+        pose("UpperArm.R",-.10*pull*load,0,-.09*pull*load);
         const yaw=drawing ? this.drawYaw : source.yaw;
         const across=source.hs*(.045+(this.drawWinner ? .18 : .075)*pull);
         const back=drawing && this.drawWinner ? -.25*pull : 0;
@@ -958,12 +1331,65 @@ class MatchNightPlayer implements RigLike {
       const extension=Math.sin(Math.PI*THREE.MathUtils.clamp(u,0,1));
       pose("Spine",.06*extension,0,this.saveSide*.19*extension);
       const reaching=this.saveSide>0 ? "L" : "R";
+      const pushLeg=this.saveSide>0?"R":"L";
+      const low=1-THREE.MathUtils.smoothstep(this.saveHeight,.28,.76);
+      pose("Thigh."+pushLeg,-.19*extension*low,0,-this.saveSide*.12*extension);
+      pose("Shin."+pushLeg,.20*extension*low,0,0);
+      pose("Chest",.12*low*extension,.08*this.saveSide*extension,0);
       pose("UpperArm."+reaching,-(.07+.17*this.saveHeight)*extension,0,this.saveSide*.13*extension);
       pose("Head",-.08*extension,.10*this.saveSide*extension,0);
     } else if(this.role==="skater" && st==="play" && input.pressure!==undefined && input.pressure<2.2){
       pose("Chest",.1, .16*this.driver.skeletonSource().hs,0);
     }
     this.updateOverlay(animDt);
+    // Clearance for authored clips as well as procedural grip corrections.
+    if ((this.role==="skater" || this.role==="goalie") && (st==="play" || drawing || this.busy>0)) {
+      const chest=this.bones.get("Chest");
+      if(chest){
+        const center=this.visual.worldToLocal(chest.getWorldPosition(new THREE.Vector3()));
+        for(const side of ["L","R"] as const){
+          const hand=this.bones.get("Hand."+side);
+          if(!hand)continue;
+          const glove=this.visual.worldToLocal(hand.getWorldPosition(new THREE.Vector3()));
+          const dy=(glove.y-center.y)/.30,dx=(glove.x-center.x)/.22;
+          const front=Math.sqrt(Math.max(0,1-dy*dy-dx*dx))*.18;
+          if(front>.025 && glove.z>center.z-.10 && glove.z<center.z+front){
+            glove.z=center.z+front;
+            this.reachArm(side,glove,new THREE.Vector3(center.x+(side==="L"?.34:-.34),glove.y-.09,center.z+.11));
+          }
+        }
+      }
+    }
+    if(this.role==="skater" && st==="play" && lift<.001 && this.runners.length){
+      let lowest=Infinity;
+      for(const runner of this.runners){
+        runner.bone.updateWorldMatrix(true,false);
+        for(const contact of runner.points)lowest=Math.min(lowest,this.solePoint.copy(contact).applyMatrix4(runner.bone.matrixWorld).y);
+      }
+      this.visual.position.y+=THREE.MathUtils.clamp(.002-lowest,-.25,.25);
+      if(wrist){
+        const hand=this.bones.get("Hand.R"), tip=new THREE.Vector3();
+        if(hand?.parent && this.bladePoint(tip)){
+          const palm=hand.getWorldPosition(new THREE.Vector3()),arm=tip.clone().sub(palm);
+          const bearing=Math.atan2(arm.x,arm.z);
+          const delta=Math.atan2(Math.sin(this.wristAim-bearing),Math.cos(this.wristAim-bearing));
+          const yaw=bearing-source.hs*.26*load+delta*.70*drive;
+          const weight=Math.max(load,drive,ease(age,0,.12)*(1-ease(age,.67,WRIST_END)));
+          const height=THREE.MathUtils.lerp(tip.y,.026+.32*ease(age,WRIST_RELEASE,.66),weight);
+          const dy=THREE.MathUtils.clamp(height-palm.y,-arm.length(),arm.length());
+          const reach=Math.sqrt(Math.max(0,arm.lengthSq()-dy*dy));
+          const aim=new THREE.Vector3(Math.sin(yaw)*reach,dy,Math.cos(yaw)*reach).add(palm);
+          const from=hand.parent.worldToLocal(tip).sub(hand.position).normalize();
+          const to=hand.parent.worldToLocal(aim).sub(hand.position).normalize();
+          if(!this.previousRotations.has(hand))this.previousRotations.set(hand,hand.quaternion.clone());
+          hand.quaternion.premultiply(new THREE.Quaternion().setFromUnitVectors(from,to));
+        }
+      }
+      if(handling || drawing || this.impact>0){
+        this.keepBladeAboveIce();
+        this.followShaft();
+      }
+    }
     if (this.role === "skater" && st === "play" && !drawing && this.busy <= 0) {
       const look = Math.atan2(input.puckX-input.x, input.puckZ-input.z)-source.yaw;
       pose("Head", .1*this.glide, input.hasPuck ? 0 : Math.sin(look)*.36, 0);
@@ -971,6 +1397,8 @@ class MatchNightPlayer implements RigLike {
   }
   dispose() {
     this.released = true;
+    this.faceMaterial?.dispose();
+    this.personalMaterials.forEach(m=>m.dispose());
     this.wristCuff?.dispose();
     this.wristFabric?.dispose();
     this.letteringMap?.dispose();

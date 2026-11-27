@@ -974,6 +974,7 @@ export interface RigLike {
   signalLine?():void;
   finishSave?(direction?: {x:number;z:number},height?:number):void;
   updateRenderBounds?(): void;
+  releaseWrist?():void;
   alignBlade?(target: THREE.Vector3): void;
   handPoint?(target:THREE.Vector3):boolean;
   bladePoint?(target: THREE.Vector3): boolean;

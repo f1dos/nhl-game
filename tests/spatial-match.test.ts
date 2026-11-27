@@ -224,10 +224,11 @@ test("faceoffs line both teams up on the dot, and saves restart in that zone", (
       assert.equal(faceoff.kind, "faceoff");
       const taker = m.frame.bodies.find((b) => b.id === faceoff.id)!;
       const rival = m.frame.bodies.find((b) => b.id === faceoff.target)!;
-      assert(Math.abs(taker.x-dot.x)<.6 && taker.z===dot.z && (taker.x-dot.x)*(rival.x-dot.x)<0, "centres contest the dot from opposite sides");
+      assert(Math.abs(taker.x-rival.x)>=1.6 && Math.abs(taker.x-dot.x)<.9 && taker.z===dot.z && (taker.x-dot.x)*(rival.x-dot.x)<0, "centres contest the dot from opposite sides");
       assert(Math.hypot(rival.x - dot.x, rival.z - dot.z) < 1, "opposing centre faces off on the dot");
       if (stopped.kind === "save") {
-        assert.equal(Math.abs(dot.x), 20.5, "save restarts at an end-zone dot");
+        const restartX=stopped.review==="interference" ? 7.62-1.5 : 20.5;
+        assert.equal(Math.abs(dot.x), restartX, "use the restart for the actual ruling");
         const goalie = m.frame.bodies.find((b) => b.goalie && b.side === stopped.side)!;
         assert.equal(Math.sign(dot.x), Math.sign(goalie.x), "in the goalie's own end");
       }
@@ -352,3 +353,86 @@ test("a puck pinned against the boards resolves within five playing seconds", ()
   }
   assert(resolved);
 });
+
+test("a fresh defence pair must relieve the puck holder last during a protected regroup", () => {
+  const game=newGame("TOR",812);
+  const team=game.teams[0], match=new SpatialMatch(team,game.teams[1],81);
+  type Body=typeof match.frame.bodies[number];
+  type Point={x:number;z:number};
+  const state=match as unknown as {
+    direction(side:number):number;
+    regroup?:{holder:string;outlet:boolean};
+    rolling:(string[]|undefined)[];
+    lineChangeRoutes(spots:Map<string,Point>, owner:Body):void;
+  };
+  const ice=match.frame.bodies.filter(b=>b.side===0 && !b.goalie);
+  const holder=ice.find(b=>team.players.find(p=>p.id===b.id)?.pos==="D")!;
+  const d=state.direction(0);
+  holder.x=-d*27.5;holder.z=1;
+  Object.assign(match.frame.puck,{x:holder.x,z:holder.z});
+  const routes=new Map<string,Point>();
+  match.time=105;
+  state.lineChangeRoutes(routes,holder);
+  assert.equal(state.regroup?.holder,holder.id);
+  assert(!state.rolling[0]?.includes(holder.id));
+  assert(routes.get(holder.id)!.x*d < -26);
+  for(let change=0;change<4;change++){
+    for(const b of ice)if(b!==holder){b.x=-8.5;b.z=-11.4;}
+    match.time+=1.25;
+    state.lineChangeRoutes(routes,holder);
+    assert(ice.includes(holder) && holder.id===state.regroup?.holder);
+  }
+  match.time+=1.25;
+  state.lineChangeRoutes(routes,holder);
+  assert(state.regroup?.outlet);
+  const relief=ice.find(b=>b!==holder)!;
+  const original=holder.id;
+  holder.x=-8.5;holder.z=-11.4;
+  match.time+=1.25;
+  state.lineChangeRoutes(routes,relief);
+  assert(!ice.some(b=>b.id===original));
+});
+
+test("an immobilized crease scrum gets one helper on each side and a whistle within six seconds",()=>{
+  const game=newGame("TOR",393), match=new SpatialMatch(game.teams[0],game.teams[1],16,false,{presentation:true});
+  const state=match as unknown as {owner:string;decision:number;flight?:unknown;nextChallenge:number;
+    skate:()=>void;netBattle?:{helpers:string[]};pendingPass?:unknown};
+  const two=match.frame.bodies.filter(b=>!b.goalie);
+  for(const side of [0,1]){
+    const line=two.filter(b=>b.side===side);
+    line.forEach((b,i)=>{b.x=24-i*.6;b.z=(side?1:-1)*(i+.45);b.vx=b.vz=0;});
+  }
+  const holder=two[0];state.owner=holder.id;state.flight=state.pendingPass=undefined;
+  state.nextChallenge=state.decision=10000;state.skate=()=>{};
+  Object.assign(match.frame.puck,{x:holder.x,z:holder.z,y:.018});
+  const helpers=new Set<string>();
+  for(let i=0;i<60 && !match.frame.stoppage;i++){
+    match.step();
+    state.netBattle?.helpers.forEach(id=>helpers.add(id));
+  }
+  assert.equal(helpers.size,2);
+  assert.deepEqual([...helpers].map(id=>two.find(b=>b.id===id)?.side).sort(),[0,1]);
+  assert(["save","trapped"].includes(match.frame.stoppage?.kind??""));
+  assert(match.time<=6);
+});
+
+for(const [label,x,z] of [["side boards",18,10.4],["end corner",-24,-8.5]] as const){
+  test("a stationary contested puck gets support at the "+label,()=>{
+    const g=newGame("TOR",393),m=new SpatialMatch(g.teams[0],g.teams[1],16,false,{presentation:true,clockRate:2});
+    const state=m as unknown as {owner:string;decision:number;flight?:unknown;nextChallenge:number;
+      skate:()=>void;netBattle?:{helpers:string[]};pendingPass?:unknown};
+    for(const side of [0,1]){
+      m.frame.bodies.filter(b=>b.side===side && !b.goalie).forEach((b,i)=>{
+        b.x=x+(side?-.4:.4);b.z=z-Math.sign(z)*i*1.4;b.vx=b.vz=0;
+      });
+    }
+    const holder=m.frame.bodies.find(b=>!b.goalie)!;
+    state.owner=holder.id;state.flight=state.pendingPass=undefined;state.skate=()=>{};
+    state.nextChallenge=state.decision=10000;Object.assign(m.frame.puck,{x,z,y:.018});
+    let support:string[]=[];
+    for(let i=0;i<75 && !m.frame.stoppage;i++){m.step();support=state.netBattle?.helpers??support;}
+    assert.deepEqual(support.map(id=>m.frame.bodies.find(b=>b.id===id)?.side).sort(),[0,1]);
+    assert.equal(m.frame.stoppage?.kind,"trapped");
+    assert(m.time<=14);
+  });
+}

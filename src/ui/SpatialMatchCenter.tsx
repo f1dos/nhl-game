@@ -109,6 +109,7 @@ export default function SpatialMatchCenter({
   );
   const [running, setRunning] = useState(false);
   const [skipBoundary,setSkipBoundary]=useState<number|null>(null);
+  const [room,setRoom]=useState<{time:number;reactions?:ReturnType<typeof match.addressRoom>}>();
   const [speed, setSpeed] = useState(1);
   const [camera, setCamera] = useState<CameraMode>("broadcast");
   const [drawer, setDrawer] = useState<Drawer>(null);
@@ -399,6 +400,17 @@ export default function SpatialMatchCenter({
                 ? tr("Впереди овертайм. Проверьте звенья 3×3.", "Overtime is next. Check your 3-on-3 units.")
                 : tr(`Закончился ${nextPeriod - 1}-й период. Поправьте звенья и тактику.`, `End of period ${nextPeriod - 1}. Adjust lines and tactics.`)}
           </p>
+          {!match.done && room?.time===match.time && <section className="break-room" aria-live="polite">
+            <h3>{tr("Раздевалка","Dressing room")} · {managed.id}</h3>
+            {room.reactions ? <>
+              <strong>{tr("Настрой команды","Team confidence")} {room.reactions.reduce((a,b)=>a+b.change,0)>0 ? "↑" : room.reactions.reduce((a,b)=>a+b.change,0)<0 ? "↓" : "→"}</strong>
+              <ul>{[...room.reactions].sort((a,b)=>b.change-a.change).filter((_,i,all)=>i===0 || i===Math.floor(all.length/2) || i===all.length-1).map(r=><li key={r.id}><b>{r.name}</b><span>{r.change>=3 ? tr("Воодушевлён","Inspired") : r.change>0 ? tr("Прибавил в уверенности","Encouraged") : r.change<0 ? tr("Напряжён","Under pressure") : tr("Спокоен","Composed")}</span></li>)}</ul>
+            </> : [
+              ["trust",tr("Я вам доверяю. Моменты будут — продолжайте играть друг на друга.","I trust you. Keep finding each other and the chances will come.")],
+              ["push",tr("Мы уступаем в борьбе. Первыми на подбор, сразу поддерживаем партнёра.","We're losing battles. Win the second puck and give the carrier an outlet.")],
+              ["composure",tr("Игра под контролем. Бережём шайбу и держим короткие смены.","Stay composed. Protect the puck and keep the shifts short.")],
+            ].map(([key,label])=><button key={key} onClick={()=>setRoom({time:match.time,reactions:match.addressRoom(side,key as "trust"|"push"|"composure")})}>{label}</button>)}
+          </section>}
           <div>
             {match.done ? (
               <button className="primary" onClick={finish}>
@@ -406,6 +418,7 @@ export default function SpatialMatchCenter({
               </button>
             ) : (
               <>
+                {room?.time!==match.time && <button onClick={()=>setRoom({time:match.time})}>{tr("Обратиться к команде","Address the team")}</button>}
                 <button onClick={() => setDrawer("lines")}>{tr("Звенья и тактика", "Lines & tactics")}</button>
                 <button className="primary" onClick={toggle}>
                   {match.time >= 3600 ? tr("Начать овертайм", "Start overtime") : tr(`Начать ${nextPeriod}-й период`, `Start period ${nextPeriod}`)}

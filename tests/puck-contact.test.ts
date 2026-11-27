@@ -86,3 +86,22 @@ test("a straight board absorbs both normal and glancing impacts", () => {
     assert(Math.hypot(velocity.vx,velocity.vz)<.82*Math.hypot(vx,vz));
   }
 });
+
+test("a glancing rebound continues away from the rail during the remainder of the tick",()=>{
+  const start={x:RINK.boardsX-.25,z:0}, puck={x:start.x+.8,z:.3}, v={vx:8,vz:3};
+  assert(bounceAtBoards(puck,v,start,.1));
+  assert(v.vx<0 && v.vz>0);
+  assert(puck.x<RINK.boardsX-.12 && puck.z>.19 && puck.z<.31);
+});
+test("a skater rounds both corners to get from behind the goal to the far bench",()=>{
+  const target={x:-8.5,z:-11.4};
+  for(const sign of [-1,1]){
+    let at={x:sign*28.4,z:.15};
+    for(let tick=0;tick<400;tick++){
+      const route=skaterNetRoute(at,target), dx=route.x-at.x,dz=route.z-at.z;
+      const step=Math.min(1,.35/Math.max(.001,Math.hypot(dx,dz)));
+      at=clearSkaterNet(at,{x:at.x+dx*step,z:at.z+dz*step});
+    }
+    assert(Math.hypot(at.x-target.x,at.z-target.z)<.1);
+  }
+});

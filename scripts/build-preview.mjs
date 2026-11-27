@@ -14,7 +14,7 @@ await build({
   logLevel: "warn",
   build: {
     outDir: out,
-    assetsInlineLimit: file => /\.(glb|wav)$/i.test(file) || undefined,
+    assetsInlineLimit: file => file.endsWith("player-faces.webp") || /\.(glb|wav)$/i.test(file) || undefined,
     emptyOutDir: true,
     chunkSizeWarningLimit: 6000,
     rollupOptions: { output: { inlineDynamicImports: true } },

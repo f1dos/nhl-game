@@ -38,21 +38,41 @@ export function stepPuck(puck: Puck, velocity: Velocity, dt: number) {
 }
 
 /** Bounce on the interior of the rounded rectangle, preserving tangential motion. */
-export function bounceAtBoards(puck: Dot, velocity: Velocity) {
+export function bounceAtBoards(puck: Dot, velocity: Velocity, start?: Dot, dt=0) {
   const radius = RINK.cornerRadius;
   const cx = Math.sign(puck.x) * Math.min(Math.abs(puck.x), RINK.boardsX - radius);
   const cz = Math.sign(puck.z) * Math.min(Math.abs(puck.z), RINK.boardsZ - radius);
   const dx = puck.x - cx, dz = puck.z - cz;
   const distance = Math.hypot(dx, dz);
   if (distance <= radius - PUCK_RADIUS) return false;
-  const nx = dx / distance, nz = dz / distance;
+  let nx = dx / distance, nz = dz / distance, remainder=0;
+  if(start && dt>0){
+    // Locate first contact on the rounded rail, then use the remaining tick for the rebound.
+    const ox=puck.x-start.x, oz=puck.z-start.z;
+    let lo=0,hi=1;
+    for(let i=0;i<10;i++){
+      const t=(lo+hi)*.5,x=start.x+t*ox,z=start.z+t*oz;
+      if(Math.hypot(Math.max(0,Math.abs(x)-RINK.boardsX+radius),
+          Math.max(0,Math.abs(z)-RINK.boardsZ+radius))>=radius-PUCK_RADIUS)hi=t;else lo=t;
+    }
+    const x=start.x+hi*ox,z=start.z+hi*oz;
+    const rx=Math.sign(x)*Math.max(0,Math.abs(x)-RINK.boardsX+radius);
+    const rz=Math.sign(z)*Math.max(0,Math.abs(z)-RINK.boardsZ+radius);
+    const r=Math.hypot(rx,rz);
+    if(r>.001){nx=rx/r;nz=rz/r;remainder=dt*(1-hi);}
+  }
   const normalSpeed = velocity.vx * nx + velocity.vz * nz;
   const inside = radius - PUCK_RADIUS - 0.001;
-  puck.x = cx + nx * inside;
-  puck.z = cz + nz * inside;
+  puck.x = remainder && start ? start.x+(puck.x-start.x)*(1-remainder/dt)-nx*.001 : cx + nx * inside;
+  puck.z = remainder && start ? start.z+(puck.z-start.z)*(1-remainder/dt)-nz*.001 : cz + nz * inside;
   if (normalSpeed > 0) {
-    velocity.vx = (velocity.vx - nx * normalSpeed) * 0.81 - nx * normalSpeed * 0.43;
-    velocity.vz = (velocity.vz - nz * normalSpeed) * 0.81 - nz * normalSpeed * 0.43;
+    // A grazing rim carries along the wall; square impacts lose more energy in the kick plate.
+    const incidence=normalSpeed/Math.max(.001,Math.hypot(velocity.vx,velocity.vz));
+    const tangent=.819-.075*incidence;
+    const rebound=.50-.09*incidence;
+    velocity.vx = (velocity.vx - nx * normalSpeed) * tangent - nx * normalSpeed * rebound;
+    velocity.vz = (velocity.vz - nz * normalSpeed) * tangent - nz * normalSpeed * rebound;
+    puck.x+=velocity.vx*remainder; puck.z+=velocity.vz*remainder;
   }
   return true;
 }
