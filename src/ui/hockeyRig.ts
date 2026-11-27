@@ -104,6 +104,8 @@ export interface RigInput {
   lookZ?: number;
 }
 export interface RigIdentity {
+  externalId?: number;
+  portraitIndex?: number;
   id: string;
   name: string;
   number: number;

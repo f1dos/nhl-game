@@ -189,6 +189,24 @@ export function buildMatchNight(
   decks.forEach((m,i)=>risers.setMatrixAt(i,m));
   risers.layers.set(1);
   bowl.add(risers);
+  // Each occupied sector has its own bounds. A close or rinkside camera
+  // can reject entire blocks without submitting their seats and spectators.
+  function seatSections(geometry:THREE.BufferGeometry,material:THREE.Material,matrices:THREE.Matrix4[],name:string){
+    const sections=new Map<number,THREE.Matrix4[]>();
+    for(const matrix of matrices){
+      const e=matrix.elements;
+      const sector=Math.floor((Math.atan2(e[14],e[12])+Math.PI)*6/Math.PI)%12;
+      const section=sections.get(sector);
+      if(section)section.push(matrix);
+      else sections.set(sector,[matrix]);
+    }
+    for(const section of sections.values()){
+      const mesh=own(new THREE.InstancedMesh(geometry,material,section.length));
+      section.forEach((m,i)=>mesh.setMatrixAt(i,m));
+      mesh.computeBoundingSphere();
+      mesh.name=name;mesh.layers.set(1);bowl.add(mesh);
+    }
+  }
   const nearMat = own(
     new THREE.MeshStandardMaterial({ vertexColors: true, color: 0xb4adb4, roughness: 0.85 }),
   );
@@ -208,11 +226,7 @@ export function buildMatchNight(
       );
       geometry.setIndex(indices);
       geometry.computeVertexNormals();
-      const row = new THREE.InstancedMesh(geometry, nearMat, lower[i].length);
-      lower[i].forEach((matrix, j) => row.setMatrixAt(j, matrix));
-      row.name = "Match Night | lower bowl fans " + i;
-      row.layers.set(1);
-      bowl.add(row);
+      seatSections(geometry,nearMat,lower[i],"Match Night | lower bowl fans "+i);
     },
   );
   crowdGeometry.setAttribute(
@@ -234,17 +248,8 @@ export function buildMatchNight(
   );
   chair.setIndex(data.chair[1]);
   chair.computeVertexNormals();
-  const chairs = new THREE.InstancedMesh(
-    chair,
-    own(
-      new THREE.MeshStandardMaterial({
-        color: "#273e5a",
-        roughness: 0.9,
-      }),
-    ),
-    data.seat.length / 4 + railSeats.length,
-  );
-  let empty = 0;
+  const chairMaterial=own(new THREE.MeshStandardMaterial({color:"#273e5a",roughness:.9}));
+  const emptySeats:THREE.Matrix4[]=[];
   for (let i = 0; i < data.seat.length; i += 4) {
     const x = data.seat[i],
       y = data.seat[i + 1],
@@ -257,12 +262,9 @@ export function buildMatchNight(
     dummy.position.set(x / 100, y / 100, z / 100);
     dummy.rotation.y = data.seat[i + 3] / 1000;
     dummy.updateMatrix();
-    chairs.setMatrixAt(empty++, dummy.matrix);
+    emptySeats.push(dummy.matrix.clone());
   }
-  for (const matrix of railSeats) chairs.setMatrixAt(empty++,matrix);
-  chairs.count = empty;
-  chairs.layers.set(1);
-  bowl.add(chairs);
+  seatSections(chair,chairMaterial,emptySeats.concat(railSeats),"Match Night | seats");
   // Replace the three continuous bench-side strips with fixed panels and
   // hinged leaves. Keep the bench floors and the corner panels from Blender.
   const panels = unpack<Batch>(rinkData);

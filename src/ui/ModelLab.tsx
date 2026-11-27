@@ -1,10 +1,11 @@
+import {WRIST_RELEASE} from "../engine/wristShot";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { appearanceFor, type RigLike } from "./skinnedRig";
 import { MatchNightFactory } from "./matchNightRig";
 import { kitFor } from "./teamKit";
 import { clubs } from "../engine/database";
-import { NHL_TEAM_LOGOS } from "../data/nhl-2026-27";
+import { NHL_TEAM_LOGOS, NHL_ROSTERS } from "../data/nhl-2026-27";
 import "./modelLab.css";
 import { RigFactory } from "./hockeyRig";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -49,8 +50,11 @@ interface Actor {
 
 export default function ModelLab() {
   const host = useRef<HTMLDivElement>(null);
+  const changeMotion=useRef<((value:string)=>void) | null>(null);
   const meter = useRef<HTMLOutputElement>(null);
   const params = new URLSearchParams(location.search);
+  const roster=NHL_ROSTERS[params.get("club") ?? "NYR"] ?? NHL_ROSTERS.NYR;
+  const portraitPlayer=roster.find(p=>String(p.id)===params.get("player")) ?? roster[0];
   const select = (
     key: string,
     label: string,
@@ -60,7 +64,7 @@ export default function ModelLab() {
       {label}{" "}
       <select
         defaultValue={
-          params.get(key) ??
+          (key==="player" ? String(portraitPlayer.id) : params.get(key)) ??
           (key === "lod"
             ? "auto"
             : key === "club"
@@ -70,8 +74,12 @@ export default function ModelLab() {
         onChange={(e) => {
           const url = new URL(location.href);
           url.searchParams.set(key, e.target.value);
+          if (key === "club") url.searchParams.delete("player");
           if (key === "view") url.searchParams.delete("motion");
-          location.assign(url);
+          if(key==="motion" && changeMotion.current){
+            history.replaceState(null,"",url);
+            changeMotion.current(e.target.value);
+          }else location.assign(url);
         }}
       >
         {Object.entries(values).map(([value, text]) => (
@@ -86,9 +94,9 @@ export default function ModelLab() {
     const el = host.current!;
     const options = new URLSearchParams(location.search);
     const view = options.get("view") ?? "front";
-    const action = options.get("motion") ?? "pose";
-    const pursuit = action === "pursuit";
-    const skating = pursuit || action === "skate";
+    let action = options.get("motion") ?? "pose";
+    let pursuit = action === "pursuit";
+    let skating = pursuit || action === "skate";
     const variantId = options.get("build") ?? "roster";
     const forcedLod = options.get("lod") ?? "auto";
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -147,7 +155,7 @@ export default function ModelLab() {
       pos: string,
       a: Omit<Actor, "rig">,
     ) => {
-      if (variantId !== "roster") {
+      if (variantId !== "roster" && view!=="portrait") {
         const target =
           variantId === "lean" ? 0.13 : variantId === "heavy" ? 0.94 : 0.51;
         const role = pos === "G" ? "goalie" : "skater";
@@ -211,6 +219,13 @@ export default function ModelLab() {
       );
       camera.position.set(1.7, 1.55, 3.4);
       look.set(0.13, 0.88, 0.21);
+    } else if(view==="portrait"){
+      const p=portraitPlayer;
+      add(p.position==="G" ? models.goalie(blue) : models.skater(blue),
+        "nhl-"+blue.abbr+"-"+p.id,p.firstName+" "+p.lastName,p.number,p.position,
+        {x:0,z:0,yaw:0,state:"play"});
+      camera.position.set(.09,1.74,1.60);
+      look.set(0,1.65,.24);
     } else if (view === "front" || view === "side") {
       add(models.skater(blue), "nhl-NYR-8479323", "Adam Fox", 23, "D", {
         x: action === "pose" ? -0.55 : 0,
@@ -218,13 +233,13 @@ export default function ModelLab() {
         yaw: view === "side" ? Math.PI / 2 : 0.25,
         state: "play",
       });
-      if (action === "pose")
-        add(models.skater(white), "nhl-MTL-8480018", "Nick Suzuki", 14, "C", {
+      add(models.skater(white), "nhl-MTL-8480018", "Nick Suzuki", 14, "C", {
           x: 0.65,
           z: -0.2,
           yaw: view === "side" ? -Math.PI / 2 : -0.35,
           state: "faceoff-ready",
         });
+      actors[1].rig.setVisible(action==="pose");
       camera.position.set(0, 1.25, view === "side" ? 4.4 : 4.2);
       look.set(0, 0.95, 0);
     } else if (view === "back") {
@@ -365,25 +380,31 @@ export default function ModelLab() {
     let frame = 0,
       elapsed = 0,
       nextAction = 0.5, followAt = Infinity;
-    const follow = view === "goalie" && ["cover", "low-cover", "rebound-left", "rebound-right"].includes(action);
+    let follow = view === "goalie" && ["cover", "low-cover", "rebound-left", "rebound-right"].includes(action);
     let last = performance.now();
     let frames = 0,
       fpsT = 0;
+    const practicePuck=new THREE.Mesh(new THREE.CylinderGeometry(.0381,.0381,.0254,24),new THREE.MeshStandardMaterial({color:0x18181b,roughness:.83}));
+    scene.add(practicePuck);
+    const contact=new THREE.Vector3();
+    let launchedAt=-Infinity;
     const advance = (dt: number) => {
       elapsed += dt;
       for (const a of actors) {
+        if(!a.rig.root.visible)continue;
         if (a.state && (action === "pose" || elapsed === dt))
           a.rig.setState(
             action === "pose" ? a.state : "play",
             a.variant ?? 0.2,
             1,
           );
+        if(action==="wrist" && elapsed>=nextAction)launchedAt=elapsed;
         if(view==="coach" && action==="line-call" && elapsed>=nextAction)
           a.rig.signalLine?.();
         else if (!skating && action !== "pose" && elapsed >= nextAction)
           a.rig.trigger(
             follow ? "save" : action as RigActionKind,
-            { x: a.x + 0.5, z: a.z + 3 },
+            { x: Math.sin(a.yaw+.18), z: Math.cos(a.yaw+.18) },
             action==="low-cover"?.14:.65,
           );
         if(follow && elapsed >= nextAction) followAt=elapsed+.16;
@@ -410,7 +431,29 @@ export default function ModelLab() {
           face: a.yaw,
         });
       }
-      if (elapsed >= nextAction) nextAction = elapsed + 2.5;
+      const shooter=actors[0],age=elapsed-launchedAt;
+      practicePuck.visible=action==="wrist" && (view==="front" || view==="side");
+      if(practicePuck.visible && shooter){
+        if(!Number.isFinite(age) || age<WRIST_RELEASE){
+          if(shooter.rig.bladePoint?.(contact))practicePuck.position.set(contact.x,.016,contact.z);
+        }else{
+          const flight=age-WRIST_RELEASE;
+          if(flight>.22)practicePuck.visible=false;
+          else practicePuck.position.set(contact.x+22*Math.sin(shooter.yaw+.18)*flight,.016+1.6*flight,contact.z+22*Math.cos(shooter.yaw+.18)*flight);
+        }
+      }
+      if (elapsed >= nextAction) nextAction = elapsed + (action==="wrist"?1.65:2.5);
+    };
+    changeMotion.current=(value)=>{
+      action=value;
+      pursuit=action==="pursuit";skating=pursuit || action==="skate";
+      follow=view==="goalie" && ["cover","low-cover","rebound-left","rebound-right"].includes(action);
+      if(view==="front" || view==="side"){
+        actors[0].x=action==="pose"?-.55:0;
+        actors[0].rig.place(actors[0].x,actors[0].z,actors[0].yaw);
+        actors[1].rig.setVisible(action==="pose");
+      }
+      launchedAt=-Infinity;elapsed=0;nextAction=.18;followAt=Infinity;
     };
     const still = options.has("sample");
     if (still) {
@@ -422,11 +465,23 @@ export default function ModelLab() {
       if(factory instanceof MatchNightFactory)void factory.whenLoaded().then(sample);
       else sample();
     }
+    let framedPortrait=false;
     const tick = (now: number) => {
       const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
       const wallDt = (now - last) / 1000;
       last = now;
       advance(still ? 0 : dt);
+      if(view==="portrait" && !framedPortrait){
+        const root=actors[0].rig.root;
+        root.updateMatrixWorld(true);
+        root.traverse(node=>{
+          if(!(node instanceof THREE.SkinnedMesh) || Array.isArray(node.material) || !node.material.name.endsWith("Cornea")) return;
+          const eye=node.localToWorld(node.getVertexPosition(0,new THREE.Vector3()));
+          controls.target.copy(eye);
+          camera.position.copy(eye).add(new THREE.Vector3(.08,.04,.88));
+          framedPortrait=true;
+        });
+      }
       controls.update();
       renderer.render(scene, camera);
       frames++;
@@ -449,6 +504,7 @@ export default function ModelLab() {
     };
     frame = requestAnimationFrame(tick);
     return () => {
+      changeMotion.current=null;
       closed = true;
       if (study) disposeStudy(study);
       cancelAnimationFrame(frame);
@@ -456,6 +512,7 @@ export default function ModelLab() {
       actors.forEach((a) => a.rig.dispose());
       factory.dispose();
       controls.dispose();
+      practicePuck.geometry.dispose();practicePuck.material.dispose();
       ice.geometry.dispose();
       ice.material.dispose();
       key.shadow.dispose();
@@ -473,6 +530,7 @@ export default function ModelLab() {
       <aside aria-label="Model studio">
         {select("view", "Camera", {
           front: "Front",
+          portrait: "Player portrait",
           side: "Profile",
           back: "Jersey",
           goalie: "Goaltender",
@@ -480,7 +538,7 @@ export default function ModelLab() {
           faceoff: "Faceoff",
           celebrate: "Celebration",
           lineup: "Line-up",
-          skater27: "Skater 27 · Blender",
+          skater27: "Skater 27 В· Blender",
         })}
         {params.get("view") !== "skater27" && (
           <>
@@ -491,6 +549,8 @@ export default function ModelLab() {
                 clubs.map(([id, city, name]) => [id, city + " " + name]),
               ),
             )}
+            {params.get("view")==="portrait" && select("player","Player",
+              Object.fromEntries(roster.map(p=>[p.id,p.firstName+" "+p.lastName])))}
             {select("kit", "Uniform", { home: "Home", away: "Away" })}
             {select("build", "Appearance", {
               roster: "Roster",

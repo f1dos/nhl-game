@@ -608,3 +608,11 @@
 .coach-report details>summary{cursor:pointer;padding:5px 0}
 .bw-bench .coach-report label:has(input[type=checkbox]) {display:flex;justify-content:flex-start;gap:8px}
 .bw-bench .coach-report input[type=checkbox] {width:16px;flex:0 0 16px}
+
+.bw-center-card:has(.break-room){width:min(550px,calc(100% - 32px));max-height:85%;overflow:auto}
+.break-room{margin:14px 0 18px;border-block:1px solid var(--bw-line);padding:12px 0;text-align:left}
+.break-room h3{margin:0 0 10px;font-size:16px}
+.broadcast-window .break-room button{display:block;width:100%;text-align:left;margin:6px 0;font-weight:500;line-height:1.4}
+.break-room ul{margin:8px 0 0;padding:0;list-style:none}
+.break-room li{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
+.break-room li span{color:var(--bw-muted)}
